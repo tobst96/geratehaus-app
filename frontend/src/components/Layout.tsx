@@ -7,8 +7,10 @@ export function Layout() {
   return (
     <>
       <header className="kopfzeile">
-        {config?.logo_url && <img src={config.logo_url} alt="Logo" />}
-        <span className="organisation">{config?.organisation_name ?? "Gerätehaus.app"}</span>
+        <Link to="/" style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", color: "inherit" }}>
+          {config?.logo_url && <img src={config.logo_url} alt="Logo" />}
+          <span className="organisation">{config?.organisation_name ?? "Gerätehaus.app"}</span>
+        </Link>
       </header>
       <main className="seite">
         <Outlet />
