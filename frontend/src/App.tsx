@@ -3,7 +3,7 @@ import { Layout } from "./components/Layout";
 import { ModeratorRoute } from "./components/ModeratorRoute";
 import { SetupGate } from "./components/SetupGate";
 import { AussenRoute } from "./components/AussenRoute";
-import { Start } from "./pages/Start";
+import { KioskHome } from "./pages/KioskHome";
 import { Datenschutz } from "./pages/Datenschutz";
 import { NotFound } from "./pages/NotFound";
 import { ModeratorLogin } from "./pages/moderator/ModeratorLogin";
@@ -31,7 +31,7 @@ export function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/setup" element={<SetupWizard />} />
-          <Route path="/" element={<Start />} />
+          <Route path="/" element={<KioskHome />} />
           <Route path="/datenschutz" element={<Datenschutz />} />
           <Route path="/moderator/login" element={<ModeratorLogin />} />
 
