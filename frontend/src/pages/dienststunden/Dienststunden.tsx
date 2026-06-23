@@ -1,9 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useStandort } from "../../context/StandortContext";
 import { stundenErfassen, holeMeineSummen } from "../../api/dienststunden";
 import { holeFunktionenDienststunden } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
-import { GeofenceFehler } from "../../components/GeofenceFehler";
 import type { DienststundenSummeOut, FunktionDienststunden } from "../../api/types";
 
 function heuteAlsDatum(): string {
@@ -11,7 +9,6 @@ function heuteAlsDatum(): string {
 }
 
 export function Dienststunden() {
-  const { position } = useStandort();
   const [summen, setSummen] = useState<DienststundenSummeOut[] | null>(null);
   const [funktionen, setFunktionen] = useState<FunktionDienststunden[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -22,9 +19,8 @@ export function Dienststunden() {
   const [datum, setDatum] = useState(heuteAlsDatum());
 
   async function laden() {
-    if (!position) return;
     try {
-      const [s, f] = await Promise.all([holeMeineSummen(position), holeFunktionenDienststunden()]);
+      const [s, f] = await Promise.all([holeMeineSummen(), holeFunktionenDienststunden()]);
       setSummen(s);
       setFunktionen(f);
       if (!funktionId && f.length > 0) setFunktionId(String(f[0].id));
@@ -35,15 +31,14 @@ export function Dienststunden() {
 
   useEffect(() => {
     laden();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position]);
+  }, []);
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
-    if (!position || !funktionId) return;
+    if (!funktionId) return;
     setErfolg(null);
     try {
-      await stundenErfassen(Number(funktionId), stunden, datum, position);
+      await stundenErfassen(Number(funktionId), stunden, datum);
       setErfolg("Stunden erfasst.");
       await laden();
     } catch (err) {
@@ -51,7 +46,7 @@ export function Dienststunden() {
     }
   }
 
-  if (fehler) return <GeofenceFehler nachricht={fehler} />;
+  if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
   if (!summen) return <p>Lädt …</p>;
 
   return (

@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { markiereAlsEingerichtet, setupAusfuehren, setupLogoHochladen } from "../../api/setup";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
-import { GeofencePicker } from "../../components/GeofencePicker";
 
-const SCHRITTE = ["Organisation", "Logo", "Farben", "Standort", "Admin-Passwort"] as const;
+const SCHRITTE = ["Organisation", "Logo", "Farben", "Admin-Passwort"] as const;
 
 export function SetupWizard() {
   const navigate = useNavigate();
@@ -17,9 +16,6 @@ export function SetupWizard() {
   const [logoLadevorgang, setLogoLadevorgang] = useState(false);
   const [farbePrimaer, setFarbePrimaer] = useState("#CC0000");
   const [farbeAkzent, setFarbeAkzent] = useState("#000000");
-  const [geofenceLat, setGeofenceLat] = useState(0);
-  const [geofenceLon, setGeofenceLon] = useState(0);
-  const [radiusMeter, setRadiusMeter] = useState(150);
   const [adminPasswort, setAdminPasswort] = useState("");
   const [adminPasswortWiederholung, setAdminPasswortWiederholung] = useState("");
   const [fehler, setFehler] = useState<string | null>(null);
@@ -43,8 +39,6 @@ export function SetupWizard() {
       case 0:
         return organisationName.trim().length > 0;
       case 3:
-        return geofenceLat !== 0 || geofenceLon !== 0;
-      case 4:
         return adminPasswort.length >= 8 && adminPasswort === adminPasswortWiederholung;
       default:
         return true;
@@ -59,9 +53,6 @@ export function SetupWizard() {
         organisation_name: organisationName,
         farbe_primaer: farbePrimaer,
         farbe_akzent: farbeAkzent,
-        geofence_lat: geofenceLat,
-        geofence_lon: geofenceLon,
-        geofence_radius_meter: radiusMeter,
         admin_passwort: adminPasswort,
       });
       markiereAlsEingerichtet();
@@ -130,28 +121,6 @@ export function SetupWizard() {
         )}
 
         {schritt === 3 && (
-          <>
-            <GeofencePicker
-              lat={geofenceLat}
-              lon={geofenceLon}
-              radiusMeter={radiusMeter}
-              onChange={(lat, lon) => {
-                setGeofenceLat(lat);
-                setGeofenceLon(lon);
-              }}
-            />
-            <label htmlFor="radius">Radius in Metern</label>
-            <input
-              id="radius"
-              type="number"
-              min={10}
-              value={radiusMeter}
-              onChange={(e) => setRadiusMeter(Number(e.target.value))}
-            />
-          </>
-        )}
-
-        {schritt === 4 && (
           <>
             <label htmlFor="admin-passwort">Admin-Passwort (mind. 8 Zeichen)</label>
             <input

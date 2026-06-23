@@ -1,15 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useStandort } from "../../context/StandortContext";
 import { holeEinsatz, teilnahmeEintragen, einsatzPdfUrl } from "../../api/einsaetze";
 import { holeFahrzeuge, holeFunktionenEinsatz } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
-import { GeofenceFehler } from "../../components/GeofenceFehler";
 import type { EinsatzOut, Fahrzeug, FunktionEinsatz } from "../../api/types";
 
 export function EinsatzDetail() {
   const { id } = useParams<{ id: string }>();
-  const { position } = useStandort();
   const [einsatz, setEinsatz] = useState<EinsatzOut | null>(null);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
   const [funktionen, setFunktionen] = useState<FunktionEinsatz[]>([]);
@@ -22,10 +19,10 @@ export function EinsatzDetail() {
   const [nurGeraetehaus, setNurGeraetehaus] = useState(false);
 
   async function laden() {
-    if (!position || !id) return;
+    if (!id) return;
     try {
       const [e, f, fn] = await Promise.all([
-        holeEinsatz(Number(id), position),
+        holeEinsatz(Number(id)),
         holeFahrzeuge(),
         holeFunktionenEinsatz(),
       ]);
@@ -40,30 +37,26 @@ export function EinsatzDetail() {
   useEffect(() => {
     laden();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position, id]);
+  }, [id]);
 
   async function teilnahmeAbsenden(e: FormEvent) {
     e.preventDefault();
-    if (!position || !id) return;
+    if (!id) return;
     try {
-      await teilnahmeEintragen(
-        Number(id),
-        {
-          fahrzeug_id: fahrzeugId ? Number(fahrzeugId) : null,
-          funktion_id: funktionId ? Number(funktionId) : null,
-          vab,
-          atemschutzminuten,
-          nur_geraetehaus: nurGeraetehaus,
-        },
-        position
-      );
+      await teilnahmeEintragen(Number(id), {
+        fahrzeug_id: fahrzeugId ? Number(fahrzeugId) : null,
+        funktion_id: funktionId ? Number(funktionId) : null,
+        vab,
+        atemschutzminuten,
+        nur_geraetehaus: nurGeraetehaus,
+      });
       await laden();
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Teilnahme konnte nicht gespeichert werden.");
     }
   }
 
-  if (fehler) return <GeofenceFehler nachricht={fehler} />;
+  if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
   if (!einsatz) return <p>Lädt …</p>;
 
   return (
@@ -75,13 +68,11 @@ export function EinsatzDetail() {
       <p>
         {new Date(einsatz.zeitpunkt).toLocaleString("de-DE")} · {einsatz.quelle} · {einsatz.status}
       </p>
-      {position && (
-        <p>
-          <a href={einsatzPdfUrl(einsatz.id, position)} target="_blank" rel="noreferrer">
-            Als PDF exportieren
-          </a>
-        </p>
-      )}
+      <p>
+        <a href={einsatzPdfUrl(einsatz.id)} target="_blank" rel="noreferrer">
+          Als PDF exportieren
+        </a>
+      </p>
 
       <div className="karte">
         <h2>Teilnahme eintragen</h2>

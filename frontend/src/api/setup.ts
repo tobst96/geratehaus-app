@@ -5,9 +5,6 @@ export interface SetupRequest {
   organisation_name: string;
   farbe_primaer: string;
   farbe_akzent: string;
-  geofence_lat: number;
-  geofence_lon: number;
-  geofence_radius_meter: number;
   admin_passwort: string;
 }
 

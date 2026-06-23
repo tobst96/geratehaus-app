@@ -8,7 +8,6 @@ import {
 import { setupErneutAusfuehren } from "../../api/setup";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
-import { GeofencePicker } from "../../components/GeofencePicker";
 
 export function Einstellungen() {
   const { neuLaden } = useConfig();
@@ -25,10 +24,6 @@ export function Einstellungen() {
   const [modulDienstbuch, setModulDienstbuch] = useState(true);
   const [modulDienststunden, setModulDienststunden] = useState(true);
   const [modulFahrzeugbuchung, setModulFahrzeugbuchung] = useState(true);
-
-  const [geofenceLat, setGeofenceLat] = useState(0);
-  const [geofenceLon, setGeofenceLon] = useState(0);
-  const [geofenceRadius, setGeofenceRadius] = useState(150);
 
   const [dienstbuchZeitfenster, setDienstbuchZeitfenster] = useState(12);
   const [archivierungszeitraum, setArchivierungszeitraum] = useState(2);
@@ -50,9 +45,6 @@ export function Einstellungen() {
       setModulDienstbuch(Boolean(w.modul_dienstbuch_aktiv));
       setModulDienststunden(Boolean(w.modul_dienststunden_aktiv));
       setModulFahrzeugbuchung(Boolean(w.modul_fahrzeugbuchung_aktiv));
-      setGeofenceLat(Number(w.geofence_lat ?? 0));
-      setGeofenceLon(Number(w.geofence_lon ?? 0));
-      setGeofenceRadius(Number(w.geofence_radius_meter ?? 150));
       setDienstbuchZeitfenster(Number(w.dienstbuch_zeitfenster_stunden ?? 12));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
       setPinLaenge(Number(w.pin_laenge ?? 4));
@@ -83,9 +75,6 @@ export function Einstellungen() {
         modul_dienstbuch_aktiv: modulDienstbuch,
         modul_dienststunden_aktiv: modulDienststunden,
         modul_fahrzeugbuchung_aktiv: modulFahrzeugbuchung,
-        geofence_lat: geofenceLat,
-        geofence_lon: geofenceLon,
-        geofence_radius_meter: geofenceRadius,
         dienstbuch_zeitfenster_stunden: dienstbuchZeitfenster,
         archivierungszeitraum_jahre: archivierungszeitraum,
         pin_laenge: pinLaenge,
@@ -137,9 +126,6 @@ export function Einstellungen() {
         organisation_name: organisationName,
         farbe_primaer: farbePrimaer,
         farbe_akzent: farbeAkzent,
-        geofence_lat: geofenceLat,
-        geofence_lon: geofenceLon,
-        geofence_radius_meter: geofenceRadius,
         admin_passwort: prompt("Neues Admin-Passwort (mind. 8 Zeichen):") ?? "",
       });
       neuLaden();
@@ -209,27 +195,6 @@ export function Einstellungen() {
             />{" "}
             Fahrzeugbuchung
           </label>
-        </div>
-
-        <div className="karte">
-          <h2>Geofence</h2>
-          <GeofencePicker
-            lat={geofenceLat}
-            lon={geofenceLon}
-            radiusMeter={geofenceRadius}
-            onChange={(lat, lon) => {
-              setGeofenceLat(lat);
-              setGeofenceLon(lon);
-            }}
-          />
-          <label htmlFor="e-radius">Radius in Metern</label>
-          <input
-            id="e-radius"
-            type="number"
-            min={10}
-            value={geofenceRadius}
-            onChange={(e) => setGeofenceRadius(Number(e.target.value))}
-          />
         </div>
 
         <div className="karte">

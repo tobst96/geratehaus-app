@@ -2,7 +2,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { ModeratorRoute } from "./components/ModeratorRoute";
 import { SetupGate } from "./components/SetupGate";
-import { StandortGate } from "./components/StandortGate";
 import { AussenRoute } from "./components/AussenRoute";
 import { Start } from "./pages/Start";
 import { Datenschutz } from "./pages/Datenschutz";
@@ -47,14 +46,12 @@ export function App() {
             </Route>
           </Route>
 
-          <Route element={<StandortGate />}>
-            <Route path="/pin-einrichten" element={<PinEinrichten />} />
-            <Route path="/einsatztagebuch" element={<Einsatztagebuch />} />
-            <Route path="/einsatztagebuch/:id" element={<EinsatzDetail />} />
-            <Route path="/dienstbuch" element={<Dienstbuch />} />
-            <Route path="/dienststunden" element={<Dienststunden />} />
-            <Route path="/fahrzeugbuchung" element={<Fahrzeugbuchung />} />
-          </Route>
+          <Route path="/pin-einrichten" element={<PinEinrichten />} />
+          <Route path="/einsatztagebuch" element={<Einsatztagebuch />} />
+          <Route path="/einsatztagebuch/:id" element={<EinsatzDetail />} />
+          <Route path="/dienstbuch" element={<Dienstbuch />} />
+          <Route path="/dienststunden" element={<Dienststunden />} />
+          <Route path="/fahrzeugbuchung" element={<Fahrzeugbuchung />} />
 
           <Route path="/aussen/login" element={<AussenLogin />} />
           <Route element={<AussenRoute />}>

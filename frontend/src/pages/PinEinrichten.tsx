@@ -2,11 +2,9 @@ import { useState, type FormEvent } from "react";
 import { pinEinrichten } from "../api/auth";
 import { ApiError } from "../api/client";
 import { useConfig } from "../context/ConfigContext";
-import { useStandort } from "../context/StandortContext";
 
 export function PinEinrichten() {
   const { config } = useConfig();
-  const { position } = useStandort();
   const pinLaenge = config?.pin_laenge ?? 4;
 
   const [pin, setPin] = useState("");
@@ -17,7 +15,6 @@ export function PinEinrichten() {
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
-    if (!position) return;
     if (pin !== pinWiederholung) {
       setFehler("Die PINs stimmen nicht überein.");
       return;
@@ -25,7 +22,7 @@ export function PinEinrichten() {
     setLadevorgang(true);
     setFehler(null);
     try {
-      await pinEinrichten(position.lat, position.lon, pin);
+      await pinEinrichten(pin);
       setErfolg(true);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "PIN konnte nicht gespeichert werden.");

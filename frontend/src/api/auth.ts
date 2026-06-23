@@ -2,8 +2,8 @@ import { apiPost, ApiError } from "./client";
 
 const BASIS_URL = "/api/v1";
 
-export const pinEinrichten = (lat: number, lon: number, pin: string) =>
-  apiPost<void>("/auth/pin/einrichten", { lat, lon, pin });
+export const pinEinrichten = (pin: string) =>
+  apiPost<void>("/auth/pin/einrichten", { pin });
 
 export const pinVerifizieren = (pin: string) => apiPost<void>("/auth/pin/verifizieren", { pin });
 

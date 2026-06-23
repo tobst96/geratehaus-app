@@ -1,9 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { useStandort } from "../../context/StandortContext";
 import { holeEinsaetze, einsatzAnlegen } from "../../api/einsaetze";
 import { ApiError } from "../../api/client";
-import { GeofenceFehler } from "../../components/GeofenceFehler";
 import type { EinsatzOut } from "../../api/types";
 
 function jetztAlsDatetimeLocal(): string {
@@ -13,7 +11,6 @@ function jetztAlsDatetimeLocal(): string {
 }
 
 export function Einsatztagebuch() {
-  const { position } = useStandort();
   const [einsaetze, setEinsaetze] = useState<EinsatzOut[] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [neuTitel, setNeuTitel] = useState("");
@@ -21,9 +18,8 @@ export function Einsatztagebuch() {
   const [formularOffen, setFormularOffen] = useState(false);
 
   async function laden() {
-    if (!position) return;
     try {
-      setEinsaetze(await holeEinsaetze(position));
+      setEinsaetze(await holeEinsaetze());
       setFehler(null);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Einsätze konnten nicht geladen werden.");
@@ -32,14 +28,13 @@ export function Einsatztagebuch() {
 
   useEffect(() => {
     laden();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position]);
+  }, []);
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
-    if (!position || !neuTitel.trim()) return;
+    if (!neuTitel.trim()) return;
     try {
-      await einsatzAnlegen(neuTitel.trim(), new Date(neuZeitpunkt).toISOString(), position);
+      await einsatzAnlegen(neuTitel.trim(), new Date(neuZeitpunkt).toISOString());
       setNeuTitel("");
       setFormularOffen(false);
       await laden();
@@ -48,7 +43,7 @@ export function Einsatztagebuch() {
     }
   }
 
-  if (fehler) return <GeofenceFehler nachricht={fehler} />;
+  if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
   if (!einsaetze) return <p>Lädt …</p>;
 
   return (

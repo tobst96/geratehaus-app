@@ -1,10 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useStandort } from "../../context/StandortContext";
 import { useAuth } from "../../context/AuthContext";
 import { holeBuchungen, buchungAnfrage, buchungZurueckziehen } from "../../api/buchungen";
 import { holeFahrzeuge } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
-import { GeofenceFehler } from "../../components/GeofenceFehler";
 import { BuchungsKalender } from "../../components/BuchungsKalender";
 import type { BuchungOut, Fahrzeug } from "../../api/types";
 
@@ -15,7 +13,6 @@ function jetztAlsDatetimeLocal(minutenSpaeter = 0): string {
 }
 
 export function Fahrzeugbuchung() {
-  const { position } = useStandort();
   const { angezeigterName } = useAuth();
   const [buchungen, setBuchungen] = useState<BuchungOut[] | null>(null);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
@@ -29,9 +26,8 @@ export function Fahrzeugbuchung() {
   const [zweck, setZweck] = useState("");
 
   async function laden() {
-    if (!position) return;
     try {
-      const [b, f] = await Promise.all([holeBuchungen(position), holeFahrzeuge()]);
+      const [b, f] = await Promise.all([holeBuchungen(), holeFahrzeuge()]);
       setBuchungen(b);
       setFahrzeuge(f.filter((x) => x.buchbar));
       if (!fahrzeugId && f.length > 0) setFahrzeugId(String(f[0].id));
@@ -42,23 +38,19 @@ export function Fahrzeugbuchung() {
 
   useEffect(() => {
     laden();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position]);
+  }, []);
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
-    if (!position || !fahrzeugId || !zweck.trim()) return;
+    if (!fahrzeugId || !zweck.trim()) return;
     setHinweis(null);
     try {
-      const ergebnis = await buchungAnfrage(
-        {
-          fahrzeug_id: Number(fahrzeugId),
-          von: new Date(von).toISOString(),
-          bis: new Date(bis).toISOString(),
-          zweck: zweck.trim(),
-        },
-        position
-      );
+      const ergebnis = await buchungAnfrage({
+        fahrzeug_id: Number(fahrzeugId),
+        von: new Date(von).toISOString(),
+        bis: new Date(bis).toISOString(),
+        zweck: zweck.trim(),
+      });
       setHinweis(
         ergebnis.konflikt_hinweis
           ? "Anfrage gespeichert – Achtung, es gibt eine Überschneidung mit einer anderen Buchung. Der Moderator entscheidet."
@@ -73,16 +65,15 @@ export function Fahrzeugbuchung() {
   }
 
   async function zurueckziehen(id: number) {
-    if (!position) return;
     try {
-      await buchungZurueckziehen(id, position);
+      await buchungZurueckziehen(id);
       await laden();
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Zurückziehen fehlgeschlagen.");
     }
   }
 
-  if (fehler) return <GeofenceFehler nachricht={fehler} />;
+  if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
   if (!buchungen) return <p>Lädt …</p>;
 
   const eigeneAusstehende = buchungen.filter(

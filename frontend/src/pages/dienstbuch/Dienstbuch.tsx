@@ -1,5 +1,4 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useStandort } from "../../context/StandortContext";
 import { useAuth } from "../../context/AuthContext";
 import {
   holeLetzteDienstbuecher,
@@ -8,7 +7,6 @@ import {
   dienstbuchPdfUrl,
 } from "../../api/dienstbuecher";
 import { ApiError } from "../../api/client";
-import { GeofenceFehler } from "../../components/GeofenceFehler";
 import type { DienstbuchOut } from "../../api/types";
 
 function jetztAlsDatetimeLocal(): string {
@@ -18,7 +16,6 @@ function jetztAlsDatetimeLocal(): string {
 }
 
 export function Dienstbuch() {
-  const { position } = useStandort();
   const { angezeigterName } = useAuth();
   const [dienstbuecher, setDienstbuecher] = useState<DienstbuchOut[] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -29,9 +26,8 @@ export function Dienstbuch() {
   const [notizen, setNotizen] = useState("");
 
   async function laden() {
-    if (!position) return;
     try {
-      setDienstbuecher(await holeLetzteDienstbuecher(position));
+      setDienstbuecher(await holeLetzteDienstbuecher());
       setFehler(null);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Dienstbücher konnten nicht geladen werden.");
@@ -40,14 +36,13 @@ export function Dienstbuch() {
 
   useEffect(() => {
     laden();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position]);
+  }, []);
 
   async function anlegen(e: FormEvent) {
     e.preventDefault();
-    if (!position || !titel.trim()) return;
+    if (!titel.trim()) return;
     try {
-      await dienstbuchAnlegen(titel.trim(), new Date(eroeffnetAm).toISOString(), notizen || null, position);
+      await dienstbuchAnlegen(titel.trim(), new Date(eroeffnetAm).toISOString(), notizen || null);
       setTitel("");
       setNotizen("");
       setFormularOffen(false);
@@ -58,16 +53,15 @@ export function Dienstbuch() {
   }
 
   async function mitmachen(id: number) {
-    if (!position) return;
     try {
-      await teilnehmerEintragen(id, position);
+      await teilnehmerEintragen(id);
       await laden();
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Eintragung fehlgeschlagen.");
     }
   }
 
-  if (fehler) return <GeofenceFehler nachricht={fehler} />;
+  if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
   if (!dienstbuecher) return <p>Lädt …</p>;
 
   return (
@@ -121,11 +115,9 @@ export function Dienstbuch() {
               ))}
             </ul>
             {!istDabei && <button onClick={() => mitmachen(d.id)}>Ich war dabei</button>}{" "}
-            {position && (
-              <a href={dienstbuchPdfUrl(d.id, position)} target="_blank" rel="noreferrer">
-                Als PDF exportieren
-              </a>
-            )}
+            <a href={dienstbuchPdfUrl(d.id)} target="_blank" rel="noreferrer">
+              Als PDF exportieren
+            </a>
           </div>
         );
       })}

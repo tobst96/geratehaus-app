@@ -1,5 +1,4 @@
 import { apiGet, apiPost } from "./client";
-import type { Position } from "../context/StandortContext";
 import type { BuchungOut } from "./types";
 
 export interface BuchungAnfrage {
@@ -14,17 +13,14 @@ export interface BuchungAnfrageErgebnis {
   konflikt_hinweis: boolean;
 }
 
-export const holeBuchungen = (position: Position, von?: string, bis?: string) =>
-  apiGet<BuchungOut[]>("/buchungen", { lat: position.lat, lon: position.lon, von, bis });
+export const holeBuchungen = (von?: string, bis?: string) =>
+  apiGet<BuchungOut[]>("/buchungen", { von, bis });
 
-export const buchungAnfrage = (daten: BuchungAnfrage, position: Position) =>
-  apiPost<BuchungAnfrageErgebnis>("/buchungen", daten, { lat: position.lat, lon: position.lon });
+export const buchungAnfrage = (daten: BuchungAnfrage) =>
+  apiPost<BuchungAnfrageErgebnis>("/buchungen", daten);
 
-export const buchungZurueckziehen = (id: number, position: Position) =>
-  apiPost<BuchungOut>(`/buchungen/${id}/zurueckziehen`, undefined, {
-    lat: position.lat,
-    lon: position.lon,
-  });
+export const buchungZurueckziehen = (id: number) =>
+  apiPost<BuchungOut>(`/buchungen/${id}/zurueckziehen`, undefined);
 
 export const holeBuchungenAussen = (von?: string, bis?: string) =>
   apiGet<BuchungOut[]>("/aussen/buchungen", { von, bis });

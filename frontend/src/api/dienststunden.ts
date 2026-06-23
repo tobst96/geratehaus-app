@@ -1,5 +1,4 @@
 import { apiGet, apiPost } from "./client";
-import type { Position } from "../context/StandortContext";
 import type { DienststundenSummeOut } from "./types";
 
 export interface DienststundenEintragOut {
@@ -10,19 +9,10 @@ export interface DienststundenEintragOut {
   datum: string;
 }
 
-export const stundenErfassen = (
-  funktionId: number,
-  stunden: number,
-  datum: string,
-  position: Position
-) =>
-  apiPost<DienststundenEintragOut>(
-    "/dienststunden",
-    { funktion_id: funktionId, stunden, datum },
-    { lat: position.lat, lon: position.lon }
-  );
+export const stundenErfassen = (funktionId: number, stunden: number, datum: string) =>
+  apiPost<DienststundenEintragOut>("/dienststunden", { funktion_id: funktionId, stunden, datum });
 
-export const holeMeineSummen = (position: Position) =>
-  apiGet<DienststundenSummeOut[]>("/dienststunden/meine", { lat: position.lat, lon: position.lon });
+export const holeMeineSummen = () =>
+  apiGet<DienststundenSummeOut[]>("/dienststunden/meine");
 
 export const holeMeineSummenAussen = () => apiGet<DienststundenSummeOut[]>("/aussen/dienststunden");
