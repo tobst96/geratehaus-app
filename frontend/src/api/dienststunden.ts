@@ -14,5 +14,3 @@ export const stundenErfassen = (funktionId: number, stunden: number, datum: stri
 
 export const holeMeineSummen = () =>
   apiGet<DienststundenSummeOut[]>("/dienststunden/meine");
-
-export const holeMeineSummenAussen = () => apiGet<DienststundenSummeOut[]>("/aussen/dienststunden");

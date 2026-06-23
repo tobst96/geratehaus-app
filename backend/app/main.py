@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.v1 import (
-    aussen,
     auth,
     buchungen,
     dienstbuecher,
@@ -58,7 +57,6 @@ app.include_router(einsaetze.router, prefix="/api/v1")
 app.include_router(dienstbuecher.router, prefix="/api/v1")
 app.include_router(dienststunden.router, prefix="/api/v1")
 app.include_router(buchungen.router, prefix="/api/v1")
-app.include_router(aussen.router, prefix="/api/v1")
 app.include_router(moderator_barcodes.router, prefix="/api/v1")
 app.include_router(moderator_einstellungen.router, prefix="/api/v1")
 app.include_router(moderator_stammdaten.router, prefix="/api/v1")

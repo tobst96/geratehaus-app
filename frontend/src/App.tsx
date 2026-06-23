@@ -2,7 +2,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { ModeratorRoute } from "./components/ModeratorRoute";
 import { SetupGate } from "./components/SetupGate";
-import { AussenRoute } from "./components/AussenRoute";
 import { KioskHome } from "./pages/KioskHome";
 import { Datenschutz } from "./pages/Datenschutz";
 import { NotFound } from "./pages/NotFound";
@@ -16,11 +15,6 @@ import { Einstellungen } from "./pages/moderator/Einstellungen";
 import { BarcodeGenerator } from "./pages/moderator/BarcodeGenerator";
 import { NotifierEinstellungen } from "./pages/moderator/NotifierEinstellungen";
 import { SetupWizard } from "./pages/setup/SetupWizard";
-import { PinEinrichten } from "./pages/PinEinrichten";
-import { AussenLogin } from "./pages/aussen/AussenLogin";
-import { AussenHub } from "./pages/aussen/AussenHub";
-import { AussenFahrzeugbuchung } from "./pages/aussen/AussenFahrzeugbuchung";
-import { AussenDienststunden } from "./pages/aussen/AussenDienststunden";
 import { Einsatztagebuch } from "./pages/einsatztagebuch/Einsatztagebuch";
 import { EinsatzDetail } from "./pages/einsatztagebuch/EinsatzDetail";
 import { Dienstbuch } from "./pages/dienstbuch/Dienstbuch";
@@ -51,20 +45,11 @@ export function App() {
             </Route>
           </Route>
 
-          <Route path="/pin-einrichten" element={<PinEinrichten />} />
           <Route path="/einsatztagebuch" element={<Einsatztagebuch />} />
           <Route path="/einsatztagebuch/:id" element={<EinsatzDetail />} />
           <Route path="/dienstbuch" element={<Dienstbuch />} />
           <Route path="/dienststunden" element={<Dienststunden />} />
           <Route path="/fahrzeugbuchung" element={<Fahrzeugbuchung />} />
-
-          <Route path="/aussen/login" element={<AussenLogin />} />
-          <Route element={<AussenRoute />}>
-            <Route path="/aussen" element={<AussenHub />} />
-            <Route path="/aussen/fahrzeugbuchung" element={<AussenFahrzeugbuchung />} />
-            <Route path="/aussen/dienststunden" element={<AussenDienststunden />} />
-          </Route>
-
           <Route path="/fahrzeug/:token" element={<FahrzeugView />} />
 
           <Route path="*" element={<NotFound />} />

@@ -5,7 +5,6 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.pin_session import PIN_SESSION_COOKIE, lese_pin_session
 from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.models.moderator import Moderator
@@ -61,33 +60,6 @@ async def get_current_person(
 
 
 CurrentPerson = Annotated[Person, Depends(get_current_person)]
-
-
-async def get_current_person_via_pin_session(
-    db: DbSession, pin_session: Annotated[str | None, Cookie(alias=PIN_SESSION_COOKIE)] = None
-) -> Person:
-    """Für den Außenzugriff (Fahrzeugkalender, eigene Dienststunden) ohne
-    Standort-Check. Setzt voraus, dass zuvor /auth/pin/verifizieren erfolgreich
-    aufgerufen wurde und das signierte Session-Cookie vorliegt."""
-    if pin_session is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Kein gültiger PIN-Zugang. Bitte zunächst den PIN verifizieren.",
-        )
-    person_id = lese_pin_session(pin_session)
-    if person_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="PIN-Sitzung abgelaufen. Bitte erneut verifizieren.",
-        )
-    result = await db.execute(select(Person).where(Person.id == person_id))
-    person = result.scalar_one_or_none()
-    if person is None:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unbekannte Person.")
-    return person
-
-
-CurrentPersonViaPin = Annotated[Person, Depends(get_current_person_via_pin_session)]
 
 
 def require_modul_aktiv(config_schluessel: str):

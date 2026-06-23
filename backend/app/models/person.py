@@ -12,7 +12,5 @@ class Person(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    pin_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    pin_gesetzt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     barcode_tokens = relationship("BarcodeToken", back_populates="person")
