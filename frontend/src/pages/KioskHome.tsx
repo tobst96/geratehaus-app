@@ -6,11 +6,9 @@ const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
 export function KioskHome() {
   const navigate = useNavigate();
-  const { angezeigterName, namenEintragen } = useAuth();
   const [barcode, setBarcode] = useState("");
   const [scanSuccessful, setScanSuccessful] = useState(false);
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
-  const [name, setName] = useState(angezeigterName || "");
 
   // Reset inactivity timer on any activity
   useEffect(() => {
@@ -27,28 +25,19 @@ export function KioskHome() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (Date.now() - lastActivityTime > INACTIVITY_TIMEOUT_MS) {
-        setName("");
         setScanSuccessful(false);
-        namenEintragen(""); // Clear auth
+        setBarcode("");
+        navigate("/");
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [lastActivityTime, namenEintragen]);
+  }, [lastActivityTime, navigate]);
 
   // Auto-focus barcode input
   useEffect(() => {
     const input = document.getElementById("barcode-input") as HTMLInputElement;
     if (input) input.focus();
   }, [scanSuccessful]);
-
-  async function handleNameSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (name.trim()) {
-      await namenEintragen(name.trim());
-      setScanSuccessful(false);
-      setBarcode("");
-    }
-  }
 
   function handleBarcodeSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -64,35 +53,12 @@ export function KioskHome() {
     }
   }
 
-  // Name entry screen
-  if (!angezeigterName || !name) {
-    return (
-      <div style={styles.container}>
-        <h1 style={styles.title}>Gerätehaus.app</h1>
-        <p style={styles.subtitle}>Bitte Namen eingeben</p>
-        <form onSubmit={handleNameSubmit} style={styles.form}>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Dein Name"
-            style={styles.input}
-            autoFocus
-          />
-          <button type="submit" style={styles.submitBtn}>
-            Weiter
-          </button>
-        </form>
-      </div>
-    );
-  }
-
-  // Barcode scan before action
+  // Barcode scan screen
   if (!scanSuccessful) {
     return (
       <div style={styles.container}>
-        <h1 style={styles.title}>Barcode einscannen</h1>
-        <p style={styles.subtitle}>{angezeigterName}</p>
+        <h1 style={styles.title}>Gerätehaus.app</h1>
+        <p style={styles.subtitle}>Barcode einscannen</p>
         <form onSubmit={handleBarcodeSubmit} style={styles.form}>
           <input
             id="barcode-input"
@@ -111,11 +77,11 @@ export function KioskHome() {
     );
   }
 
-  // Main kiosk menu
+  // Main kiosk menu - after barcode scanned
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Gerätehaus.app</h1>
-      <p style={styles.subtitle}>Hallo, {angezeigterName}! Was möchtest du machen?</p>
+      <p style={styles.subtitle}>Was möchtest du machen?</p>
 
       <div style={styles.buttonGrid}>
         <button
@@ -149,11 +115,11 @@ export function KioskHome() {
       <button
         style={styles.logoutBtn}
         onClick={() => {
-          setName("");
-          namenEintragen("");
+          setScanSuccessful(false);
+          setBarcode("");
         }}
       >
-        Abmelden
+        Zurück
       </button>
     </div>
   );
