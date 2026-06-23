@@ -43,22 +43,58 @@ Jedes der vier Module ist einzeln aktivierbar/deaktivierbar.
 
 ## Schnellstart (Docker)
 
-Voraussetzung: Docker und Docker Compose.
+### Voraussetzungen
+
+- [Docker](https://docs.docker.com/get-docker/) installiert
+- [Docker Compose](https://docs.docker.com/compose/install/) installiert
+
+### Installation
+
+Kopiere diese Befehle und führe sie direkt aus:
 
 ```bash
-git clone <repository-url> geratehaus-app
+# Repository klonen
+git clone https://github.com/tobst96/geratehaus-app.git
 cd geratehaus-app
-cp .env.example .env
-# .env öffnen und mindestens JWT_SECRET_KEY, COOKIE_SECRET_KEY und
-# POSTGRES_PASSWORD auf eigene, zufällige Werte setzen (z. B. `openssl rand -hex 32`)
 
+# .env-Datei erstellen und mit zufälligen Secrets füllen
+cp .env.example .env
+
+# Secrets generieren und in .env einsetzen
+JWT_SECRET=$(openssl rand -hex 32)
+COOKIE_SECRET=$(openssl rand -hex 32)
+DB_PASSWORD=$(openssl rand -hex 32)
+
+# Secrets in .env eintragen (macOS/Linux)
+sed -i.bak "s/JWT_SECRET_KEY=.*/JWT_SECRET_KEY=$JWT_SECRET/" .env
+sed -i.bak "s/COOKIE_SECRET_KEY=.*/COOKIE_SECRET_KEY=$COOKIE_SECRET/" .env
+sed -i.bak "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$DB_PASSWORD/" .env
+
+# Docker-Container starten
 docker compose up -d
 ```
 
-Die App ist danach unter `http://localhost` erreichbar (Port über `HTTP_PORT`
-in der `.env` änderbar). Beim allerersten Aufruf – solange die Datenbank leer
-ist und kein Moderator existiert – startet automatisch der
-**Einrichtungsassistent**.
+**Hinweis für Windows (PowerShell):** Verwende statt `sed` folgende Befehle:
+```powershell
+$env:JWT_SECRET = (openssl rand -hex 32)
+$env:COOKIE_SECRET = (openssl rand -hex 32)
+$env:DB_PASSWORD = (openssl rand -hex 32)
+
+(Get-Content .env) -replace 'JWT_SECRET_KEY=.*', "JWT_SECRET_KEY=$env:JWT_SECRET" | Set-Content .env
+(Get-Content .env) -replace 'COOKIE_SECRET_KEY=.*', "COOKIE_SECRET_KEY=$env:COOKIE_SECRET" | Set-Content .env
+(Get-Content .env) -replace 'POSTGRES_PASSWORD=.*', "POSTGRES_PASSWORD=$env:DB_PASSWORD" | Set-Content .env
+```
+
+### Zugriff auf die App
+
+Die App ist danach unter `http://localhost` erreichbar.
+
+- **Standardport:** 80 (über `HTTP_PORT` in `.env` änderbar)
+- **Status prüfen:** `docker compose ps`
+- **Logs anschauen:** `docker compose logs -f`
+- **App stoppen:** `docker compose down`
+
+Beim allerersten Aufruf – solange die Datenbank leer ist und kein Moderator existiert – startet automatisch der **Einrichtungsassistent**.
 
 ### Einrichtungsassistent
 
@@ -108,29 +144,54 @@ Divera-Tarif ab.
 
 ## Lokale Entwicklung (ohne Docker)
 
-### Backend
+### Voraussetzungen
+
+- Python 3.12+
+- Node.js 18+ und npm
+- PostgreSQL 14+
+
+### Backend Setup
 
 ```bash
 cd backend
-python3.12 -m venv .venv && source .venv/bin/activate
+
+# Virtual Environment erstellen und aktivieren
+python3.12 -m venv .venv
+source .venv/bin/activate  # macOS/Linux
+# oder für Windows: .venv\Scripts\activate
+
+# Abhängigkeiten installieren
 pip install -e ".[dev]"
-cp ../.env.example ../.env   # POSTGRES_HOST=localhost setzen, falls Postgres lokal läuft
+
+# .env vorbereiten (für lokale PostgreSQL)
+cp ../.env.example ../.env
+
+# Datenbankmigration durchführen
 alembic upgrade head
+
+# Backend starten (mit Hot-Reload)
 uvicorn app.main:app --reload
 ```
 
-API-Dokumentation danach unter `http://localhost:8000/docs`.
+**Backend ist danach unter `http://localhost:8000` erreichbar**
+- API-Dokumentation: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
-### Frontend
+### Frontend Setup
 
 ```bash
 cd frontend
+
+# Abhängigkeiten installieren
 npm install
+
+# Dev-Server starten
 npm run dev
 ```
 
-Der Vite-Dev-Server proxyt `/api` und `/uploads` standardmäßig auf
-`http://localhost:8000` (siehe `vite.config.ts`).
+**Frontend ist danach unter `http://localhost:5173` erreichbar**
+
+Der Vite-Dev-Server proxyt `/api` und `/uploads` automatisch auf `http://localhost:8000` (konfiguriert in `vite.config.ts`).
 
 ## Projektstruktur
 
