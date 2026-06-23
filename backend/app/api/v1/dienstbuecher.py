@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from app.api.deps import CurrentPerson, DbSession, require_geofence, require_modul_aktiv
+from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv
 from app.schemas.dienstbuch import DienstbuchAnlegen, DienstbuchOut, TeilnehmerOut
 from app.services import dienstbuch_service, pdf_service
 
 router = APIRouter(
     prefix="/dienstbuecher",
     tags=["dienstbuch"],
-    dependencies=[Depends(require_modul_aktiv("modul_dienstbuch_aktiv")), Depends(require_geofence)],
+    dependencies=[Depends(require_modul_aktiv("modul_dienstbuch_aktiv")), ],
 )
 
 

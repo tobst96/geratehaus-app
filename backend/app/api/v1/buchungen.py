@@ -2,7 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.deps import CurrentPerson, DbSession, require_geofence, require_modul_aktiv
+from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv
 from app.schemas.buchung import BuchungAnfrage, BuchungAnfrageErgebnis, BuchungOut
 from app.services import buchung_service
 
@@ -11,7 +11,7 @@ router = APIRouter(
     tags=["fahrzeugbuchung"],
     dependencies=[
         Depends(require_modul_aktiv("modul_fahrzeugbuchung_aktiv")),
-        Depends(require_geofence),
+        ,
     ],
 )
 

@@ -5,7 +5,6 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.geofence import innerhalb_geofence
 from app.core.pin_session import PIN_SESSION_COOKIE, lese_pin_session
 from app.core.security import decode_access_token
 from app.db.session import get_db
@@ -62,24 +61,6 @@ async def get_current_person(
 
 
 CurrentPerson = Annotated[Person, Depends(get_current_person)]
-
-
-async def require_geofence(
-    db: DbSession,
-    lat: float,
-    lon: float,
-) -> None:
-    """Standort-Gate: prüft die vom Client übermittelte Position gegen den
-    konfigurierten Geofence. Wird NICHT für Moderator-Routen oder den
-    PIN-Außenzugriff verwendet."""
-    geofence_lat = await config_service.get(db, "geofence_lat", 0.0)
-    geofence_lon = await config_service.get(db, "geofence_lon", 0.0)
-    radius = await config_service.get(db, "geofence_radius_meter", 150)
-    if not innerhalb_geofence(lat, lon, geofence_lat, geofence_lon, radius):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Außerhalb des Gerätehaus-Bereichs. Dieser Vorgang ist nur vor Ort möglich.",
-        )
 
 
 async def get_current_person_via_pin_session(

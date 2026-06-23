@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.deps import CurrentPerson, DbSession, require_geofence, require_modul_aktiv
+from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv
 from app.schemas.dienststunden import (
     DienststundenEintragOut,
     DienststundenErfassen,
@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 
-@router.post("", response_model=DienststundenEintragOut, dependencies=[Depends(require_geofence)])
+@router.post("", response_model=DienststundenEintragOut, dependencies=[])
 async def erfassen(
     db: DbSession, person: CurrentPerson, daten: DienststundenErfassen
 ) -> DienststundenEintragOut:
@@ -28,7 +28,7 @@ async def erfassen(
 
 
 @router.get(
-    "/meine", response_model=list[DienststundenSummeOut], dependencies=[Depends(require_geofence)]
+    "/meine", response_model=list[DienststundenSummeOut], dependencies=[]
 )
 async def meine_summen(db: DbSession, person: CurrentPerson) -> list[DienststundenSummeOut]:
     """Eigene kumulierte Dienststunden – im Gerätehaus. Für den Außenzugriff
