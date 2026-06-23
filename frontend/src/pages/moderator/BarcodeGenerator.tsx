@@ -23,7 +23,10 @@ export function BarcodeGenerator() {
   }
 
   function printBarcode(person: Person) {
-    const barcode = barcodes.get(person.id) || generateBarcode(person.id);
+    // Ensure barcode exists before printing
+    if (!barcodes.get(person.id)) {
+      generateBarcode(person.id);
+    }
     const element = document.getElementById(`barcode-${person.id}`);
     if (element) {
       const printWindow = window.open("", "", "width=400,height=300");
