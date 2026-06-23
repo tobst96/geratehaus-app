@@ -14,6 +14,7 @@ from app.api.v1 import (
     divera,
     einsaetze,
     manifest,
+    moderator_barcodes,
     moderator_buchungen,
     moderator_dashboard,
     moderator_einstellungen,
@@ -58,6 +59,7 @@ app.include_router(dienstbuecher.router, prefix="/api/v1")
 app.include_router(dienststunden.router, prefix="/api/v1")
 app.include_router(buchungen.router, prefix="/api/v1")
 app.include_router(aussen.router, prefix="/api/v1")
+app.include_router(moderator_barcodes.router, prefix="/api/v1")
 app.include_router(moderator_einstellungen.router, prefix="/api/v1")
 app.include_router(moderator_stammdaten.router, prefix="/api/v1")
 app.include_router(moderator_dashboard.router, prefix="/api/v1")
