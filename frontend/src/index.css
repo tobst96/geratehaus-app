@@ -44,6 +44,17 @@ button {
   background: var(--farbe-primaer);
   color: #fff;
   min-height: 48px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 button:disabled {
@@ -55,6 +66,11 @@ button.sekundaer {
   background: #fff;
   color: var(--farbe-primaer);
   border: 2px solid var(--farbe-primaer);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+button.sekundaer:hover:not(:disabled) {
+  background: #f5f5f5;
 }
 
 input,
@@ -164,7 +180,56 @@ a {
 .karte {
   background: #fff;
   border-radius: var(--radius);
-  border: 1px solid #e0e0e0;
+  border: 1px solid #e8e8e8;
   padding: var(--abstand);
   margin-bottom: var(--abstand);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.karte:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+h1, h2, h3 {
+  margin: 0 0 8px 0;
+  color: var(--farbe-text);
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+h3 {
+  font-size: 1.2rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+table th {
+  background: var(--farbe-hintergrund);
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid #ddd;
+}
+
+table td {
+  padding: 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+table tr:hover {
+  background: var(--farbe-hintergrund);
 }

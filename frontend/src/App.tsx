@@ -13,6 +13,8 @@ import { Listen } from "./pages/moderator/Listen";
 import { Buchungsmanagement } from "./pages/moderator/Buchungsmanagement";
 import { Stammdaten } from "./pages/moderator/Stammdaten";
 import { Einstellungen } from "./pages/moderator/Einstellungen";
+import { BarcodeGenerator } from "./pages/moderator/BarcodeGenerator";
+import { NotifierEinstellungen } from "./pages/moderator/NotifierEinstellungen";
 import { SetupWizard } from "./pages/setup/SetupWizard";
 import { PinEinrichten } from "./pages/PinEinrichten";
 import { AussenLogin } from "./pages/aussen/AussenLogin";
@@ -24,6 +26,7 @@ import { EinsatzDetail } from "./pages/einsatztagebuch/EinsatzDetail";
 import { Dienstbuch } from "./pages/dienstbuch/Dienstbuch";
 import { Dienststunden } from "./pages/dienststunden/Dienststunden";
 import { Fahrzeugbuchung } from "./pages/fahrzeugbuchung/Fahrzeugbuchung";
+import { FahrzeugView } from "./pages/fahrzeug/FahrzeugView";
 
 export function App() {
   return (
@@ -42,6 +45,8 @@ export function App() {
               <Route path="listen" element={<Listen />} />
               <Route path="buchungen" element={<Buchungsmanagement />} />
               <Route path="stammdaten" element={<Stammdaten />} />
+              <Route path="barcodes" element={<BarcodeGenerator />} />
+              <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />
               <Route path="einstellungen" element={<Einstellungen />} />
             </Route>
           </Route>
@@ -59,6 +64,8 @@ export function App() {
             <Route path="/aussen/fahrzeugbuchung" element={<AussenFahrzeugbuchung />} />
             <Route path="/aussen/dienststunden" element={<AussenDienststunden />} />
           </Route>
+
+          <Route path="/fahrzeug/:token" element={<FahrzeugView />} />
 
           <Route path="*" element={<NotFound />} />
         </Route>
