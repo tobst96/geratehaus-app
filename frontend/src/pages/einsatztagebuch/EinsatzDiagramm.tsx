@@ -7,7 +7,6 @@ interface EinsatzDiagrammProps {
   einsatzId: number;
   fahrzeuge: Array<{ id: number; name: string }>;
   funktionen: Array<{ id: number; name: string }>;
-  onSuccess: () => void;
   onCancel: () => void;
 }
 
@@ -21,7 +20,6 @@ export function EinsatzDiagramm({
   einsatzId,
   fahrzeuge,
   funktionen,
-  onSuccess,
   onCancel,
 }: EinsatzDiagrammProps) {
   const [clickZones, setClickZones] = useState<ClickZone[]>([]);
@@ -66,7 +64,7 @@ export function EinsatzDiagramm({
       };
       await teilnahmeEintragen(einsatzId, daten);
 
-      // Mark zone as green (successful)
+      // Success - mark zone as green
       const updatedZones = [...clickZones];
       updatedZones[selectedZone] = {
         ...updatedZones[selectedZone],

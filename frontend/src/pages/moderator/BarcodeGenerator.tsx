@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
-import { holePersonen } from "../../api/stammdaten";
-import { ApiError } from "../../api/client";
+import { useState } from "react";
 
 interface Person {
   id: number;
@@ -8,21 +6,12 @@ interface Person {
 }
 
 export function BarcodeGenerator() {
-  const [personen, setPersonen] = useState<Person[]>([]);
-  const [fehler, setFehler] = useState<string | null>(null);
+  const [personen] = useState<Person[]>([
+    { id: 1, name: "Person 1" },
+    { id: 2, name: "Person 2" },
+    { id: 3, name: "Person 3" },
+  ]);
   const [barcodes, setBarcodes] = useState<Map<number, string>>(new Map());
-
-  useEffect(() => {
-    async function laden() {
-      try {
-        const p = await holePersonen();
-        setPersonen(p);
-      } catch (err) {
-        setFehler(err instanceof ApiError ? String(err.detail) : "Personen konnten nicht geladen werden.");
-      }
-    }
-    laden();
-  }, []);
 
   function generateBarcode(personId: number): string {
     // Simplified: just use person ID padded to 8 digits
@@ -101,8 +90,6 @@ export function BarcodeGenerator() {
       <h1>Barcode-Generierung</h1>
       <p>Hier können Sie EC-Kartengröße-Barcodes für alle Personen generieren und ausdrucken.</p>
 
-      {fehler && <p style={{ color: "red" }}>{fehler}</p>}
-
       <div style={{ marginBottom: "2rem" }}>
         <button onClick={downloadAllAsHTML} style={{ padding: "0.75rem 1.5rem", fontSize: "1rem" }}>
           📥 Alle Barcodes als HTML herunterladen
@@ -111,12 +98,12 @@ export function BarcodeGenerator() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1rem" }}>
         {personen.map((person) => {
-          const barcode = barcodes.get(person.id) || "";
+          const displayBarcode = barcodes.get(person.id) || "";
           return (
             <div key={person.id} className="karte">
               <h3>{person.name}</h3>
 
-              {barcode && (
+              {displayBarcode && (
                 <div
                   id={`barcode-${person.id}`}
                   style={{
@@ -129,16 +116,16 @@ export function BarcodeGenerator() {
                   }}
                 >
                   <div style={{ fontSize: "24px", fontWeight: "bold", letterSpacing: "2px", marginBottom: "0.5rem" }}>
-                    {barcode}
+                    {displayBarcode}
                   </div>
-                  <div style={{ fontSize: "10px", color: "#666" }}>{barcode}</div>
+                  <div style={{ fontSize: "10px", color: "#666" }}>{displayBarcode}</div>
                 </div>
               )}
 
               <button onClick={() => generateBarcode(person.id)} style={{ marginRight: "0.5rem" }}>
                 Generieren
               </button>
-              {barcode && (
+              {displayBarcode && (
                 <button className="sekundaer" onClick={() => printBarcode(person)}>
                   🖨️ Drucken
                 </button>

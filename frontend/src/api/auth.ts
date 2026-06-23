@@ -1,4 +1,4 @@
-import { apiPost, ApiError } from "./client";
+import { ApiError } from "./client";
 
 const BASIS_URL = "/api/v1";
 
