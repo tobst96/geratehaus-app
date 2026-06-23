@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block inhalt %}
+<h1>Dienstbuch: {{ dienstbuch.titel }}</h1>
+<div class="meta">
+    Eröffnet am: {{ dienstbuch.eroeffnet_am.strftime("%d.%m.%Y %H:%M") }} Uhr
+</div>
+{% if dienstbuch.notizen %}
+<p>{{ dienstbuch.notizen }}</p>
+{% endif %}
+<table>
+    <thead>
+        <tr><th>Name</th></tr>
+    </thead>
+    <tbody>
+        {% for t in dienstbuch.teilnehmer %}
+        <tr><td>{{ t.person.name }}</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

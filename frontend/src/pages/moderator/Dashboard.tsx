@@ -1,0 +1,98 @@
+import { useEffect, useState } from "react";
+import { holeDashboard, type DashboardOut } from "../../api/moderator";
+import { ApiError } from "../../api/client";
+
+export function Dashboard() {
+  const [daten, setDaten] = useState<DashboardOut | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+
+  useEffect(() => {
+    holeDashboard()
+      .then(setDaten)
+      .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : "Dashboard konnte nicht geladen werden."));
+  }, []);
+
+  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (!daten) return <p>Lädt …</p>;
+
+  const maxAnzahl = Math.max(1, ...daten.einsaetze_pro_monat.map((m) => m.anzahl));
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
+        <div className="karte">
+          <div style={{ fontSize: "2rem", fontWeight: 700 }}>{daten.offene_buchungen_anzahl}</div>
+          <div>Offene Buchungen</div>
+        </div>
+        <div className="karte">
+          <div style={{ fontSize: "2rem", fontWeight: 700 }}>
+            {daten.schwellenwert_ueberschreitungen.length}
+          </div>
+          <div>Schwellenwert-Überschreitungen</div>
+        </div>
+      </div>
+
+      <h2>Einsätze pro Monat</h2>
+      <div className="karte">
+        {daten.einsaetze_pro_monat.length === 0 && <p>Keine Daten.</p>}
+        {daten.einsaetze_pro_monat.map((m) => (
+          <div key={m.monat} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <span style={{ width: 64, fontSize: "0.85rem" }}>{m.monat}</span>
+            <div
+              style={{
+                background: "var(--farbe-primaer)",
+                height: 18,
+                width: `${(m.anzahl / maxAnzahl) * 100}%`,
+                minWidth: 4,
+                borderRadius: 4,
+              }}
+            />
+            <span style={{ fontSize: "0.85rem" }}>{m.anzahl}</span>
+          </div>
+        ))}
+      </div>
+
+      <h2>Top-Aktive</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Teilnahmen</th>
+          </tr>
+        </thead>
+        <tbody>
+          {daten.top_aktive.map((t) => (
+            <tr key={t.person_id}>
+              <td>{t.person_name}</td>
+              <td>{t.anzahl_teilnahmen}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h2>Schwellenwert-Überschreitungen</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Funktion</th>
+            <th>Stunden</th>
+            <th>Schwellenwert</th>
+          </tr>
+        </thead>
+        <tbody>
+          {daten.schwellenwert_ueberschreitungen.map((s, i) => (
+            <tr key={i}>
+              <td>{s.person_name}</td>
+              <td>{s.funktion_name}</td>
+              <td>{s.summe_stunden}</td>
+              <td>{s.schwellenwert_stunden}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

@@ -1,0 +1,28 @@
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class DienstbuchAnlegen(BaseModel):
+    titel: str = Field(min_length=1, max_length=255)
+    eroeffnet_am: datetime
+    notizen: str | None = None
+
+
+class TeilnehmerOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    person_id: int
+    person_name: str
+
+
+class DienstbuchOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    titel: str
+    eroeffnet_am: datetime
+    notizen: str | None
+    archiviert: bool
+    teilnehmer: list[TeilnehmerOut] = []

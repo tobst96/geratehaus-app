@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block inhalt %}
+<h1>{{ titel }}</h1>
+<div class="meta">{{ zeilen|length }} Einträge</div>
+<table>
+    <thead>
+        <tr>
+            {% for spalte in spalten %}<th>{{ spalte.label }}</th>{% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for zeile in zeilen %}
+        <tr>
+            {% for spalte in spalten %}<td>{{ zeile.get(spalte.key, "") }}</td>{% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

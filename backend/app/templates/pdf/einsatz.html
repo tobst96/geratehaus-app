@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block inhalt %}
+<h1>Einsatz: {{ einsatz.titel }}</h1>
+<div class="meta">
+    Zeitpunkt: {{ einsatz.zeitpunkt.strftime("%d.%m.%Y %H:%M") }} Uhr ·
+    Quelle: {{ einsatz.quelle }} ·
+    Status: {{ einsatz.status }}
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Fahrzeug</th>
+            <th>Funktion</th>
+            <th>VAB</th>
+            <th>Atemschutz (min)</th>
+            <th>Nur Gerätehaus</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in einsatz.teilnahmen %}
+        <tr>
+            <td>{{ t.person.name }}</td>
+            <td>{{ t.fahrzeug.name if t.fahrzeug else "" }}</td>
+            <td>{{ t.funktion.name if t.funktion else "" }}</td>
+            <td>{{ "Ja" if t.vab else "" }}</td>
+            <td>{{ t.atemschutzminuten if t.atemschutzminuten else "" }}</td>
+            <td>{{ "Ja" if t.nur_geraetehaus else "" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

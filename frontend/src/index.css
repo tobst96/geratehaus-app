@@ -1,0 +1,170 @@
+:root {
+  --farbe-primaer: #cc0000;
+  --farbe-akzent: #000000;
+  --farbe-hintergrund: #fafafa;
+  --farbe-text: #1a1a1a;
+  --abstand: 16px;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--farbe-hintergrund);
+  color: var(--farbe-text);
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  font-weight: 600;
+  background: var(--farbe-primaer);
+  color: #fff;
+  min-height: 48px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.sekundaer {
+  background: #fff;
+  color: var(--farbe-primaer);
+  border: 2px solid var(--farbe-primaer);
+}
+
+input,
+select,
+textarea {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+  min-height: 48px;
+  width: 100%;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  padding: 0;
+  vertical-align: middle;
+}
+
+input[type="color"] {
+  width: 64px;
+  min-height: 40px;
+  padding: 4px;
+}
+
+input[type="file"] {
+  width: auto;
+  min-height: 0;
+  border: none;
+  padding: 0;
+}
+
+a {
+  color: var(--farbe-primaer);
+}
+
+.seite {
+  flex: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--abstand);
+}
+
+.kopfzeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: var(--abstand);
+  background: #fff;
+  border-bottom: 4px solid var(--farbe-primaer);
+}
+
+.kopfzeile img {
+  height: 40px;
+  max-width: 100px;
+  object-fit: contain;
+}
+
+.kopfzeile .organisation {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--farbe-primaer);
+}
+
+.fusszeile {
+  text-align: center;
+  padding: var(--abstand);
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.fusszeile a {
+  color: #777;
+}
+
+.kachel-raster {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--abstand);
+}
+
+.kachel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 24px 12px;
+  text-decoration: none;
+  color: var(--farbe-text);
+  border: 1px solid #e0e0e0;
+  min-height: 100px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.fehlertext {
+  color: #b00020;
+  font-weight: 600;
+}
+
+.karte {
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1px solid #e0e0e0;
+  padding: var(--abstand);
+  margin-bottom: var(--abstand);
+}
