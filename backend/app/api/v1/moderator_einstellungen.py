@@ -5,7 +5,8 @@ from fastapi import APIRouter, HTTPException, UploadFile, status
 from app.api.deps import CurrentModerator, DbSession
 from app.core.security import verify_secret
 from app.schemas.auth import PasswortVerifizieren
-from app.services import archive_service, logo_service
+from app.schemas.moderator import ModeratorAnlegen, ModeratorOut, ModeratorPasswortAendern
+from app.services import archive_service, logo_service, moderator_service
 from app.services.config_service import config_service
 
 router = APIRouter(prefix="/moderator/einstellungen", tags=["moderator:einstellungen"])
@@ -50,3 +51,51 @@ async def archivierung_ausfuehren(db: DbSession, _moderator: CurrentModerator) -
     """Stößt die tägliche Archivierung sofort an, unabhängig vom
     Scheduler-Zeitpunkt (z. B. zum Testen nach einer Konfigurationsänderung)."""
     return await archive_service.archiviere_alte_eintraege(db)
+
+
+# --- Moderator-Konten ----------------------------------------------------------
+
+
+@router.get("/moderatoren", response_model=list[ModeratorOut])
+async def moderatoren_liste(db: DbSession, _moderator: CurrentModerator) -> list[ModeratorOut]:
+    return await moderator_service.liste_moderatoren(db)
+
+
+@router.post(
+    "/moderatoren", response_model=ModeratorOut, status_code=status.HTTP_201_CREATED
+)
+async def moderator_anlegen(
+    db: DbSession, _moderator: CurrentModerator, daten: ModeratorAnlegen
+) -> ModeratorOut:
+    if await moderator_service.get_moderator_by_username(db, daten.username) is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Benutzername bereits vergeben."
+        )
+    return await moderator_service.moderator_anlegen(db, daten.username, daten.passwort)
+
+
+@router.put("/moderatoren/{moderator_id}/passwort", response_model=ModeratorOut)
+async def moderator_passwort_aendern(
+    db: DbSession, _moderator: CurrentModerator, moderator_id: int, daten: ModeratorPasswortAendern
+) -> ModeratorOut:
+    ziel = await moderator_service.get_moderator(db, moderator_id)
+    if ziel is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moderator nicht gefunden.")
+    return await moderator_service.moderator_passwort_aendern(db, ziel, daten.passwort)
+
+
+@router.delete("/moderatoren/{moderator_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def moderator_loeschen(db: DbSession, moderator: CurrentModerator, moderator_id: int) -> None:
+    ziel = await moderator_service.get_moderator(db, moderator_id)
+    if ziel is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moderator nicht gefunden.")
+    if ziel.id == moderator.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Du kannst dich nicht selbst löschen."
+        )
+    if await moderator_service.anzahl_moderatoren(db) <= 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Der letzte verbleibende Moderator-Zugang kann nicht gelöscht werden.",
+        )
+    await moderator_service.moderator_loeschen(db, ziel)

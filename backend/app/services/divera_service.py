@@ -56,6 +56,9 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
     )
     db.add(einsatz)
     await db.commit()
+    await einsatz_service.ereignis_protokollieren(
+        db, einsatz.id, "angelegt", "Einsatz angelegt (divera)"
+    )
     logger.info("divera_einsatz_importiert", divera_id=alarm["divera_id"], titel=alarm["titel"])
     await notifier_service.benachrichtige(db, "benachrichtigung_neuer_einsatz", titel=einsatz.titel)
     return await einsatz_service.get_einsatz(db, einsatz.id)

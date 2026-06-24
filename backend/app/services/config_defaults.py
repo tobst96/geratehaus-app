@@ -78,8 +78,6 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault(
         "archivierungszeitraum_jahre", "2", ConfigTyp.INT, "Archivierungszeitraum in Jahren"
     ),
-    # Sicherheit
-    ConfigDefault("pin_laenge", "4", ConfigTyp.INT, "Länge des PIN für Außenzugriff"),
     # Benachrichtigungen (Events einzeln an/abschaltbar)
     ConfigDefault(
         "benachrichtigung_neuer_einsatz", "true", ConfigTyp.BOOL, "Benachrichtigung bei neuem Einsatz"
@@ -101,6 +99,33 @@ DEFAULTS: list[ConfigDefault] = [
         "true",
         ConfigTyp.BOOL,
         "Benachrichtigung bei Dienststunden-Schwellenwert-Überschreitung",
+    ),
+    # Benachrichtigungskanäle (Zugangsdaten, ersetzt frühere .env-Werte)
+    ConfigDefault("notifier_telegram_aktiv", "false", ConfigTyp.BOOL, "Telegram-Versand aktiv"),
+    ConfigDefault("notifier_telegram_bot_token", "", ConfigTyp.STR, "Telegram Bot-Token"),
+    ConfigDefault(
+        "notifier_telegram_chat_ids", "", ConfigTyp.STR, "Telegram Chat-IDs, kommagetrennt"
+    ),
+    ConfigDefault("notifier_email_aktiv", "false", ConfigTyp.BOOL, "E-Mail-Versand aktiv"),
+    ConfigDefault("notifier_email_smtp_host", "", ConfigTyp.STR, "SMTP-Server"),
+    ConfigDefault("notifier_email_smtp_port", "587", ConfigTyp.INT, "SMTP-Port"),
+    ConfigDefault("notifier_email_smtp_user", "", ConfigTyp.STR, "SMTP-Benutzername"),
+    ConfigDefault("notifier_email_smtp_password", "", ConfigTyp.STR, "SMTP-Passwort"),
+    ConfigDefault("notifier_email_smtp_use_tls", "true", ConfigTyp.BOOL, "SMTP STARTTLS verwenden"),
+    ConfigDefault(
+        "notifier_email_from", "geratehaus@example.org", ConfigTyp.STR, "Absenderadresse"
+    ),
+    ConfigDefault(
+        "notifier_email_recipients", "", ConfigTyp.STR, "Empfängeradressen, kommagetrennt"
+    ),
+    ConfigDefault("notifier_webpush_aktiv", "false", ConfigTyp.BOOL, "Web-Push-Versand aktiv"),
+    ConfigDefault("notifier_webpush_vapid_public_key", "", ConfigTyp.STR, "VAPID Public Key"),
+    ConfigDefault("notifier_webpush_vapid_private_key", "", ConfigTyp.STR, "VAPID Private Key"),
+    ConfigDefault(
+        "notifier_webpush_vapid_subject",
+        "mailto:admin@example.org",
+        ConfigTyp.STR,
+        "VAPID Subject (mailto:-Adresse)",
     ),
     # Benachrichtigungstexte (Platzhalter siehe Beschreibung)
     ConfigDefault(

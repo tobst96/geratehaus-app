@@ -13,7 +13,6 @@ const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   logo_url: "",
   farbe_primaer: "#FFA633",
   farbe_akzent: "#1A1A1A",
-  pin_laenge: 4,
   einsatz_countdown_minuten: 30,
   modul_einsatztagebuch_aktiv: true,
   modul_dienstbuch_aktiv: true,

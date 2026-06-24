@@ -15,7 +15,6 @@ async def oeffentliche_konfiguration(db: DbSession) -> OeffentlicheKonfiguration
         logo_url=werte.get("logo_url", ""),
         farbe_primaer=werte.get("farbe_primaer", "#FFA633"),
         farbe_akzent=werte.get("farbe_akzent", "#1A1A1A"),
-        pin_laenge=werte.get("pin_laenge", 4),
         einsatz_countdown_minuten=werte.get("einsatz_countdown_minuten", 30),
         modul_einsatztagebuch_aktiv=werte.get("modul_einsatztagebuch_aktiv", True),
         modul_dienstbuch_aktiv=werte.get("modul_dienstbuch_aktiv", True),

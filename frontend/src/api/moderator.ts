@@ -28,6 +28,24 @@ export const fuehreArchivierungAus = () =>
 export const einstellungenVerifizieren = (passwort: string) =>
   apiPost<void>("/moderator/einstellungen/verifizieren", { passwort });
 
+export interface ModeratorKonto {
+  id: number;
+  username: string;
+  rolle: string;
+}
+
+export const holeModeratoren = () =>
+  apiGet<ModeratorKonto[]>("/moderator/einstellungen/moderatoren");
+
+export const moderatorAnlegen = (username: string, passwort: string) =>
+  apiPost<ModeratorKonto>("/moderator/einstellungen/moderatoren", { username, passwort });
+
+export const moderatorPasswortAendern = (id: number, passwort: string) =>
+  apiPut<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}/passwort`, { passwort });
+
+export const moderatorLoeschen = (id: number) =>
+  apiDelete<void>(`/moderator/einstellungen/moderatoren/${id}`);
+
 // --- Dashboard ------------------------------------------------------------
 
 export interface EinsaetzeProMonat {
@@ -188,7 +206,10 @@ export const personLoeschen = (id: number) => apiDelete<void>(`/moderator/stammd
 export const personBildHochladen = (id: number, datei: File) =>
   apiUpload<Person>(`/moderator/stammdaten/personen/${id}/bild`, datei, "datei");
 export const personBarcodeErzeugen = (id: number) =>
-  apiPost<{ token: string }>(`/moderator/barcodes/person/${id}`);
+  apiPost<{ token: string; ablauf_am: string | null }>(`/moderator/barcodes/person/${id}`);
+
+export const barcodeBildUrl = (token: string) =>
+  `/api/v1/moderator/barcodes/render/${token}`;
 
 // --- Buchungsmanagement -----------------------------------------------------
 

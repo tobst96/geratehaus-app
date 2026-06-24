@@ -53,3 +53,12 @@ class EinsatzOut(BaseModel):
 
 class EinsatzZusatzfelderAktualisieren(BaseModel):
     zusatzfelder: dict[str, str | bool]
+
+
+class EinsatzEreignisOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    zeitpunkt: datetime
+    typ: str
+    beschreibung: str

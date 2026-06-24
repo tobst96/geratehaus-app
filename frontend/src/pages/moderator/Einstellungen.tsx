@@ -5,10 +5,120 @@ import {
   ladeLogoHoch,
   fuehreArchivierungAus,
   einstellungenVerifizieren,
+  holeModeratoren,
+  moderatorAnlegen,
+  moderatorPasswortAendern,
+  moderatorLoeschen,
+  type ModeratorKonto,
 } from "../../api/moderator";
 import { setupErneutAusfuehren } from "../../api/setup";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
+
+function ModeratorenVerwaltung() {
+  const [liste, setListe] = useState<ModeratorKonto[] | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+  const [neuerUsername, setNeuerUsername] = useState("");
+  const [neuesPasswort, setNeuesPasswort] = useState("");
+
+  async function laden() {
+    try {
+      setListe(await holeModeratoren());
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Moderatoren konnten nicht geladen werden.");
+    }
+  }
+
+  useEffect(() => {
+    laden();
+  }, []);
+
+  async function anlegen(e: FormEvent) {
+    e.preventDefault();
+    setFehler(null);
+    if (!neuerUsername.trim() || neuesPasswort.length < 8) {
+      setFehler("Benutzername erforderlich, Passwort mindestens 8 Zeichen.");
+      return;
+    }
+    try {
+      await moderatorAnlegen(neuerUsername.trim(), neuesPasswort);
+      setNeuerUsername("");
+      setNeuesPasswort("");
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Anlegen fehlgeschlagen.");
+    }
+  }
+
+  async function passwortAendern(m: ModeratorKonto) {
+    const neues = prompt(`Neues Passwort für ${m.username} (mind. 8 Zeichen):`);
+    if (!neues) return;
+    try {
+      await moderatorPasswortAendern(m.id, neues);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Passwort konnte nicht geändert werden.");
+    }
+  }
+
+  async function loeschen(m: ModeratorKonto) {
+    if (!confirm(`Zugang "${m.username}" wirklich löschen?`)) return;
+    try {
+      await moderatorLoeschen(m.id);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Löschen fehlgeschlagen.");
+    }
+  }
+
+  return (
+    <div className="karte">
+      <h2>Moderator-Zugänge</h2>
+      {fehler && <p className="fehlertext">{fehler}</p>}
+      {!liste && <p>Lädt …</p>}
+      {liste && (
+        <table>
+          <thead>
+            <tr>
+              <th>Benutzername</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {liste.map((m) => (
+              <tr key={m.id}>
+                <td>{m.username}</td>
+                <td style={{ display: "flex", gap: 8 }}>
+                  <button type="button" className="sekundaer" onClick={() => passwortAendern(m)}>
+                    Passwort ändern
+                  </button>
+                  <button type="button" className="sekundaer" onClick={() => loeschen(m)}>
+                    Löschen
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <form onSubmit={anlegen} style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <input
+          placeholder="Neuer Benutzername"
+          value={neuerUsername}
+          onChange={(e) => setNeuerUsername(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Passwort (mind. 8 Zeichen)"
+          value={neuesPasswort}
+          onChange={(e) => setNeuesPasswort(e.target.value)}
+          autoComplete="off"
+        />
+        <button type="submit">Zugang anlegen</button>
+      </form>
+    </div>
+  );
+}
 
 function EinstellungenPasswortGate({ onEntsperrt }: { onEntsperrt: () => void }) {
   const [passwort, setPasswort] = useState("");
@@ -84,7 +194,6 @@ export function Einstellungen() {
 
   const [dienstbuchZeitfenster, setDienstbuchZeitfenster] = useState(12);
   const [archivierungszeitraum, setArchivierungszeitraum] = useState(2);
-  const [pinLaenge, setPinLaenge] = useState(4);
   const [einsatzCountdownMinuten, setEinsatzCountdownMinuten] = useState(30);
 
   const [diveraAktiv, setDiveraAktiv] = useState(false);
@@ -113,7 +222,6 @@ export function Einstellungen() {
       setModulFahrzeugbuchungStartseite(Boolean(w.modul_fahrzeugbuchung_startseite));
       setDienstbuchZeitfenster(Number(w.dienstbuch_zeitfenster_stunden ?? 12));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
-      setPinLaenge(Number(w.pin_laenge ?? 4));
       setEinsatzCountdownMinuten(Number(w.einsatz_countdown_minuten ?? 30));
       setDiveraAktiv(Boolean(w.divera_aktiv));
       setDiveraApiKey(String(w.divera_api_key ?? ""));
@@ -151,7 +259,6 @@ export function Einstellungen() {
         modul_fahrzeugbuchung_startseite: modulFahrzeugbuchungStartseite,
         dienstbuch_zeitfenster_stunden: dienstbuchZeitfenster,
         archivierungszeitraum_jahre: archivierungszeitraum,
-        pin_laenge: pinLaenge,
         einsatz_countdown_minuten: einsatzCountdownMinuten,
         divera_aktiv: diveraAktiv,
         divera_api_key: diveraApiKey,
@@ -163,6 +270,7 @@ export function Einstellungen() {
       });
       neuLaden();
       setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 4000);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Einstellungen konnten nicht gespeichert werden.");
     }
@@ -223,7 +331,19 @@ export function Einstellungen() {
     <div>
       <h1>Einstellungen</h1>
       {fehler && <p className="fehlertext">{fehler}</p>}
-      {gespeichert && <p>Gespeichert.</p>}
+      {gespeichert && (
+        <p
+          style={{
+            background: "#e6f7ec",
+            color: "#1a7a3a",
+            padding: "0.6rem 1rem",
+            borderRadius: "var(--radius)",
+            fontWeight: 600,
+          }}
+        >
+          ✓ Einstellungen erfolgreich gespeichert
+        </p>
+      )}
 
       <form onSubmit={speichern}>
         <div className="karte">
@@ -372,19 +492,6 @@ export function Einstellungen() {
         </div>
 
         <div className="karte">
-          <h2>Sicherheit</h2>
-          <label htmlFor="e-pin">PIN-Länge</label>
-          <input
-            id="e-pin"
-            type="number"
-            min={4}
-            max={10}
-            value={pinLaenge}
-            onChange={(e) => setPinLaenge(Number(e.target.value))}
-          />
-        </div>
-
-        <div className="karte">
           <h2>Benachrichtigungen</h2>
           <label>
             <input
@@ -454,6 +561,8 @@ export function Einstellungen() {
 
         <button type="submit">Speichern</button>
       </form>
+
+      <ModeratorenVerwaltung />
 
       <div className="karte" style={{ marginTop: 24 }}>
         <h2>Wartung</h2>

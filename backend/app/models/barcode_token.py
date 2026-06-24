@@ -13,6 +13,7 @@ class BarcodeToken(Base):
     token = Column(String(50), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_used_at = Column(DateTime, nullable=True)
+    ablauf_am = Column(DateTime, nullable=True)
 
     person = relationship("Person", back_populates="barcode_tokens")
 

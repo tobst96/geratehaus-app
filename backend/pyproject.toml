@@ -28,6 +28,7 @@ dependencies = [
     "structlog>=24.4",
     "python-dateutil>=2.9",
     "pillow>=10.4",
+    "python-barcode>=0.15",
 ]
 
 [project.optional-dependencies]

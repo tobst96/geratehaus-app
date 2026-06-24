@@ -11,7 +11,6 @@ class OeffentlicheKonfiguration(BaseModel):
     logo_url: str
     farbe_primaer: str
     farbe_akzent: str
-    pin_laenge: int
     einsatz_countdown_minuten: int
     modul_einsatztagebuch_aktiv: bool
     modul_dienstbuch_aktiv: bool

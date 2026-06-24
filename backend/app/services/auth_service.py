@@ -1,7 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import hash_secret
 from app.models.namens_abweichung import NamensAbweichung
 from app.models.person import Person
 
@@ -29,10 +28,3 @@ async def protokolliere_namensabweichung(
 async def liste_namensabweichungen(db: AsyncSession) -> list[NamensAbweichung]:
     result = await db.execute(select(NamensAbweichung).order_by(NamensAbweichung.zeitstempel.desc()))
     return list(result.scalars().all())
-
-
-async def pin_einrichten(db: AsyncSession, person: Person, pin: str) -> None:
-    person.pin_hash = hash_secret(pin)
-    person.pin_gesetzt = True
-    db.add(person)
-    await db.commit()

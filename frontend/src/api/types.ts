@@ -3,7 +3,6 @@ export interface OeffentlicheKonfiguration {
   logo_url: string;
   farbe_primaer: string;
   farbe_akzent: string;
-  pin_laenge: number;
   einsatz_countdown_minuten: number;
   modul_einsatztagebuch_aktiv: boolean;
   modul_dienstbuch_aktiv: boolean;
@@ -91,6 +90,13 @@ export interface EinsatzOut {
   archiviert: boolean;
   zusatzfelder: Record<string, string | boolean>;
   teilnahmen: TeilnahmeOut[];
+}
+
+export interface EinsatzEreignis {
+  id: number;
+  zeitpunkt: string;
+  typ: string;
+  beschreibung: string;
 }
 
 export interface TeilnehmerOut {

@@ -1,16 +1,15 @@
 """Zentraler Dispatch-Punkt für Benachrichtigungen.
 
 Welche Events Benachrichtigungen auslösen ist über app_config einzeln
-an/abschaltbar; welche Kanäle aktiv sind kommt aus der .env; die Texte sind
-ebenfalls über app_config konfigurierbar. Domain-Services (Einsatz,
-Dienstbuch, Buchung, Dienststunden) rufen ausschließlich `benachrichtige()`
-auf und kennen die Kanäle nicht.
+an/abschaltbar; welche Kanäle aktiv sind und ihre Zugangsdaten kommen
+ebenfalls aus app_config (Moderator-Bereich > Einstellungen), nicht aus der
+.env. Domain-Services (Einsatz, Dienstbuch, Buchung, Dienststunden) rufen
+ausschließlich `benachrichtige()` auf und kennen die Kanäle nicht.
 """
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.services.config_service import config_service
 from app.services.notifier.base import Notifier
 from app.services.notifier.email import EmailNotifier
@@ -34,13 +33,13 @@ EREIGNIS_VORLAGE = {
 }
 
 
-def _aktive_notifier() -> list[Notifier]:
+async def _aktive_notifier(db: AsyncSession) -> list[Notifier]:
     notifier: list[Notifier] = []
-    if settings.notifier_telegram_enabled:
+    if await config_service.get(db, "notifier_telegram_aktiv", False):
         notifier.append(TelegramNotifier())
-    if settings.notifier_email_enabled:
+    if await config_service.get(db, "notifier_email_aktiv", False):
         notifier.append(EmailNotifier())
-    if settings.notifier_webpush_enabled:
+    if await config_service.get(db, "notifier_webpush_aktiv", False):
         notifier.append(WebPushNotifier())
     return notifier
 
@@ -61,7 +60,7 @@ async def benachrichtige(db: AsyncSession, ereignis_schluessel: str, **platzhalt
         nachricht = vorlage
 
     betreff = EREIGNIS_BETREFF[ereignis_schluessel]
-    for notifier in _aktive_notifier():
+    for notifier in await _aktive_notifier(db):
         try:
             await notifier.send(db, betreff, nachricht)
         except Exception:

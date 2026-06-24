@@ -1,5 +1,5 @@
 import { apiGet, apiPatch, apiPost } from "./client";
-import type { EinsatzFeldDefinition, EinsatzOut, TeilnahmeOut } from "./types";
+import type { EinsatzEreignis, EinsatzFeldDefinition, EinsatzOut, TeilnahmeOut } from "./types";
 
 export const holeEinsaetze = () =>
   apiGet<EinsatzOut[]>("/einsaetze");
@@ -34,3 +34,9 @@ export const teilnahmeEintragen = (einsatzId: number, daten: TeilnahmeAnlegen) =
 
 export const einsatzPdfUrl = (id: number) =>
   `/api/v1/einsaetze/${id}/pdf`;
+
+export const holeEinsatzTimeline = (id: number) =>
+  apiGet<EinsatzEreignis[]>(`/einsaetze/${id}/timeline`);
+
+export const einsatzAbschliessen = (id: number) =>
+  apiPost<EinsatzOut>(`/einsaetze/${id}/abschliessen`);

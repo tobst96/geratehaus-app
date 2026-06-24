@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv
+from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_modul_aktiv
 from app.schemas.einsatz import (
     EinsatzAnlegen,
+    EinsatzEreignisOut,
     EinsatzOut,
     EinsatzZusatzfelderAktualisieren,
     TeilnahmeAnlegen,
@@ -84,3 +85,23 @@ async def zusatzfelder_aktualisieren(
     if einsatz is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
     return await einsatz_service.zusatzfelder_aktualisieren(db, einsatz, daten.zusatzfelder)
+
+
+@router.get("/{einsatz_id}/timeline", response_model=list[EinsatzEreignisOut], dependencies=[])
+async def einsatz_timeline(db: DbSession, einsatz_id: int) -> list[EinsatzEreignisOut]:
+    einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
+    if einsatz is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
+    return await einsatz_service.liste_ereignisse(db, einsatz_id)
+
+
+@router.post("/{einsatz_id}/abschliessen", response_model=EinsatzOut)
+async def einsatz_abschliessen(
+    db: DbSession, _moderator: CurrentModerator, einsatz_id: int
+) -> EinsatzOut:
+    """Schließt einen Einsatz ab (Status 'offen' -> 'abgeschlossen'). Nur im
+    Moderator-Bereich, da dies bislang nirgendwo automatisch passiert."""
+    einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
+    if einsatz is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
+    return await einsatz_service.einsatz_abschliessen(db, einsatz)

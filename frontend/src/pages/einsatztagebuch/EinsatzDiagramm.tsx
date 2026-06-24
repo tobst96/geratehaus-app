@@ -180,8 +180,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
 
   const aktiveFahrzeuge = fahrzeuge.filter((f) => f.aktiv);
   const aktivesFahrzeug = aktiveFahrzeuge.find((f) => f.id === aktivesFahrzeugId) ?? null;
-  const hatLinkeSpalte =
-    (felder && felder.length > 0) || geraetehausTeilnehmer.length > 0 || anfahrtTeilnehmer.length > 0;
+  const hatLinkeSpalte = (felder && felder.length > 0) || geraetehausTeilnehmer.length > 0;
 
   return (
     <div>
@@ -256,19 +255,6 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
                 </div>
               )}
 
-              {anfahrtTeilnehmer.length > 0 && (
-                <div className="karte">
-                  <h3>Auf Anfahrt gewesen</h3>
-                  <ul>
-                    {anfahrtTeilnehmer.map((t) => (
-                      <li key={t.id}>
-                        {t.person_name}
-                        {t.bemerkung ? ` – ${t.bemerkung}` : ""}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
             )}
 

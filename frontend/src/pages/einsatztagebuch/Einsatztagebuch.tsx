@@ -96,9 +96,13 @@ export function Einsatztagebuch() {
     <div>
       <h1>Einsatztagebuch</h1>
 
-      {!formularOffen && <button onClick={() => setFormularOffen(true)}>Neuer Einsatz</button>}
+      {!formularOffen && (
+        <button style={{ marginBottom: 16 }} onClick={() => setFormularOffen(true)}>
+          Neuer Einsatz
+        </button>
+      )}
       {formularOffen && (
-        <form onSubmit={einsatzManuellAnlegen} className="karte">
+        <form onSubmit={einsatzManuellAnlegen} className="karte" style={{ marginBottom: 16 }}>
           <label htmlFor="e-titel">Titel</label>
           <input
             id="e-titel"

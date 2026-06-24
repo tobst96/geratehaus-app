@@ -22,6 +22,7 @@ import {
   personLoeschen,
   personBildHochladen,
   personBarcodeErzeugen,
+  barcodeBildUrl,
 } from "../../api/moderator";
 import { ApiError } from "../../api/client";
 import type { EinsatzFeldDefinition, Fahrzeug, FunktionDienststunden, FunktionEinsatz, Person } from "../../api/types";
@@ -495,7 +496,9 @@ function PersonenTab() {
   const [neuerVorname, setNeuerVorname] = useState("");
   const [neuerZwischenname, setNeuerZwischenname] = useState("");
   const [neuerNachname, setNeuerNachname] = useState("");
-  const [barcodes, setBarcodes] = useState<Map<number, string>>(new Map());
+  const [barcodes, setBarcodes] = useState<Map<number, { token: string; ablaufAm: string | null }>>(
+    new Map()
+  );
 
   async function laden() {
     try {
@@ -539,8 +542,8 @@ function PersonenTab() {
   }
 
   async function barcodeErzeugen(p: Person) {
-    const { token } = await personBarcodeErzeugen(p.id);
-    setBarcodes((vorher) => new Map(vorher).set(p.id, token));
+    const { token, ablauf_am } = await personBarcodeErzeugen(p.id);
+    setBarcodes((vorher) => new Map(vorher).set(p.id, { token, ablaufAm: ablauf_am }));
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
@@ -615,9 +618,14 @@ function PersonenTab() {
               Barcode erzeugen
             </button>
             {barcodes.get(p.id) && (
-              <code style={{ fontSize: "0.75rem", wordBreak: "break-all", maxWidth: 160 }}>
-                {barcodes.get(p.id)}
-              </code>
+              <div style={{ textAlign: "center" }}>
+                <img src={barcodeBildUrl(barcodes.get(p.id)!.token)} alt="Barcode" style={{ height: 50 }} />
+                {barcodes.get(p.id)!.ablaufAm && (
+                  <div style={{ fontSize: "0.7rem", color: "#666" }}>
+                    Gültig bis {new Date(barcodes.get(p.id)!.ablaufAm!).toLocaleDateString("de-DE")}
+                  </div>
+                )}
+              </div>
             )}
 
             <button className="sekundaer" onClick={() => loeschen(p.id)}>

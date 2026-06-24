@@ -8,6 +8,7 @@ from app.models.buchung import FahrzeugBuchung
 from app.models.dienstbuch import Dienstbuch, DienstbuchPerson
 from app.models.dienststunden import Dienststunden
 from app.models.einsatz import Einsatz, EinsatzPerson
+from app.models.einsatz_ereignis import EinsatzEreignis
 from app.models.einsatz_feld import EinsatzFeldDefinition
 from app.models.fahrzeug import Fahrzeug
 from app.models.funktion import FunktionDienststunden, FunktionEinsatz
@@ -23,6 +24,7 @@ __all__ = [
     "DienstbuchPerson",
     "Dienststunden",
     "Einsatz",
+    "EinsatzEreignis",
     "EinsatzFeldDefinition",
     "EinsatzPerson",
     "Fahrzeug",

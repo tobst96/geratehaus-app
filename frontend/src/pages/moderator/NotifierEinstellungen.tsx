@@ -1,19 +1,23 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { holeEinstellungen, schreibeEinstellungen } from "../../api/moderator";
 import { ApiError } from "../../api/client";
 
 interface NotifierConfig {
   telegram_enabled: boolean;
   telegram_bot_token: string;
-  telegram_chat_id: string;
+  telegram_chat_ids: string;
   email_enabled: boolean;
-  email_smtp_server: string;
+  email_smtp_host: string;
   email_smtp_port: number;
+  email_smtp_user: string;
+  email_smtp_password: string;
+  email_smtp_use_tls: boolean;
   email_from: string;
-  email_username: string;
-  email_password: string;
+  email_recipients: string;
   webpush_enabled: boolean;
   webpush_vapid_public: string;
   webpush_vapid_private: string;
+  webpush_vapid_subject: string;
 }
 
 export function NotifierEinstellungen() {
@@ -25,20 +29,23 @@ export function NotifierEinstellungen() {
   useEffect(() => {
     async function laden() {
       try {
-        // In real scenario: await apiGet("/moderator/notifier-config")
+        const w = await holeEinstellungen();
         setConfig({
-          telegram_enabled: false,
-          telegram_bot_token: "",
-          telegram_chat_id: "",
-          email_enabled: false,
-          email_smtp_server: "",
-          email_smtp_port: 587,
-          email_from: "",
-          email_username: "",
-          email_password: "",
-          webpush_enabled: false,
-          webpush_vapid_public: "",
-          webpush_vapid_private: "",
+          telegram_enabled: Boolean(w.notifier_telegram_aktiv),
+          telegram_bot_token: String(w.notifier_telegram_bot_token ?? ""),
+          telegram_chat_ids: String(w.notifier_telegram_chat_ids ?? ""),
+          email_enabled: Boolean(w.notifier_email_aktiv),
+          email_smtp_host: String(w.notifier_email_smtp_host ?? ""),
+          email_smtp_port: Number(w.notifier_email_smtp_port ?? 587),
+          email_smtp_user: String(w.notifier_email_smtp_user ?? ""),
+          email_smtp_password: String(w.notifier_email_smtp_password ?? ""),
+          email_smtp_use_tls: Boolean(w.notifier_email_smtp_use_tls ?? true),
+          email_from: String(w.notifier_email_from ?? ""),
+          email_recipients: String(w.notifier_email_recipients ?? ""),
+          webpush_enabled: Boolean(w.notifier_webpush_aktiv),
+          webpush_vapid_public: String(w.notifier_webpush_vapid_public_key ?? ""),
+          webpush_vapid_private: String(w.notifier_webpush_vapid_private_key ?? ""),
+          webpush_vapid_subject: String(w.notifier_webpush_vapid_subject ?? ""),
         });
       } catch (err) {
         setFehler(err instanceof ApiError ? String(err.detail) : "Fehler beim Laden");
@@ -52,10 +59,27 @@ export function NotifierEinstellungen() {
     if (!config) return;
     setLoading(true);
     setGespeichert(false);
+    setFehler(null);
     try {
-      // In real scenario: await apiPost("/moderator/notifier-config", config)
-      console.log("Saving config:", config);
+      await schreibeEinstellungen({
+        notifier_telegram_aktiv: config.telegram_enabled,
+        notifier_telegram_bot_token: config.telegram_bot_token,
+        notifier_telegram_chat_ids: config.telegram_chat_ids,
+        notifier_email_aktiv: config.email_enabled,
+        notifier_email_smtp_host: config.email_smtp_host,
+        notifier_email_smtp_port: config.email_smtp_port,
+        notifier_email_smtp_user: config.email_smtp_user,
+        notifier_email_smtp_password: config.email_smtp_password,
+        notifier_email_smtp_use_tls: config.email_smtp_use_tls,
+        notifier_email_from: config.email_from,
+        notifier_email_recipients: config.email_recipients,
+        notifier_webpush_aktiv: config.webpush_enabled,
+        notifier_webpush_vapid_public_key: config.webpush_vapid_public,
+        notifier_webpush_vapid_private_key: config.webpush_vapid_private,
+        notifier_webpush_vapid_subject: config.webpush_vapid_subject,
+      });
       setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 4000);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Fehler beim Speichern");
     } finally {
@@ -70,8 +94,20 @@ export function NotifierEinstellungen() {
       <h1>Benachrichtigungen konfigurieren</h1>
       <p>Stelle hier Telegram, Email und Web Push ein – ganz ohne .env!</p>
 
-      {fehler && <p style={{ color: "red" }}>{fehler}</p>}
-      {gespeichert && <p style={{ color: "green" }}>✓ Konfiguration gespeichert</p>}
+      {fehler && <p className="fehlertext">{fehler}</p>}
+      {gespeichert && (
+        <p
+          style={{
+            background: "#e6f7ec",
+            color: "#1a7a3a",
+            padding: "0.6rem 1rem",
+            borderRadius: "var(--radius)",
+            fontWeight: 600,
+          }}
+        >
+          ✓ Konfiguration gespeichert
+        </p>
+      )}
 
       <form onSubmit={speichern}>
         {/* Telegram */}
@@ -95,16 +131,17 @@ export function NotifierEinstellungen() {
             onChange={(e) => setConfig({ ...config, telegram_bot_token: e.target.value })}
             placeholder="123456:ABC-DEF..."
             disabled={!config.telegram_enabled}
+            autoComplete="off"
           />
           <br />
           <br />
-          <label htmlFor="tg-chat">Chat ID</label>
+          <label htmlFor="tg-chat">Chat-IDs (kommagetrennt)</label>
           <input
             id="tg-chat"
             type="text"
-            value={config.telegram_chat_id}
-            onChange={(e) => setConfig({ ...config, telegram_chat_id: e.target.value })}
-            placeholder="-123456789"
+            value={config.telegram_chat_ids}
+            onChange={(e) => setConfig({ ...config, telegram_chat_ids: e.target.value })}
+            placeholder="-123456789, -987654321"
             disabled={!config.telegram_enabled}
           />
         </div>
@@ -126,8 +163,8 @@ export function NotifierEinstellungen() {
           <input
             id="email-server"
             type="text"
-            value={config.email_smtp_server}
-            onChange={(e) => setConfig({ ...config, email_smtp_server: e.target.value })}
+            value={config.email_smtp_host}
+            onChange={(e) => setConfig({ ...config, email_smtp_host: e.target.value })}
             placeholder="smtp.gmail.com"
             disabled={!config.email_enabled}
           />
@@ -143,6 +180,17 @@ export function NotifierEinstellungen() {
           />
           <br />
           <br />
+          <label>
+            <input
+              type="checkbox"
+              checked={config.email_smtp_use_tls}
+              onChange={(e) => setConfig({ ...config, email_smtp_use_tls: e.target.checked })}
+              disabled={!config.email_enabled}
+            />{" "}
+            STARTTLS verwenden
+          </label>
+          <br />
+          <br />
           <label htmlFor="email-from">Von Email-Adresse</label>
           <input
             id="email-from"
@@ -154,12 +202,23 @@ export function NotifierEinstellungen() {
           />
           <br />
           <br />
+          <label htmlFor="email-recipients">Empfänger (kommagetrennt)</label>
+          <input
+            id="email-recipients"
+            type="text"
+            value={config.email_recipients}
+            onChange={(e) => setConfig({ ...config, email_recipients: e.target.value })}
+            placeholder="moderator@example.com"
+            disabled={!config.email_enabled}
+          />
+          <br />
+          <br />
           <label htmlFor="email-user">Benutzername</label>
           <input
             id="email-user"
             type="text"
-            value={config.email_username}
-            onChange={(e) => setConfig({ ...config, email_username: e.target.value })}
+            value={config.email_smtp_user}
+            onChange={(e) => setConfig({ ...config, email_smtp_user: e.target.value })}
             placeholder="user@gmail.com"
             disabled={!config.email_enabled}
           />
@@ -169,10 +228,11 @@ export function NotifierEinstellungen() {
           <input
             id="email-pass"
             type="password"
-            value={config.email_password}
-            onChange={(e) => setConfig({ ...config, email_password: e.target.value })}
+            value={config.email_smtp_password}
+            onChange={(e) => setConfig({ ...config, email_smtp_password: e.target.value })}
             placeholder="••••••••"
             disabled={!config.email_enabled}
+            autoComplete="off"
           />
         </div>
 
@@ -197,6 +257,7 @@ export function NotifierEinstellungen() {
             onChange={(e) => setConfig({ ...config, webpush_vapid_public: e.target.value })}
             placeholder="BFx..."
             disabled={!config.webpush_enabled}
+            autoComplete="off"
           />
           <br />
           <br />
@@ -207,6 +268,18 @@ export function NotifierEinstellungen() {
             value={config.webpush_vapid_private}
             onChange={(e) => setConfig({ ...config, webpush_vapid_private: e.target.value })}
             placeholder="abc..."
+            disabled={!config.webpush_enabled}
+            autoComplete="off"
+          />
+          <br />
+          <br />
+          <label htmlFor="wp-subject">VAPID Subject (mailto:-Adresse)</label>
+          <input
+            id="wp-subject"
+            type="text"
+            value={config.webpush_vapid_subject}
+            onChange={(e) => setConfig({ ...config, webpush_vapid_subject: e.target.value })}
+            placeholder="mailto:admin@example.org"
             disabled={!config.webpush_enabled}
           />
           <p style={{ fontSize: "0.85rem", color: "#666" }}>

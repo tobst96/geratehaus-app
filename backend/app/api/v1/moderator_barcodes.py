@@ -1,6 +1,11 @@
-from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select
+import io
 import secrets
+from datetime import datetime, timedelta
+
+import barcode as barcode_lib
+from barcode.writer import ImageWriter
+from fastapi import APIRouter, HTTPException, Response, status
+from sqlalchemy import select
 
 from app.api.deps import CurrentModerator, DbSession
 from app.models.barcode_token import BarcodeToken, FahrzeugToken
@@ -9,12 +14,14 @@ from app.services import stammdaten_service
 
 router = APIRouter(prefix="/moderator/barcodes", tags=["moderator:barcodes"])
 
+BARCODE_GUELTIGKEIT_TAGE = 730  # 2 Jahre
+
 
 @router.post("/person/{person_id}")
 async def generate_barcode_for_person(
     db: DbSession, _moderator: CurrentModerator, person_id: int
-) -> dict[str, str]:
-    """Generate a new barcode token for a person."""
+) -> dict[str, str | None]:
+    """Generate a new barcode token for a person, valid for 2 years."""
     result = await db.execute(select(Person).where(Person.id == person_id))
     person = result.scalar_one_or_none()
     if person is None:
@@ -26,14 +33,31 @@ async def generate_barcode_for_person(
     )
     existing = result.scalar_one_or_none()
     if existing:
-        return {"token": existing.token}
+        return {
+            "token": existing.token,
+            "ablauf_am": existing.ablauf_am.isoformat() if existing.ablauf_am else None,
+        }
 
     # Generate new token
     token = secrets.token_hex(8)  # 16 chars
-    barcode = BarcodeToken(person_id=person_id, token=token)
+    ablauf_am = datetime.utcnow() + timedelta(days=BARCODE_GUELTIGKEIT_TAGE)
+    barcode = BarcodeToken(person_id=person_id, token=token, ablauf_am=ablauf_am)
     db.add(barcode)
     await db.commit()
-    return {"token": token}
+    return {"token": token, "ablauf_am": ablauf_am.isoformat()}
+
+
+@router.get("/render/{token}")
+async def barcode_bild_rendern(token: str) -> Response:
+    """Rendert den Token als echten Code128-Strichcode (PNG) zum Ausdrucken.
+
+    Bewusst ohne Moderator-Auth: ein <img>-Tag kann keinen Bearer-Token senden.
+    Unbedenklich, da das Bild nur den bereits bekannten Token visualisiert –
+    wer den Token nicht hat, kann ihn auch nicht in die URL einsetzen."""
+    code128 = barcode_lib.get("code128", token, writer=ImageWriter())
+    puffer = io.BytesIO()
+    code128.write(puffer, options={"write_text": False, "module_height": 10})
+    return Response(content=puffer.getvalue(), media_type="image/png")
 
 
 @router.post("/fahrzeug/{fahrzeug_id}")

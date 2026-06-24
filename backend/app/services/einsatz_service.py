@@ -5,8 +5,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.einsatz import Einsatz, EinsatzPerson
+from app.models.einsatz_ereignis import EinsatzEreignis
 from app.schemas.einsatz import EinsatzAnlegen, TeilnahmeAnlegen
 from app.services import notifier_service
+
+
+async def ereignis_protokollieren(
+    db: AsyncSession, einsatz_id: int, typ: str, beschreibung: str
+) -> None:
+    db.add(EinsatzEreignis(einsatz_id=einsatz_id, typ=typ, beschreibung=beschreibung))
+    await db.commit()
+
+
+async def liste_ereignisse(db: AsyncSession, einsatz_id: int) -> list[EinsatzEreignis]:
+    result = await db.execute(
+        select(EinsatzEreignis)
+        .where(EinsatzEreignis.einsatz_id == einsatz_id)
+        .order_by(EinsatzEreignis.zeitpunkt)
+    )
+    return list(result.scalars().all())
 
 _TEILNAHME_DETAILS = selectinload(Einsatz.teilnahmen).options(
     selectinload(EinsatzPerson.person),
@@ -29,10 +46,13 @@ async def get_einsatz(db: AsyncSession, einsatz_id: int) -> Einsatz | None:
     return result.scalar_one_or_none()
 
 
-async def einsatz_anlegen(db: AsyncSession, daten: EinsatzAnlegen) -> Einsatz:
-    einsatz = Einsatz(titel=daten.titel, zeitpunkt=daten.zeitpunkt, quelle="manuell")
+async def einsatz_anlegen(db: AsyncSession, daten: EinsatzAnlegen, quelle: str = "manuell") -> Einsatz:
+    einsatz = Einsatz(titel=daten.titel, zeitpunkt=daten.zeitpunkt, quelle=quelle)
     db.add(einsatz)
     await db.commit()
+    await ereignis_protokollieren(
+        db, einsatz.id, "angelegt", f"Einsatz angelegt ({quelle})"
+    )
     await notifier_service.benachrichtige(db, "benachrichtigung_neuer_einsatz", titel=einsatz.titel)
     geladen = await get_einsatz(db, einsatz.id)
     assert geladen is not None
@@ -53,6 +73,7 @@ async def teilnahme_eintragen(
         teilnahme = EinsatzPerson(einsatz_id=einsatz.id, person_id=person_id)
         db.add(teilnahme)
 
+    ist_neu = teilnahme.id is None
     teilnahme.fahrzeug_id = daten.fahrzeug_id
     teilnahme.sitzplatz_id = daten.sitzplatz_id
     teilnahme.funktion_id = daten.funktion_id
@@ -72,7 +93,21 @@ async def teilnahme_eintragen(
         )
         .where(EinsatzPerson.id == teilnahme.id)
     )
-    return geladen.scalar_one()
+    ergebnis = geladen.scalar_one()
+
+    if ergebnis.nur_geraetehaus:
+        ort = "Einsatzbereit im Feuerwehrhaus"
+    elif ergebnis.auf_anfahrt:
+        ort = "Auf Anfahrt"
+    elif ergebnis.fahrzeug_name:
+        ort = ergebnis.fahrzeug_name
+    else:
+        ort = "ohne Fahrzeugzuordnung"
+    verb = "eingetragen" if ist_neu else "aktualisiert"
+    await ereignis_protokollieren(
+        db, einsatz.id, "teilnahme", f"{ergebnis.person_name} {verb}: {ort}"
+    )
+    return ergebnis
 
 
 async def zusatzfelder_aktualisieren(
@@ -80,6 +115,16 @@ async def zusatzfelder_aktualisieren(
 ) -> Einsatz:
     einsatz.zusatzfelder = {**einsatz.zusatzfelder, **zusatzfelder}
     await db.commit()
+    await ereignis_protokollieren(db, einsatz.id, "details", "Einsatzdetails aktualisiert")
+    geladen = await get_einsatz(db, einsatz.id)
+    assert geladen is not None
+    return geladen
+
+
+async def einsatz_abschliessen(db: AsyncSession, einsatz: Einsatz) -> Einsatz:
+    einsatz.status = "abgeschlossen"
+    await db.commit()
+    await ereignis_protokollieren(db, einsatz.id, "abgeschlossen", "Einsatz abgeschlossen")
     geladen = await get_einsatz(db, einsatz.id)
     assert geladen is not None
     return geladen

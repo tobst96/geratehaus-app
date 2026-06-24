@@ -2,13 +2,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   holeEinsaetzeListe,
-  einsaetzeListePdfUrl,
   holeDienstbuecherListe,
-  dienstbuecherListePdfUrl,
   holeDienststundenListe,
-  dienststundenListePdfUrl,
   holeBuchungenListe,
-  buchungenListePdfUrl,
   holeNamensabweichungen,
   type NamensAbweichungOut,
 } from "../../api/moderator";
@@ -75,9 +71,6 @@ function EinsaetzeTab() {
         <DatumFeld label="Bis" value={bis} onChange={setBis} />
         <ArchiviertFeld value={archiviert} onChange={setArchiviert} />
         <button onClick={laden}>Filtern</button>
-        <a href={einsaetzeListePdfUrl(filter)} target="_blank" rel="noreferrer">
-          Als PDF exportieren
-        </a>
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
@@ -146,9 +139,6 @@ function DienstbuecherTab() {
         <DatumFeld label="Bis" value={bis} onChange={setBis} />
         <ArchiviertFeld value={archiviert} onChange={setArchiviert} />
         <button onClick={laden}>Filtern</button>
-        <a href={dienstbuecherListePdfUrl(filter)} target="_blank" rel="noreferrer">
-          Als PDF exportieren
-        </a>
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
@@ -205,9 +195,6 @@ function DienststundenTab() {
         <DatumFeld label="Von" value={von} onChange={setVon} />
         <DatumFeld label="Bis" value={bis} onChange={setBis} />
         <button onClick={laden}>Filtern</button>
-        <a href={dienststundenListePdfUrl(filter)} target="_blank" rel="noreferrer">
-          Als PDF exportieren
-        </a>
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
@@ -272,9 +259,6 @@ function BuchungenTab() {
           <option value="zurueckgezogen">Zurückgezogen</option>
         </select>
         <button onClick={laden}>Filtern</button>
-        <a href={buchungenListePdfUrl(filter)} target="_blank" rel="noreferrer">
-          Als PDF exportieren
-        </a>
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
