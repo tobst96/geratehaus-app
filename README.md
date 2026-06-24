@@ -2,42 +2,64 @@
 
 Eine selbst hostbare, mobile-first Webanwendung (PWA) für Feuerwehren und ähnliche
 Organisationen zur Verwaltung von Einsätzen, Diensten, Dienststunden und
-Fahrzeugbuchungen. Mitglieder scannen einen QR-Code im Gerätehaus, ihr Standort
-wird geprüft, und sie tragen sich für Einsätze/Dienste/Dienststunden ein – ganz
-ohne Login. Ein Moderator-Bereich erlaubt die Verwaltung aller Stammdaten und
-Einstellungen.
+Fahrzeugbuchungen. Die App läuft als **Kiosk** auf einem Tablet/Bildschirm im
+Gerätehaus: Mitglieder scannen ihren persönlichen Barcode, identifizieren sich
+damit eindeutig und tragen sich für Einsätze, Dienste oder Dienststunden ein –
+ganz ohne Tippen oder Login. Ein Moderator-Bereich erlaubt die Verwaltung aller
+Stammdaten, Personen und Einstellungen.
 
 **Open-Source-Prinzip:** Kein einziger feuerwehr-spezifischer Wert steht hart im
 Code. Alles, was von Organisation zu Organisation unterschiedlich ist –
-Name, Logo, Farben, Geofence, Module, Schwellenwerte, Fahrzeuge, Funktionen –
+Name, Logo, Farben, Module, Fahrzeuge, Sitzplätze, Funktionen, Zusatzfelder –
 wird beim ersten Start über einen Einrichtungsassistenten festgelegt und ist
 danach jederzeit über den Moderator-Bereich änderbar.
 
 ## Funktionen
 
-- **Einsatztagebuch** – Einsätze manuell oder per Divera-24/7-Import, mit
-  Fahrzeug/Funktion/VAB/Atemschutzminuten pro Teilnehmer, PDF-Export
+- **Kiosk-Startseite** – große, dynamisch skalierende Kacheln (nie Scrollen
+  nötig), pro Modul einzeln ein- und ausblendbar
+- **Personen & Barcodes** – Vorname/Zwischenname/Nachname, Profilbild (Fallback:
+  Initialen-Avatar), echter Code128-Strichcode pro Person mit 2 Jahren
+  Gültigkeit, die beim Scannen geprüft wird
+- **Einsatztagebuch ("Garage")** – Einsätze manuell oder per Divera-24/7-Import,
+  öffnen sich automatisch zum Eintragen; Fahrzeuge als eigene Kästen mit
+  konfigurierbaren Sitzplätzen (Trupp/Staffel/Gruppe-Vorlagen nach DIN 14502
+  oder frei editierbar), Eintragung per Barcode-Scan inkl. VAB und
+  Atemschutzminuten (Schieberegler), zusätzlich "Einsatzbereit im
+  Feuerwehrhaus" und "Auf Anfahrt gewesen" als eigene Buchungsarten
+- **Frei konfigurierbare Einsatz-Zusatzfelder** – z. B. Einsatzleiter,
+  Einheitsführer, Erste Lage, Tätigkeit (Standardbelegung), beliebig erweiterbar
+  um Text-, Mehrzeilen- oder Checkbox-Felder
+- **Einsatz-Countdown** – konfigurierbarer Timer in der Garage-Ansicht, springt
+  bei jeder neuen Eintragung zurück auf den Startwert und schließt die Ansicht
+  automatisch bei Ablauf
+- **Timeline & Abschluss** – jeder Einsatz hat im Moderator-Bereich eine
+  grafische Zeitleiste aller Ereignisse (Anlage, Eintragungen, Aktualisierungen)
+  und lässt sich dort explizit abschließen
 - **Dienstbuch** – schnelles Eintragen in zuletzt eröffnete Dienste
 - **Dienststunden** – Erfassung pro Person/Funktion, kumulierte Übersicht mit
   konfigurierbaren Schwellenwerten
 - **Fahrzeugbuchung** – Kalenderansicht (genehmigt/ausstehend/abgelehnt/vergangen),
   automatische Konflikterkennung, Moderator-Freigabe
-- **Außenzugriff per PIN** – Fahrzeugkalender und eigene Dienststunden auch
-  außerhalb des Gerätehauses einsehbar/nutzbar, ohne Standort-Pflicht
-- **Moderator-Bereich** – Dashboard, gefilterte Listen mit PDF-Export,
-  Stammdatenverwaltung, alle Einstellungen live änderbar
-- **Benachrichtigungen** – Telegram, E-Mail und Web Push, pluggable und einzeln
-  konfigurierbar
+- **Moderator-Bereich** – per Admin-Passwort zusätzlich abgesichert; Dashboard,
+  gefilterte Listen, Stammdatenverwaltung (Fahrzeuge, Sitzplätze, Funktionen,
+  Einsatz-Zusatzfelder, Personen), Moderator-Zugänge selbst verwalten
+- **Benachrichtigungen** – Telegram, E-Mail und Web Push, vollständig über den
+  Moderator-Bereich konfigurierbar (keine `.env`-Bearbeitung nötig)
+- **Divera 24/7** – Anbindung (Polling oder Webhook) ebenfalls komplett über den
+  Moderator-Bereich konfigurierbar
 - **PWA** – installierbar, Service Worker, Icon und Name aus der Konfiguration
 
-Jedes der vier Module ist einzeln aktivierbar/deaktivierbar.
+Jedes Modul ist einzeln aktivierbar/deaktivierbar und unabhängig davon einzeln
+auf der Kiosk-Startseite ein-/ausblendbar.
 
 ## Tech-Stack
 
 - **Backend:** Python 3.12, FastAPI (async), SQLAlchemy 2.0, Alembic, PostgreSQL
-- **Frontend:** React 18 + TypeScript, Vite, React Router, `react-big-calendar`,
-  Leaflet (Geofence-Karten-Picker)
-- **PDF-Export:** WeasyPrint (HTML/CSS-Templates)
+- **Frontend:** React 18 + TypeScript, Vite, React Router, `react-big-calendar`
+  (Fahrzeugbuchungskalender)
+- **PDF-Export:** WeasyPrint (HTML/CSS-Templates) für den einzelnen Einsatzbericht
+- **Barcodes:** `python-barcode` (Code128, serverseitig als PNG gerendert)
 - **Hintergrundjobs:** APScheduler (Divera-Polling, tägliche Archivierung)
 - **Deployment:** Docker Compose (Postgres + Backend + Nginx/Frontend)
 
@@ -98,18 +120,28 @@ Beim allerersten Aufruf – solange die Datenbank leer ist und kein Moderator ex
 
 ### Einrichtungsassistent
 
-Der Wizard fragt in fünf Schritten die wichtigsten Grunddaten ab:
+Der Wizard fragt in vier Schritten die wichtigsten Grunddaten ab:
 
 1. Name der Organisation
 2. Logo (optional, PNG oder SVG – PWA-Icons werden automatisch daraus generiert)
 3. Primär- und Akzentfarbe
-4. Standort des Gerätehauses (Karten-Picker oder "Aktuellen Standort verwenden")
-   und Geofence-Radius
-5. Admin-Passwort für den Moderator-Login
+4. Admin-Passwort für den Moderator-Login (mindestens 8 Zeichen)
 
 Danach ist die App sofort einsatzbereit. Der Wizard kann später jederzeit über
 den Moderator-Bereich (**Einstellungen → Setup-Wizard erneut ausführen**)
 wiederholt werden, etwa bei einer Migration auf eine neue Instanz.
+
+### Erste Schritte nach der Einrichtung
+
+1. **Moderator-Bereich → Stammdaten → Fahrzeuge**: Fahrzeuge anlegen und je
+   Fahrzeug die Sitzplätze einrichten (Trupp/Staffel/Gruppe-Vorlage oder frei
+   per Drag&Drop positionieren)
+2. **Moderator-Bereich → Stammdaten → Personen**: Mitglieder mit Vorname/
+   Nachname anlegen, optional Profilbild hochladen
+3. **Moderator-Bereich → Barcodes** (oder direkt bei der Person): Barcode pro
+   Person erzeugen und ausdrucken – 2 Jahre gültig
+4. **Moderator-Bereich → Einstellungen**: Module aktivieren/auf der
+   Startseite anzeigen, Divera/Benachrichtigungen konfigurieren
 
 ## Konfiguration
 
@@ -117,30 +149,34 @@ Es gibt bewusst zwei getrennte Konfigurationswege:
 
 | Wo | Was | Beispiel |
 |---|---|---|
-| `.env` | Technische/infrastrukturelle Werte, vor dem Start gesetzt | DB-Zugang, JWT-Secret, Notifier-Zugangsdaten, Divera-API-Key |
-| Moderator-Bereich (UI) | Fachliche/betriebliche Werte, jederzeit live änderbar | Organisationsname, Farben, Logo, Geofence, Module, Schwellenwerte, Stammdaten |
+| `.env` | Rein technische/infrastrukturelle Werte, vor dem Start gesetzt | DB-Zugang, JWT-/Cookie-Secret, HTTP-Port |
+| Moderator-Bereich (UI) | Fachliche/betriebliche Werte, jederzeit live änderbar | Organisationsname, Farben, Logo, Module, Personen, Fahrzeuge/Sitzplätze, Einsatz-Zusatzfelder, Benachrichtigungskanäle, Divera, Moderator-Zugänge |
 
 Alle Variablen in `.env.example` sind kommentiert. Fachliche Werte gehören
 **nicht** in die `.env` – sie werden ausschließlich über den Setup-Wizard bzw.
 den Moderator-Bereich gepflegt und landen in der `app_config`-Tabelle.
 
+Der Moderator-Bereich unter **Einstellungen** ist zusätzlich durch eine erneute
+Passwortabfrage geschützt, da dort sensible Zugangsdaten (Divera-API-Key,
+Notifier-Zugangsdaten) hinterlegt werden.
+
 ### Benachrichtigungen aktivieren
 
-Telegram, E-Mail (SMTP) und Web Push lassen sich unabhängig voneinander in der
-`.env` aktivieren (`NOTIFIER_*_ENABLED=true` plus die jeweiligen
-Zugangsdaten). Welche Ereignisse (neuer Einsatz, neues Dienstbuch, neue
-Buchungsanfrage, Schwellenwert-Überschreitung) Benachrichtigungen auslösen und
-mit welchem Text, lässt sich im Moderator-Bereich unter **Einstellungen**
-steuern.
+Telegram, E-Mail (SMTP) und Web Push lassen sich vollständig im Moderator-Bereich
+unter **Benachrichtigungen** konfigurieren – Bot-Token, SMTP-Zugangsdaten und
+VAPID-Schlüssel werden in der Datenbank gespeichert, keine `.env`-Bearbeitung
+nötig. Welche Ereignisse (neuer Einsatz, neues Dienstbuch, neue Buchungsanfrage,
+Schwellenwert-Überschreitung) Benachrichtigungen auslösen und mit welchem Text,
+lässt sich unter **Einstellungen** steuern.
 
 ### Divera-24/7-Integration
 
-Mit `DIVERA_ENABLED=true` und `DIVERA_API_KEY` importiert die App Alarme
-entweder per Polling (`DIVERA_MODE=polling`, Intervall über
-`DIVERA_POLL_INTERVAL_SECONDS`) oder per Webhook (`DIVERA_MODE=webhook`, URL
-`https://<deine-instanz>/api/v1/divera/webhook?accesskey=<DIVERA_API_KEY>` bei
-Divera hinterlegen). Welcher Modus zur Verfügung steht, hängt vom gebuchten
-Divera-Tarif ab.
+Ebenfalls vollständig im Moderator-Bereich unter **Einstellungen → Divera 24/7**
+konfigurierbar: Anbindung aktivieren, API-Key/Accesskey hinterlegen und Modus
+wählen (Polling, alle 5 Minuten, oder Webhook). Für den Webhook-Modus die URL
+`https://<deine-instanz>/api/v1/divera/webhook?accesskey=<dein-Accesskey>` bei
+Divera hinterlegen. Welcher Modus zur Verfügung steht, hängt vom gebuchten
+Divera-Tarif ab. Änderungen wirken ohne Neustart.
 
 ## Lokale Entwicklung (ohne Docker)
 
@@ -202,7 +238,7 @@ frontend/   React + Vite PWA
 
 Detaillierter Aufbau innerhalb von `backend/app/` und `frontend/src/`
 orientiert sich an fachlichen Domänen (Einsätze, Dienstbuch, Dienststunden,
-Buchungen, Moderator-Bereich) statt an technischen Schichten.
+Buchungen, Personen, Moderator-Bereich) statt an technischen Schichten.
 
 ## Lizenz
 
