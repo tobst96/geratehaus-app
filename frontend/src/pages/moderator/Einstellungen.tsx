@@ -28,6 +28,7 @@ export function Einstellungen() {
   const [dienstbuchZeitfenster, setDienstbuchZeitfenster] = useState(12);
   const [archivierungszeitraum, setArchivierungszeitraum] = useState(2);
   const [pinLaenge, setPinLaenge] = useState(4);
+  const [einsatzCountdownMinuten, setEinsatzCountdownMinuten] = useState(30);
 
   const [benachrichtigungEinsatz, setBenachrichtigungEinsatz] = useState(true);
   const [benachrichtigungDienstbuch, setBenachrichtigungDienstbuch] = useState(true);
@@ -48,6 +49,7 @@ export function Einstellungen() {
       setDienstbuchZeitfenster(Number(w.dienstbuch_zeitfenster_stunden ?? 12));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
       setPinLaenge(Number(w.pin_laenge ?? 4));
+      setEinsatzCountdownMinuten(Number(w.einsatz_countdown_minuten ?? 30));
       setBenachrichtigungEinsatz(Boolean(w.benachrichtigung_neuer_einsatz));
       setBenachrichtigungDienstbuch(Boolean(w.benachrichtigung_neues_dienstbuch));
       setBenachrichtigungBuchung(Boolean(w.benachrichtigung_buchungsanfrage));
@@ -78,6 +80,7 @@ export function Einstellungen() {
         dienstbuch_zeitfenster_stunden: dienstbuchZeitfenster,
         archivierungszeitraum_jahre: archivierungszeitraum,
         pin_laenge: pinLaenge,
+        einsatz_countdown_minuten: einsatzCountdownMinuten,
         benachrichtigung_neuer_einsatz: benachrichtigungEinsatz,
         benachrichtigung_neues_dienstbuch: benachrichtigungDienstbuch,
         benachrichtigung_buchungsanfrage: benachrichtigungBuchung,
@@ -216,6 +219,16 @@ export function Einstellungen() {
             min={1}
             value={archivierungszeitraum}
             onChange={(e) => setArchivierungszeitraum(Number(e.target.value))}
+          />
+          <br />
+          <br />
+          <label htmlFor="e-countdown">Einsatz-Countdown im Gerätehaus (Minuten)</label>
+          <input
+            id="e-countdown"
+            type="number"
+            min={1}
+            value={einsatzCountdownMinuten}
+            onChange={(e) => setEinsatzCountdownMinuten(Number(e.target.value))}
           />
         </div>
 

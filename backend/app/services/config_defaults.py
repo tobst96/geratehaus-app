@@ -36,6 +36,13 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("modul_dienstbuch_aktiv", "true", ConfigTyp.BOOL, "Dienstbuch aktiv"),
     ConfigDefault("modul_dienststunden_aktiv", "true", ConfigTyp.BOOL, "Dienststunden aktiv"),
     ConfigDefault("modul_fahrzeugbuchung_aktiv", "true", ConfigTyp.BOOL, "Fahrzeugbuchung aktiv"),
+    # Einsatztagebuch
+    ConfigDefault(
+        "einsatz_countdown_minuten",
+        "30",
+        ConfigTyp.INT,
+        "Minuten bis die Garage-Ansicht eines Einsatzes ohne Aktivität automatisch schließt",
+    ),
     # Geofence
     ConfigDefault("geofence_lat", "0.0", ConfigTyp.FLOAT, "Breitengrad des Gerätehauses"),
     ConfigDefault("geofence_lon", "0.0", ConfigTyp.FLOAT, "Längengrad des Gerätehauses"),

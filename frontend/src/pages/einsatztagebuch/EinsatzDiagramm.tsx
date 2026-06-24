@@ -1,9 +1,16 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { einsatzZusatzfelderAktualisieren, holeEinsatzFelder, teilnahmeEintragen } from "../../api/einsaetze";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import { useConfig } from "../../context/ConfigContext";
 import type { EinsatzFeldDefinition, EinsatzOut, Fahrzeug, FunktionEinsatz, TeilnahmeOut } from "../../api/types";
 import "./EinsatzDiagramm.css";
+
+function formatiereCountdown(sekunden: number): string {
+  const m = Math.floor(sekunden / 60);
+  const s = sekunden % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
 
 interface EinsatzDiagrammProps {
   einsatz: EinsatzOut;
@@ -21,14 +28,16 @@ interface AusgewaehlteAktion {
 }
 
 const AGT_MAX_MINUTEN = 35;
+const AGT_DEFAULT_MINUTEN = 30;
 
 export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }: EinsatzDiagrammProps) {
   const { barcodeEinscannen } = useAuth();
+  const { config } = useConfig();
   const [aktivesFahrzeugId, setAktivesFahrzeugId] = useState<number | null>(null);
   const [ausgewaehlteAktion, setAusgewaehlteAktion] = useState<AusgewaehlteAktion | null>(null);
   const [barcode, setBarcode] = useState("");
   const [vab, setVab] = useState(false);
-  const [atemschutzminuten, setAtemschutzminuten] = useState(0);
+  const [atemschutzminuten, setAtemschutzminuten] = useState(AGT_DEFAULT_MINUTEN);
   const [bemerkung, setBemerkung] = useState("");
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
@@ -37,6 +46,10 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   const [feldWerte, setFeldWerte] = useState<Record<string, string | boolean>>(einsatz.zusatzfelder);
   const [felderSpeichern, setFelderSpeichern] = useState(false);
 
+  const countdownStartSekunden = (config?.einsatz_countdown_minuten ?? 30) * 60;
+  const [restSekunden, setRestSekunden] = useState(countdownStartSekunden);
+  const letzteTeilnehmerZahl = useRef(einsatz.teilnahmen.length);
+
   useEffect(() => {
     holeEinsatzFelder().then(setFelder).catch(() => setFelder([]));
   }, []);
@@ -44,6 +57,29 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   useEffect(() => {
     setFeldWerte(einsatz.zusatzfelder);
   }, [einsatz.zusatzfelder]);
+
+  // Countdown läuft unabhängig vom Render-Zyklus runter und schließt die
+  // Garage-Ansicht automatisch, wenn er abläuft.
+  useEffect(() => {
+    const intervall = setInterval(() => {
+      setRestSekunden((vorher) => Math.max(0, vorher - 1));
+    }, 1000);
+    return () => clearInterval(intervall);
+  }, []);
+
+  useEffect(() => {
+    if (restSekunden === 0) {
+      onCancel();
+    }
+  }, [restSekunden, onCancel]);
+
+  // Springt auf den Startwert zurück, sobald sich jemand neu einträgt.
+  useEffect(() => {
+    if (einsatz.teilnahmen.length !== letzteTeilnehmerZahl.current) {
+      letzteTeilnehmerZahl.current = einsatz.teilnahmen.length;
+      setRestSekunden(countdownStartSekunden);
+    }
+  }, [einsatz.teilnahmen.length, countdownStartSekunden]);
 
   const belegungByKey = new Map<string, TeilnahmeOut>();
   for (const t of einsatz.teilnahmen) {
@@ -61,7 +97,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     setAusgewaehlteAktion({ fahrzeug, sitzplatzId, bezeichnung, nurGeraetehaus: false });
     setBarcode("");
     setVab(false);
-    setAtemschutzminuten(0);
+    setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
     setBemerkung("");
     setFehler(null);
   }
@@ -75,7 +111,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     });
     setBarcode("");
     setVab(false);
-    setAtemschutzminuten(0);
+    setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
     setBemerkung("");
     setFehler(null);
   }
@@ -101,6 +137,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
       });
       await onAktualisiert();
       setAusgewaehlteAktion(null);
+      setAktivesFahrzeugId(null);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Eintragung fehlgeschlagen.");
     } finally {
@@ -127,7 +164,15 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
 
   return (
     <div>
-      <h2>{einsatz.titel}</h2>
+      <div className="einsatz-kopf">
+        <h2 style={{ margin: 0 }}>{einsatz.titel}</h2>
+        <span
+          className={`einsatz-countdown ${restSekunden <= 60 ? "einsatz-countdown-warnung" : ""}`}
+          title="Zeit bis die Garage-Ansicht automatisch schließt"
+        >
+          {formatiereCountdown(restSekunden)}
+        </span>
+      </div>
 
       {!aktivesFahrzeug && felder && felder.length > 0 && (
         <div className="karte">

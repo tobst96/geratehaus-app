@@ -4,6 +4,7 @@ export interface OeffentlicheKonfiguration {
   farbe_primaer: string;
   farbe_akzent: string;
   pin_laenge: number;
+  einsatz_countdown_minuten: number;
   modul_einsatztagebuch_aktiv: boolean;
   modul_dienstbuch_aktiv: boolean;
   modul_dienststunden_aktiv: boolean;
