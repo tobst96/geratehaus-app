@@ -25,6 +25,7 @@ export interface TeilnahmeAnlegen {
   vab: boolean;
   atemschutzminuten: number;
   nur_geraetehaus: boolean;
+  auf_anfahrt: boolean;
   bemerkung: string | null;
 }
 

@@ -59,6 +59,7 @@ async def teilnahme_eintragen(
     teilnahme.vab = daten.vab
     teilnahme.atemschutzminuten = daten.atemschutzminuten
     teilnahme.nur_geraetehaus = daten.nur_geraetehaus
+    teilnahme.auf_anfahrt = daten.auf_anfahrt
     teilnahme.bemerkung = daten.bemerkung
     await db.commit()
 

@@ -27,6 +27,7 @@
             <th>VAB</th>
             <th>Atemschutz (min)</th>
             <th>Nur Gerätehaus</th>
+            <th>Auf Anfahrt</th>
             <th>Bemerkung</th>
         </tr>
     </thead>
@@ -39,6 +40,7 @@
             <td>{{ "Ja" if t.vab else "" }}</td>
             <td>{{ t.atemschutzminuten if t.atemschutzminuten else "" }}</td>
             <td>{{ "Ja" if t.nur_geraetehaus else "" }}</td>
+            <td>{{ "Ja" if t.auf_anfahrt else "" }}</td>
             <td>{{ t.bemerkung or "" }}</td>
         </tr>
         {% endfor %}

@@ -64,6 +64,7 @@ export interface TeilnahmeOut {
   vab: boolean;
   atemschutzminuten: number;
   nur_geraetehaus: boolean;
+  auf_anfahrt: boolean;
   bemerkung: string | null;
 }
 

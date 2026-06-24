@@ -48,6 +48,7 @@ class EinsatzPerson(Base, TimestampMixin):
     vab: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     atemschutzminuten: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     nur_geraetehaus: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    auf_anfahrt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     bemerkung: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     einsatz: Mapped["Einsatz"] = relationship(back_populates="teilnahmen")

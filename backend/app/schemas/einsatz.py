@@ -15,6 +15,7 @@ class TeilnahmeAnlegen(BaseModel):
     vab: bool = False
     atemschutzminuten: int = Field(default=0, ge=0)
     nur_geraetehaus: bool = False
+    auf_anfahrt: bool = False
     bemerkung: str | None = None
 
 
@@ -32,6 +33,7 @@ class TeilnahmeOut(BaseModel):
     vab: bool
     atemschutzminuten: int
     nur_geraetehaus: bool
+    auf_anfahrt: bool
     bemerkung: str | None
 
 

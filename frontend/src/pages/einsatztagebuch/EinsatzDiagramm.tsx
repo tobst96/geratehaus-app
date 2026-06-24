@@ -25,6 +25,7 @@ interface AusgewaehlteAktion {
   sitzplatzId: string | null;
   bezeichnung: string;
   nurGeraetehaus: boolean;
+  aufAnfahrt: boolean;
 }
 
 const AGT_MAX_MINUTEN = 35;
@@ -88,13 +89,14 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     }
   }
   const geraetehausTeilnehmer = einsatz.teilnahmen.filter((t) => t.nur_geraetehaus);
+  const anfahrtTeilnehmer = einsatz.teilnahmen.filter((t) => t.auf_anfahrt);
 
   function teilnehmerZahl(fahrzeugId: number): number {
     return einsatz.teilnahmen.filter((t) => t.fahrzeug_id === fahrzeugId).length;
   }
 
   function sitzKlick(fahrzeug: Fahrzeug, sitzplatzId: string, bezeichnung: string) {
-    setAusgewaehlteAktion({ fahrzeug, sitzplatzId, bezeichnung, nurGeraetehaus: false });
+    setAusgewaehlteAktion({ fahrzeug, sitzplatzId, bezeichnung, nurGeraetehaus: false, aufAnfahrt: false });
     setBarcode("");
     setVab(false);
     setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
@@ -108,6 +110,22 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
       sitzplatzId: null,
       bezeichnung: "Einsatzbereit im Feuerwehrhaus",
       nurGeraetehaus: true,
+      aufAnfahrt: false,
+    });
+    setBarcode("");
+    setVab(false);
+    setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
+    setBemerkung("");
+    setFehler(null);
+  }
+
+  function anfahrtKlick() {
+    setAusgewaehlteAktion({
+      fahrzeug: null,
+      sitzplatzId: null,
+      bezeichnung: "Auf Anfahrt gewesen",
+      nurGeraetehaus: false,
+      aufAnfahrt: true,
     });
     setBarcode("");
     setVab(false);
@@ -133,6 +151,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
         vab,
         atemschutzminuten,
         nur_geraetehaus: ausgewaehlteAktion.nurGeraetehaus,
+        auf_anfahrt: ausgewaehlteAktion.aufAnfahrt,
         bemerkung: bemerkung.trim() || null,
       });
       await onAktualisiert();
@@ -161,7 +180,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
 
   const aktiveFahrzeuge = fahrzeuge.filter((f) => f.aktiv);
   const aktivesFahrzeug = aktiveFahrzeuge.find((f) => f.id === aktivesFahrzeugId) ?? null;
-  const hatLinkeSpalte = (felder && felder.length > 0) || geraetehausTeilnehmer.length > 0;
+  const hatLinkeSpalte =
+    (felder && felder.length > 0) || geraetehausTeilnehmer.length > 0 || anfahrtTeilnehmer.length > 0;
 
   return (
     <div>
@@ -235,6 +255,20 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
                   </ul>
                 </div>
               )}
+
+              {anfahrtTeilnehmer.length > 0 && (
+                <div className="karte">
+                  <h3>Auf Anfahrt gewesen</h3>
+                  <ul>
+                    {anfahrtTeilnehmer.map((t) => (
+                      <li key={t.id}>
+                        {t.person_name}
+                        {t.bemerkung ? ` – ${t.bemerkung}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
             )}
 
@@ -252,6 +286,10 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
                 <button type="button" className="fahrzeug-button fahrzeug-button-geraetehaus" onClick={geraetehausKlick}>
                   <span className="fahrzeug-button-name">Einsatzbereit im Feuerwehrhaus</span>
                   <span className="fahrzeug-button-zahl">{geraetehausTeilnehmer.length} eingetragen</span>
+                </button>
+                <button type="button" className="fahrzeug-button fahrzeug-button-geraetehaus" onClick={anfahrtKlick}>
+                  <span className="fahrzeug-button-name">Auf Anfahrt gewesen</span>
+                  <span className="fahrzeug-button-zahl">{anfahrtTeilnehmer.length} eingetragen</span>
                 </button>
               </div>
             </div>
@@ -341,7 +379,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
             <br />
             <br />
 
-            {!ausgewaehlteAktion.nurGeraetehaus && (
+            {!ausgewaehlteAktion.nurGeraetehaus && !ausgewaehlteAktion.aufAnfahrt && (
               <>
                 <label>
                   <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB

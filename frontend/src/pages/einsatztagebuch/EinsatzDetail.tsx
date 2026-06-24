@@ -50,6 +50,7 @@ export function EinsatzDetail() {
         vab,
         atemschutzminuten,
         nur_geraetehaus: nurGeraetehaus,
+        auf_anfahrt: false,
         bemerkung: null,
       });
       await laden();
@@ -140,6 +141,7 @@ export function EinsatzDetail() {
             <th>VAB</th>
             <th>Atemschutz</th>
             <th>Nur Gerätehaus</th>
+            <th>Auf Anfahrt</th>
             <th>Bemerkung</th>
           </tr>
         </thead>
@@ -152,6 +154,7 @@ export function EinsatzDetail() {
               <td>{t.vab ? "Ja" : ""}</td>
               <td>{t.atemschutzminuten || ""}</td>
               <td>{t.nur_geraetehaus ? "Ja" : ""}</td>
+              <td>{t.auf_anfahrt ? "Ja" : ""}</td>
               <td>{t.bemerkung ?? ""}</td>
             </tr>
           ))}
