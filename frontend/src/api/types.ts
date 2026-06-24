@@ -54,6 +54,16 @@ export interface TeilnahmeOut {
   vab: boolean;
   atemschutzminuten: number;
   nur_geraetehaus: boolean;
+  bemerkung: string | null;
+}
+
+export interface EinsatzFeldDefinition {
+  id: number;
+  schluessel: string;
+  label: string;
+  typ: "text" | "mehrzeilig" | "checkbox";
+  reihenfolge: number;
+  aktiv: boolean;
 }
 
 export interface EinsatzOut {
@@ -64,6 +74,7 @@ export interface EinsatzOut {
   zeitpunkt: string;
   status: string;
   archiviert: boolean;
+  zusatzfelder: Record<string, string | boolean>;
   teilnahmen: TeilnahmeOut[];
 }
 

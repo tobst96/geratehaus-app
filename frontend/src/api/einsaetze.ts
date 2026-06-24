@@ -1,5 +1,5 @@
-import { apiGet, apiPost } from "./client";
-import type { EinsatzOut, TeilnahmeOut } from "./types";
+import { apiGet, apiPatch, apiPost } from "./client";
+import type { EinsatzFeldDefinition, EinsatzOut, TeilnahmeOut } from "./types";
 
 export const holeEinsaetze = () =>
   apiGet<EinsatzOut[]>("/einsaetze");
@@ -10,6 +10,14 @@ export const holeEinsatz = (id: number) =>
 export const einsatzAnlegen = (titel: string, zeitpunkt: string) =>
   apiPost<EinsatzOut>("/einsaetze", { titel, zeitpunkt });
 
+export const holeEinsatzFelder = () =>
+  apiGet<EinsatzFeldDefinition[]>("/einsaetze/feld-definitionen");
+
+export const einsatzZusatzfelderAktualisieren = (
+  einsatzId: number,
+  zusatzfelder: Record<string, string | boolean>
+) => apiPatch<EinsatzOut>(`/einsaetze/${einsatzId}/zusatzfelder`, { zusatzfelder });
+
 export interface TeilnahmeAnlegen {
   fahrzeug_id: number | null;
   sitzplatz_id: string | null;
@@ -17,6 +25,7 @@ export interface TeilnahmeAnlegen {
   vab: boolean;
   atemschutzminuten: number;
   nur_geraetehaus: boolean;
+  bemerkung: string | null;
 }
 
 export const teilnahmeEintragen = (einsatzId: number, daten: TeilnahmeAnlegen) =>

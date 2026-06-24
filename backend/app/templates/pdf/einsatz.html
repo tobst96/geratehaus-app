@@ -6,6 +6,18 @@
     Quelle: {{ einsatz.quelle }} ·
     Status: {{ einsatz.status }}
 </div>
+{% if zusatzfelder_anzeige %}
+<table>
+    <tbody>
+        {% for zf in zusatzfelder_anzeige %}
+        <tr>
+            <td><strong>{{ zf.label }}</strong></td>
+            <td>{{ zf.wert }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
 <table>
     <thead>
         <tr>
@@ -15,6 +27,7 @@
             <th>VAB</th>
             <th>Atemschutz (min)</th>
             <th>Nur Gerätehaus</th>
+            <th>Bemerkung</th>
         </tr>
     </thead>
     <tbody>
@@ -26,6 +39,7 @@
             <td>{{ "Ja" if t.vab else "" }}</td>
             <td>{{ t.atemschutzminuten if t.atemschutzminuten else "" }}</td>
             <td>{{ "Ja" if t.nur_geraetehaus else "" }}</td>
+            <td>{{ t.bemerkung or "" }}</td>
         </tr>
         {% endfor %}
     </tbody>

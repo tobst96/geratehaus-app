@@ -2,6 +2,7 @@ import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from "./client";
 import type {
   BuchungOut,
   DienstbuchOut,
+  EinsatzFeldDefinition,
   EinsatzOut,
   Fahrzeug,
   FunktionDienststunden,
@@ -156,6 +157,21 @@ export const funktionDienststundenAktualisieren = (
 ) => apiPut<FunktionDienststunden>(`/moderator/stammdaten/funktionen-dienststunden/${id}`, daten);
 export const funktionDienststundenLoeschen = (id: number) =>
   apiDelete<void>(`/moderator/stammdaten/funktionen-dienststunden/${id}`);
+
+export const holeAlleEinsatzFelder = () =>
+  apiGet<EinsatzFeldDefinition[]>("/moderator/stammdaten/einsatz-felder");
+export const einsatzFeldAnlegen = (daten: {
+  label: string;
+  typ: "text" | "mehrzeilig" | "checkbox";
+  reihenfolge: number;
+  aktiv: boolean;
+}) => apiPost<EinsatzFeldDefinition>("/moderator/stammdaten/einsatz-felder", daten);
+export const einsatzFeldAktualisieren = (
+  id: number,
+  daten: Partial<{ label: string; typ: "text" | "mehrzeilig" | "checkbox"; reihenfolge: number; aktiv: boolean }>
+) => apiPut<EinsatzFeldDefinition>(`/moderator/stammdaten/einsatz-felder/${id}`, daten);
+export const einsatzFeldLoeschen = (id: number) =>
+  apiDelete<void>(`/moderator/stammdaten/einsatz-felder/${id}`);
 
 // --- Buchungsmanagement -----------------------------------------------------
 

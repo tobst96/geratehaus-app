@@ -1,8 +1,14 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.einsatz_feld import EinsatzFeldDefinition
 from app.models.fahrzeug import Fahrzeug
 from app.models.funktion import FunktionDienststunden, FunktionEinsatz
+from app.schemas.einsatz_feld import (
+    EinsatzFeldDefinitionCreate,
+    EinsatzFeldDefinitionUpdate,
+    schluessel_aus_label,
+)
 from app.schemas.stammdaten import (
     FahrzeugCreate,
     FahrzeugUpdate,
@@ -126,4 +132,62 @@ async def get_funktion_dienststunden(
     result = await db.execute(
         select(FunktionDienststunden).where(FunktionDienststunden.id == funktion_id)
     )
+    return result.scalar_one_or_none()
+
+
+# --- Einsatz-Felder (frei konfigurierbare Zusatzfelder) ------------------------
+
+
+async def liste_einsatz_felder(db: AsyncSession, nur_aktive: bool = True) -> list[EinsatzFeldDefinition]:
+    stmt = select(EinsatzFeldDefinition).order_by(EinsatzFeldDefinition.reihenfolge)
+    if nur_aktive:
+        stmt = stmt.where(EinsatzFeldDefinition.aktiv.is_(True))
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def einsatz_feld_anlegen(
+    db: AsyncSession, daten: EinsatzFeldDefinitionCreate
+) -> EinsatzFeldDefinition:
+    basis_schluessel = schluessel_aus_label(daten.label)
+    schluessel = basis_schluessel
+    zaehler = 1
+    while (
+        await db.execute(
+            select(EinsatzFeldDefinition).where(EinsatzFeldDefinition.schluessel == schluessel)
+        )
+    ).scalar_one_or_none() is not None:
+        zaehler += 1
+        schluessel = f"{basis_schluessel}_{zaehler}"
+
+    feld = EinsatzFeldDefinition(
+        schluessel=schluessel,
+        label=daten.label,
+        typ=daten.typ,
+        reihenfolge=daten.reihenfolge,
+        aktiv=daten.aktiv,
+    )
+    db.add(feld)
+    await db.commit()
+    await db.refresh(feld)
+    return feld
+
+
+async def einsatz_feld_aktualisieren(
+    db: AsyncSession, feld: EinsatzFeldDefinition, daten: EinsatzFeldDefinitionUpdate
+) -> EinsatzFeldDefinition:
+    for name, wert in daten.model_dump(exclude_unset=True).items():
+        setattr(feld, name, wert)
+    await db.commit()
+    await db.refresh(feld)
+    return feld
+
+
+async def einsatz_feld_loeschen(db: AsyncSession, feld: EinsatzFeldDefinition) -> None:
+    await db.delete(feld)
+    await db.commit()
+
+
+async def get_einsatz_feld(db: AsyncSession, feld_id: int) -> EinsatzFeldDefinition | None:
+    result = await db.execute(select(EinsatzFeldDefinition).where(EinsatzFeldDefinition.id == feld_id))
     return result.scalar_one_or_none()

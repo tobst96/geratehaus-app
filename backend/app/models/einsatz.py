@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -21,6 +21,8 @@ class Einsatz(Base, TimestampMixin):
     zeitpunkt: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     status: Mapped[str] = mapped_column(String(32), default="offen", nullable=False)
     archiviert: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Werte der frei konfigurierbaren Zusatzfelder, keyed by EinsatzFeldDefinition.schluessel.
+    zusatzfelder: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
 
     teilnahmen: Mapped[list["EinsatzPerson"]] = relationship(
         back_populates="einsatz", cascade="all, delete-orphan"
@@ -45,6 +47,7 @@ class EinsatzPerson(Base, TimestampMixin):
     vab: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     atemschutzminuten: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     nur_geraetehaus: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    bemerkung: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     einsatz: Mapped["Einsatz"] = relationship(back_populates="teilnahmen")
     person: Mapped["Person"] = relationship(viewonly=True)

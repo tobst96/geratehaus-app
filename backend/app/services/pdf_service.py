@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from weasyprint import HTML
 
 from app.core.config import settings
+from app.services import stammdaten_service
 from app.services.config_service import config_service
 
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates" / "pdf"
@@ -55,7 +56,14 @@ async def _rendern(db: AsyncSession, template_name: str, **kontext: Any) -> byte
 
 
 async def einsatz_pdf(db: AsyncSession, einsatz: Any) -> bytes:
-    return await _rendern(db, "einsatz.html", einsatz=einsatz)
+    felder = await stammdaten_service.liste_einsatz_felder(db, nur_aktive=True)
+    zusatzfelder_anzeige = []
+    for f in felder:
+        wert = einsatz.zusatzfelder.get(f.schluessel)
+        if wert in (None, "", False):
+            continue
+        zusatzfelder_anzeige.append({"label": f.label, "wert": "Ja" if wert is True else wert})
+    return await _rendern(db, "einsatz.html", einsatz=einsatz, zusatzfelder_anzeige=zusatzfelder_anzeige)
 
 
 async def dienstbuch_pdf(db: AsyncSession, dienstbuch: Any) -> bytes:

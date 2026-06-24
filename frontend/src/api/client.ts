@@ -27,7 +27,7 @@ export function getModeratorToken(): string | null {
 }
 
 interface RequestOptions {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined>;
   isFormData?: boolean;
@@ -97,6 +97,8 @@ export const apiPost = <T>(pfad: string, body?: unknown, query?: RequestOptions[
   anfrage<T>(pfad, { method: "POST", body, query });
 
 export const apiPut = <T>(pfad: string, body?: unknown) => anfrage<T>(pfad, { method: "PUT", body });
+
+export const apiPatch = <T>(pfad: string, body?: unknown) => anfrage<T>(pfad, { method: "PATCH", body });
 
 export const apiDelete = <T>(pfad: string) => anfrage<T>(pfad, { method: "DELETE" });
 

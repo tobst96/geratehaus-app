@@ -50,6 +50,7 @@ export function EinsatzDetail() {
         vab,
         atemschutzminuten,
         nur_geraetehaus: nurGeraetehaus,
+        bemerkung: null,
       });
       await laden();
     } catch (err) {
@@ -138,6 +139,8 @@ export function EinsatzDetail() {
             <th>Funktion</th>
             <th>VAB</th>
             <th>Atemschutz</th>
+            <th>Nur Gerätehaus</th>
+            <th>Bemerkung</th>
           </tr>
         </thead>
         <tbody>
@@ -148,6 +151,8 @@ export function EinsatzDetail() {
               <td>{t.funktion_name ?? ""}</td>
               <td>{t.vab ? "Ja" : ""}</td>
               <td>{t.atemschutzminuten || ""}</td>
+              <td>{t.nur_geraetehaus ? "Ja" : ""}</td>
+              <td>{t.bemerkung ?? ""}</td>
             </tr>
           ))}
         </tbody>

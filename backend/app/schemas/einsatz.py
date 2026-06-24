@@ -15,6 +15,7 @@ class TeilnahmeAnlegen(BaseModel):
     vab: bool = False
     atemschutzminuten: int = Field(default=0, ge=0)
     nur_geraetehaus: bool = False
+    bemerkung: str | None = None
 
 
 class TeilnahmeOut(BaseModel):
@@ -31,6 +32,7 @@ class TeilnahmeOut(BaseModel):
     vab: bool
     atemschutzminuten: int
     nur_geraetehaus: bool
+    bemerkung: str | None
 
 
 class EinsatzOut(BaseModel):
@@ -43,4 +45,9 @@ class EinsatzOut(BaseModel):
     zeitpunkt: datetime
     status: str
     archiviert: bool
+    zusatzfelder: dict[str, str | bool] = {}
     teilnahmen: list[TeilnahmeOut] = []
+
+
+class EinsatzZusatzfelderAktualisieren(BaseModel):
+    zusatzfelder: dict[str, str | bool]

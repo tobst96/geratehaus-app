@@ -1,8 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv
-from app.schemas.einsatz import EinsatzAnlegen, EinsatzOut, TeilnahmeAnlegen, TeilnahmeOut
-from app.services import einsatz_service, pdf_service
+from app.schemas.einsatz import (
+    EinsatzAnlegen,
+    EinsatzOut,
+    EinsatzZusatzfelderAktualisieren,
+    TeilnahmeAnlegen,
+    TeilnahmeOut,
+)
+from app.schemas.einsatz_feld import EinsatzFeldDefinitionOut
+from app.services import einsatz_service, pdf_service, stammdaten_service
 
 router = APIRouter(
     prefix="/einsaetze",
@@ -25,6 +32,13 @@ async def einsaetze_liste(db: DbSession) -> list[EinsatzOut]:
 )
 async def einsatz_anlegen(db: DbSession, daten: EinsatzAnlegen) -> EinsatzOut:
     return await einsatz_service.einsatz_anlegen(db, daten)
+
+
+@router.get("/feld-definitionen", response_model=list[EinsatzFeldDefinitionOut], dependencies=[])
+async def feld_definitionen_liste(db: DbSession) -> list[EinsatzFeldDefinitionOut]:
+    """Frei konfigurierte Zusatzfelder (Einsatzleiter, Erste Lage, …) – im
+    Gerätehaus ohne Moderator-Login lesbar, damit das Formular gerendert werden kann."""
+    return await stammdaten_service.liste_einsatz_felder(db, nur_aktive=True)
 
 
 @router.get("/{einsatz_id}", response_model=EinsatzOut, dependencies=[])
@@ -60,3 +74,13 @@ async def teilnahme_eintragen(
     if einsatz is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
     return await einsatz_service.teilnahme_eintragen(db, einsatz, person.id, daten)
+
+
+@router.patch("/{einsatz_id}/zusatzfelder", response_model=EinsatzOut, dependencies=[])
+async def zusatzfelder_aktualisieren(
+    db: DbSession, einsatz_id: int, daten: EinsatzZusatzfelderAktualisieren
+) -> EinsatzOut:
+    einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
+    if einsatz is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
+    return await einsatz_service.zusatzfelder_aktualisieren(db, einsatz, daten.zusatzfelder)

@@ -1,6 +1,11 @@
 from fastapi import APIRouter, HTTPException, status
 
 from app.api.deps import CurrentModerator, DbSession
+from app.schemas.einsatz_feld import (
+    EinsatzFeldDefinitionCreate,
+    EinsatzFeldDefinitionOut,
+    EinsatzFeldDefinitionUpdate,
+)
 from app.schemas.stammdaten import (
     FahrzeugCreate,
     FahrzeugOut,
@@ -131,3 +136,38 @@ async def funktion_dienststunden_loeschen(
     if funktion is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Funktion nicht gefunden.")
     await stammdaten_service.funktion_dienststunden_loeschen(db, funktion)
+
+
+# --- Einsatz-Felder (frei konfigurierbare Zusatzfelder) ------------------------
+
+
+@router.get("/einsatz-felder", response_model=list[EinsatzFeldDefinitionOut])
+async def einsatz_felder_liste(db: DbSession, _moderator: CurrentModerator) -> list[EinsatzFeldDefinitionOut]:
+    return await stammdaten_service.liste_einsatz_felder(db, nur_aktive=False)
+
+
+@router.post(
+    "/einsatz-felder", response_model=EinsatzFeldDefinitionOut, status_code=status.HTTP_201_CREATED
+)
+async def einsatz_feld_anlegen(
+    db: DbSession, _moderator: CurrentModerator, daten: EinsatzFeldDefinitionCreate
+) -> EinsatzFeldDefinitionOut:
+    return await stammdaten_service.einsatz_feld_anlegen(db, daten)
+
+
+@router.put("/einsatz-felder/{feld_id}", response_model=EinsatzFeldDefinitionOut)
+async def einsatz_feld_aktualisieren(
+    db: DbSession, _moderator: CurrentModerator, feld_id: int, daten: EinsatzFeldDefinitionUpdate
+) -> EinsatzFeldDefinitionOut:
+    feld = await stammdaten_service.get_einsatz_feld(db, feld_id)
+    if feld is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Feld nicht gefunden.")
+    return await stammdaten_service.einsatz_feld_aktualisieren(db, feld, daten)
+
+
+@router.delete("/einsatz-felder/{feld_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def einsatz_feld_loeschen(db: DbSession, _moderator: CurrentModerator, feld_id: int) -> None:
+    feld = await stammdaten_service.get_einsatz_feld(db, feld_id)
+    if feld is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Feld nicht gefunden.")
+    await stammdaten_service.einsatz_feld_loeschen(db, feld)

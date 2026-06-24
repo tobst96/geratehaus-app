@@ -59,6 +59,7 @@ async def teilnahme_eintragen(
     teilnahme.vab = daten.vab
     teilnahme.atemschutzminuten = daten.atemschutzminuten
     teilnahme.nur_geraetehaus = daten.nur_geraetehaus
+    teilnahme.bemerkung = daten.bemerkung
     await db.commit()
 
     geladen = await db.execute(
@@ -71,3 +72,13 @@ async def teilnahme_eintragen(
         .where(EinsatzPerson.id == teilnahme.id)
     )
     return geladen.scalar_one()
+
+
+async def zusatzfelder_aktualisieren(
+    db: AsyncSession, einsatz: Einsatz, zusatzfelder: dict
+) -> Einsatz:
+    einsatz.zusatzfelder = {**einsatz.zusatzfelder, **zusatzfelder}
+    await db.commit()
+    geladen = await get_einsatz(db, einsatz.id)
+    assert geladen is not None
+    return geladen
