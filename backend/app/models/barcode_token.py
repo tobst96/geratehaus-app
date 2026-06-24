@@ -1,14 +1,15 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from .base import Base
+
+from app.db.base import Base
 
 
 class BarcodeToken(Base):
     __tablename__ = "barcode_tokens"
 
     id = Column(Integer, primary_key=True)
-    person_id = Column(Integer, ForeignKey("persons.id"), nullable=False)
+    person_id = Column(Integer, ForeignKey("personen.id"), nullable=False)
     token = Column(String(50), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_used_at = Column(DateTime, nullable=True)
@@ -23,7 +24,7 @@ class FahrzeugToken(Base):
     __tablename__ = "fahrzeug_tokens"
 
     id = Column(Integer, primary_key=True)
-    fahrzeug_id = Column(Integer, ForeignKey("fahrzeugs.id"), nullable=False)
+    fahrzeug_id = Column(Integer, ForeignKey("fahrzeuge.id"), nullable=False)
     token = Column(String(50), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_used_at = Column(DateTime, nullable=True)
