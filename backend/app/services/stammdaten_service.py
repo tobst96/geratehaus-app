@@ -1,14 +1,20 @@
+from pathlib import Path
+
+from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.models.einsatz_feld import EinsatzFeldDefinition
 from app.models.fahrzeug import Fahrzeug
 from app.models.funktion import FunktionDienststunden, FunktionEinsatz
+from app.models.person import Person
 from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionCreate,
     EinsatzFeldDefinitionUpdate,
     schluessel_aus_label,
 )
+from app.schemas.person import PersonCreate, PersonUpdate
 from app.schemas.stammdaten import (
     FahrzeugCreate,
     FahrzeugUpdate,
@@ -17,6 +23,11 @@ from app.schemas.stammdaten import (
     FunktionEinsatzCreate,
     FunktionEinsatzUpdate,
 )
+
+
+def _voller_name(vorname: str, zwischenname: str | None, nachname: str) -> str:
+    teile = [vorname, zwischenname, nachname]
+    return " ".join(teil for teil in teile if teil)
 
 
 async def liste_fahrzeuge(db: AsyncSession, nur_aktive: bool = True) -> list[Fahrzeug]:
@@ -191,3 +202,71 @@ async def einsatz_feld_loeschen(db: AsyncSession, feld: EinsatzFeldDefinition) -
 async def get_einsatz_feld(db: AsyncSession, feld_id: int) -> EinsatzFeldDefinition | None:
     result = await db.execute(select(EinsatzFeldDefinition).where(EinsatzFeldDefinition.id == feld_id))
     return result.scalar_one_or_none()
+
+
+# --- Personen -------------------------------------------------------------
+
+
+async def liste_personen(db: AsyncSession) -> list[Person]:
+    result = await db.execute(select(Person).order_by(Person.nachname, Person.vorname, Person.name))
+    return list(result.scalars().all())
+
+
+async def get_person(db: AsyncSession, person_id: int) -> Person | None:
+    result = await db.execute(select(Person).where(Person.id == person_id))
+    return result.scalar_one_or_none()
+
+
+async def person_anlegen(db: AsyncSession, daten: PersonCreate) -> Person:
+    person = Person(
+        vorname=daten.vorname,
+        zwischenname=daten.zwischenname,
+        nachname=daten.nachname,
+        name=_voller_name(daten.vorname, daten.zwischenname, daten.nachname),
+    )
+    db.add(person)
+    await db.commit()
+    await db.refresh(person)
+    return person
+
+
+async def person_aktualisieren(db: AsyncSession, person: Person, daten: PersonUpdate) -> Person:
+    for feld, wert in daten.model_dump(exclude_unset=True).items():
+        setattr(person, feld, wert)
+    person.name = _voller_name(
+        person.vorname or "", person.zwischenname, person.nachname or ""
+    ).strip() or person.name
+    await db.commit()
+    await db.refresh(person)
+    return person
+
+
+async def person_loeschen(db: AsyncSession, person: Person) -> None:
+    await db.delete(person)
+    await db.commit()
+
+
+async def person_bild_speichern(db: AsyncSession, person: Person, datei: UploadFile) -> Person:
+    """Speichert das Profilbild einer Person (PNG/JPEG) und aktualisiert bild_url."""
+    erlaubte_typen = {"image/png": ".png", "image/jpeg": ".jpg"}
+    if datei.content_type not in erlaubte_typen:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Bild muss PNG oder JPEG sein.",
+        )
+    inhalt = await datei.read()
+    if len(inhalt) > 5 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Bild darf maximal 5 MB groß sein.",
+        )
+
+    upload_verzeichnis = Path(settings.upload_dir) / "personen"
+    upload_verzeichnis.mkdir(parents=True, exist_ok=True)
+    dateiname = f"person-{person.id}{erlaubte_typen[datei.content_type]}"
+    (upload_verzeichnis / dateiname).write_bytes(inhalt)
+
+    person.bild_url = f"/uploads/personen/{dateiname}"
+    await db.commit()
+    await db.refresh(person)
+    return person

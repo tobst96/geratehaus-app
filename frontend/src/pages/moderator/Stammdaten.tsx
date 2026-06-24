@@ -16,12 +16,18 @@ import {
   einsatzFeldAnlegen,
   einsatzFeldAktualisieren,
   einsatzFeldLoeschen,
+  holeAllePersonen,
+  personAnlegen,
+  personAktualisieren,
+  personLoeschen,
+  personBildHochladen,
+  personBarcodeErzeugen,
 } from "../../api/moderator";
 import { ApiError } from "../../api/client";
-import type { EinsatzFeldDefinition, Fahrzeug, FunktionDienststunden, FunktionEinsatz } from "../../api/types";
+import type { EinsatzFeldDefinition, Fahrzeug, FunktionDienststunden, FunktionEinsatz, Person } from "../../api/types";
 import { SitzplatzEditor } from "./SitzplatzEditor";
 
-const TABS = ["Fahrzeuge", "Einsatz-Funktionen", "Dienststunden-Funktionen", "Einsatz-Felder"] as const;
+const TABS = ["Fahrzeuge", "Einsatz-Funktionen", "Dienststunden-Funktionen", "Einsatz-Felder", "Personen"] as const;
 type Tab = (typeof TABS)[number];
 
 export function Stammdaten() {
@@ -41,6 +47,7 @@ export function Stammdaten() {
       {tab === "Einsatz-Funktionen" && <FunktionenEinsatzTab />}
       {tab === "Dienststunden-Funktionen" && <FunktionenDienststundenTab />}
       {tab === "Einsatz-Felder" && <EinsatzFelderTab />}
+      {tab === "Personen" && <PersonenTab />}
     </div>
   );
 }
@@ -436,6 +443,189 @@ function FunktionenDienststundenTab() {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function Initialen(vorname: string | null, nachname: string | null, name: string): string {
+  if (vorname || nachname) {
+    return `${(vorname ?? "").charAt(0)}${(nachname ?? "").charAt(0)}`.toUpperCase();
+  }
+  const teile = name.trim().split(/\s+/);
+  return teile
+    .slice(0, 2)
+    .map((t) => t.charAt(0))
+    .join("")
+    .toUpperCase();
+}
+
+function PersonenAvatar({ person }: { person: Person }) {
+  if (person.bild_url) {
+    return (
+      <img
+        src={person.bild_url}
+        alt={person.name}
+        style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover" }}
+      />
+    );
+  }
+  return (
+    <div
+      style={{
+        width: 48,
+        height: 48,
+        borderRadius: "50%",
+        background: "var(--farbe-primaer)",
+        color: "#fff",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: 700,
+        fontSize: "1rem",
+      }}
+    >
+      {Initialen(person.vorname, person.nachname, person.name)}
+    </div>
+  );
+}
+
+function PersonenTab() {
+  const [liste, setListe] = useState<Person[] | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+  const [neuerVorname, setNeuerVorname] = useState("");
+  const [neuerZwischenname, setNeuerZwischenname] = useState("");
+  const [neuerNachname, setNeuerNachname] = useState("");
+  const [barcodes, setBarcodes] = useState<Map<number, string>>(new Map());
+
+  async function laden() {
+    try {
+      setListe(await holeAllePersonen());
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Personen konnten nicht geladen werden.");
+    }
+  }
+
+  useEffect(() => {
+    laden();
+  }, []);
+
+  async function anlegen(e: FormEvent) {
+    e.preventDefault();
+    if (!neuerVorname.trim() || !neuerNachname.trim()) return;
+    await personAnlegen({
+      vorname: neuerVorname.trim(),
+      zwischenname: neuerZwischenname.trim() || null,
+      nachname: neuerNachname.trim(),
+    });
+    setNeuerVorname("");
+    setNeuerZwischenname("");
+    setNeuerNachname("");
+    await laden();
+  }
+
+  async function feldAendern(p: Person, feld: "vorname" | "zwischenname" | "nachname", wert: string) {
+    await personAktualisieren(p.id, { [feld]: wert || null });
+    await laden();
+  }
+
+  async function loeschen(id: number) {
+    await personLoeschen(id);
+    await laden();
+  }
+
+  async function bildHochladen(p: Person, datei: File) {
+    await personBildHochladen(p.id, datei);
+    await laden();
+  }
+
+  async function barcodeErzeugen(p: Person) {
+    const { token } = await personBarcodeErzeugen(p.id);
+    setBarcodes((vorher) => new Map(vorher).set(p.id, token));
+  }
+
+  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (!liste) return <p>Lädt …</p>;
+
+  return (
+    <div>
+      <form onSubmit={anlegen} style={{ marginBottom: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <input
+          placeholder="Vorname"
+          value={neuerVorname}
+          onChange={(e) => setNeuerVorname(e.target.value)}
+          style={{ width: 150 }}
+        />
+        <input
+          placeholder="Zwischenname (optional)"
+          value={neuerZwischenname}
+          onChange={(e) => setNeuerZwischenname(e.target.value)}
+          style={{ width: 150 }}
+        />
+        <input
+          placeholder="Nachname"
+          value={neuerNachname}
+          onChange={(e) => setNeuerNachname(e.target.value)}
+          style={{ width: 150 }}
+        />
+        <button type="submit">Anlegen</button>
+      </form>
+
+      {liste.length === 0 && <p>Noch keine Personen angelegt.</p>}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {liste.map((p) => (
+          <div key={p.id} className="karte" style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <PersonenAvatar person={p} />
+
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flex: 1 }}>
+              <input
+                defaultValue={p.vorname ?? ""}
+                placeholder="Vorname"
+                onBlur={(e) => feldAendern(p, "vorname", e.target.value)}
+                style={{ width: 140 }}
+              />
+              <input
+                defaultValue={p.zwischenname ?? ""}
+                placeholder="Zwischenname"
+                onBlur={(e) => feldAendern(p, "zwischenname", e.target.value)}
+                style={{ width: 140 }}
+              />
+              <input
+                defaultValue={p.nachname ?? ""}
+                placeholder="Nachname"
+                onBlur={(e) => feldAendern(p, "nachname", e.target.value)}
+                style={{ width: 140 }}
+              />
+            </div>
+
+            <label className="sekundaer" style={{ display: "inline-flex", alignItems: "center", cursor: "pointer" }}>
+              Bild hochladen
+              <input
+                type="file"
+                accept="image/png,image/jpeg"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const datei = e.target.files?.[0];
+                  if (datei) bildHochladen(p, datei);
+                }}
+              />
+            </label>
+
+            <button className="sekundaer" onClick={() => barcodeErzeugen(p)}>
+              Barcode erzeugen
+            </button>
+            {barcodes.get(p.id) && (
+              <code style={{ fontSize: "0.75rem", wordBreak: "break-all", maxWidth: 160 }}>
+                {barcodes.get(p.id)}
+              </code>
+            )}
+
+            <button className="sekundaer" onClick={() => loeschen(p.id)}>
+              Löschen
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -4,10 +4,42 @@
   gap: 1.5rem;
 }
 
-.garage-fahrzeuge {
+.fahrzeug-buttons {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.fahrzeug-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1.5rem 1rem;
+  background: #fff;
+  color: var(--farbe-text);
+  border: 2px solid var(--farbe-primaer);
+  min-height: auto;
+}
+
+.fahrzeug-button:hover:not(:disabled) {
+  background: var(--farbe-primaer);
+  color: #fff;
+}
+
+.fahrzeug-button-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.fahrzeug-button-zahl {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.fahrzeug-button-geraetehaus {
+  border-style: dashed;
 }
 
 .fahrzeug-kasten {

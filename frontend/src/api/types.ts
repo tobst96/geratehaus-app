@@ -35,6 +35,15 @@ export interface FunktionEinsatz {
   aktiv: boolean;
 }
 
+export interface Person {
+  id: number;
+  name: string;
+  vorname: string | null;
+  zwischenname: string | null;
+  nachname: string | null;
+  bild_url: string | null;
+}
+
 export interface FunktionDienststunden {
   id: number;
   name: string;

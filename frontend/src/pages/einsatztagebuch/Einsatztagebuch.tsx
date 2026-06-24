@@ -1,9 +1,11 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { einsatzAnlegen, holeEinsaetze } from "../../api/einsaetze";
 import { holeFahrzeuge, holeFunktionenEinsatz } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import { EinsatzDiagramm } from "./EinsatzDiagramm";
 import type { EinsatzOut, Fahrzeug, FunktionEinsatz } from "../../api/types";
+
+const POLL_INTERVALL_MS = 15_000;
 
 function jetztAlsDatetimeLocal(): string {
   const jetzt = new Date();
@@ -21,6 +23,10 @@ export function Einsatztagebuch() {
   const [neuerTitel, setNeuerTitel] = useState("");
   const [neuerZeitpunkt, setNeuerZeitpunkt] = useState(jetztAlsDatetimeLocal());
 
+  const bekannteIds = useRef<Set<number> | null>(null);
+  const selectedEinsatzIdRef = useRef<number | null>(null);
+  selectedEinsatzIdRef.current = selectedEinsatzId;
+
   async function laden() {
     try {
       const [e, f, fn] = await Promise.all([
@@ -28,6 +34,20 @@ export function Einsatztagebuch() {
         holeFahrzeuge(),
         holeFunktionenEinsatz(),
       ]);
+
+      if (bekannteIds.current === null) {
+        // Erster Ladevorgang: nur merken, nicht automatisch öffnen.
+        bekannteIds.current = new Set(e.map((x) => x.id));
+      } else if (selectedEinsatzIdRef.current === null) {
+        const neue = e.filter((x) => !bekannteIds.current!.has(x.id) && !x.archiviert);
+        bekannteIds.current = new Set(e.map((x) => x.id));
+        if (neue.length > 0) {
+          // Automatisch (z. B. via Divera) neu hinzugekommener Einsatz: direkt öffnen.
+          const neuester = neue.reduce((a, b) => (new Date(a.zeitpunkt) > new Date(b.zeitpunkt) ? a : b));
+          setSelectedEinsatzId(neuester.id);
+        }
+      }
+
       setEinsaetze(e);
       setFahrzeuge(f);
       setFunktionen(fn);
@@ -39,6 +59,9 @@ export function Einsatztagebuch() {
 
   useEffect(() => {
     laden();
+    const intervall = setInterval(laden, POLL_INTERVALL_MS);
+    return () => clearInterval(intervall);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
@@ -61,11 +84,12 @@ export function Einsatztagebuch() {
   async function einsatzManuellAnlegen(e: FormEvent) {
     e.preventDefault();
     if (!neuerTitel.trim()) return;
-    await einsatzAnlegen(neuerTitel.trim(), new Date(neuerZeitpunkt).toISOString());
+    const neuerEinsatz = await einsatzAnlegen(neuerTitel.trim(), new Date(neuerZeitpunkt).toISOString());
     setNeuerTitel("");
     setNeuerZeitpunkt(jetztAlsDatetimeLocal());
     setFormularOffen(false);
     await laden();
+    setSelectedEinsatzId(neuerEinsatz.id);
   }
 
   return (

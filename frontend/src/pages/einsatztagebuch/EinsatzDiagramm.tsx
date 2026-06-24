@@ -20,8 +20,11 @@ interface AusgewaehlteAktion {
   nurGeraetehaus: boolean;
 }
 
+const AGT_MAX_MINUTEN = 35;
+
 export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }: EinsatzDiagrammProps) {
   const { barcodeEinscannen } = useAuth();
+  const [aktivesFahrzeugId, setAktivesFahrzeugId] = useState<number | null>(null);
   const [ausgewaehlteAktion, setAusgewaehlteAktion] = useState<AusgewaehlteAktion | null>(null);
   const [barcode, setBarcode] = useState("");
   const [vab, setVab] = useState(false);
@@ -49,6 +52,10 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     }
   }
   const geraetehausTeilnehmer = einsatz.teilnahmen.filter((t) => t.nur_geraetehaus);
+
+  function teilnehmerZahl(fahrzeugId: number): number {
+    return einsatz.teilnahmen.filter((t) => t.fahrzeug_id === fahrzeugId).length;
+  }
 
   function sitzKlick(fahrzeug: Fahrzeug, sitzplatzId: string, bezeichnung: string) {
     setAusgewaehlteAktion({ fahrzeug, sitzplatzId, bezeichnung, nurGeraetehaus: false });
@@ -116,13 +123,11 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   }
 
   const aktiveFahrzeuge = fahrzeuge.filter((f) => f.aktiv);
+  const aktivesFahrzeug = aktiveFahrzeuge.find((f) => f.id === aktivesFahrzeugId) ?? null;
 
   return (
     <div>
-      <h2>{einsatz.titel} – Garage</h2>
-      <p style={{ color: "#666", fontSize: "0.9rem" }}>
-        Sitzplatz im jeweiligen Fahrzeug anklicken und Barcode scannen, um sich einzutragen.
-      </p>
+      <h2>{einsatz.titel}</h2>
 
       {felder && felder.length > 0 && (
         <div className="karte">
@@ -166,73 +171,96 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
         </div>
       )}
 
-      <div className="garage">
-        <div className="garage-fahrzeuge">
-          {aktiveFahrzeuge.map((f) => (
-            <div key={f.id} className="fahrzeug-kasten">
-              <div className="fahrzeug-kasten-titel">{f.name}</div>
-              <div className="fahrzeug-kasten-flaeche">
-                {f.sitzplaetze.length === 0 && (
-                  <div className="fahrzeug-kasten-leer">
-                    Keine Sitzplätze konfiguriert. In den Stammdaten einrichten.
-                  </div>
-                )}
-                {f.sitzplaetze.map((s) => {
-                  const belegung = belegungByKey.get(`${f.id}:${s.id}`);
-                  if (belegung) {
-                    return (
-                      <div
-                        key={s.id}
-                        className="sitzplatz sitzplatz-belegt"
-                        style={{ left: `${s.x}%`, top: `${s.y}%` }}
-                        title={`${s.bezeichnung}: ${belegung.person_name}${belegung.bemerkung ? " – " + belegung.bemerkung : ""}`}
-                      >
-                        <span>
-                          ✓<br />
-                          <span className="sitzplatz-belegt-name">{belegung.person_name}</span>
-                        </span>
-                      </div>
-                    );
-                  }
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      className="sitzplatz sitzplatz-frei"
-                      style={{ left: `${s.x}%`, top: `${s.y}%` }}
-                      onClick={() => sitzKlick(f, s.id, s.bezeichnung)}
-                      title={s.bezeichnung}
-                    >
-                      {s.bezeichnung}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {geraetehausTeilnehmer.length > 0 && (
-        <div className="karte" style={{ marginTop: "1.5rem" }}>
-          <h3>Einsatzbereit im Feuerwehrhaus</h3>
-          <ul>
-            {geraetehausTeilnehmer.map((t) => (
-              <li key={t.id}>
-                {t.person_name}
-                {t.bemerkung ? ` – ${t.bemerkung}` : ""}
-              </li>
+      {!aktivesFahrzeug && (
+        <>
+          <p style={{ color: "#666", fontSize: "0.9rem" }}>
+            Fahrzeug auswählen, um Sitzplätze zu belegen.
+          </p>
+          <div className="fahrzeug-buttons">
+            {aktiveFahrzeuge.map((f) => (
+              <button key={f.id} type="button" className="fahrzeug-button" onClick={() => setAktivesFahrzeugId(f.id)}>
+                <span className="fahrzeug-button-name">{f.name}</span>
+                <span className="fahrzeug-button-zahl">{teilnehmerZahl(f.id)} eingetragen</span>
+              </button>
             ))}
-          </ul>
-        </div>
+            <button type="button" className="fahrzeug-button fahrzeug-button-geraetehaus" onClick={geraetehausKlick}>
+              <span className="fahrzeug-button-name">Einsatzbereit im Feuerwehrhaus</span>
+              <span className="fahrzeug-button-zahl">{geraetehausTeilnehmer.length} eingetragen</span>
+            </button>
+          </div>
+
+          {geraetehausTeilnehmer.length > 0 && (
+            <div className="karte" style={{ marginTop: "1.5rem" }}>
+              <h3>Einsatzbereit im Feuerwehrhaus</h3>
+              <ul>
+                {geraetehausTeilnehmer.map((t) => (
+                  <li key={t.id}>
+                    {t.person_name}
+                    {t.bemerkung ? ` – ${t.bemerkung}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div style={{ marginTop: "1.5rem" }}>
+            <button className="sekundaer" onClick={onCancel}>
+              Zurück
+            </button>
+          </div>
+        </>
       )}
 
-      <div style={{ marginTop: "1.5rem", display: "flex", gap: 8 }}>
-        <button onClick={geraetehausKlick}>Einsatzbereit im Feuerwehrhaus</button>
-        <button className="sekundaer" onClick={onCancel}>
-          Zurück
-        </button>
-      </div>
+      {aktivesFahrzeug && (
+        <div className="garage">
+          <div className="fahrzeug-kasten">
+            <div className="fahrzeug-kasten-titel">{aktivesFahrzeug.name}</div>
+            <div className="fahrzeug-kasten-flaeche">
+              {aktivesFahrzeug.sitzplaetze.length === 0 && (
+                <div className="fahrzeug-kasten-leer">
+                  Keine Sitzplätze konfiguriert. In den Stammdaten einrichten.
+                </div>
+              )}
+              {aktivesFahrzeug.sitzplaetze.map((s) => {
+                const belegung = belegungByKey.get(`${aktivesFahrzeug.id}:${s.id}`);
+                if (belegung) {
+                  return (
+                    <div
+                      key={s.id}
+                      className="sitzplatz sitzplatz-belegt"
+                      style={{ left: `${s.x}%`, top: `${s.y}%` }}
+                      title={`${s.bezeichnung}: ${belegung.person_name}${belegung.bemerkung ? " – " + belegung.bemerkung : ""}`}
+                    >
+                      <span>
+                        ✓<br />
+                        <span className="sitzplatz-belegt-name">{belegung.person_name}</span>
+                      </span>
+                    </div>
+                  );
+                }
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    className="sitzplatz sitzplatz-frei"
+                    style={{ left: `${s.x}%`, top: `${s.y}%` }}
+                    onClick={() => sitzKlick(aktivesFahrzeug, s.id, s.bezeichnung)}
+                    title={s.bezeichnung}
+                  >
+                    {s.bezeichnung}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ marginTop: "1.5rem" }}>
+            <button className="sekundaer" onClick={() => setAktivesFahrzeugId(null)}>
+              Zurück zur Übersicht
+            </button>
+          </div>
+        </div>
+      )}
 
       {ausgewaehlteAktion && (
         <div className="sitzplatz-scan-overlay" onClick={() => setAusgewaehlteAktion(null)}>
@@ -267,13 +295,18 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
                 <br />
                 <br />
 
-                <label htmlFor="ed-atemschutz">Atemschutzminuten</label>
+                <label htmlFor="ed-atemschutz">
+                  Atemschutzminuten: <strong>{atemschutzminuten}</strong>
+                </label>
                 <input
                   id="ed-atemschutz"
-                  type="number"
+                  type="range"
                   min={0}
+                  max={AGT_MAX_MINUTEN}
+                  step={1}
                   value={atemschutzminuten}
                   onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
+                  style={{ width: "100%" }}
                 />
                 <br />
                 <br />

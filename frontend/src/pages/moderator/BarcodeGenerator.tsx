@@ -1,32 +1,27 @@
-import { useState } from "react";
-
-interface Person {
-  id: number;
-  name: string;
-}
+import { useEffect, useState } from "react";
+import { holeAllePersonen, personBarcodeErzeugen } from "../../api/moderator";
+import { ApiError } from "../../api/client";
+import type { Person } from "../../api/types";
 
 export function BarcodeGenerator() {
-  const [personen] = useState<Person[]>([
-    { id: 1, name: "Person 1" },
-    { id: 2, name: "Person 2" },
-    { id: 3, name: "Person 3" },
-  ]);
+  const [personen, setPersonen] = useState<Person[] | null>(null);
   const [barcodes, setBarcodes] = useState<Map<number, string>>(new Map());
+  const [fehler, setFehler] = useState<string | null>(null);
 
-  function generateBarcode(personId: number): string {
-    // Simplified: just use person ID padded to 8 digits
-    const barcode = String(personId).padStart(8, "0");
-    const newBarcodes = new Map(barcodes);
-    newBarcodes.set(personId, barcode);
-    setBarcodes(newBarcodes);
-    return barcode;
+  useEffect(() => {
+    holeAllePersonen()
+      .then(setPersonen)
+      .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : "Personen konnten nicht geladen werden."));
+  }, []);
+
+  async function generateBarcode(personId: number): Promise<string> {
+    const { token } = await personBarcodeErzeugen(personId);
+    setBarcodes((vorher) => new Map(vorher).set(personId, token));
+    return token;
   }
 
-  function printBarcode(person: Person) {
-    // Ensure barcode exists before printing
-    if (!barcodes.get(person.id)) {
-      generateBarcode(person.id);
-    }
+  async function printBarcode(person: Person) {
+    const token = barcodes.get(person.id) ?? (await generateBarcode(person.id));
     const element = document.getElementById(`barcode-${person.id}`);
     if (element) {
       const printWindow = window.open("", "", "width=400,height=300");
@@ -36,9 +31,11 @@ export function BarcodeGenerator() {
         printWindow.print();
       }
     }
+    return token;
   }
 
-  function downloadAllAsHTML() {
+  async function downloadAllAsHTML() {
+    if (!personen) return;
     let html = `
       <html>
       <head>
@@ -57,25 +54,23 @@ export function BarcodeGenerator() {
           }
           .name { font-weight: bold; font-size: 14px; margin-bottom: 5px; }
           .barcode-container { text-align: center; margin: 5px 0; }
-          .barcode { font-size: 24px; font-weight: bold; letter-spacing: 2px; font-family: monospace; }
-          .barcode-num { font-size: 10px; color: #666; margin-top: 3px; }
+          .barcode { font-size: 16px; font-weight: bold; letter-spacing: 1px; font-family: monospace; word-break: break-all; }
         </style>
       </head>
       <body>
     `;
 
-    personen.forEach((person) => {
-      const barcode = barcodes.get(person.id) || generateBarcode(person.id);
+    for (const person of personen) {
+      const token = barcodes.get(person.id) ?? (await generateBarcode(person.id));
       html += `
         <div class="card">
           <div class="name">${person.name}</div>
           <div class="barcode-container">
-            <div class="barcode">${barcode}</div>
-            <div class="barcode-num">${barcode}</div>
+            <div class="barcode">${token}</div>
           </div>
         </div>
       `;
-    });
+    }
 
     html += `</body></html>`;
 
@@ -88,25 +83,31 @@ export function BarcodeGenerator() {
     URL.revokeObjectURL(url);
   }
 
+  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (!personen) return <p>Lädt …</p>;
+
   return (
     <div>
       <h1>Barcode-Generierung</h1>
-      <p>Hier können Sie EC-Kartengröße-Barcodes für alle Personen generieren und ausdrucken.</p>
+      <p>
+        Erzeugt für jede Person ein eindeutiges Geheimnis (Barcode-Token), das ausschließlich für
+        diese Person gilt. Personen werden unter Stammdaten → Personen verwaltet.
+      </p>
 
       <div style={{ marginBottom: "2rem" }}>
-        <button onClick={downloadAllAsHTML} style={{ padding: "0.75rem 1.5rem", fontSize: "1rem" }}>
-          📥 Alle Barcodes als HTML herunterladen
-        </button>
+        <button onClick={downloadAllAsHTML}>📥 Alle Barcodes als HTML herunterladen</button>
       </div>
+
+      {personen.length === 0 && <p>Keine Personen angelegt. Siehe Stammdaten → Personen.</p>}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1rem" }}>
         {personen.map((person) => {
-          const displayBarcode = barcodes.get(person.id) || "";
+          const token = barcodes.get(person.id) ?? "";
           return (
             <div key={person.id} className="karte">
               <h3>{person.name}</h3>
 
-              {displayBarcode && (
+              {token && (
                 <div
                   id={`barcode-${person.id}`}
                   style={{
@@ -118,17 +119,19 @@ export function BarcodeGenerator() {
                     fontFamily: "monospace",
                   }}
                 >
-                  <div style={{ fontSize: "24px", fontWeight: "bold", letterSpacing: "2px", marginBottom: "0.5rem" }}>
-                    {displayBarcode}
+                  <div className="name" style={{ fontWeight: 700, marginBottom: 4 }}>
+                    {person.name}
                   </div>
-                  <div style={{ fontSize: "10px", color: "#666" }}>{displayBarcode}</div>
+                  <div style={{ fontSize: "14px", fontWeight: "bold", letterSpacing: "1px", wordBreak: "break-all" }}>
+                    {token}
+                  </div>
                 </div>
               )}
 
               <button onClick={() => generateBarcode(person.id)} style={{ marginRight: "0.5rem" }}>
                 Generieren
               </button>
-              {displayBarcode && (
+              {token && (
                 <button className="sekundaer" onClick={() => printBarcode(person)}>
                   🖨️ Drucken
                 </button>

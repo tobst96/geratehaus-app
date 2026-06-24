@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from app.api.deps import CurrentModerator, DbSession
 from app.schemas.einsatz_feld import (
@@ -6,6 +6,7 @@ from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionOut,
     EinsatzFeldDefinitionUpdate,
 )
+from app.schemas.person import PersonCreate, PersonOut, PersonUpdate
 from app.schemas.stammdaten import (
     FahrzeugCreate,
     FahrzeugOut,
@@ -171,3 +172,44 @@ async def einsatz_feld_loeschen(db: DbSession, _moderator: CurrentModerator, fel
     if feld is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Feld nicht gefunden.")
     await stammdaten_service.einsatz_feld_loeschen(db, feld)
+
+
+# --- Personen -----------------------------------------------------------------
+
+
+@router.get("/personen", response_model=list[PersonOut])
+async def personen_liste(db: DbSession, _moderator: CurrentModerator) -> list[PersonOut]:
+    return await stammdaten_service.liste_personen(db)
+
+
+@router.post("/personen", response_model=PersonOut, status_code=status.HTTP_201_CREATED)
+async def person_anlegen(db: DbSession, _moderator: CurrentModerator, daten: PersonCreate) -> PersonOut:
+    return await stammdaten_service.person_anlegen(db, daten)
+
+
+@router.put("/personen/{person_id}", response_model=PersonOut)
+async def person_aktualisieren(
+    db: DbSession, _moderator: CurrentModerator, person_id: int, daten: PersonUpdate
+) -> PersonOut:
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    return await stammdaten_service.person_aktualisieren(db, person, daten)
+
+
+@router.delete("/personen/{person_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def person_loeschen(db: DbSession, _moderator: CurrentModerator, person_id: int) -> None:
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    await stammdaten_service.person_loeschen(db, person)
+
+
+@router.post("/personen/{person_id}/bild", response_model=PersonOut)
+async def person_bild_hochladen(
+    db: DbSession, _moderator: CurrentModerator, person_id: int, datei: UploadFile = File(...)
+) -> PersonOut:
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    return await stammdaten_service.person_bild_speichern(db, person, datei)
