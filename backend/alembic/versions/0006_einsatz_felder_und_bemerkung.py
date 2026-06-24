@@ -40,8 +40,12 @@ def upgrade() -> None:
         sa.Column("typ", sa.String(32), nullable=False),
         sa.Column("reihenfolge", sa.Integer(), nullable=False),
         sa.Column("aktiv", sa.Boolean(), nullable=False),
-        sa.Column("erstellt_am", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("aktualisiert_am", sa.DateTime(timezone=True), nullable=False),
+        sa.Column(
+            "erstellt_am", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "aktualisiert_am", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("schluessel"),
     )
@@ -53,8 +57,6 @@ def upgrade() -> None:
         sa.column("typ", sa.String),
         sa.column("reihenfolge", sa.Integer),
         sa.column("aktiv", sa.Boolean),
-        sa.column("erstellt_am", sa.DateTime),
-        sa.column("aktualisiert_am", sa.DateTime),
     )
     op.bulk_insert(
         feld_tabelle,
@@ -65,18 +67,10 @@ def upgrade() -> None:
                 "typ": typ,
                 "reihenfolge": reihenfolge,
                 "aktiv": True,
-                "erstellt_am": datetime_now(),
-                "aktualisiert_am": datetime_now(),
             }
             for schluessel, label, typ, reihenfolge in _DEFAULT_FELDER
         ],
     )
-
-
-def datetime_now():
-    from datetime import datetime, timezone
-
-    return datetime.now(timezone.utc)
 
 
 def downgrade() -> None:
