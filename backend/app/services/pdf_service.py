@@ -32,8 +32,8 @@ def _logo_data_uri(logo_url: str | None) -> str | None:
 
 async def _basis_kontext(db: AsyncSession) -> dict[str, Any]:
     organisation_name = await config_service.get(db, "organisation_name", "Meine Feuerwehr")
-    farbe_primaer = await config_service.get(db, "farbe_primaer", "#CC0000")
-    farbe_akzent = await config_service.get(db, "farbe_akzent", "#000000")
+    farbe_primaer = await config_service.get(db, "farbe_primaer", "#FFA633")
+    farbe_akzent = await config_service.get(db, "farbe_akzent", "#1A1A1A")
     logo_url = await config_service.get(db, "logo_url", "")
     return {
         "organisation_name": organisation_name,

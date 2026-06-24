@@ -14,8 +14,8 @@ export function SetupWizard() {
   const [organisationName, setOrganisationName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [logoLadevorgang, setLogoLadevorgang] = useState(false);
-  const [farbePrimaer, setFarbePrimaer] = useState("#CC0000");
-  const [farbeAkzent, setFarbeAkzent] = useState("#000000");
+  const [farbePrimaer, setFarbePrimaer] = useState("#FFA633");
+  const [farbeAkzent, setFarbeAkzent] = useState("#1A1A1A");
   const [adminPasswort, setAdminPasswort] = useState("");
   const [adminPasswortWiederholung, setAdminPasswortWiederholung] = useState("");
   const [fehler, setFehler] = useState<string | null>(null);

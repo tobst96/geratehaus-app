@@ -1,7 +1,7 @@
 :root {
-  --farbe-primaer: #cc0000;
-  --farbe-akzent: #000000;
-  --farbe-hintergrund: #fafafa;
+  --farbe-primaer: #ffa633;
+  --farbe-akzent: #1a1a1a;
+  --farbe-hintergrund: #f6f6f6;
   --farbe-text: #1a1a1a;
   --abstand: 16px;
   --radius: 10px;
@@ -42,7 +42,7 @@ button {
   padding: 14px 20px;
   font-weight: 600;
   background: var(--farbe-primaer);
-  color: #fff;
+  color: var(--farbe-akzent);
   min-height: 48px;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -112,9 +112,8 @@ a {
 .seite {
   flex: 1;
   width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
   padding: var(--abstand);
+  box-sizing: border-box;
 }
 
 .kopfzeile {
@@ -135,7 +134,8 @@ a {
 .kopfzeile .organisation {
   font-weight: 700;
   font-size: 1.1rem;
-  color: var(--farbe-primaer);
+  font-family: "Alata", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--farbe-akzent);
 }
 
 .fusszeile {
@@ -194,6 +194,8 @@ a {
 h1, h2, h3 {
   margin: 0 0 8px 0;
   color: var(--farbe-text);
+  font-family: "Alata", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 400;
 }
 
 h1 {

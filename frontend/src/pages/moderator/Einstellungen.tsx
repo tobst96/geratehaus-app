@@ -17,8 +17,8 @@ export function Einstellungen() {
 
   const [organisationName, setOrganisationName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [farbePrimaer, setFarbePrimaer] = useState("#CC0000");
-  const [farbeAkzent, setFarbeAkzent] = useState("#000000");
+  const [farbePrimaer, setFarbePrimaer] = useState("#FFA633");
+  const [farbeAkzent, setFarbeAkzent] = useState("#1A1A1A");
 
   const [modulEinsatztagebuch, setModulEinsatztagebuch] = useState(true);
   const [modulDienstbuch, setModulDienstbuch] = useState(true);
@@ -39,8 +39,8 @@ export function Einstellungen() {
       const w = await holeEinstellungen();
       setOrganisationName(String(w.organisation_name ?? ""));
       setLogoUrl(String(w.logo_url ?? ""));
-      setFarbePrimaer(String(w.farbe_primaer ?? "#CC0000"));
-      setFarbeAkzent(String(w.farbe_akzent ?? "#000000"));
+      setFarbePrimaer(String(w.farbe_primaer ?? "#FFA633"));
+      setFarbeAkzent(String(w.farbe_akzent ?? "#1A1A1A"));
       setModulEinsatztagebuch(Boolean(w.modul_einsatztagebuch_aktiv));
       setModulDienstbuch(Boolean(w.modul_dienstbuch_aktiv));
       setModulDienststunden(Boolean(w.modul_dienststunden_aktiv));

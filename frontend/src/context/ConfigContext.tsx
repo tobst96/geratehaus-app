@@ -11,8 +11,8 @@ interface ConfigContextValue {
 const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   organisation_name: "Meine Feuerwehr",
   logo_url: "",
-  farbe_primaer: "#CC0000",
-  farbe_akzent: "#000000",
+  farbe_primaer: "#FFA633",
+  farbe_akzent: "#1A1A1A",
   pin_laenge: 4,
   modul_einsatztagebuch_aktiv: true,
   modul_dienstbuch_aktiv: true,

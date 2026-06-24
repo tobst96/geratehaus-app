@@ -29,8 +29,8 @@ DEFAULTS: list[ConfigDefault] = [
     # Organisation & Branding
     ConfigDefault("organisation_name", "Meine Feuerwehr", ConfigTyp.STR, "Name der Organisation"),
     ConfigDefault("logo_url", "", ConfigTyp.STR, "URL/Pfad zum hochgeladenen Logo"),
-    ConfigDefault("farbe_primaer", "#CC0000", ConfigTyp.STR, "Primärfarbe (Hex)"),
-    ConfigDefault("farbe_akzent", "#000000", ConfigTyp.STR, "Akzentfarbe (Hex)"),
+    ConfigDefault("farbe_primaer", "#FFA633", ConfigTyp.STR, "Primärfarbe (Hex)"),
+    ConfigDefault("farbe_akzent", "#1A1A1A", ConfigTyp.STR, "Akzentfarbe (Hex)"),
     # Module
     ConfigDefault("modul_einsatztagebuch_aktiv", "true", ConfigTyp.BOOL, "Einsatztagebuch aktiv"),
     ConfigDefault("modul_dienstbuch_aktiv", "true", ConfigTyp.BOOL, "Dienstbuch aktiv"),

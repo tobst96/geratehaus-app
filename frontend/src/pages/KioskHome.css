@@ -13,15 +13,6 @@
   overflow: hidden;
 }
 
-.kiosk-topbar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: clamp(6px, 1vw, 10px);
-  background: #ffa633;
-}
-
 .kiosk-header {
   display: flex;
   flex-direction: column;
@@ -41,7 +32,7 @@
 }
 
 .kiosk-title-accent {
-  color: #ffa633;
+  color: var(--farbe-primaer, #ffa633);
 }
 
 .kiosk-subtitle {
@@ -95,7 +86,7 @@
 .kiosk-tile:focus-visible {
   transform: translateY(-6px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-  border-color: #ffa633;
+  border-color: var(--farbe-primaer, #ffa633);
 }
 
 .kiosk-tile:active {
@@ -106,7 +97,7 @@
   width: clamp(64px, 13vw, 120px);
   height: clamp(64px, 13vw, 120px);
   border-radius: 50%;
-  background: #ffa633;
+  background: var(--farbe-primaer, #ffa633);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -162,8 +153,8 @@
 }
 
 .kiosk-module-back:hover {
-  border-color: #ffa633;
-  color: #ffa633;
+  border-color: var(--farbe-primaer, #ffa633);
+  color: var(--farbe-primaer, #ffa633);
 }
 
 .kiosk-module-title {
