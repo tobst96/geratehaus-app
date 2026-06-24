@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
+import { useConfig } from "../context/ConfigContext";
 import "./KioskHome.css";
 
-type ActionKey = "einsatzbericht" | "dienstbuch" | "dienststunden";
+type ActionKey = "einsatzbericht" | "dienstbuch" | "dienststunden" | "fahrzeugbuchung";
 
 const ACTIONS: Record<ActionKey, { label: string; route: string; icon: JSX.Element }> = {
   einsatzbericht: {
@@ -43,10 +44,36 @@ const ACTIONS: Record<ActionKey, { label: string; route: string; icon: JSX.Eleme
       </svg>
     ),
   },
+  fahrzeugbuchung: {
+    label: "Fahrzeugbuchung",
+    route: "/fahrzeugbuchung",
+    icon: (
+      <svg className="kiosk-tile-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M8 38l4-14a6 6 0 0 1 5.7-4h28.6a6 6 0 0 1 5.7 4l4 14v12a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4v-2H18v2a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4Z"
+          fill="white"
+        />
+        <circle cx="18" cy="40" r="4" fill="var(--farbe-primaer)" />
+        <circle cx="46" cy="40" r="4" fill="var(--farbe-primaer)" />
+      </svg>
+    ),
+  },
 };
+
+function startseiteFlags(config: ReturnType<typeof useConfig>["config"]) {
+  return {
+    einsatzbericht: config?.modul_einsatztagebuch_aktiv && config?.modul_einsatztagebuch_startseite,
+    dienstbuch: config?.modul_dienstbuch_aktiv && config?.modul_dienstbuch_startseite,
+    dienststunden: config?.modul_dienststunden_aktiv && config?.modul_dienststunden_startseite,
+    fahrzeugbuchung: config?.modul_fahrzeugbuchung_aktiv && config?.modul_fahrzeugbuchung_startseite,
+  };
+}
 
 export function KioskHome() {
   const navigate = useNavigate();
+  const { config } = useConfig();
+  const flags = startseiteFlags(config);
+  const sichtbareAktionen = (Object.keys(ACTIONS) as ActionKey[]).filter((key) => flags[key]);
 
   return (
     <div className="kiosk-container">
@@ -58,7 +85,7 @@ export function KioskHome() {
       </div>
 
       <div className="kiosk-grid">
-        {(Object.keys(ACTIONS) as ActionKey[]).map((key) => {
+        {sichtbareAktionen.map((key) => {
           const action = ACTIONS[key];
           return (
             <button key={key} className="kiosk-tile" onClick={() => navigate(action.route)}>

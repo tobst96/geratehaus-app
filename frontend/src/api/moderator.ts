@@ -25,6 +25,9 @@ export const ladeLogoHoch = (datei: File) =>
 export const fuehreArchivierungAus = () =>
   apiPost<{ einsaetze: number; dienstbuecher: number }>("/moderator/einstellungen/archivierung-ausfuehren");
 
+export const einstellungenVerifizieren = (passwort: string) =>
+  apiPost<void>("/moderator/einstellungen/verifizieren", { passwort });
+
 // --- Dashboard ------------------------------------------------------------
 
 export interface EinsaetzeProMonat {

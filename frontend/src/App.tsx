@@ -11,6 +11,7 @@ import { Dashboard } from "./pages/moderator/Dashboard";
 import { Listen } from "./pages/moderator/Listen";
 import { Buchungsmanagement } from "./pages/moderator/Buchungsmanagement";
 import { Stammdaten } from "./pages/moderator/Stammdaten";
+import { EinsatzDetailModerator } from "./pages/moderator/EinsatzDetailModerator";
 import { Einstellungen } from "./pages/moderator/Einstellungen";
 import { BarcodeGenerator } from "./pages/moderator/BarcodeGenerator";
 import { NotifierEinstellungen } from "./pages/moderator/NotifierEinstellungen";
@@ -37,6 +38,7 @@ export function App() {
               <Route index element={<Navigate to="/moderator/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="listen" element={<Listen />} />
+              <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
               <Route path="buchungen" element={<Buchungsmanagement />} />
               <Route path="stammdaten" element={<Stammdaten />} />
               <Route path="barcodes" element={<BarcodeGenerator />} />

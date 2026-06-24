@@ -4,13 +4,65 @@ import {
   schreibeEinstellungen,
   ladeLogoHoch,
   fuehreArchivierungAus,
+  einstellungenVerifizieren,
 } from "../../api/moderator";
 import { setupErneutAusfuehren } from "../../api/setup";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 
+function EinstellungenPasswortGate({ onEntsperrt }: { onEntsperrt: () => void }) {
+  const [passwort, setPasswort] = useState("");
+  const [fehler, setFehler] = useState<string | null>(null);
+  const [laeuft, setLaeuft] = useState(false);
+
+  async function absenden(e: FormEvent) {
+    e.preventDefault();
+    setLaeuft(true);
+    setFehler(null);
+    try {
+      await einstellungenVerifizieren(passwort);
+      onEntsperrt();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Passwort falsch.");
+    } finally {
+      setLaeuft(false);
+    }
+  }
+
+  return (
+    <div>
+      <h1>Einstellungen</h1>
+      <div className="karte" style={{ maxWidth: 420 }}>
+        <h2>Admin-Passwort erforderlich</h2>
+        <p style={{ color: "#666", fontSize: "0.9rem" }}>
+          Die Einstellungen enthalten sensible Daten (z. B. den Divera API-Key) und sind daher
+          zusätzlich geschützt. Bitte erneut dein Moderator-Passwort eingeben.
+        </p>
+        <form onSubmit={absenden}>
+          <label htmlFor="e-gate-passwort">Passwort</label>
+          <input
+            id="e-gate-passwort"
+            type="password"
+            value={passwort}
+            onChange={(ev) => setPasswort(ev.target.value)}
+            autoFocus
+            required
+          />
+          <br />
+          <br />
+          {fehler && <p className="fehlertext">{fehler}</p>}
+          <button type="submit" disabled={laeuft || !passwort}>
+            {laeuft ? "Prüfe …" : "Entsperren"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export function Einstellungen() {
   const { neuLaden } = useConfig();
+  const [entsperrt, setEntsperrt] = useState(false);
   const [geladen, setGeladen] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [gespeichert, setGespeichert] = useState(false);
@@ -25,10 +77,19 @@ export function Einstellungen() {
   const [modulDienststunden, setModulDienststunden] = useState(true);
   const [modulFahrzeugbuchung, setModulFahrzeugbuchung] = useState(true);
 
+  const [modulEinsatztagebuchStartseite, setModulEinsatztagebuchStartseite] = useState(true);
+  const [modulDienstbuchStartseite, setModulDienstbuchStartseite] = useState(true);
+  const [modulDienststundenStartseite, setModulDienststundenStartseite] = useState(true);
+  const [modulFahrzeugbuchungStartseite, setModulFahrzeugbuchungStartseite] = useState(false);
+
   const [dienstbuchZeitfenster, setDienstbuchZeitfenster] = useState(12);
   const [archivierungszeitraum, setArchivierungszeitraum] = useState(2);
   const [pinLaenge, setPinLaenge] = useState(4);
   const [einsatzCountdownMinuten, setEinsatzCountdownMinuten] = useState(30);
+
+  const [diveraAktiv, setDiveraAktiv] = useState(false);
+  const [diveraApiKey, setDiveraApiKey] = useState("");
+  const [diveraModus, setDiveraModus] = useState("polling");
 
   const [benachrichtigungEinsatz, setBenachrichtigungEinsatz] = useState(true);
   const [benachrichtigungDienstbuch, setBenachrichtigungDienstbuch] = useState(true);
@@ -46,10 +107,17 @@ export function Einstellungen() {
       setModulDienstbuch(Boolean(w.modul_dienstbuch_aktiv));
       setModulDienststunden(Boolean(w.modul_dienststunden_aktiv));
       setModulFahrzeugbuchung(Boolean(w.modul_fahrzeugbuchung_aktiv));
+      setModulEinsatztagebuchStartseite(Boolean(w.modul_einsatztagebuch_startseite));
+      setModulDienstbuchStartseite(Boolean(w.modul_dienstbuch_startseite));
+      setModulDienststundenStartseite(Boolean(w.modul_dienststunden_startseite));
+      setModulFahrzeugbuchungStartseite(Boolean(w.modul_fahrzeugbuchung_startseite));
       setDienstbuchZeitfenster(Number(w.dienstbuch_zeitfenster_stunden ?? 12));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
       setPinLaenge(Number(w.pin_laenge ?? 4));
       setEinsatzCountdownMinuten(Number(w.einsatz_countdown_minuten ?? 30));
+      setDiveraAktiv(Boolean(w.divera_aktiv));
+      setDiveraApiKey(String(w.divera_api_key ?? ""));
+      setDiveraModus(String(w.divera_modus ?? "polling"));
       setBenachrichtigungEinsatz(Boolean(w.benachrichtigung_neuer_einsatz));
       setBenachrichtigungDienstbuch(Boolean(w.benachrichtigung_neues_dienstbuch));
       setBenachrichtigungBuchung(Boolean(w.benachrichtigung_buchungsanfrage));
@@ -61,8 +129,8 @@ export function Einstellungen() {
   }
 
   useEffect(() => {
-    laden();
-  }, []);
+    if (entsperrt) laden();
+  }, [entsperrt]);
 
   async function speichern(e: FormEvent) {
     e.preventDefault();
@@ -77,10 +145,17 @@ export function Einstellungen() {
         modul_dienstbuch_aktiv: modulDienstbuch,
         modul_dienststunden_aktiv: modulDienststunden,
         modul_fahrzeugbuchung_aktiv: modulFahrzeugbuchung,
+        modul_einsatztagebuch_startseite: modulEinsatztagebuchStartseite,
+        modul_dienstbuch_startseite: modulDienstbuchStartseite,
+        modul_dienststunden_startseite: modulDienststundenStartseite,
+        modul_fahrzeugbuchung_startseite: modulFahrzeugbuchungStartseite,
         dienstbuch_zeitfenster_stunden: dienstbuchZeitfenster,
         archivierungszeitraum_jahre: archivierungszeitraum,
         pin_laenge: pinLaenge,
         einsatz_countdown_minuten: einsatzCountdownMinuten,
+        divera_aktiv: diveraAktiv,
+        divera_api_key: diveraApiKey,
+        divera_modus: diveraModus,
         benachrichtigung_neuer_einsatz: benachrichtigungEinsatz,
         benachrichtigung_neues_dienstbuch: benachrichtigungDienstbuch,
         benachrichtigung_buchungsanfrage: benachrichtigungBuchung,
@@ -138,6 +213,10 @@ export function Einstellungen() {
     }
   }
 
+  if (!entsperrt) {
+    return <EinstellungenPasswortGate onEntsperrt={() => setEntsperrt(true)} />;
+  }
+
   if (!geladen && !fehler) return <p>Lädt …</p>;
 
   return (
@@ -175,29 +254,89 @@ export function Einstellungen() {
 
         <div className="karte">
           <h2>Module</h2>
-          <label>
-            <input type="checkbox" checked={modulEinsatztagebuch} onChange={(e) => setModulEinsatztagebuch(e.target.checked)} />{" "}
-            Einsatztagebuch
-          </label>
-          <br />
-          <label>
-            <input type="checkbox" checked={modulDienstbuch} onChange={(e) => setModulDienstbuch(e.target.checked)} />{" "}
-            Dienstbuch
-          </label>
-          <br />
-          <label>
-            <input type="checkbox" checked={modulDienststunden} onChange={(e) => setModulDienststunden(e.target.checked)} />{" "}
-            Dienststunden
-          </label>
-          <br />
-          <label>
-            <input
-              type="checkbox"
-              checked={modulFahrzeugbuchung}
-              onChange={(e) => setModulFahrzeugbuchung(e.target.checked)}
-            />{" "}
-            Fahrzeugbuchung
-          </label>
+          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            "Aktiv" steuert, ob das Modul überhaupt erreichbar ist. "Auf Startseite anzeigen" steuert,
+            ob dafür eine Kachel im Gerätehaus-Kiosk erscheint.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Modul</th>
+                <th>Aktiv</th>
+                <th>Auf Startseite anzeigen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Einsatztagebuch</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulEinsatztagebuch}
+                    onChange={(e) => setModulEinsatztagebuch(e.target.checked)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulEinsatztagebuchStartseite}
+                    onChange={(e) => setModulEinsatztagebuchStartseite(e.target.checked)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>Dienstbuch</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulDienstbuch}
+                    onChange={(e) => setModulDienstbuch(e.target.checked)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulDienstbuchStartseite}
+                    onChange={(e) => setModulDienstbuchStartseite(e.target.checked)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>Dienststunden</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulDienststunden}
+                    onChange={(e) => setModulDienststunden(e.target.checked)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulDienststundenStartseite}
+                    onChange={(e) => setModulDienststundenStartseite(e.target.checked)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>Fahrzeugbuchung</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulFahrzeugbuchung}
+                    onChange={(e) => setModulFahrzeugbuchung(e.target.checked)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulFahrzeugbuchungStartseite}
+                    onChange={(e) => setModulFahrzeugbuchungStartseite(e.target.checked)}
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <div className="karte">
@@ -282,6 +421,35 @@ export function Einstellungen() {
             />{" "}
             Schwellenwert-Überschreitung
           </label>
+        </div>
+
+        <div className="karte">
+          <h2>Divera 24/7</h2>
+          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            Ersetzt die frühere .env-Konfiguration – Änderungen wirken ohne Neustart.
+          </p>
+          <label>
+            <input type="checkbox" checked={diveraAktiv} onChange={(e) => setDiveraAktiv(e.target.checked)} />{" "}
+            Divera-Anbindung aktiv
+          </label>
+          <br />
+          <br />
+          <label htmlFor="e-divera-modus">Modus</label>
+          <select id="e-divera-modus" value={diveraModus} onChange={(e) => setDiveraModus(e.target.value)}>
+            <option value="polling">Polling (alle 5 Minuten abfragen)</option>
+            <option value="webhook">Webhook (Divera sendet aktiv)</option>
+          </select>
+          <br />
+          <br />
+          <label htmlFor="e-divera-key">API-Key / Accesskey</label>
+          <input
+            id="e-divera-key"
+            type="password"
+            value={diveraApiKey}
+            onChange={(e) => setDiveraApiKey(e.target.value)}
+            placeholder="Accesskey aus Divera"
+            autoComplete="off"
+          />
         </div>
 
         <button type="submit">Speichern</button>

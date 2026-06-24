@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import {
   holeEinsaetzeListe,
   einsaetzeListePdfUrl,
@@ -94,7 +95,9 @@ function EinsaetzeTab() {
           <tbody>
             {daten.map((e) => (
               <tr key={e.id}>
-                <td>{e.titel}</td>
+                <td>
+                  <Link to={`/moderator/einsaetze/${e.id}`}>{e.titel}</Link>
+                </td>
                 <td>{new Date(e.zeitpunkt).toLocaleString("de-DE")}</td>
                 <td>{e.quelle}</td>
                 <td>{e.status}</td>

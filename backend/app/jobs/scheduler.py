@@ -4,11 +4,13 @@
 import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from app.core.config import settings
 from app.db.session import AsyncSessionLocal
 from app.services import archive_service, divera_service
+from app.services.config_service import config_service
 
 logger = structlog.get_logger(__name__)
+
+DIVERA_POLL_INTERVALL_SEKUNDEN = 300
 
 scheduler = AsyncIOScheduler()
 
@@ -16,6 +18,9 @@ scheduler = AsyncIOScheduler()
 async def _divera_polling_job() -> None:
     async with AsyncSessionLocal() as db:
         try:
+            divera_modus = await config_service.get(db, "divera_modus", "polling")
+            if divera_modus != "polling":
+                return
             await divera_service.synchronisiere(db)
         except Exception:
             logger.warning("divera_polling_fehlgeschlagen", exc_info=True)
@@ -30,15 +35,17 @@ async def _archivierung_job() -> None:
 
 
 def registriere_jobs() -> None:
-    if settings.divera_enabled and settings.divera_mode == "polling":
-        scheduler.add_job(
-            _divera_polling_job,
-            "interval",
-            seconds=settings.divera_poll_interval_seconds,
-            id="divera_polling",
-            replace_existing=True,
-        )
-        logger.info("divera_polling_job_registriert", intervall=settings.divera_poll_interval_seconds)
+    # Immer registriert; ob tatsächlich synchronisiert wird, entscheidet
+    # _divera_polling_job anhand der app_config-Werte (Einstellungen-UI),
+    # damit Divera ohne Neustart aktiviert/deaktiviert werden kann.
+    scheduler.add_job(
+        _divera_polling_job,
+        "interval",
+        seconds=DIVERA_POLL_INTERVALL_SEKUNDEN,
+        id="divera_polling",
+        replace_existing=True,
+    )
+    logger.info("divera_polling_job_registriert", intervall=DIVERA_POLL_INTERVALL_SEKUNDEN)
 
     scheduler.add_job(
         _archivierung_job,

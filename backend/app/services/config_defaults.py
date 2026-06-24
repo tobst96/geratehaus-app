@@ -36,6 +36,23 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("modul_dienstbuch_aktiv", "true", ConfigTyp.BOOL, "Dienstbuch aktiv"),
     ConfigDefault("modul_dienststunden_aktiv", "true", ConfigTyp.BOOL, "Dienststunden aktiv"),
     ConfigDefault("modul_fahrzeugbuchung_aktiv", "true", ConfigTyp.BOOL, "Fahrzeugbuchung aktiv"),
+    # Sichtbarkeit der Kachel auf der Kiosk-Startseite (unabhängig von "aktiv",
+    # das nur steuert, ob das Modul überhaupt erreichbar ist)
+    ConfigDefault(
+        "modul_einsatztagebuch_startseite", "true", ConfigTyp.BOOL, "Einsatztagebuch auf Startseite anzeigen"
+    ),
+    ConfigDefault(
+        "modul_dienstbuch_startseite", "true", ConfigTyp.BOOL, "Dienstbuch auf Startseite anzeigen"
+    ),
+    ConfigDefault(
+        "modul_dienststunden_startseite", "true", ConfigTyp.BOOL, "Dienststunden auf Startseite anzeigen"
+    ),
+    ConfigDefault(
+        "modul_fahrzeugbuchung_startseite",
+        "false",
+        ConfigTyp.BOOL,
+        "Fahrzeugbuchung auf Startseite anzeigen",
+    ),
     # Einsatztagebuch
     ConfigDefault(
         "einsatz_countdown_minuten",
@@ -43,6 +60,10 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.INT,
         "Minuten bis die Garage-Ansicht eines Einsatzes ohne Aktivität automatisch schließt",
     ),
+    # Divera 24/7
+    ConfigDefault("divera_aktiv", "false", ConfigTyp.BOOL, "Divera-Anbindung aktiv"),
+    ConfigDefault("divera_api_key", "", ConfigTyp.STR, "Divera Accesskey/API-Key"),
+    ConfigDefault("divera_modus", "polling", ConfigTyp.STR, "Divera-Modus: polling oder webhook"),
     # Geofence
     ConfigDefault("geofence_lat", "0.0", ConfigTyp.FLOAT, "Breitengrad des Gerätehauses"),
     ConfigDefault("geofence_lon", "0.0", ConfigTyp.FLOAT, "Längengrad des Gerätehauses"),

@@ -21,4 +21,8 @@ async def oeffentliche_konfiguration(db: DbSession) -> OeffentlicheKonfiguration
         modul_dienstbuch_aktiv=werte.get("modul_dienstbuch_aktiv", True),
         modul_dienststunden_aktiv=werte.get("modul_dienststunden_aktiv", True),
         modul_fahrzeugbuchung_aktiv=werte.get("modul_fahrzeugbuchung_aktiv", True),
+        modul_einsatztagebuch_startseite=werte.get("modul_einsatztagebuch_startseite", True),
+        modul_dienstbuch_startseite=werte.get("modul_dienstbuch_startseite", True),
+        modul_dienststunden_startseite=werte.get("modul_dienststunden_startseite", True),
+        modul_fahrzeugbuchung_startseite=werte.get("modul_fahrzeugbuchung_startseite", False),
     )

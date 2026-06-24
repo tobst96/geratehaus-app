@@ -55,12 +55,6 @@ class Settings(BaseSettings):
     notifier_webpush_vapid_private_key: str = ""
     notifier_webpush_vapid_subject: str = "mailto:admin@example.org"
 
-    # Divera
-    divera_enabled: bool = False
-    divera_api_key: str = ""
-    divera_mode: str = "polling"
-    divera_poll_interval_seconds: int = 300
-
     @property
     def sqlalchemy_database_url(self) -> str:
         if self.database_url:

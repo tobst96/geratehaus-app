@@ -5,9 +5,9 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.models.einsatz import Einsatz
 from app.services import divera_client, einsatz_service, notifier_service
+from app.services.config_service import config_service
 
 logger = structlog.get_logger(__name__)
 
@@ -64,9 +64,11 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
 async def synchronisiere(db: AsyncSession) -> int:
     """Pollt die Divera-API und importiert neue Alarme. Gibt die Anzahl der
     neu angelegten Einsätze zurück."""
-    if not settings.divera_enabled or not settings.divera_api_key:
+    divera_aktiv = await config_service.get(db, "divera_aktiv", False)
+    api_key = await config_service.get(db, "divera_api_key", "")
+    if not divera_aktiv or not api_key:
         return 0
-    alarme = await divera_client.hole_alarme(settings.divera_api_key)
+    alarme = await divera_client.hole_alarme(api_key)
     anzahl_neu = 0
     for roh in alarme:
         einsatz = await importiere_alarm(db, roh)

@@ -3,8 +3,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request, status
 
 from app.api.deps import CurrentModerator, DbSession
-from app.core.config import settings
 from app.services import divera_service
+from app.services.config_service import config_service
 
 router = APIRouter(prefix="/divera", tags=["divera"])
 
@@ -13,12 +13,15 @@ router = APIRouter(prefix="/divera", tags=["divera"])
 async def webhook(db: DbSession, request: Request, accesskey: str) -> None:
     """Empfängt Alarme per Push, sofern Divera im Webhook-Modus konfiguriert
     ist. Die URL muss bei Divera mit demselben accesskey hinterlegt werden,
-    der auch für den Polling-Modus in der .env steht."""
-    if not settings.divera_enabled or settings.divera_mode != "webhook":
+    der auch in den Moderator-Einstellungen als Divera API-Key gepflegt ist."""
+    divera_aktiv = await config_service.get(db, "divera_aktiv", False)
+    divera_modus = await config_service.get(db, "divera_modus", "polling")
+    api_key = await config_service.get(db, "divera_api_key", "")
+    if not divera_aktiv or divera_modus != "webhook":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Divera-Webhook ist nicht aktiv."
         )
-    if accesskey != settings.divera_api_key:
+    if accesskey != api_key:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ungültiger accesskey.")
 
     payload: dict[str, Any] = await request.json()
