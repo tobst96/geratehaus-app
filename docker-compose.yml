@@ -32,7 +32,7 @@ services:
     build: ./frontend
     restart: unless-stopped
     ports:
-      - "${HTTP_PORT:-80}:80"
+      - "${HTTP_PORT:-9112}:80"
     depends_on:
       backend:
         condition: service_healthy

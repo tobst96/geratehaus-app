@@ -87,9 +87,9 @@ $env:DB_PASSWORD = (openssl rand -hex 32)
 
 ### Zugriff auf die App
 
-Die App ist danach unter `http://localhost` erreichbar.
+Die App ist danach unter `http://localhost:9112` erreichbar.
 
-- **Standardport:** 80 (über `HTTP_PORT` in `.env` änderbar)
+- **Standardport:** 9112 (über `HTTP_PORT` in `.env` änderbar)
 - **Status prüfen:** `docker compose ps`
 - **Logs anschauen:** `docker compose logs -f`
 - **App stoppen:** `docker compose down`
