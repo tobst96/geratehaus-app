@@ -5,8 +5,7 @@ import secrets
 from app.api.deps import CurrentModerator, DbSession
 from app.models.barcode_token import BarcodeToken, FahrzeugToken
 from app.models.person import Person
-from app.models.fahrzeug import Fahrzeug
-from app.services.stammdaten_service import stammdaten_service
+from app.services import stammdaten_service
 
 router = APIRouter(prefix="/moderator/barcodes", tags=["moderator:barcodes"])
 
@@ -14,9 +13,10 @@ router = APIRouter(prefix="/moderator/barcodes", tags=["moderator:barcodes"])
 @router.post("/person/{person_id}")
 async def generate_barcode_for_person(
     db: DbSession, _moderator: CurrentModerator, person_id: int
-) -> {"token": str}:
+) -> dict[str, str]:
     """Generate a new barcode token for a person."""
-    person = await stammdaten_service.get_person(db, person_id)
+    result = await db.execute(select(Person).where(Person.id == person_id))
+    person = result.scalar_one_or_none()
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found.")
 
@@ -39,7 +39,7 @@ async def generate_barcode_for_person(
 @router.post("/fahrzeug/{fahrzeug_id}")
 async def generate_token_for_fahrzeug(
     db: DbSession, _moderator: CurrentModerator, fahrzeug_id: int
-) -> {"token": str}:
+) -> dict[str, str]:
     """Generate a new access token for a vehicle (iPad display)."""
     fahrzeug = await stammdaten_service.get_fahrzeug(db, fahrzeug_id)
     if fahrzeug is None:
