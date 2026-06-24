@@ -4,6 +4,10 @@
   gap: 1.5rem;
 }
 
+.garage-aktiv {
+  gap: 0.75rem;
+}
+
 .fahrzeug-buttons {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -62,6 +66,24 @@
   background: #eef1f4;
   border: 1px dashed #bbb;
   border-radius: 8px;
+}
+
+.fahrzeug-kasten-aktiv {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0.5rem;
+}
+
+.fahrzeug-kasten-flaeche-aktiv {
+  aspect-ratio: auto;
+  width: 100%;
+  height: min(40vh, 360px);
+}
+
+.fahrzeug-kasten-flaeche-aktiv .sitzplatz {
+  width: 48px;
+  height: 48px;
+  font-size: 0.58rem;
 }
 
 .fahrzeug-kasten-leer {

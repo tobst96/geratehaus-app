@@ -129,7 +129,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     <div>
       <h2>{einsatz.titel}</h2>
 
-      {felder && felder.length > 0 && (
+      {!aktivesFahrzeug && felder && felder.length > 0 && (
         <div className="karte">
           <h3>Einsatzdetails</h3>
           {felder.map((f) => (
@@ -212,10 +212,10 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
       )}
 
       {aktivesFahrzeug && (
-        <div className="garage">
-          <div className="fahrzeug-kasten">
+        <div className="garage garage-aktiv">
+          <div className="fahrzeug-kasten fahrzeug-kasten-aktiv">
             <div className="fahrzeug-kasten-titel">{aktivesFahrzeug.name}</div>
-            <div className="fahrzeug-kasten-flaeche">
+            <div className="fahrzeug-kasten-flaeche fahrzeug-kasten-flaeche-aktiv">
               {aktivesFahrzeug.sitzplaetze.length === 0 && (
                 <div className="fahrzeug-kasten-leer">
                   Keine Sitzplätze konfiguriert. In den Stammdaten einrichten.
@@ -254,7 +254,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
             </div>
           </div>
 
-          <div style={{ marginTop: "1.5rem" }}>
+          <div style={{ marginTop: "0.75rem" }}>
             <button className="sekundaer" onClick={() => setAktivesFahrzeugId(null)}>
               Zurück zur Übersicht
             </button>
