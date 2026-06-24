@@ -62,3 +62,8 @@ class EinsatzEreignisOut(BaseModel):
     zeitpunkt: datetime
     typ: str
     beschreibung: str
+
+
+class EinsatzFehlversuchAnlegen(BaseModel):
+    grund: str = Field(min_length=1, max_length=255)
+    ort: str | None = Field(default=None, max_length=255)

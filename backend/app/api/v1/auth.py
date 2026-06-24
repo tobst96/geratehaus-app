@@ -50,13 +50,16 @@ async def barcode_einscannen(
     barcode = result.scalar_one_or_none()
     if barcode is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Barcode nicht erkannt.")
-    if barcode.ablauf_am is not None and barcode.ablauf_am < datetime.utcnow():
-        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Barcode ist abgelaufen.")
 
     person_result = await db.execute(select(Person).where(Person.id == barcode.person_id))
     person = person_result.scalar_one_or_none()
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+
+    if barcode.ablauf_am is not None and barcode.ablauf_am < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE, detail=f"Barcode von {person.name} ist abgelaufen."
+        )
 
     barcode.last_used_at = datetime.utcnow()
     await db.commit()

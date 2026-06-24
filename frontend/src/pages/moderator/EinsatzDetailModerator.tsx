@@ -17,6 +17,7 @@ const EREIGNIS_ICON: Record<string, string> = {
   teilnahme: "✓",
   details: "📝",
   abgeschlossen: "🏁",
+  fehlversuch: "⚠️",
 };
 
 export function EinsatzDetailModerator() {
@@ -184,14 +185,18 @@ export function EinsatzDetailModerator() {
               <div
                 className={`timeline-punkt ${
                   ereignis.typ === "abgeschlossen" ? "timeline-punkt-abgeschlossen" : ""
-                }`}
+                } ${ereignis.typ === "fehlversuch" ? "timeline-punkt-fehlversuch" : ""}`}
               >
                 {EREIGNIS_ICON[ereignis.typ] ?? "•"}
               </div>
               <div className="timeline-zeit">
                 {new Date(ereignis.zeitpunkt).toLocaleString("de-DE")}
               </div>
-              <div className="timeline-text">{ereignis.beschreibung}</div>
+              <div
+                className={`timeline-text ${ereignis.typ === "fehlversuch" ? "timeline-text-fehlversuch" : ""}`}
+              >
+                {ereignis.beschreibung}
+              </div>
             </div>
           ))}
         </div>

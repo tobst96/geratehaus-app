@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { einsatzZusatzfelderAktualisieren, holeEinsatzFelder, teilnahmeEintragen } from "../../api/einsaetze";
+import {
+  einsatzFehlversuchProtokollieren,
+  einsatzZusatzfelderAktualisieren,
+  holeEinsatzFelder,
+  teilnahmeEintragen,
+} from "../../api/einsaetze";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
@@ -158,7 +163,17 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
       setAusgewaehlteAktion(null);
       setAktivesFahrzeugId(null);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Eintragung fehlgeschlagen.");
+      const nachricht = err instanceof ApiError ? String(err.detail) : "Eintragung fehlgeschlagen.";
+      setFehler(nachricht);
+      const ort = ausgewaehlteAktion.fahrzeug
+        ? `${ausgewaehlteAktion.fahrzeug.name} – ${ausgewaehlteAktion.bezeichnung}`
+        : ausgewaehlteAktion.bezeichnung;
+      try {
+        await einsatzFehlversuchProtokollieren(einsatz.id, nachricht, ort);
+      } catch {
+        // Protokollierung des Fehlversuchs ist best-effort, soll die eigentliche
+        // Fehlermeldung an die Person nicht verschlucken.
+      }
     } finally {
       setLaeuft(false);
     }

@@ -4,6 +4,7 @@ from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_mod
 from app.schemas.einsatz import (
     EinsatzAnlegen,
     EinsatzEreignisOut,
+    EinsatzFehlversuchAnlegen,
     EinsatzOut,
     EinsatzZusatzfelderAktualisieren,
     TeilnahmeAnlegen,
@@ -93,6 +94,22 @@ async def einsatz_timeline(db: DbSession, einsatz_id: int) -> list[EinsatzEreign
     if einsatz is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
     return await einsatz_service.liste_ereignisse(db, einsatz_id)
+
+
+@router.post("/{einsatz_id}/fehlversuch", status_code=status.HTTP_204_NO_CONTENT, dependencies=[])
+async def einsatz_fehlversuch_protokollieren(
+    db: DbSession, einsatz_id: int, daten: EinsatzFehlversuchAnlegen
+) -> None:
+    """Protokolliert einen gescheiterten Eintragungsversuch (z. B. ungültiger
+    oder abgelaufener Barcode) in der Timeline. Bewusst ohne Auth, da die
+    Person sich per Definition gerade NICHT erfolgreich identifizieren konnte."""
+    einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
+    if einsatz is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
+    beschreibung = f"Fehlgeschlagener Versuch ({daten.ort}): {daten.grund}" if daten.ort else (
+        f"Fehlgeschlagener Versuch: {daten.grund}"
+    )
+    await einsatz_service.ereignis_protokollieren(db, einsatz_id, "fehlversuch", beschreibung)
 
 
 @router.post("/{einsatz_id}/abschliessen", response_model=EinsatzOut)
