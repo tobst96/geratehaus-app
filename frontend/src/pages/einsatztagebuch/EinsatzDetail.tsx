@@ -45,6 +45,7 @@ export function EinsatzDetail() {
     try {
       await teilnahmeEintragen(Number(id), {
         fahrzeug_id: fahrzeugId ? Number(fahrzeugId) : null,
+        sitzplatz_id: null,
         funktion_id: funktionId ? Number(funktionId) : null,
         vab,
         atemschutzminuten,

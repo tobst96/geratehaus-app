@@ -5,14 +5,12 @@ class NameEintragen(BaseModel):
     name: str = Field(min_length=1, max_length=255)
 
 
-class PinEinrichten(BaseModel):
-    lat: float
-    lon: float
-    pin: str
+class BarcodeEinscannen(BaseModel):
+    token: str = Field(min_length=1, max_length=64)
 
 
-class PinVerifizieren(BaseModel):
-    pin: str
+class BarcodeIdentitaet(BaseModel):
+    name: str
 
 
 class ModeratorToken(BaseModel):

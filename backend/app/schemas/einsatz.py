@@ -10,6 +10,7 @@ class EinsatzAnlegen(BaseModel):
 
 class TeilnahmeAnlegen(BaseModel):
     fahrzeug_id: int | None = None
+    sitzplatz_id: str | None = None
     funktion_id: int | None = None
     vab: bool = False
     atemschutzminuten: int = Field(default=0, ge=0)
@@ -24,6 +25,7 @@ class TeilnahmeOut(BaseModel):
     person_name: str
     fahrzeug_id: int | None
     fahrzeug_name: str | None
+    sitzplatz_id: str | None
     funktion_id: int | None
     funktion_name: str | None
     vab: bool

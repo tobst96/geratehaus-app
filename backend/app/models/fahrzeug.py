@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, String
+from sqlalchemy import Boolean, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -12,5 +12,8 @@ class Fahrzeug(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     aktiv: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     buchbar: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Liste von Sitzplätzen für die Fahrzeugskizze: [{id, bezeichnung, x, y}, ...]
+    # x/y sind Prozentwerte (0-100) relativ zum Fahrzeug-Kasten.
+    sitzplaetze: Mapped[list] = mapped_column(JSON, default=list, nullable=False)
 
     fahrzeug_tokens = relationship("FahrzeugToken", back_populates="fahrzeug")

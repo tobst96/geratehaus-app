@@ -1,0 +1,106 @@
+.garage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.garage-fahrzeuge {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.fahrzeug-kasten {
+  border: 2px solid #ddd;
+  border-radius: var(--radius);
+  background: #fafafa;
+  padding: 0.75rem;
+}
+
+.fahrzeug-kasten-titel {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.fahrzeug-kasten-flaeche {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: #eef1f4;
+  border: 1px dashed #bbb;
+  border-radius: 8px;
+}
+
+.fahrzeug-kasten-leer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #888;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.sitzplatz {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 2px;
+  line-height: 1.1;
+  user-select: none;
+}
+
+.sitzplatz-frei {
+  background: #fff;
+  border: 2px solid var(--farbe-primaer);
+  color: var(--farbe-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sitzplatz-frei:hover {
+  background: var(--farbe-primaer);
+  color: #fff;
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.sitzplatz-belegt {
+  background: #2e9e4f;
+  border: 2px solid #237a3c;
+  color: #fff;
+  cursor: default;
+}
+
+.sitzplatz-belegt-name {
+  font-size: 0.58rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 50px;
+}
+
+.sitzplatz-scan-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.sitzplatz-scan-karte {
+  max-width: 480px;
+  width: 100%;
+}

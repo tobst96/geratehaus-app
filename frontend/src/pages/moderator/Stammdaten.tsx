@@ -15,6 +15,7 @@ import {
 } from "../../api/moderator";
 import { ApiError } from "../../api/client";
 import type { Fahrzeug, FunktionDienststunden, FunktionEinsatz } from "../../api/types";
+import { SitzplatzEditor } from "./SitzplatzEditor";
 
 const TABS = ["Fahrzeuge", "Einsatz-Funktionen", "Dienststunden-Funktionen"] as const;
 type Tab = (typeof TABS)[number];
@@ -43,6 +44,7 @@ function FahrzeugeTab() {
   const [liste, setListe] = useState<Fahrzeug[] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [neuerName, setNeuerName] = useState("");
+  const [editorFahrzeug, setEditorFahrzeug] = useState<Fahrzeug | null>(null);
 
   async function laden() {
     try {
@@ -93,6 +95,7 @@ function FahrzeugeTab() {
             <th>Name</th>
             <th>Aktiv</th>
             <th>Buchbar</th>
+            <th>Sitzplätze</th>
             <th></th>
           </tr>
         </thead>
@@ -110,7 +113,11 @@ function FahrzeugeTab() {
                   onChange={(e) => feldAendern(f, "buchbar", e.target.checked)}
                 />
               </td>
-              <td>
+              <td>{f.sitzplaetze.length}</td>
+              <td style={{ display: "flex", gap: 8 }}>
+                <button className="sekundaer" onClick={() => setEditorFahrzeug(f)}>
+                  Sitzplätze bearbeiten
+                </button>
                 <button className="sekundaer" onClick={() => loeschen(f.id)}>
                   Löschen
                 </button>
@@ -119,6 +126,17 @@ function FahrzeugeTab() {
           ))}
         </tbody>
       </table>
+
+      {editorFahrzeug && (
+        <SitzplatzEditor
+          fahrzeug={editorFahrzeug}
+          onClose={() => setEditorFahrzeug(null)}
+          onGespeichert={async () => {
+            setEditorFahrzeug(null);
+            await laden();
+          }}
+        />
+      )}
     </div>
   );
 }

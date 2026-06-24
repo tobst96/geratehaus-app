@@ -36,12 +36,14 @@ export function Einsatztagebuch() {
   if (!einsaetze) return <p>Lädt …</p>;
 
   // Diagram mode - selected einsatz
-  if (selectedEinsatzId !== null) {
+  const ausgewaehlterEinsatz = einsaetze.find((e) => e.id === selectedEinsatzId) ?? null;
+  if (ausgewaehlterEinsatz) {
     return (
       <EinsatzDiagramm
-        einsatzId={selectedEinsatzId}
+        einsatz={ausgewaehlterEinsatz}
         fahrzeuge={fahrzeuge}
         funktionen={funktionen}
+        onAktualisiert={laden}
         onCancel={() => setSelectedEinsatzId(null)}
       />
     );

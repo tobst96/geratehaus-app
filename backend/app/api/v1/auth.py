@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
@@ -6,8 +7,10 @@ from sqlalchemy import select
 
 from app.api.deps import DbSession
 from app.core.security import create_access_token, verify_secret
+from app.models.barcode_token import BarcodeToken
 from app.models.moderator import Moderator
-from app.schemas.auth import ModeratorToken, NameEintragen
+from app.models.person import Person
+from app.schemas.auth import BarcodeEinscannen, BarcodeIdentitaet, ModeratorToken, NameEintragen
 from app.services import auth_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -34,6 +37,36 @@ async def name_eintragen(
         httponly=True,
         samesite="lax",
     )
+
+
+@router.post("/barcode", response_model=BarcodeIdentitaet)
+async def barcode_einscannen(
+    db: DbSession, response: Response, daten: BarcodeEinscannen
+) -> BarcodeIdentitaet:
+    """Löst einen gescannten Personen-Barcode zur Identität auf und trägt sie
+    wie /auth/name im Namens-Cookie ein – so identifiziert sich die Person für
+    alle nachfolgenden Aktionen (z. B. Sitzplatz-Zuweisung) ohne Tippen."""
+    result = await db.execute(select(BarcodeToken).where(BarcodeToken.token == daten.token))
+    barcode = result.scalar_one_or_none()
+    if barcode is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Barcode nicht erkannt.")
+
+    person_result = await db.execute(select(Person).where(Person.id == barcode.person_id))
+    person = person_result.scalar_one_or_none()
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+
+    barcode.last_used_at = datetime.utcnow()
+    await db.commit()
+
+    response.set_cookie(
+        NAME_COOKIE,
+        person.name,
+        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
+        httponly=True,
+        samesite="lax",
+    )
+    return BarcodeIdentitaet(name=person.name)
 
 
 @router.post("/moderator/login", response_model=ModeratorToken)

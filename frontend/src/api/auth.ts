@@ -1,4 +1,4 @@
-import { ApiError } from "./client";
+import { apiPost, ApiError } from "./client";
 
 const BASIS_URL = "/api/v1";
 
@@ -6,6 +6,13 @@ export interface ModeratorToken {
   access_token: string;
   token_type: string;
 }
+
+export interface BarcodeIdentitaet {
+  name: string;
+}
+
+export const barcodeEinscannen = (token: string) =>
+  apiPost<BarcodeIdentitaet>("/auth/barcode", { token });
 
 /** Eigener Aufruf statt apiPost: FastAPIs OAuth2PasswordRequestForm erwartet
  * application/x-www-form-urlencoded, nicht JSON. */

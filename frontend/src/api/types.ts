@@ -14,11 +14,19 @@ export interface SetupStatus {
   ist_eingerichtet: boolean;
 }
 
+export interface Sitzplatz {
+  id: string;
+  bezeichnung: string;
+  x: number;
+  y: number;
+}
+
 export interface Fahrzeug {
   id: number;
   name: string;
   aktiv: boolean;
   buchbar: boolean;
+  sitzplaetze: Sitzplatz[];
 }
 
 export interface FunktionEinsatz {
@@ -40,6 +48,7 @@ export interface TeilnahmeOut {
   person_name: string;
   fahrzeug_id: number | null;
   fahrzeug_name: string | null;
+  sitzplatz_id: string | null;
   funktion_id: number | null;
   funktion_name: string | null;
   vab: boolean;

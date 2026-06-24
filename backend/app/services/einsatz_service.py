@@ -54,6 +54,7 @@ async def teilnahme_eintragen(
         db.add(teilnahme)
 
     teilnahme.fahrzeug_id = daten.fahrzeug_id
+    teilnahme.sitzplatz_id = daten.sitzplatz_id
     teilnahme.funktion_id = daten.funktion_id
     teilnahme.vab = daten.vab
     teilnahme.atemschutzminuten = daten.atemschutzminuten

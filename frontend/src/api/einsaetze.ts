@@ -12,6 +12,7 @@ export const einsatzAnlegen = (titel: string, zeitpunkt: string) =>
 
 export interface TeilnahmeAnlegen {
   fahrzeug_id: number | null;
+  sitzplatz_id: string | null;
   funktion_id: number | null;
   vab: boolean;
   atemschutzminuten: number;

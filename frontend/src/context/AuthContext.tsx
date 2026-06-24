@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { apiPost, getModeratorToken, setModeratorToken } from "../api/client";
-import { moderatorLogin } from "../api/auth";
+import { barcodeEinscannen as barcodeEinscannenApi, moderatorLogin } from "../api/auth";
 
 const NAME_SPEICHER_KEY = "angezeigter_name";
 
 interface AuthContextValue {
   angezeigterName: string | null;
   namenEintragen: (name: string) => Promise<void>;
+  barcodeEinscannen: (token: string) => Promise<string>;
   moderatorAngemeldet: boolean;
   moderatorAnmelden: (username: string, passwort: string) => Promise<void>;
   moderatorAbmelden: () => void;
@@ -28,6 +29,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAngezeigterName(name);
   }
 
+  async function barcodeEinscannen(token: string): Promise<string> {
+    const identitaet = await barcodeEinscannenApi(token);
+    localStorage.setItem(NAME_SPEICHER_KEY, identitaet.name);
+    setAngezeigterName(identitaet.name);
+    return identitaet.name;
+  }
+
   async function moderatorAnmelden(username: string, passwort: string): Promise<void> {
     const token = await moderatorLogin(username, passwort);
     setModeratorToken(token.access_token);
@@ -44,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         angezeigterName,
         namenEintragen,
+        barcodeEinscannen,
         moderatorAngemeldet,
         moderatorAnmelden,
         moderatorAbmelden,

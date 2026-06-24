@@ -6,6 +6,7 @@ import type {
   Fahrzeug,
   FunktionDienststunden,
   FunktionEinsatz,
+  Sitzplatz,
 } from "./types";
 import type { DienststundenEintragOut } from "./dienststunden";
 
@@ -125,10 +126,12 @@ function buildePdfUrl(pfad: string, filter: Record<string, unknown>): string {
 // --- Stammdaten -------------------------------------------------------------
 
 export const holeAlleFahrzeuge = () => apiGet<Fahrzeug[]>("/moderator/stammdaten/fahrzeuge");
-export const fahrzeugAnlegen = (daten: { name: string; aktiv: boolean; buchbar: boolean }) =>
+export const fahrzeugAnlegen = (daten: { name: string; aktiv: boolean; buchbar: boolean; sitzplaetze?: Sitzplatz[] }) =>
   apiPost<Fahrzeug>("/moderator/stammdaten/fahrzeuge", daten);
-export const fahrzeugAktualisieren = (id: number, daten: Partial<{ name: string; aktiv: boolean; buchbar: boolean }>) =>
-  apiPut<Fahrzeug>(`/moderator/stammdaten/fahrzeuge/${id}`, daten);
+export const fahrzeugAktualisieren = (
+  id: number,
+  daten: Partial<{ name: string; aktiv: boolean; buchbar: boolean; sitzplaetze: Sitzplatz[] }>
+) => apiPut<Fahrzeug>(`/moderator/stammdaten/fahrzeuge/${id}`, daten);
 export const fahrzeugLoeschen = (id: number) => apiDelete<void>(`/moderator/stammdaten/fahrzeuge/${id}`);
 
 export const holeAlleFunktionenEinsatz = () =>
