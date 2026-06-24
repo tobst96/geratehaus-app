@@ -161,6 +161,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
 
   const aktiveFahrzeuge = fahrzeuge.filter((f) => f.aktiv);
   const aktivesFahrzeug = aktiveFahrzeuge.find((f) => f.id === aktivesFahrzeugId) ?? null;
+  const hatLinkeSpalte = (felder && felder.length > 0) || geraetehausTeilnehmer.length > 0;
 
   return (
     <div>
@@ -174,79 +175,87 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
         </span>
       </div>
 
-      {!aktivesFahrzeug && felder && felder.length > 0 && (
-        <div className="karte">
-          <h3>Einsatzdetails</h3>
-          {felder.map((f) => (
-            <div key={f.schluessel} style={{ marginBottom: "0.75rem" }}>
-              {f.typ === "checkbox" ? (
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={Boolean(feldWerte[f.schluessel])}
-                    onChange={(e) => feldWertAendern(f.schluessel, e.target.checked)}
-                  />{" "}
-                  {f.label}
-                </label>
-              ) : (
-                <>
-                  <label htmlFor={`feld-${f.schluessel}`}>{f.label}</label>
-                  {f.typ === "mehrzeilig" ? (
-                    <textarea
-                      id={`feld-${f.schluessel}`}
-                      rows={3}
-                      value={String(feldWerte[f.schluessel] ?? "")}
-                      onChange={(e) => feldWertAendern(f.schluessel, e.target.value)}
-                    />
-                  ) : (
-                    <input
-                      id={`feld-${f.schluessel}`}
-                      type="text"
-                      value={String(feldWerte[f.schluessel] ?? "")}
-                      onChange={(e) => feldWertAendern(f.schluessel, e.target.value)}
-                    />
-                  )}
-                </>
-              )}
-            </div>
-          ))}
-          <button onClick={felderSpeichernKlick} disabled={felderSpeichern}>
-            {felderSpeichern ? "Speichert …" : "Einsatzdetails speichern"}
-          </button>
-        </div>
-      )}
-
       {!aktivesFahrzeug && (
         <>
-          <p style={{ color: "#666", fontSize: "0.9rem" }}>
-            Fahrzeug auswählen, um Sitzplätze zu belegen.
-          </p>
-          <div className="fahrzeug-buttons">
-            {aktiveFahrzeuge.map((f) => (
-              <button key={f.id} type="button" className="fahrzeug-button" onClick={() => setAktivesFahrzeugId(f.id)}>
-                <span className="fahrzeug-button-name">{f.name}</span>
-                <span className="fahrzeug-button-zahl">{teilnehmerZahl(f.id)} eingetragen</span>
-              </button>
-            ))}
-            <button type="button" className="fahrzeug-button fahrzeug-button-geraetehaus" onClick={geraetehausKlick}>
-              <span className="fahrzeug-button-name">Einsatzbereit im Feuerwehrhaus</span>
-              <span className="fahrzeug-button-zahl">{geraetehausTeilnehmer.length} eingetragen</span>
-            </button>
-          </div>
+          <div className="einsatz-uebersicht">
+            {hatLinkeSpalte && (
+            <div className="einsatz-uebersicht-spalte">
+              {felder && felder.length > 0 && (
+                <div className="karte">
+                  <h3>Einsatzdetails</h3>
+                  {felder.map((f) => (
+                    <div key={f.schluessel} style={{ marginBottom: "0.75rem" }}>
+                      {f.typ === "checkbox" ? (
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(feldWerte[f.schluessel])}
+                            onChange={(e) => feldWertAendern(f.schluessel, e.target.checked)}
+                          />{" "}
+                          {f.label}
+                        </label>
+                      ) : (
+                        <>
+                          <label htmlFor={`feld-${f.schluessel}`}>{f.label}</label>
+                          {f.typ === "mehrzeilig" ? (
+                            <textarea
+                              id={`feld-${f.schluessel}`}
+                              rows={3}
+                              value={String(feldWerte[f.schluessel] ?? "")}
+                              onChange={(e) => feldWertAendern(f.schluessel, e.target.value)}
+                            />
+                          ) : (
+                            <input
+                              id={`feld-${f.schluessel}`}
+                              type="text"
+                              value={String(feldWerte[f.schluessel] ?? "")}
+                              onChange={(e) => feldWertAendern(f.schluessel, e.target.value)}
+                            />
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ))}
+                  <button onClick={felderSpeichernKlick} disabled={felderSpeichern}>
+                    {felderSpeichern ? "Speichert …" : "Einsatzdetails speichern"}
+                  </button>
+                </div>
+              )}
 
-          {geraetehausTeilnehmer.length > 0 && (
-            <div className="karte" style={{ marginTop: "1.5rem" }}>
-              <h3>Einsatzbereit im Feuerwehrhaus</h3>
-              <ul>
-                {geraetehausTeilnehmer.map((t) => (
-                  <li key={t.id}>
-                    {t.person_name}
-                    {t.bemerkung ? ` – ${t.bemerkung}` : ""}
-                  </li>
-                ))}
-              </ul>
+              {geraetehausTeilnehmer.length > 0 && (
+                <div className="karte">
+                  <h3>Einsatzbereit im Feuerwehrhaus</h3>
+                  <ul>
+                    {geraetehausTeilnehmer.map((t) => (
+                      <li key={t.id}>
+                        {t.person_name}
+                        {t.bemerkung ? ` – ${t.bemerkung}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
+            )}
+
+            <div className="einsatz-uebersicht-spalte">
+              <p style={{ color: "#666", fontSize: "0.9rem", marginTop: 0 }}>
+                Fahrzeug auswählen, um Sitzplätze zu belegen.
+              </p>
+              <div className="fahrzeug-buttons">
+                {aktiveFahrzeuge.map((f) => (
+                  <button key={f.id} type="button" className="fahrzeug-button" onClick={() => setAktivesFahrzeugId(f.id)}>
+                    <span className="fahrzeug-button-name">{f.name}</span>
+                    <span className="fahrzeug-button-zahl">{teilnehmerZahl(f.id)} eingetragen</span>
+                  </button>
+                ))}
+                <button type="button" className="fahrzeug-button fahrzeug-button-geraetehaus" onClick={geraetehausKlick}>
+                  <span className="fahrzeug-button-name">Einsatzbereit im Feuerwehrhaus</span>
+                  <span className="fahrzeug-button-zahl">{geraetehausTeilnehmer.length} eingetragen</span>
+                </button>
+              </div>
+            </div>
+          </div>
 
           <div style={{ marginTop: "1.5rem" }}>
             <button className="sekundaer" onClick={onCancel}>

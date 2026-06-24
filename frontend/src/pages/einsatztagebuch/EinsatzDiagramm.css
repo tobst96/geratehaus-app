@@ -32,6 +32,35 @@
   gap: 0.75rem;
 }
 
+.einsatz-uebersicht {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.einsatz-uebersicht-spalte {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+/* Ab Laptop-Breite: Einsatzdetails und Fahrzeuge nebeneinander, Fahrzeuge in zwei Spalten */
+@media (min-width: 900px) {
+  .einsatz-uebersicht {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .einsatz-uebersicht-spalte {
+    flex: 1;
+  }
+
+  .fahrzeug-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .fahrzeug-buttons {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
