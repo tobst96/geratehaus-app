@@ -11,7 +11,6 @@ router = APIRouter(
     tags=["fahrzeugbuchung"],
     dependencies=[
         Depends(require_modul_aktiv("modul_fahrzeugbuchung_aktiv")),
-        ,
     ],
 )
 
