@@ -13,6 +13,11 @@ class BarcodeIdentitaet(BaseModel):
     name: str
 
 
+class BarcodeVorschau(BaseModel):
+    name: str
+    bild_url: str | None
+
+
 class ModeratorToken(BaseModel):
     access_token: str
     token_type: str = "bearer"

@@ -10,7 +10,13 @@ from app.core.security import create_access_token, verify_secret
 from app.models.barcode_token import BarcodeToken
 from app.models.moderator import Moderator
 from app.models.person import Person
-from app.schemas.auth import BarcodeEinscannen, BarcodeIdentitaet, ModeratorToken, NameEintragen
+from app.schemas.auth import (
+    BarcodeEinscannen,
+    BarcodeIdentitaet,
+    BarcodeVorschau,
+    ModeratorToken,
+    NameEintragen,
+)
 from app.services import auth_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -72,6 +78,24 @@ async def barcode_einscannen(
         samesite="lax",
     )
     return BarcodeIdentitaet(name=person.name)
+
+
+@router.get("/barcode-vorschau/{token}", response_model=BarcodeVorschau)
+async def barcode_vorschau(db: DbSession, token: str) -> BarcodeVorschau:
+    """Liefert Name und Bild zu einem Token, ohne Identität/Cookie zu setzen –
+    für die Live-Vorschau während des Scannens (z. B. Foto neben dem
+    Sitzplatz-Formular). Bewusst ohne Ablaufprüfung, reine Anzeige."""
+    result = await db.execute(select(BarcodeToken).where(BarcodeToken.token == token))
+    barcode = result.scalar_one_or_none()
+    if barcode is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Barcode nicht erkannt.")
+
+    person_result = await db.execute(select(Person).where(Person.id == barcode.person_id))
+    person = person_result.scalar_one_or_none()
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+
+    return BarcodeVorschau(name=person.name, bild_url=person.bild_url)
 
 
 @router.post("/moderator/login", response_model=ModeratorToken)

@@ -1,4 +1,4 @@
-import { apiPost, ApiError } from "./client";
+import { apiGet, apiPost, ApiError } from "./client";
 
 const BASIS_URL = "/api/v1";
 
@@ -11,8 +11,16 @@ export interface BarcodeIdentitaet {
   name: string;
 }
 
+export interface BarcodeVorschau {
+  name: string;
+  bild_url: string | null;
+}
+
 export const barcodeEinscannen = (token: string) =>
   apiPost<BarcodeIdentitaet>("/auth/barcode", { token });
+
+export const barcodeVorschau = (token: string) =>
+  apiGet<BarcodeVorschau>(`/auth/barcode-vorschau/${encodeURIComponent(token)}`);
 
 /** Eigener Aufruf statt apiPost: FastAPIs OAuth2PasswordRequestForm erwartet
  * application/x-www-form-urlencoded, nicht JSON. */

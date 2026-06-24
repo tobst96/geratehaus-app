@@ -195,6 +195,7 @@ export function Einstellungen() {
   const [dienstbuchZeitfenster, setDienstbuchZeitfenster] = useState(12);
   const [archivierungszeitraum, setArchivierungszeitraum] = useState(2);
   const [einsatzCountdownMinuten, setEinsatzCountdownMinuten] = useState(30);
+  const [barcodeGueltigkeitTage, setBarcodeGueltigkeitTage] = useState(730);
 
   const [diveraAktiv, setDiveraAktiv] = useState(false);
   const [diveraApiKey, setDiveraApiKey] = useState("");
@@ -223,6 +224,7 @@ export function Einstellungen() {
       setDienstbuchZeitfenster(Number(w.dienstbuch_zeitfenster_stunden ?? 12));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
       setEinsatzCountdownMinuten(Number(w.einsatz_countdown_minuten ?? 30));
+      setBarcodeGueltigkeitTage(Number(w.barcode_gueltigkeit_tage ?? 730));
       setDiveraAktiv(Boolean(w.divera_aktiv));
       setDiveraApiKey(String(w.divera_api_key ?? ""));
       setDiveraModus(String(w.divera_modus ?? "polling"));
@@ -260,6 +262,7 @@ export function Einstellungen() {
         dienstbuch_zeitfenster_stunden: dienstbuchZeitfenster,
         archivierungszeitraum_jahre: archivierungszeitraum,
         einsatz_countdown_minuten: einsatzCountdownMinuten,
+        barcode_gueltigkeit_tage: barcodeGueltigkeitTage,
         divera_aktiv: diveraAktiv,
         divera_api_key: diveraApiKey,
         divera_modus: diveraModus,
@@ -528,6 +531,22 @@ export function Einstellungen() {
             />{" "}
             Schwellenwert-Überschreitung
           </label>
+        </div>
+
+        <div className="karte">
+          <h2>Barcodes</h2>
+          <label htmlFor="e-barcode-gueltigkeit">Gültigkeitsdauer neuer Barcodes (Tage)</label>
+          <input
+            id="e-barcode-gueltigkeit"
+            type="number"
+            min={1}
+            value={barcodeGueltigkeitTage}
+            onChange={(e) => setBarcodeGueltigkeitTage(Number(e.target.value))}
+          />
+          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            Gilt nur für neu erzeugte Barcodes. Bereits ausgegebene Barcodes behalten ihr
+            ursprüngliches Ablaufdatum.
+          </p>
         </div>
 
         <div className="karte">

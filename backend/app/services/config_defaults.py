@@ -60,6 +60,13 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.INT,
         "Minuten bis die Garage-Ansicht eines Einsatzes ohne Aktivität automatisch schließt",
     ),
+    # Barcodes
+    ConfigDefault(
+        "barcode_gueltigkeit_tage",
+        "730",
+        ConfigTyp.INT,
+        "Gültigkeitsdauer neu erzeugter Personen-Barcodes in Tagen",
+    ),
     # Divera 24/7
     ConfigDefault("divera_aktiv", "false", ConfigTyp.BOOL, "Divera-Anbindung aktiv"),
     ConfigDefault("divera_api_key", "", ConfigTyp.STR, "Divera Accesskey/API-Key"),

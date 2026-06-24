@@ -11,17 +11,17 @@ from app.api.deps import CurrentModerator, DbSession
 from app.models.barcode_token import BarcodeToken, FahrzeugToken
 from app.models.person import Person
 from app.services import stammdaten_service
+from app.services.config_service import config_service
 
 router = APIRouter(prefix="/moderator/barcodes", tags=["moderator:barcodes"])
-
-BARCODE_GUELTIGKEIT_TAGE = 730  # 2 Jahre
 
 
 @router.post("/person/{person_id}")
 async def generate_barcode_for_person(
     db: DbSession, _moderator: CurrentModerator, person_id: int
 ) -> dict[str, str | None]:
-    """Generate a new barcode token for a person, valid for 2 years."""
+    """Generate a new barcode token for a person, valid for the configured
+    Gültigkeitsdauer (Einstellungen > Barcodes, Default 2 Jahre)."""
     result = await db.execute(select(Person).where(Person.id == person_id))
     person = result.scalar_one_or_none()
     if person is None:
@@ -40,7 +40,8 @@ async def generate_barcode_for_person(
 
     # Generate new token
     token = secrets.token_hex(8)  # 16 chars
-    ablauf_am = datetime.utcnow() + timedelta(days=BARCODE_GUELTIGKEIT_TAGE)
+    gueltigkeit_tage = await config_service.get(db, "barcode_gueltigkeit_tage", 730)
+    ablauf_am = datetime.utcnow() + timedelta(days=gueltigkeit_tage)
     barcode = BarcodeToken(person_id=person_id, token=token, ablauf_am=ablauf_am)
     db.add(barcode)
     await db.commit()

@@ -5,6 +5,7 @@ import {
   holeEinsatzFelder,
   teilnahmeEintragen,
 } from "../../api/einsaetze";
+import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
@@ -15,6 +16,16 @@ function formatiereCountdown(sekunden: number): string {
   const m = Math.floor(sekunden / 60);
   const s = sekunden % 60;
   return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function initialenAus(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((teil) => teil.charAt(0))
+    .join("")
+    .toUpperCase();
 }
 
 interface EinsatzDiagrammProps {
@@ -42,6 +53,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   const [aktivesFahrzeugId, setAktivesFahrzeugId] = useState<number | null>(null);
   const [ausgewaehlteAktion, setAusgewaehlteAktion] = useState<AusgewaehlteAktion | null>(null);
   const [barcode, setBarcode] = useState("");
+  const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [vab, setVab] = useState(false);
   const [atemschutzminuten, setAtemschutzminuten] = useState(AGT_DEFAULT_MINUTEN);
   const [bemerkung, setBemerkung] = useState("");
@@ -63,6 +75,22 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   useEffect(() => {
     setFeldWerte(einsatz.zusatzfelder);
   }, [einsatz.zusatzfelder]);
+
+  // Live-Vorschau (Name + Bild) während des Scannens, debounced, damit nicht
+  // bei jedem Tastendruck ein Request raus geht.
+  useEffect(() => {
+    const wert = barcode.trim();
+    if (!wert) {
+      setVorschau(null);
+      return;
+    }
+    const timeout = setTimeout(() => {
+      barcodeVorschau(wert)
+        .then(setVorschau)
+        .catch(() => setVorschau(null));
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [barcode]);
 
   // Countdown läuft unabhängig vom Render-Zyklus runter und schließt die
   // Garage-Ansicht automatisch, wenn er abläuft.
@@ -103,6 +131,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   function sitzKlick(fahrzeug: Fahrzeug, sitzplatzId: string, bezeichnung: string) {
     setAusgewaehlteAktion({ fahrzeug, sitzplatzId, bezeichnung, nurGeraetehaus: false, aufAnfahrt: false });
     setBarcode("");
+    setVorschau(null);
     setVab(false);
     setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
     setBemerkung("");
@@ -118,6 +147,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
       aufAnfahrt: false,
     });
     setBarcode("");
+    setVorschau(null);
     setVab(false);
     setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
     setBemerkung("");
@@ -133,6 +163,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
       aufAnfahrt: true,
     });
     setBarcode("");
+    setVorschau(null);
     setVab(false);
     setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
     setBemerkung("");
@@ -362,70 +393,85 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
             className="karte sitzplatz-scan-karte"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3>
+            <h3 style={{ marginTop: 0 }}>
               {ausgewaehlteAktion.fahrzeug ? `${ausgewaehlteAktion.fahrzeug.name} – ` : ""}
               {ausgewaehlteAktion.bezeichnung}
             </h3>
 
-            <label htmlFor="ed-barcode">Barcode einscannen</label>
-            <input
-              id="ed-barcode"
-              type="text"
-              value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
-              placeholder="Barcode scannen oder eingeben"
-              autoFocus
-              required
-            />
-            <br />
-            <br />
+            <div className="sitzplatz-scan-layout">
+              {vorschau && (
+                <div className="sitzplatz-scan-vorschau">
+                  {vorschau.bild_url ? (
+                    <img src={vorschau.bild_url} alt={vorschau.name} className="sitzplatz-scan-bild" />
+                  ) : (
+                    <div className="sitzplatz-scan-initialen">{initialenAus(vorschau.name)}</div>
+                  )}
+                  <div className="sitzplatz-scan-name">{vorschau.name}</div>
+                </div>
+              )}
 
-            {!ausgewaehlteAktion.nurGeraetehaus && !ausgewaehlteAktion.aufAnfahrt && (
-              <>
-                <label>
-                  <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
-                </label>
-                <br />
-                <br />
-
-                <label htmlFor="ed-atemschutz">
-                  Atemschutzminuten: <strong>{atemschutzminuten}</strong>
-                </label>
+              <div className="sitzplatz-scan-felder">
+                <label htmlFor="ed-barcode">Barcode einscannen</label>
                 <input
-                  id="ed-atemschutz"
-                  type="range"
-                  min={0}
-                  max={AGT_MAX_MINUTEN}
-                  step={1}
-                  value={atemschutzminuten}
-                  onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
-                  style={{ width: "100%" }}
+                  id="ed-barcode"
+                  type="text"
+                  value={barcode}
+                  onChange={(e) => setBarcode(e.target.value)}
+                  placeholder="Barcode scannen oder eingeben"
+                  autoFocus
+                  required
                 />
                 <br />
                 <br />
-              </>
-            )}
 
-            <label htmlFor="ed-bemerkung">Bemerkung (optional)</label>
-            <textarea
-              id="ed-bemerkung"
-              rows={2}
-              value={bemerkung}
-              onChange={(e) => setBemerkung(e.target.value)}
-              placeholder="Notizen…"
-            />
-            <br />
-            <br />
+                {!ausgewaehlteAktion.nurGeraetehaus && !ausgewaehlteAktion.aufAnfahrt && (
+                  <>
+                    <label>
+                      <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
+                    </label>
+                    <br />
+                    <br />
 
-            {fehler && <p className="fehlertext">{fehler}</p>}
+                    <label htmlFor="ed-atemschutz">
+                      Atemschutzminuten: <strong>{atemschutzminuten}</strong>
+                    </label>
+                    <input
+                      id="ed-atemschutz"
+                      type="range"
+                      min={0}
+                      max={AGT_MAX_MINUTEN}
+                      step={1}
+                      value={atemschutzminuten}
+                      onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
+                      style={{ width: "100%" }}
+                    />
+                    <br />
+                    <br />
+                  </>
+                )}
 
-            <div style={{ display: "flex", gap: 8 }}>
-              <button type="submit" disabled={laeuft}>
-                {laeuft ? "Wird gespeichert…" : "Eintragen"}
-              </button>
-              <button type="button" className="sekundaer" onClick={() => setAusgewaehlteAktion(null)}>
-                Abbrechen
-              </button>
+                <label htmlFor="ed-bemerkung">Bemerkung (optional)</label>
+                <textarea
+                  id="ed-bemerkung"
+                  rows={2}
+                  value={bemerkung}
+                  onChange={(e) => setBemerkung(e.target.value)}
+                  placeholder="Notizen…"
+                />
+                <br />
+                <br />
+
+                {fehler && <p className="fehlertext">{fehler}</p>}
+
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button type="submit" disabled={laeuft}>
+                    {laeuft ? "Wird gespeichert…" : "Eintragen"}
+                  </button>
+                  <button type="button" className="sekundaer" onClick={() => setAusgewaehlteAktion(null)}>
+                    Abbrechen
+                  </button>
+                </div>
+              </div>
             </div>
           </form>
         </div>
