@@ -1,0 +1,218 @@
+.kiosk-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: clamp(1rem, 3vw, 3rem);
+  background: radial-gradient(circle at 20% 20%, #5b6fe8 0%, #4338ca 45%, #2a1f6b 100%);
+  font-family: "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+}
+
+.kiosk-title {
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  font-weight: 900;
+  margin-bottom: 0.25rem;
+  text-align: center;
+  color: white;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  letter-spacing: -1px;
+}
+
+.kiosk-subtitle {
+  font-size: clamp(1.1rem, 2vw, 1.7rem);
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: clamp(2rem, 5vw, 4rem);
+  text-align: center;
+  font-weight: 300;
+}
+
+/* Tile grid: responsive across phone / tablet / large kiosk display */
+.kiosk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1rem, 3vw, 2.5rem);
+  width: 100%;
+  max-width: 1400px;
+}
+
+@media (max-width: 900px) {
+  .kiosk-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .kiosk-grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+  }
+}
+
+.kiosk-tile {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border: none;
+  border-radius: clamp(18px, 2vw, 32px);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(0.6rem, 2vw, 1.4rem);
+  color: white;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.25s ease;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.kiosk-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 55%);
+  pointer-events: none;
+}
+
+.kiosk-tile:hover,
+.kiosk-tile:focus-visible {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 26px 50px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.kiosk-tile:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+.kiosk-tile-icon {
+  width: clamp(56px, 14vw, 130px);
+  height: clamp(56px, 14vw, 130px);
+  display: block;
+}
+
+.kiosk-tile-text {
+  font-size: clamp(1rem, 2.4vw, 1.9rem);
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.3px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.kiosk-tile-red {
+  background: linear-gradient(145deg, #ff7a5c 0%, #e63950 100%);
+}
+
+.kiosk-tile-blue {
+  background: linear-gradient(145deg, #4facfe 0%, #2563eb 100%);
+}
+
+.kiosk-tile-green {
+  background: linear-gradient(145deg, #34e89e 0%, #0f9b6e 100%);
+}
+
+/* Scan screen */
+.kiosk-scan-card {
+  width: 100%;
+  max-width: 560px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 28px;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.kiosk-scan-icon {
+  width: clamp(70px, 14vw, 110px);
+  height: clamp(70px, 14vw, 110px);
+  margin-bottom: 1rem;
+}
+
+.kiosk-scan-action {
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.kiosk-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.kiosk-input {
+  padding: clamp(1rem, 2vw, 1.5rem);
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  border: none;
+  border-radius: 16px;
+  width: 100%;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.kiosk-submit-btn {
+  padding: clamp(1rem, 2vw, 1.5rem) 2rem;
+  font-size: clamp(1.1rem, 1.8vw, 1.3rem);
+  background: white;
+  color: #4338ca;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.kiosk-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kiosk-submit-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+}
+
+.kiosk-back-btn {
+  margin-top: 1.5rem;
+  padding: 0.8rem 1.8rem;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.kiosk-back-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.kiosk-scan-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: white;
+}
+
+.kiosk-scan-success-icon {
+  width: clamp(80px, 16vw, 130px);
+  height: clamp(80px, 16vw, 130px);
+}
+
+.kiosk-scan-success-text {
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  font-weight: 700;
+}
