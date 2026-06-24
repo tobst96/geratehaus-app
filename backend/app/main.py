@@ -21,6 +21,7 @@ from app.api.v1 import (
     moderator_stammdaten,
     oeffentlich,
     push,
+    reservierungen,
     setup,
     stammdaten,
 )
@@ -66,6 +67,7 @@ app.include_router(moderator_buchungen.router, prefix="/api/v1")
 app.include_router(push.router, prefix="/api/v1")
 app.include_router(divera.router, prefix="/api/v1")
 app.include_router(oeffentlich.router, prefix="/api/v1")
+app.include_router(reservierungen.router, prefix="/api/v1")
 app.include_router(manifest.router, prefix="/api/v1")
 
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)

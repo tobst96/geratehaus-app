@@ -81,6 +81,7 @@ async def teilnahme_eintragen(
     teilnahme.atemschutzminuten = daten.atemschutzminuten
     teilnahme.nur_geraetehaus = daten.nur_geraetehaus
     teilnahme.auf_anfahrt = daten.auf_anfahrt
+    teilnahme.ohne_barcode = daten.ohne_barcode
     teilnahme.bemerkung = daten.bemerkung
     await db.commit()
 
@@ -104,8 +105,9 @@ async def teilnahme_eintragen(
     else:
         ort = "ohne Fahrzeugzuordnung"
     verb = "eingetragen" if ist_neu else "aktualisiert"
+    zusatz = " (ohne Barcode, per QR-Code selbst eingetragen)" if ergebnis.ohne_barcode else ""
     await ereignis_protokollieren(
-        db, einsatz.id, "teilnahme", f"{ergebnis.person_name} {verb}: {ort}"
+        db, einsatz.id, "teilnahme", f"{ergebnis.person_name} {verb}: {ort}{zusatz}"
     )
     return ergebnis
 

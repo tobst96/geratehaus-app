@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import QRCode from "qrcode";
 import {
   einsatzFehlversuchProtokollieren,
   einsatzZusatzfelderAktualisieren,
   holeEinsatzFelder,
+  reservierungAnlegen,
   teilnahmeEintragen,
 } from "../../api/einsaetze";
 import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
@@ -60,6 +62,10 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
 
+  const [qrAnsicht, setQrAnsicht] = useState<{ bildUrl: string; ablaufAm: string } | null>(null);
+  const [qrFehler, setQrFehler] = useState<string | null>(null);
+  const [qrLaeuft, setQrLaeuft] = useState(false);
+
   const [felder, setFelder] = useState<EinsatzFeldDefinition[] | null>(null);
   const [feldWerte, setFeldWerte] = useState<Record<string, string | boolean>>(einsatz.zusatzfelder);
   const [felderSpeichern, setFelderSpeichern] = useState(false);
@@ -115,6 +121,17 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     }
   }, [einsatz.teilnahmen.length, countdownStartSekunden]);
 
+  // Solange ein Fahrzeug geöffnet ist, regelmäßig aktualisieren – damit
+  // Eintragungen, die jemand per QR-Code ("Barcode vergessen") auf dem
+  // eigenen Handy abgeschlossen hat, ohne manuelle Navigation sichtbar werden.
+  useEffect(() => {
+    if (aktivesFahrzeugId === null) return;
+    const intervall = setInterval(() => {
+      onAktualisiert();
+    }, 8000);
+    return () => clearInterval(intervall);
+  }, [aktivesFahrzeugId, onAktualisiert]);
+
   const belegungByKey = new Map<string, TeilnahmeOut>();
   for (const t of einsatz.teilnahmen) {
     if (t.fahrzeug_id != null && t.sitzplatz_id != null) {
@@ -132,6 +149,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     setAusgewaehlteAktion({ fahrzeug, sitzplatzId, bezeichnung, nurGeraetehaus: false, aufAnfahrt: false });
     setBarcode("");
     setVorschau(null);
+    setQrAnsicht(null);
+    setQrFehler(null);
     setVab(false);
     setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
     setBemerkung("");
@@ -148,6 +167,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     });
     setBarcode("");
     setVorschau(null);
+    setQrAnsicht(null);
+    setQrFehler(null);
     setVab(false);
     setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
     setBemerkung("");
@@ -164,6 +185,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     });
     setBarcode("");
     setVorschau(null);
+    setQrAnsicht(null);
+    setQrFehler(null);
     setVab(false);
     setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
     setBemerkung("");
@@ -207,6 +230,30 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
       }
     } finally {
       setLaeuft(false);
+    }
+  }
+
+  async function barcodeVergessenKlick() {
+    if (!ausgewaehlteAktion) return;
+    setQrLaeuft(true);
+    setQrFehler(null);
+    try {
+      const { token, ablauf_am } = await reservierungAnlegen(einsatz.id, {
+        fahrzeug_id: ausgewaehlteAktion.fahrzeug?.id ?? null,
+        sitzplatz_id: ausgewaehlteAktion.sitzplatzId,
+        bezeichnung: ausgewaehlteAktion.fahrzeug
+          ? `${ausgewaehlteAktion.fahrzeug.name} – ${ausgewaehlteAktion.bezeichnung}`
+          : ausgewaehlteAktion.bezeichnung,
+        nur_geraetehaus: ausgewaehlteAktion.nurGeraetehaus,
+        auf_anfahrt: ausgewaehlteAktion.aufAnfahrt,
+      });
+      const url = `${window.location.origin}/eintragen/${token}`;
+      const bildUrl = await QRCode.toDataURL(url, { width: 280, margin: 1 });
+      setQrAnsicht({ bildUrl, ablaufAm: ablauf_am });
+    } catch (err) {
+      setQrFehler(err instanceof ApiError ? String(err.detail) : "QR-Code konnte nicht erzeugt werden.");
+    } finally {
+      setQrLaeuft(false);
     }
   }
 
@@ -398,81 +445,111 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
               {ausgewaehlteAktion.bezeichnung}
             </h3>
 
-            <div className="sitzplatz-scan-layout">
-              {vorschau && (
-                <div className="sitzplatz-scan-vorschau">
-                  {vorschau.bild_url ? (
-                    <img src={vorschau.bild_url} alt={vorschau.name} className="sitzplatz-scan-bild" />
-                  ) : (
-                    <div className="sitzplatz-scan-initialen">{initialenAus(vorschau.name)}</div>
-                  )}
-                  <div className="sitzplatz-scan-name">{vorschau.name}</div>
-                </div>
-              )}
-
-              <div className="sitzplatz-scan-felder">
-                <label htmlFor="ed-barcode">Barcode einscannen</label>
-                <input
-                  id="ed-barcode"
-                  type="text"
-                  value={barcode}
-                  onChange={(e) => setBarcode(e.target.value)}
-                  placeholder="Barcode scannen oder eingeben"
-                  autoFocus
-                  required
-                />
-                <br />
-                <br />
-
-                {!ausgewaehlteAktion.nurGeraetehaus && !ausgewaehlteAktion.aufAnfahrt && (
-                  <>
-                    <label>
-                      <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
-                    </label>
-                    <br />
-                    <br />
-
-                    <label htmlFor="ed-atemschutz">
-                      Atemschutzminuten: <strong>{atemschutzminuten}</strong>
-                    </label>
-                    <input
-                      id="ed-atemschutz"
-                      type="range"
-                      min={0}
-                      max={AGT_MAX_MINUTEN}
-                      step={1}
-                      value={atemschutzminuten}
-                      onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
-                      style={{ width: "100%" }}
-                    />
-                    <br />
-                    <br />
-                  </>
-                )}
-
-                <label htmlFor="ed-bemerkung">Bemerkung (optional)</label>
-                <textarea
-                  id="ed-bemerkung"
-                  rows={2}
-                  value={bemerkung}
-                  onChange={(e) => setBemerkung(e.target.value)}
-                  placeholder="Notizen…"
-                />
-                <br />
-                <br />
-
-                {fehler && <p className="fehlertext">{fehler}</p>}
-
+            {qrAnsicht ? (
+              <div className="sitzplatz-qr-ansicht">
+                <p style={{ color: "#666" }}>
+                  Mit dem Handy scannen – die Person trägt sich dort selbst für genau diesen Platz ein
+                  (ohne Barcode, wird im Bericht entsprechend vermerkt).
+                </p>
+                <img src={qrAnsicht.bildUrl} alt="QR-Code zum Eintragen ohne Barcode" />
+                <p style={{ fontSize: "0.8rem", color: "#999" }}>
+                  Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
+                </p>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button type="submit" disabled={laeuft}>
-                    {laeuft ? "Wird gespeichert…" : "Eintragen"}
+                  <button type="button" className="sekundaer" onClick={() => setQrAnsicht(null)}>
+                    Zurück zum Scannen
                   </button>
                   <button type="button" className="sekundaer" onClick={() => setAusgewaehlteAktion(null)}>
-                    Abbrechen
+                    Schließen
                   </button>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="sitzplatz-scan-layout">
+                {vorschau && (
+                  <div className="sitzplatz-scan-vorschau">
+                    {vorschau.bild_url ? (
+                      <img src={vorschau.bild_url} alt={vorschau.name} className="sitzplatz-scan-bild" />
+                    ) : (
+                      <div className="sitzplatz-scan-initialen">{initialenAus(vorschau.name)}</div>
+                    )}
+                    <div className="sitzplatz-scan-name">{vorschau.name}</div>
+                  </div>
+                )}
+
+                <div className="sitzplatz-scan-felder">
+                  <label htmlFor="ed-barcode">Barcode einscannen</label>
+                  <input
+                    id="ed-barcode"
+                    type="text"
+                    value={barcode}
+                    onChange={(e) => setBarcode(e.target.value)}
+                    placeholder="Barcode scannen oder eingeben"
+                    autoFocus
+                    required
+                  />
+                  <br />
+                  <br />
+
+                  {!ausgewaehlteAktion.nurGeraetehaus && !ausgewaehlteAktion.aufAnfahrt && (
+                    <>
+                      <label>
+                        <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
+                      </label>
+                      <br />
+                      <br />
+
+                      <label htmlFor="ed-atemschutz">
+                        Atemschutzminuten: <strong>{atemschutzminuten}</strong>
+                      </label>
+                      <input
+                        id="ed-atemschutz"
+                        type="range"
+                        min={0}
+                        max={AGT_MAX_MINUTEN}
+                        step={1}
+                        value={atemschutzminuten}
+                        onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
+                        style={{ width: "100%" }}
+                      />
+                      <br />
+                      <br />
+                    </>
+                  )}
+
+                  <label htmlFor="ed-bemerkung">Bemerkung (optional)</label>
+                  <textarea
+                    id="ed-bemerkung"
+                    rows={2}
+                    value={bemerkung}
+                    onChange={(e) => setBemerkung(e.target.value)}
+                    placeholder="Notizen…"
+                  />
+                  <br />
+                  <br />
+
+                  {fehler && <p className="fehlertext">{fehler}</p>}
+                  {qrFehler && <p className="fehlertext">{qrFehler}</p>}
+
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button type="submit" disabled={laeuft}>
+                      {laeuft ? "Wird gespeichert…" : "Eintragen"}
+                    </button>
+                    <button
+                      type="button"
+                      className="sekundaer"
+                      onClick={barcodeVergessenKlick}
+                      disabled={qrLaeuft}
+                    >
+                      {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
+                    </button>
+                    <button type="button" className="sekundaer" onClick={() => setAusgewaehlteAktion(null)}>
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
         </div>
       )}

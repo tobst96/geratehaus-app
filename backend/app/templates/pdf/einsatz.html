@@ -28,6 +28,7 @@
             <th>Atemschutz (min)</th>
             <th>Nur Gerätehaus</th>
             <th>Auf Anfahrt</th>
+            <th>Ohne Barcode</th>
             <th>Bemerkung</th>
         </tr>
     </thead>
@@ -41,6 +42,7 @@
             <td>{{ t.atemschutzminuten if t.atemschutzminuten else "" }}</td>
             <td>{{ "Ja" if t.nur_geraetehaus else "" }}</td>
             <td>{{ "Ja" if t.auf_anfahrt else "" }}</td>
+            <td>{{ "Ja" if t.ohne_barcode else "" }}</td>
             <td>{{ t.bemerkung or "" }}</td>
         </tr>
         {% endfor %}

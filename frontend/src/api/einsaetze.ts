@@ -43,3 +43,19 @@ export const einsatzAbschliessen = (id: number) =>
 
 export const einsatzFehlversuchProtokollieren = (einsatzId: number, grund: string, ort: string | null) =>
   apiPost<void>(`/einsaetze/${einsatzId}/fehlversuch`, { grund, ort });
+
+export interface ReservierungAnlegen {
+  fahrzeug_id: number | null;
+  sitzplatz_id: string | null;
+  bezeichnung: string;
+  nur_geraetehaus: boolean;
+  auf_anfahrt: boolean;
+}
+
+export interface ReservierungOut {
+  token: string;
+  ablauf_am: string;
+}
+
+export const reservierungAnlegen = (einsatzId: number, daten: ReservierungAnlegen) =>
+  apiPost<ReservierungOut>(`/einsaetze/${einsatzId}/reservierung`, daten);

@@ -11,7 +11,8 @@ from app.schemas.einsatz import (
     TeilnahmeOut,
 )
 from app.schemas.einsatz_feld import EinsatzFeldDefinitionOut
-from app.services import einsatz_service, pdf_service, stammdaten_service
+from app.schemas.reservierung import ReservierungAnlegen, ReservierungOut
+from app.services import einsatz_service, pdf_service, reservierung_service, stammdaten_service
 
 router = APIRouter(
     prefix="/einsaetze",
@@ -110,6 +111,20 @@ async def einsatz_fehlversuch_protokollieren(
         f"Fehlgeschlagener Versuch: {daten.grund}"
     )
     await einsatz_service.ereignis_protokollieren(db, einsatz_id, "fehlversuch", beschreibung)
+
+
+@router.post("/{einsatz_id}/reservierung", response_model=ReservierungOut, dependencies=[])
+async def reservierung_anlegen(
+    db: DbSession, einsatz_id: int, daten: ReservierungAnlegen
+) -> ReservierungOut:
+    """Erstellt einen Reservierungs-Token für 'Barcode vergessen': QR-Code
+    führt auf eine Seite, auf der sich die Person ohne Barcode für genau
+    diesen Sitzplatz/diese Aktion in diesem Einsatz eintragen kann."""
+    einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
+    if einsatz is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
+    reservierung = await reservierung_service.reservierung_anlegen(db, einsatz_id, daten)
+    return ReservierungOut(token=reservierung.token, ablauf_am=reservierung.ablauf_am)
 
 
 @router.post("/{einsatz_id}/abschliessen", response_model=EinsatzOut)

@@ -16,6 +16,7 @@ from app.models.moderator import Moderator
 from app.models.namens_abweichung import NamensAbweichung
 from app.models.person import Person
 from app.models.push_subscription import PushSubscription
+from app.models.reservierung import SitzplatzReservierung
 
 __all__ = [
     "AppConfig",
@@ -36,4 +37,5 @@ __all__ = [
     "NamensAbweichung",
     "Person",
     "PushSubscription",
+    "SitzplatzReservierung",
 ]

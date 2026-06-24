@@ -142,6 +142,7 @@ export function EinsatzDetail() {
             <th>Atemschutz</th>
             <th>Nur Gerätehaus</th>
             <th>Auf Anfahrt</th>
+            <th>Ohne Barcode</th>
             <th>Bemerkung</th>
           </tr>
         </thead>
@@ -155,6 +156,7 @@ export function EinsatzDetail() {
               <td>{t.atemschutzminuten || ""}</td>
               <td>{t.nur_geraetehaus ? "Ja" : ""}</td>
               <td>{t.auf_anfahrt ? "Ja" : ""}</td>
+              <td>{t.ohne_barcode ? "Ja" : ""}</td>
               <td>{t.bemerkung ?? ""}</td>
             </tr>
           ))}

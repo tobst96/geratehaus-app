@@ -68,7 +68,18 @@ export interface TeilnahmeOut {
   atemschutzminuten: number;
   nur_geraetehaus: boolean;
   auf_anfahrt: boolean;
+  ohne_barcode: boolean;
   bemerkung: string | null;
+}
+
+export interface ReservierungInfo {
+  bezeichnung: string;
+  einsatz_titel: string;
+  fahrzeug_name: string | null;
+  abgelaufen: boolean;
+  bereits_eingeloest: boolean;
+  nur_geraetehaus: boolean;
+  auf_anfahrt: boolean;
 }
 
 export interface EinsatzFeldDefinition {

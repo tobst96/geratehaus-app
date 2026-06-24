@@ -16,6 +16,7 @@ class TeilnahmeAnlegen(BaseModel):
     atemschutzminuten: int = Field(default=0, ge=0)
     nur_geraetehaus: bool = False
     auf_anfahrt: bool = False
+    ohne_barcode: bool = False
     bemerkung: str | None = None
 
 
@@ -34,6 +35,7 @@ class TeilnahmeOut(BaseModel):
     atemschutzminuten: int
     nur_geraetehaus: bool
     auf_anfahrt: bool
+    ohne_barcode: bool
     bemerkung: str | None
 
 

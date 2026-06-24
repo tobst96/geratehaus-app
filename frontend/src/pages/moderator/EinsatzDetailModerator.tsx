@@ -149,13 +149,14 @@ export function EinsatzDetailModerator() {
             <th>Atemschutz (min)</th>
             <th>Nur Gerätehaus</th>
             <th>Auf Anfahrt</th>
+            <th>Ohne Barcode</th>
             <th>Bemerkung</th>
           </tr>
         </thead>
         <tbody>
           {einsatz.teilnahmen.length === 0 && (
             <tr>
-              <td colSpan={9} style={{ color: "#999" }}>
+              <td colSpan={10} style={{ color: "#999" }}>
                 Keine Teilnehmer eingetragen.
               </td>
             </tr>
@@ -170,6 +171,7 @@ export function EinsatzDetailModerator() {
               <td>{t.atemschutzminuten || ""}</td>
               <td>{t.nur_geraetehaus ? "Ja" : ""}</td>
               <td>{t.auf_anfahrt ? "Ja" : ""}</td>
+              <td>{t.ohne_barcode ? "Ja" : ""}</td>
               <td>{t.bemerkung ?? ""}</td>
             </tr>
           ))}
