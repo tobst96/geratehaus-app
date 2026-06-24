@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -22,7 +23,7 @@ class Einsatz(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(32), default="offen", nullable=False)
     archiviert: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Werte der frei konfigurierbaren Zusatzfelder, keyed by EinsatzFeldDefinition.schluessel.
-    zusatzfelder: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+    zusatzfelder: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
 
     teilnahmen: Mapped[list["EinsatzPerson"]] = relationship(
         back_populates="einsatz", cascade="all, delete-orphan"
