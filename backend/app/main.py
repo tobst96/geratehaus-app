@@ -22,6 +22,7 @@ from app.api.v1 import (
     moderator_listen,
     moderator_stammdaten,
     oeffentlich,
+    person_bild_reservierungen,
     push,
     reservierungen,
     setup,
@@ -65,6 +66,7 @@ app.include_router(buchungen.router, prefix="/api/v1")
 app.include_router(moderator_barcodes.router, prefix="/api/v1")
 app.include_router(moderator_einstellungen.router, prefix="/api/v1")
 app.include_router(moderator_stammdaten.router, prefix="/api/v1")
+app.include_router(person_bild_reservierungen.router, prefix="/api/v1")
 app.include_router(moderator_dashboard.router, prefix="/api/v1")
 app.include_router(moderator_listen.router, prefix="/api/v1")
 app.include_router(moderator_buchungen.router, prefix="/api/v1")

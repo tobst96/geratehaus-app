@@ -226,6 +226,8 @@ export const personAktualisieren = (
 ) => apiPut<Person>(`/moderator/stammdaten/personen/${id}`, daten);
 export const holePersonTimeline = (id: number) =>
   apiGet<PersonEreignis[]>(`/moderator/stammdaten/personen/${id}/timeline`);
+export const personBildReservierungAnlegen = (id: number) =>
+  apiPost<{ token: string; ablauf_am: string }>(`/moderator/stammdaten/personen/${id}/bild-reservierung`);
 export const personLoeschen = (id: number) => apiDelete<void>(`/moderator/stammdaten/personen/${id}`);
 export const personBildHochladen = (id: number, datei: File) =>
   apiUpload<Person>(`/moderator/stammdaten/personen/${id}/bild`, datei, "datei");

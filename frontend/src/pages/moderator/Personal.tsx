@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import QRCode from "qrcode";
 import {
   holeAllePersonen,
   personAnlegen,
@@ -6,11 +7,13 @@ import {
   personLoeschen,
   personBildHochladen,
   personBarcodeErzeugen,
+  personBildReservierungAnlegen,
   holePersonTimeline,
   barcodeBildUrl,
   holeAlleGruppen,
   holeAlleFunktionenDienststunden,
 } from "../../api/moderator";
+import { holePersonBildReservierung } from "../../api/personBildReservierungen";
 import { ApiError } from "../../api/client";
 import type { FunktionDienststunden, Gruppe, Person, PersonEreignis } from "../../api/types";
 
@@ -99,9 +102,14 @@ export function Personal() {
   const [suche, setSuche] = useState("");
   const [ausgewaehlteId, setAusgewaehlteId] = useState<number | null>(null);
 
+  const [zeigeAnlegenModal, setZeigeAnlegenModal] = useState(false);
   const [neuerVorname, setNeuerVorname] = useState("");
   const [neuerZwischenname, setNeuerZwischenname] = useState("");
   const [neuerNachname, setNeuerNachname] = useState("");
+  const [anlegenFehler, setAnlegenFehler] = useState<string | null>(null);
+  const [neuePerson, setNeuePerson] = useState<Person | null>(null);
+  const [bildQr, setBildQr] = useState<{ token: string; bildUrl: string; ablaufAm: string } | null>(null);
+  const [bildHochgeladen, setBildHochgeladen] = useState(false);
 
   const [timeline, setTimeline] = useState<PersonEreignis[] | null>(null);
   const [barcode, setBarcode] = useState<{ token: string; ablaufAm: string | null } | null>(null);
@@ -134,20 +142,61 @@ export function Personal() {
     timelineLaden(personId);
   }
 
-  async function anlegen(e: FormEvent) {
-    e.preventDefault();
-    if (!neuerVorname.trim() || !neuerNachname.trim()) return;
-    const person = await personAnlegen({
-      vorname: neuerVorname.trim(),
-      zwischenname: neuerZwischenname.trim() || null,
-      nachname: neuerNachname.trim(),
-    });
+  function anlegenModalOeffnen() {
     setNeuerVorname("");
     setNeuerZwischenname("");
     setNeuerNachname("");
-    await laden();
-    auswaehlen(person.id);
+    setAnlegenFehler(null);
+    setNeuePerson(null);
+    setBildQr(null);
+    setBildHochgeladen(false);
+    setZeigeAnlegenModal(true);
   }
+
+  function anlegenModalSchliessen() {
+    setZeigeAnlegenModal(false);
+    if (neuePerson) auswaehlen(neuePerson.id);
+  }
+
+  async function anlegen(e: FormEvent) {
+    e.preventDefault();
+    if (!neuerVorname.trim() || !neuerNachname.trim()) return;
+    setAnlegenFehler(null);
+    try {
+      const person = await personAnlegen({
+        vorname: neuerVorname.trim(),
+        zwischenname: neuerZwischenname.trim() || null,
+        nachname: neuerNachname.trim(),
+      });
+      await laden();
+      setNeuePerson(person);
+
+      const { token, ablauf_am } = await personBildReservierungAnlegen(person.id);
+      const url = `${window.location.origin}/person-bild/${token}`;
+      const bildUrl = await QRCode.toDataURL(url, { width: 240, margin: 1 });
+      setBildQr({ token, bildUrl, ablaufAm: ablauf_am });
+    } catch (err) {
+      setAnlegenFehler(err instanceof ApiError ? String(err.detail) : "Person konnte nicht angelegt werden.");
+    }
+  }
+
+  // Solange das QR-Foto-Popup offen ist, prüfen ob das Foto bereits vom
+  // Handy aus hochgeladen wurde.
+  useEffect(() => {
+    if (!bildQr || bildHochgeladen) return;
+    const intervall = setInterval(async () => {
+      try {
+        const info = await holePersonBildReservierung(bildQr.token);
+        if (info.bereits_eingeloest) {
+          setBildHochgeladen(true);
+          await laden();
+        }
+      } catch {
+        // Best effort – wird beim nächsten Intervall erneut versucht.
+      }
+    }, 1500);
+    return () => clearInterval(intervall);
+  }, [bildQr, bildHochgeladen]);
 
   async function feldAendern(p: Person, feld: "vorname" | "zwischenname" | "nachname", wert: string) {
     await personAktualisieren(p.id, { [feld]: wert || null });
@@ -197,7 +246,94 @@ export function Personal() {
 
   return (
     <div>
-      <h1>Personal</h1>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <h1 style={{ margin: 0 }}>Personal</h1>
+        <button type="button" onClick={anlegenModalOeffnen}>
+          + Person hinzufügen
+        </button>
+      </div>
+
+      {zeigeAnlegenModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={anlegenModalSchliessen}
+        >
+          <div
+            className="karte"
+            style={{ width: 360, maxWidth: "90vw", textAlign: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {!neuePerson ? (
+              <>
+                <h2>Person hinzufügen</h2>
+                <form onSubmit={anlegen} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <input
+                    placeholder="Vorname"
+                    value={neuerVorname}
+                    onChange={(e) => setNeuerVorname(e.target.value)}
+                    autoFocus
+                  />
+                  <input
+                    placeholder="Zwischenname (optional)"
+                    value={neuerZwischenname}
+                    onChange={(e) => setNeuerZwischenname(e.target.value)}
+                  />
+                  <input
+                    placeholder="Nachname"
+                    value={neuerNachname}
+                    onChange={(e) => setNeuerNachname(e.target.value)}
+                  />
+                  {anlegenFehler && <p className="fehlertext">{anlegenFehler}</p>}
+                  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                    <button type="button" className="sekundaer" onClick={anlegenModalSchliessen}>
+                      Abbrechen
+                    </button>
+                    <button type="submit">Anlegen</button>
+                  </div>
+                </form>
+              </>
+            ) : !bildQr ? (
+              <p>Lege Person an …</p>
+            ) : bildHochgeladen ? (
+              <>
+                <h2>Foto gespeichert!</h2>
+                <PersonenAvatar person={liste.find((p) => p.id === neuePerson.id) ?? neuePerson} groesse={120} />
+                <p style={{ marginTop: 12 }}>{neuePerson.name} wurde angelegt.</p>
+                <button type="button" onClick={anlegenModalSchliessen}>
+                  Fertig
+                </button>
+              </>
+            ) : (
+              <>
+                <h2>{neuePerson.name} angelegt</h2>
+                <p style={{ color: "#666" }}>
+                  Mit dem Handy scannen, um direkt ein Profilfoto aufzunehmen oder hochzuladen.
+                </p>
+                <img src={bildQr.bildUrl} alt="QR-Code für Foto-Upload" style={{ width: 220, height: 220 }} />
+                <p style={{ fontSize: "0.8rem", color: "#999" }}>
+                  Gültig bis {new Date(bildQr.ablaufAm).toLocaleTimeString("de-DE")}
+                </p>
+                <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                  <button type="button" className="sekundaer" onClick={anlegenModalSchliessen}>
+                    Überspringen
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
         <div style={{ width: 300, flexShrink: 0 }}>
@@ -232,25 +368,6 @@ export function Personal() {
             ))}
             {gefiltert.length === 0 && <p style={{ color: "#666" }}>Keine Personen gefunden.</p>}
           </ul>
-
-          <form onSubmit={anlegen} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <input
-              placeholder="Vorname"
-              value={neuerVorname}
-              onChange={(e) => setNeuerVorname(e.target.value)}
-            />
-            <input
-              placeholder="Zwischenname (optional)"
-              value={neuerZwischenname}
-              onChange={(e) => setNeuerZwischenname(e.target.value)}
-            />
-            <input
-              placeholder="Nachname"
-              value={neuerNachname}
-              onChange={(e) => setNeuerNachname(e.target.value)}
-            />
-            <button type="submit">Person anlegen</button>
-          </form>
         </div>
 
         <div style={{ flex: 1 }}>

@@ -26,6 +26,7 @@ import { FahrzeugView } from "./pages/fahrzeug/FahrzeugView";
 import { ManuelleEintragung } from "./pages/ManuelleEintragung";
 import { DienstbuchManuelleEintragung } from "./pages/DienstbuchManuelleEintragung";
 import { DienststundenManuelleEintragung } from "./pages/DienststundenManuelleEintragung";
+import { PersonBildHochladen } from "./pages/PersonBildHochladen";
 
 export function App() {
   return (
@@ -64,6 +65,7 @@ export function App() {
             path="/eintragen-dienststunden/:token"
             element={<DienststundenManuelleEintragung />}
           />
+          <Route path="/person-bild/:token" element={<PersonBildHochladen />} />
 
           <Route path="*" element={<NotFound />} />
         </Route>

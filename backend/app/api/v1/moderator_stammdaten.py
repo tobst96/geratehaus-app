@@ -7,6 +7,7 @@ from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionUpdate,
 )
 from app.schemas.person import PersonCreate, PersonEreignisOut, PersonOut, PersonUpdate
+from app.schemas.person_bild_reservierung import PersonBildReservierungOut
 from app.schemas.stammdaten import (
     FahrzeugCreate,
     FahrzeugOut,
@@ -21,7 +22,7 @@ from app.schemas.stammdaten import (
     GruppeOut,
     GruppeUpdate,
 )
-from app.services import stammdaten_service
+from app.services import person_bild_reservierung_service, stammdaten_service
 
 router = APIRouter(prefix="/moderator/stammdaten", tags=["moderator:stammdaten"])
 
@@ -251,6 +252,17 @@ async def person_bild_hochladen(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
     person = await stammdaten_service.person_bild_speichern(db, person, datei)
     return await stammdaten_service.person_zu_out(db, person)
+
+
+@router.post("/personen/{person_id}/bild-reservierung", response_model=PersonBildReservierungOut)
+async def person_bild_reservierung_anlegen(
+    db: DbSession, _moderator: CurrentModerator, person_id: int
+) -> PersonBildReservierungOut:
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    reservierung = await person_bild_reservierung_service.reservierung_anlegen(db, person_id)
+    return PersonBildReservierungOut(token=reservierung.token, ablauf_am=reservierung.ablauf_am)
 
 
 @router.get("/personen/{person_id}/timeline", response_model=list[PersonEreignisOut])
