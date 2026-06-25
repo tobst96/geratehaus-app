@@ -257,7 +257,7 @@ export function Personal() {
           {!ausgewaehltePerson ? (
             <p style={{ color: "#666" }}>Bitte links eine Person auswählen.</p>
           ) : (
-            <div className="karte">
+            <div className="karte" key={ausgewaehltePerson.id}>
               <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
                 <PersonenAvatar person={ausgewaehltePerson} groesse={64} />
                 <div>
