@@ -5,6 +5,7 @@ import {
   holeEinsatzFelder,
   holeEinsatzTimeline,
   einsatzAbschliessen,
+  einsatzWiederOeffnen,
   einsatzPdfUrl,
 } from "../../api/einsaetze";
 import { holeFahrzeuge } from "../../api/stammdaten";
@@ -18,6 +19,9 @@ const EREIGNIS_ICON: Record<string, string> = {
   details: "📝",
   abgeschlossen: "🏁",
   fehlversuch: "⚠️",
+  email: "📧",
+  email_fehler: "⚠️",
+  wiedereroeffnet: "🔓",
 };
 
 export function EinsatzDetailModerator() {
@@ -67,6 +71,20 @@ export function EinsatzDetailModerator() {
     }
   }
 
+  async function wiederOeffnen() {
+    if (!einsatz) return;
+    if (!confirm(`Einsatz "${einsatz.titel}" wieder öffnen?`)) return;
+    setSchliesstAb(true);
+    try {
+      await einsatzWiederOeffnen(einsatz.id);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Wieder öffnen fehlgeschlagen.");
+    } finally {
+      setSchliesstAb(false);
+    }
+  }
+
   if (fehler) return <p className="fehlertext">{fehler}</p>;
   if (!einsatz) return <p>Lädt …</p>;
 
@@ -102,6 +120,11 @@ export function EinsatzDetailModerator() {
         {einsatz.status === "offen" && (
           <button className="sekundaer" onClick={abschliessen} disabled={schliesstAb}>
             {schliesstAb ? "Schließt ab …" : "Einsatz abschließen"}
+          </button>
+        )}
+        {einsatz.status === "abgeschlossen" && (
+          <button className="sekundaer" onClick={wiederOeffnen} disabled={schliesstAb}>
+            {schliesstAb ? "Öffnet …" : "Einsatz wieder öffnen"}
           </button>
         )}
       </p>
@@ -191,7 +214,11 @@ export function EinsatzDetailModerator() {
               <div
                 className={`timeline-punkt ${
                   ereignis.typ === "abgeschlossen" ? "timeline-punkt-abgeschlossen" : ""
-                } ${ereignis.typ === "fehlversuch" ? "timeline-punkt-fehlversuch" : ""}`}
+                } ${
+                  ereignis.typ === "fehlversuch" || ereignis.typ === "email_fehler"
+                    ? "timeline-punkt-fehlversuch"
+                    : ""
+                }`}
               >
                 {EREIGNIS_ICON[ereignis.typ] ?? "•"}
               </div>
@@ -199,7 +226,11 @@ export function EinsatzDetailModerator() {
                 {new Date(ereignis.zeitpunkt).toLocaleString("de-DE")}
               </div>
               <div
-                className={`timeline-text ${ereignis.typ === "fehlversuch" ? "timeline-text-fehlversuch" : ""}`}
+                className={`timeline-text ${
+                  ereignis.typ === "fehlversuch" || ereignis.typ === "email_fehler"
+                    ? "timeline-text-fehlversuch"
+                    : ""
+                }`}
               >
                 {ereignis.beschreibung}
               </div>

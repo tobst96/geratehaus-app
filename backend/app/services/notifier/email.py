@@ -29,7 +29,20 @@ class EmailNotifier(Notifier):
             "Das ist eine Testmail. Wenn du sie erhältst, ist die SMTP-Konfiguration korrekt.",
         )
 
-    async def _versenden(self, db: AsyncSession, betreff: str, nachricht: str) -> None:
+    async def pdf_versenden(
+        self, db: AsyncSession, betreff: str, nachricht: str, dateiname: str, pdf_inhalt: bytes
+    ) -> None:
+        """Wie test_versenden(): wirft bei Fehlern weiter, damit der Aufrufer
+        (Einsatzabschluss) den Versand in der Timeline protokollieren kann."""
+        await self._versenden(db, betreff, nachricht, anhang=(dateiname, pdf_inhalt))
+
+    async def _versenden(
+        self,
+        db: AsyncSession,
+        betreff: str,
+        nachricht: str,
+        anhang: tuple[str, bytes] | None = None,
+    ) -> None:
         empfaenger_roh = await config_service.get(db, "notifier_email_recipients", "")
         empfaenger = [e.strip() for e in empfaenger_roh.split(",") if e.strip()]
         if not empfaenger:
@@ -39,6 +52,11 @@ class EmailNotifier(Notifier):
         message["To"] = ", ".join(empfaenger)
         message["Subject"] = betreff
         message.set_content(nachricht)
+        if anhang is not None:
+            dateiname, pdf_inhalt = anhang
+            message.add_attachment(
+                pdf_inhalt, maintype="application", subtype="pdf", filename=dateiname
+            )
         await aiosmtplib.send(
             message,
             hostname=await config_service.get(db, "notifier_email_smtp_host", ""),

@@ -51,6 +51,7 @@ class EinsatzOut(BaseModel):
     zeitpunkt: datetime
     status: str
     archiviert: bool
+    geplanter_abschluss_am: datetime | None
     zusatzfelder: dict[str, str | bool] = {}
     teilnahmen: list[TeilnahmeOut] = []
 

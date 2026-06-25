@@ -72,6 +72,12 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.INT,
         "Ab wie vielen Stunden seit der letzten Bearbeitung ein offener Einsatz automatisch abgeschlossen wird",
     ),
+    ConfigDefault(
+        "einsatz_alle_eingetragen_minuten",
+        "30",
+        ConfigTyp.INT,
+        "Minuten bis zum automatischen Abschluss, nachdem im Gerätehaus 'Alle eingetragen' geklickt wurde",
+    ),
     # Barcodes
     ConfigDefault(
         "barcode_gueltigkeit_tage",
@@ -126,6 +132,12 @@ DEFAULTS: list[ConfigDefault] = [
         "notifier_telegram_chat_ids", "", ConfigTyp.STR, "Telegram Chat-IDs, kommagetrennt"
     ),
     ConfigDefault("notifier_email_aktiv", "false", ConfigTyp.BOOL, "E-Mail-Versand aktiv"),
+    ConfigDefault(
+        "notifier_email_pdf_bei_abschluss",
+        "false",
+        ConfigTyp.BOOL,
+        "PDF-Export automatisch per E-Mail versenden, wenn ein Einsatz abgeschlossen wird",
+    ),
     ConfigDefault("notifier_email_smtp_host", "", ConfigTyp.STR, "SMTP-Server"),
     ConfigDefault("notifier_email_smtp_port", "587", ConfigTyp.INT, "SMTP-Port"),
     ConfigDefault("notifier_email_smtp_user", "", ConfigTyp.STR, "SMTP-Benutzername"),

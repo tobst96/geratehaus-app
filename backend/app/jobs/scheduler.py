@@ -57,6 +57,18 @@ async def _einsatz_autoabschluss_job() -> None:
             logger.warning("einsatz_autoabschluss_fehlgeschlagen", exc_info=True)
 
 
+async def _einsatz_geplanter_abschluss_job() -> None:
+    """Läuft minütlich; schließt Einsätze, deren über 'Alle eingetragen'
+    geplanter Abschlusszeitpunkt erreicht ist."""
+    async with AsyncSessionLocal() as db:
+        try:
+            einsaetze = await einsatz_service.einsaetze_mit_faelligem_abschluss(db)
+            for einsatz in einsaetze:
+                await einsatz_service.einsatz_abschliessen(db, einsatz)
+        except Exception:
+            logger.warning("einsatz_geplanter_abschluss_fehlgeschlagen", exc_info=True)
+
+
 def registriere_jobs() -> None:
     # Immer registriert; ob tatsächlich synchronisiert wird, entscheidet
     # _divera_polling_job anhand der app_config-Werte (Einstellungen-UI),
@@ -90,6 +102,15 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("einsatz_autoabschluss_job_registriert")
+
+    scheduler.add_job(
+        _einsatz_geplanter_abschluss_job,
+        "interval",
+        minutes=1,
+        id="einsatz_geplanter_abschluss",
+        replace_existing=True,
+    )
+    logger.info("einsatz_geplanter_abschluss_job_registriert")
 
 
 def start() -> None:

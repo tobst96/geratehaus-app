@@ -12,6 +12,7 @@ class OeffentlicheKonfiguration(BaseModel):
     farbe_primaer: str
     farbe_akzent: str
     einsatz_countdown_minuten: int
+    einsatz_alle_eingetragen_minuten: int
     modul_einsatztagebuch_aktiv: bool
     modul_dienstbuch_aktiv: bool
     modul_dienststunden_aktiv: bool

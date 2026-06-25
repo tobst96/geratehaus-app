@@ -41,6 +41,12 @@ export const holeEinsatzTimeline = (id: number) =>
 export const einsatzAbschliessen = (id: number) =>
   apiPost<EinsatzOut>(`/einsaetze/${id}/abschliessen`);
 
+export const einsatzWiederOeffnen = (id: number) =>
+  apiPost<EinsatzOut>(`/einsaetze/${id}/wieder-oeffnen`);
+
+export const einsatzAlleEingetragen = (id: number) =>
+  apiPost<EinsatzOut>(`/einsaetze/${id}/alle-eingetragen`);
+
 export const einsatzFehlversuchProtokollieren = (einsatzId: number, grund: string, ort: string | null) =>
   apiPost<void>(`/einsaetze/${einsatzId}/fehlversuch`, { grund, ort });
 

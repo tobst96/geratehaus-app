@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { holeEinstellungen, schreibeEinstellungen } from "../../api/moderator";
+import { holeEinstellungen, schreibeEinstellungen, sendeTestmail } from "../../api/moderator";
 import { ApiError } from "../../api/client";
 
 interface NotifierConfig {
@@ -14,6 +14,7 @@ interface NotifierConfig {
   email_smtp_use_tls: boolean;
   email_from: string;
   email_recipients: string;
+  email_pdf_bei_abschluss: boolean;
   webpush_enabled: boolean;
   webpush_vapid_public: string;
   webpush_vapid_private: string;
@@ -25,6 +26,8 @@ export function NotifierEinstellungen() {
   const [fehler, setFehler] = useState<string | null>(null);
   const [gespeichert, setGespeichert] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [testmailLaeuft, setTestmailLaeuft] = useState(false);
+  const [testmailErgebnis, setTestmailErgebnis] = useState<string | null>(null);
 
   useEffect(() => {
     async function laden() {
@@ -42,6 +45,7 @@ export function NotifierEinstellungen() {
           email_smtp_use_tls: Boolean(w.notifier_email_smtp_use_tls ?? true),
           email_from: String(w.notifier_email_from ?? ""),
           email_recipients: String(w.notifier_email_recipients ?? ""),
+          email_pdf_bei_abschluss: Boolean(w.notifier_email_pdf_bei_abschluss),
           webpush_enabled: Boolean(w.notifier_webpush_aktiv),
           webpush_vapid_public: String(w.notifier_webpush_vapid_public_key ?? ""),
           webpush_vapid_private: String(w.notifier_webpush_vapid_private_key ?? ""),
@@ -73,6 +77,7 @@ export function NotifierEinstellungen() {
         notifier_email_smtp_use_tls: config.email_smtp_use_tls,
         notifier_email_from: config.email_from,
         notifier_email_recipients: config.email_recipients,
+        notifier_email_pdf_bei_abschluss: config.email_pdf_bei_abschluss,
         notifier_webpush_aktiv: config.webpush_enabled,
         notifier_webpush_vapid_public_key: config.webpush_vapid_public,
         notifier_webpush_vapid_private_key: config.webpush_vapid_private,
@@ -84,6 +89,35 @@ export function NotifierEinstellungen() {
       setFehler(err instanceof ApiError ? String(err.detail) : "Fehler beim Speichern");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function testmailSenden() {
+    if (!config) return;
+    setTestmailLaeuft(true);
+    setTestmailErgebnis(null);
+    try {
+      // Erst die aktuell im Formular stehenden SMTP-Werte sichern, damit der
+      // Test nicht mit einer älteren, bereits gespeicherten Konfiguration läuft.
+      await schreibeEinstellungen({
+        notifier_email_aktiv: config.email_enabled,
+        notifier_email_smtp_host: config.email_smtp_host,
+        notifier_email_smtp_port: config.email_smtp_port,
+        notifier_email_smtp_user: config.email_smtp_user,
+        notifier_email_smtp_password: config.email_smtp_password,
+        notifier_email_smtp_use_tls: config.email_smtp_use_tls,
+        notifier_email_from: config.email_from,
+        notifier_email_recipients: config.email_recipients,
+        notifier_email_pdf_bei_abschluss: config.email_pdf_bei_abschluss,
+      });
+      await sendeTestmail();
+      setTestmailErgebnis("Testmail wurde gesendet.");
+    } catch (err) {
+      setTestmailErgebnis(
+        err instanceof ApiError ? String(err.detail) : "Testmail konnte nicht gesendet werden."
+      );
+    } finally {
+      setTestmailLaeuft(false);
     }
   }
 
@@ -234,6 +268,28 @@ export function NotifierEinstellungen() {
             disabled={!config.email_enabled}
             autoComplete="off"
           />
+          <br />
+          <br />
+          <label>
+            <input
+              type="checkbox"
+              checked={config.email_pdf_bei_abschluss}
+              onChange={(e) => setConfig({ ...config, email_pdf_bei_abschluss: e.target.checked })}
+              disabled={!config.email_enabled}
+            />{" "}
+            Einsatzbericht (PDF) bei Abschluss automatisch per E-Mail versenden
+          </label>
+          <br />
+          <br />
+          <button
+            type="button"
+            className="sekundaer"
+            onClick={testmailSenden}
+            disabled={testmailLaeuft || !config.email_enabled}
+          >
+            {testmailLaeuft ? "Sendet …" : "Testmail senden"}
+          </button>
+          {testmailErgebnis && <p style={{ fontSize: "0.85rem" }}>{testmailErgebnis}</p>}
         </div>
 
         {/* Web Push */}

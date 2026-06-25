@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
+import structlog
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -7,7 +8,11 @@ from sqlalchemy.orm import selectinload
 from app.models.einsatz import Einsatz, EinsatzPerson
 from app.models.einsatz_ereignis import EinsatzEreignis
 from app.schemas.einsatz import EinsatzAnlegen, TeilnahmeAnlegen
-from app.services import notifier_service
+from app.services import notifier_service, pdf_service
+from app.services.config_service import config_service
+from app.services.notifier.email import EmailNotifier
+
+logger = structlog.get_logger(__name__)
 
 
 async def ereignis_protokollieren(
@@ -125,11 +130,75 @@ async def zusatzfelder_aktualisieren(
 
 async def einsatz_abschliessen(db: AsyncSession, einsatz: Einsatz) -> Einsatz:
     einsatz.status = "abgeschlossen"
+    einsatz.geplanter_abschluss_am = None
     await db.commit()
     await ereignis_protokollieren(db, einsatz.id, "abgeschlossen", "Einsatz abgeschlossen")
     geladen = await get_einsatz(db, einsatz.id)
     assert geladen is not None
+    await _pdf_per_mail_versenden(db, geladen)
     return geladen
+
+
+async def einsatz_wieder_oeffnen(db: AsyncSession, einsatz: Einsatz) -> Einsatz:
+    einsatz.status = "offen"
+    einsatz.geplanter_abschluss_am = None
+    await db.commit()
+    await ereignis_protokollieren(db, einsatz.id, "wiedereroeffnet", "Einsatz wieder geöffnet")
+    geladen = await get_einsatz(db, einsatz.id)
+    assert geladen is not None
+    return geladen
+
+
+async def einsatz_abschluss_planen(db: AsyncSession, einsatz: Einsatz, minuten: int) -> Einsatz:
+    """'Alle eingetragen' im Gerätehaus: schließt den Einsatz nicht sofort,
+    sondern plant den Abschluss für in `minuten` Minuten ein, damit
+    Nachzügler noch eingetragen werden können."""
+    einsatz.geplanter_abschluss_am = datetime.now(timezone.utc) + timedelta(minutes=minuten)
+    await db.commit()
+    await ereignis_protokollieren(
+        db, einsatz.id, "details", f"Einsatz wird in {minuten} Minuten automatisch abgeschlossen (alle eingetragen)"
+    )
+    geladen = await get_einsatz(db, einsatz.id)
+    assert geladen is not None
+    return geladen
+
+
+async def einsaetze_mit_faelligem_abschluss(db: AsyncSession) -> list[Einsatz]:
+    jetzt = datetime.now(timezone.utc)
+    stmt = (
+        select(Einsatz)
+        .options(_TEILNAHME_DETAILS)
+        .where(
+            Einsatz.status != "abgeschlossen",
+            Einsatz.geplanter_abschluss_am.is_not(None),
+            Einsatz.geplanter_abschluss_am <= jetzt,
+        )
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def _pdf_per_mail_versenden(db: AsyncSession, einsatz: Einsatz) -> None:
+    if not await config_service.get(db, "notifier_email_aktiv", False):
+        return
+    if not await config_service.get(db, "notifier_email_pdf_bei_abschluss", False):
+        return
+    try:
+        pdf_inhalt = await pdf_service.einsatz_pdf(db, einsatz)
+        dateiname = f"einsatz-{einsatz.id}.pdf"
+        await EmailNotifier().pdf_versenden(
+            db,
+            f"Einsatzbericht: {einsatz.titel}",
+            f"Im Anhang der Einsatzbericht für „{einsatz.titel}“.",
+            dateiname,
+            pdf_inhalt,
+        )
+        await ereignis_protokollieren(db, einsatz.id, "email", "Einsatzbericht (PDF) per E-Mail versendet")
+    except Exception as exc:
+        logger.warning("einsatz_pdf_mail_fehlgeschlagen", exc_info=True)
+        await ereignis_protokollieren(
+            db, einsatz.id, "email_fehler", f"Versand des Einsatzberichts per E-Mail fehlgeschlagen: {exc}"
+        )
 
 
 async def offene_einsaetze_inaktiv_seit(db: AsyncSession, inaktivitaet_stunden: int) -> list[Einsatz]:

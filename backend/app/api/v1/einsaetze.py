@@ -13,6 +13,7 @@ from app.schemas.einsatz import (
 from app.schemas.einsatz_feld import EinsatzFeldDefinitionOut
 from app.schemas.reservierung import ReservierungAnlegen, ReservierungOut
 from app.services import einsatz_service, pdf_service, reservierung_service, stammdaten_service
+from app.services.config_service import config_service
 
 router = APIRouter(
     prefix="/einsaetze",
@@ -131,9 +132,31 @@ async def reservierung_anlegen(
 async def einsatz_abschliessen(
     db: DbSession, _moderator: CurrentModerator, einsatz_id: int
 ) -> EinsatzOut:
-    """Schließt einen Einsatz ab (Status 'offen' -> 'abgeschlossen'). Nur im
-    Moderator-Bereich, da dies bislang nirgendwo automatisch passiert."""
+    """Schließt einen Einsatz ab (Status 'offen' -> 'abgeschlossen')."""
     einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
     if einsatz is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
     return await einsatz_service.einsatz_abschliessen(db, einsatz)
+
+
+@router.post("/{einsatz_id}/wieder-oeffnen", response_model=EinsatzOut)
+async def einsatz_wieder_oeffnen(
+    db: DbSession, _moderator: CurrentModerator, einsatz_id: int
+) -> EinsatzOut:
+    """Öffnet einen abgeschlossenen Einsatz wieder (Status -> 'offen')."""
+    einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
+    if einsatz is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
+    return await einsatz_service.einsatz_wieder_oeffnen(db, einsatz)
+
+
+@router.post("/{einsatz_id}/alle-eingetragen", response_model=EinsatzOut, dependencies=[])
+async def einsatz_alle_eingetragen(db: DbSession, einsatz_id: int) -> EinsatzOut:
+    """Plant den Abschluss des Einsatzes für in einigen Minuten ein (statt
+    sofort zu schließen), damit Nachzügler sich noch eintragen können. Bewusst
+    ohne Auth, da der Button im Gerätehaus-Kiosk ohne Moderator-Login steht."""
+    einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
+    if einsatz is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
+    minuten = await config_service.get(db, "einsatz_alle_eingetragen_minuten", 30)
+    return await einsatz_service.einsatz_abschluss_planen(db, einsatz, int(minuten))

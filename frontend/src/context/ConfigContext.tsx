@@ -14,6 +14,7 @@ const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   farbe_primaer: "#FFA633",
   farbe_akzent: "#1A1A1A",
   einsatz_countdown_minuten: 30,
+  einsatz_alle_eingetragen_minuten: 30,
   modul_einsatztagebuch_aktiv: true,
   modul_dienstbuch_aktiv: true,
   modul_dienststunden_aktiv: true,

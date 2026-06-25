@@ -4,6 +4,7 @@ export interface OeffentlicheKonfiguration {
   farbe_primaer: string;
   farbe_akzent: string;
   einsatz_countdown_minuten: number;
+  einsatz_alle_eingetragen_minuten: number;
   modul_einsatztagebuch_aktiv: boolean;
   modul_dienstbuch_aktiv: boolean;
   modul_dienststunden_aktiv: boolean;
@@ -101,6 +102,7 @@ export interface EinsatzOut {
   zeitpunkt: string;
   status: string;
   archiviert: boolean;
+  geplanter_abschluss_am: string | null;
   zusatzfelder: Record<string, string | boolean>;
   teilnahmen: TeilnahmeOut[];
 }

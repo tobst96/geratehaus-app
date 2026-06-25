@@ -4,7 +4,6 @@ import {
   schreibeEinstellungen,
   ladeLogoHoch,
   fuehreArchivierungAus,
-  sendeTestmail,
   einstellungenVerifizieren,
   holeModeratoren,
   moderatorAnlegen,
@@ -196,6 +195,7 @@ export function Einstellungen() {
   const [dienstbuchZeitfenster, setDienstbuchZeitfenster] = useState(12);
   const [archivierungszeitraum, setArchivierungszeitraum] = useState(2);
   const [einsatzCountdownMinuten, setEinsatzCountdownMinuten] = useState(30);
+  const [alleEingetragenMinuten, setAlleEingetragenMinuten] = useState(30);
   const [autoabschlussStunde, setAutoabschlussStunde] = useState(4);
   const [autoabschlussInaktivitaetStunden, setAutoabschlussInaktivitaetStunden] = useState(4);
   const [barcodeGueltigkeitTage, setBarcodeGueltigkeitTage] = useState(730);
@@ -203,17 +203,6 @@ export function Einstellungen() {
   const [diveraAktiv, setDiveraAktiv] = useState(false);
   const [diveraApiKey, setDiveraApiKey] = useState("");
   const [diveraModus, setDiveraModus] = useState("polling");
-
-  const [emailAktiv, setEmailAktiv] = useState(false);
-  const [emailSmtpHost, setEmailSmtpHost] = useState("");
-  const [emailSmtpPort, setEmailSmtpPort] = useState(587);
-  const [emailSmtpUser, setEmailSmtpUser] = useState("");
-  const [emailSmtpPasswort, setEmailSmtpPasswort] = useState("");
-  const [emailSmtpTls, setEmailSmtpTls] = useState(true);
-  const [emailAbsender, setEmailAbsender] = useState("");
-  const [emailEmpfaenger, setEmailEmpfaenger] = useState("");
-  const [testmailLaeuft, setTestmailLaeuft] = useState(false);
-  const [testmailErgebnis, setTestmailErgebnis] = useState<string | null>(null);
 
   const [benachrichtigungEinsatz, setBenachrichtigungEinsatz] = useState(true);
   const [benachrichtigungDienstbuch, setBenachrichtigungDienstbuch] = useState(true);
@@ -238,20 +227,13 @@ export function Einstellungen() {
       setDienstbuchZeitfenster(Number(w.dienstbuch_zeitfenster_stunden ?? 12));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
       setEinsatzCountdownMinuten(Number(w.einsatz_countdown_minuten ?? 30));
+      setAlleEingetragenMinuten(Number(w.einsatz_alle_eingetragen_minuten ?? 30));
       setAutoabschlussStunde(Number(w.einsatz_autoabschluss_stunde ?? 4));
       setAutoabschlussInaktivitaetStunden(Number(w.einsatz_autoabschluss_inaktivitaet_stunden ?? 4));
       setBarcodeGueltigkeitTage(Number(w.barcode_gueltigkeit_tage ?? 730));
       setDiveraAktiv(Boolean(w.divera_aktiv));
       setDiveraApiKey(String(w.divera_api_key ?? ""));
       setDiveraModus(String(w.divera_modus ?? "polling"));
-      setEmailAktiv(Boolean(w.notifier_email_aktiv));
-      setEmailSmtpHost(String(w.notifier_email_smtp_host ?? ""));
-      setEmailSmtpPort(Number(w.notifier_email_smtp_port ?? 587));
-      setEmailSmtpUser(String(w.notifier_email_smtp_user ?? ""));
-      setEmailSmtpPasswort(String(w.notifier_email_smtp_password ?? ""));
-      setEmailSmtpTls(Boolean(w.notifier_email_smtp_use_tls));
-      setEmailAbsender(String(w.notifier_email_from ?? ""));
-      setEmailEmpfaenger(String(w.notifier_email_recipients ?? ""));
       setBenachrichtigungEinsatz(Boolean(w.benachrichtigung_neuer_einsatz));
       setBenachrichtigungDienstbuch(Boolean(w.benachrichtigung_neues_dienstbuch));
       setBenachrichtigungBuchung(Boolean(w.benachrichtigung_buchungsanfrage));
@@ -286,20 +268,13 @@ export function Einstellungen() {
         dienstbuch_zeitfenster_stunden: dienstbuchZeitfenster,
         archivierungszeitraum_jahre: archivierungszeitraum,
         einsatz_countdown_minuten: einsatzCountdownMinuten,
+        einsatz_alle_eingetragen_minuten: alleEingetragenMinuten,
         einsatz_autoabschluss_stunde: autoabschlussStunde,
         einsatz_autoabschluss_inaktivitaet_stunden: autoabschlussInaktivitaetStunden,
         barcode_gueltigkeit_tage: barcodeGueltigkeitTage,
         divera_aktiv: diveraAktiv,
         divera_api_key: diveraApiKey,
         divera_modus: diveraModus,
-        notifier_email_aktiv: emailAktiv,
-        notifier_email_smtp_host: emailSmtpHost,
-        notifier_email_smtp_port: emailSmtpPort,
-        notifier_email_smtp_user: emailSmtpUser,
-        notifier_email_smtp_password: emailSmtpPasswort,
-        notifier_email_smtp_use_tls: emailSmtpTls,
-        notifier_email_from: emailAbsender,
-        notifier_email_recipients: emailEmpfaenger,
         benachrichtigung_neuer_einsatz: benachrichtigungEinsatz,
         benachrichtigung_neues_dienstbuch: benachrichtigungDienstbuch,
         benachrichtigung_buchungsanfrage: benachrichtigungBuchung,
@@ -310,33 +285,6 @@ export function Einstellungen() {
       setTimeout(() => setGespeichert(false), 4000);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Einstellungen konnten nicht gespeichert werden.");
-    }
-  }
-
-  async function testmailSenden() {
-    setTestmailLaeuft(true);
-    setTestmailErgebnis(null);
-    try {
-      // Erst die aktuell im Formular stehenden SMTP-Werte sichern, damit der
-      // Test nicht mit einer älteren, bereits gespeicherten Konfiguration läuft.
-      await schreibeEinstellungen({
-        notifier_email_aktiv: emailAktiv,
-        notifier_email_smtp_host: emailSmtpHost,
-        notifier_email_smtp_port: emailSmtpPort,
-        notifier_email_smtp_user: emailSmtpUser,
-        notifier_email_smtp_password: emailSmtpPasswort,
-        notifier_email_smtp_use_tls: emailSmtpTls,
-        notifier_email_from: emailAbsender,
-        notifier_email_recipients: emailEmpfaenger,
-      });
-      await sendeTestmail();
-      setTestmailErgebnis("Testmail wurde gesendet.");
-    } catch (err) {
-      setTestmailErgebnis(
-        err instanceof ApiError ? String(err.detail) : "Testmail konnte nicht gesendet werden."
-      );
-    } finally {
-      setTestmailLaeuft(false);
     }
   }
 
@@ -555,6 +503,18 @@ export function Einstellungen() {
           />
           <br />
           <br />
+          <label htmlFor="e-alle-eingetragen">
+            Verzögerung nach "Alle eingetragen" bis zum automatischen Abschluss (Minuten)
+          </label>
+          <input
+            id="e-alle-eingetragen"
+            type="number"
+            min={1}
+            value={alleEingetragenMinuten}
+            onChange={(e) => setAlleEingetragenMinuten(Number(e.target.value))}
+          />
+          <br />
+          <br />
           <label htmlFor="e-autoabschluss-stunde">Automatischer Einsatzabschluss um (Uhrzeit, Stunde 0–23)</label>
           <input
             id="e-autoabschluss-stunde"
@@ -619,82 +579,6 @@ export function Einstellungen() {
             />{" "}
             Schwellenwert-Überschreitung
           </label>
-        </div>
-
-        <div className="karte">
-          <h2>E-Mail-Benachrichtigungen</h2>
-          <label>
-            <input type="checkbox" checked={emailAktiv} onChange={(e) => setEmailAktiv(e.target.checked)} />{" "}
-            E-Mail-Versand aktiv
-          </label>
-          <br />
-          <br />
-          <label htmlFor="e-smtp-host">SMTP-Server</label>
-          <input
-            id="e-smtp-host"
-            value={emailSmtpHost}
-            onChange={(e) => setEmailSmtpHost(e.target.value)}
-            placeholder="smtp.example.org"
-          />
-          <br />
-          <br />
-          <label htmlFor="e-smtp-port">SMTP-Port</label>
-          <input
-            id="e-smtp-port"
-            type="number"
-            min={1}
-            value={emailSmtpPort}
-            onChange={(e) => setEmailSmtpPort(Number(e.target.value))}
-          />
-          <br />
-          <br />
-          <label htmlFor="e-smtp-user">SMTP-Benutzername</label>
-          <input
-            id="e-smtp-user"
-            value={emailSmtpUser}
-            onChange={(e) => setEmailSmtpUser(e.target.value)}
-            autoComplete="off"
-          />
-          <br />
-          <br />
-          <label htmlFor="e-smtp-passwort">SMTP-Passwort</label>
-          <input
-            id="e-smtp-passwort"
-            type="password"
-            value={emailSmtpPasswort}
-            onChange={(e) => setEmailSmtpPasswort(e.target.value)}
-            autoComplete="off"
-          />
-          <br />
-          <br />
-          <label>
-            <input type="checkbox" checked={emailSmtpTls} onChange={(e) => setEmailSmtpTls(e.target.checked)} />{" "}
-            STARTTLS verwenden
-          </label>
-          <br />
-          <br />
-          <label htmlFor="e-email-absender">Absenderadresse</label>
-          <input
-            id="e-email-absender"
-            value={emailAbsender}
-            onChange={(e) => setEmailAbsender(e.target.value)}
-            placeholder="geratehaus@example.org"
-          />
-          <br />
-          <br />
-          <label htmlFor="e-email-empfaenger">Empfängeradressen (kommagetrennt)</label>
-          <input
-            id="e-email-empfaenger"
-            value={emailEmpfaenger}
-            onChange={(e) => setEmailEmpfaenger(e.target.value)}
-            placeholder="a@example.org, b@example.org"
-          />
-          <br />
-          <br />
-          <button type="button" className="sekundaer" onClick={testmailSenden} disabled={testmailLaeuft}>
-            {testmailLaeuft ? "Sendet …" : "Testmail senden"}
-          </button>
-          {testmailErgebnis && <p style={{ fontSize: "0.85rem" }}>{testmailErgebnis}</p>}
         </div>
 
         <div className="karte">

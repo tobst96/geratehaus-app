@@ -22,6 +22,11 @@ class Einsatz(Base, TimestampMixin):
     zeitpunkt: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     status: Mapped[str] = mapped_column(String(32), default="offen", nullable=False)
     archiviert: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Gesetzt durch "Alle eingetragen" im Gerätehaus; der Autoabschluss-Job
+    # schließt den Einsatz, sobald dieser Zeitpunkt erreicht ist.
+    geplanter_abschluss_am: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     # Werte der frei konfigurierbaren Zusatzfelder, keyed by EinsatzFeldDefinition.schluessel.
     zusatzfelder: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import {
+  einsatzAlleEingetragen,
   einsatzFehlversuchProtokollieren,
   einsatzZusatzfelderAktualisieren,
   holeEinsatzFelder,
@@ -68,6 +69,9 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   );
   const [qrFehler, setQrFehler] = useState<string | null>(null);
   const [qrLaeuft, setQrLaeuft] = useState(false);
+
+  const [alleEingetragenLaeuft, setAlleEingetragenLaeuft] = useState(false);
+  const [alleEingetragenFehler, setAlleEingetragenFehler] = useState<string | null>(null);
 
   const [felder, setFelder] = useState<EinsatzFeldDefinition[] | null>(null);
   const [feldWerte, setFeldWerte] = useState<Record<string, string | boolean>>(einsatz.zusatzfelder);
@@ -294,7 +298,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     }
   }
 
-  async function zurueckKlick() {
+  async function zusatzfelderBestEffortSpeichern() {
     if (felder && felder.length > 0) {
       try {
         await einsatzZusatzfelderAktualisieren(einsatz.id, feldWerte);
@@ -302,7 +306,27 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
         // Speichern ist best-effort, soll das Verlassen der Ansicht nicht blockieren.
       }
     }
+  }
+
+  async function zurueckKlick() {
+    await zusatzfelderBestEffortSpeichern();
     onCancel();
+  }
+
+  async function alleEingetragenKlick() {
+    const minuten = config?.einsatz_alle_eingetragen_minuten ?? 30;
+    if (!window.confirm(`Einsatz in ${minuten} Minuten automatisch abschließen?`)) return;
+    setAlleEingetragenLaeuft(true);
+    setAlleEingetragenFehler(null);
+    try {
+      await zusatzfelderBestEffortSpeichern();
+      await einsatzAlleEingetragen(einsatz.id);
+      onCancel();
+    } catch (err) {
+      setAlleEingetragenFehler(err instanceof ApiError ? String(err.detail) : "Konnte nicht eingeplant werden.");
+    } finally {
+      setAlleEingetragenLaeuft(false);
+    }
   }
 
   const aktiveFahrzeuge = fahrzeuge.filter((f) => f.aktiv);
@@ -408,10 +432,14 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
             </div>
           </div>
 
-          <div style={{ marginTop: "1.5rem" }}>
+          <div style={{ marginTop: "1.5rem", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <button className="sekundaer" onClick={zurueckKlick}>
               Zurück
             </button>
+            <button onClick={alleEingetragenKlick} disabled={alleEingetragenLaeuft}>
+              {alleEingetragenLaeuft ? "Wird eingeplant …" : "Alle eingetragen"}
+            </button>
+            {alleEingetragenFehler && <span className="fehlertext">{alleEingetragenFehler}</span>}
           </div>
         </>
       )}
