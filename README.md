@@ -19,23 +19,39 @@ danach jederzeit über den Moderator-Bereich änderbar.
 - **Kiosk-Startseite** – große, dynamisch skalierende Kacheln (nie Scrollen
   nötig), pro Modul einzeln ein- und ausblendbar
 - **Personen & Barcodes** – Vorname/Zwischenname/Nachname, Profilbild (Fallback:
-  Initialen-Avatar), echter Code128-Strichcode pro Person mit 2 Jahren
-  Gültigkeit, die beim Scannen geprüft wird
+  Initialen-Avatar), echter Code128-Strichcode pro Person mit konfigurierbarer
+  Gültigkeitsdauer; beim Scannen wird das Profilbild groß zur Bestätigung
+  angezeigt, der Rohtext ist zum Testen zusätzlich als kopierbares Feld sichtbar
+- **"Barcode vergessen"** – im Scan-Dialog erzeugt ein Button einen QR-Code für
+  genau diesen Sitzplatz/diese Aktion in diesem Einsatz; die Person scannt ihn
+  mit dem eigenen Handy, wählt sich aus den Personen-Stammdaten aus und trägt
+  sich ohne Barcode ein (kurzlebiger, einmal verwendbarer Reservierungs-Token).
+  Der Scan-Dialog schließt sich automatisch, sobald die Eintragung erfolgt ist;
+  solche Eintragungen sind in Listen und PDF als "ohne Barcode" markiert,
+  IP/Browser werden zur Nachverfolgung in den Listen (nicht im PDF) vermerkt
 - **Einsatztagebuch ("Garage")** – Einsätze manuell oder per Divera-24/7-Import,
   öffnen sich automatisch zum Eintragen; Fahrzeuge als eigene Kästen mit
   konfigurierbaren Sitzplätzen (Trupp/Staffel/Gruppe-Vorlagen nach DIN 14502
   oder frei editierbar), Eintragung per Barcode-Scan inkl. VAB und
   Atemschutzminuten (Schieberegler), zusätzlich "Einsatzbereit im
-  Feuerwehrhaus" und "Auf Anfahrt gewesen" als eigene Buchungsarten
+  Feuerwehrhaus" und "Auf Anfahrt gewesen" als eigene Buchungsarten; der Kiosk
+  zeigt ausschließlich offene Einsätze an
 - **Frei konfigurierbare Einsatz-Zusatzfelder** – z. B. Einsatzleiter,
   Einheitsführer, Erste Lage, Tätigkeit (Standardbelegung), beliebig erweiterbar
   um Text-, Mehrzeilen- oder Checkbox-Felder
 - **Einsatz-Countdown** – konfigurierbarer Timer in der Garage-Ansicht, springt
   bei jeder neuen Eintragung zurück auf den Startwert und schließt die Ansicht
-  automatisch bei Ablauf
-- **Timeline & Abschluss** – jeder Einsatz hat im Moderator-Bereich eine
-  grafische Zeitleiste aller Ereignisse (Anlage, Eintragungen, Aktualisierungen)
-  und lässt sich dort explizit abschließen
+  automatisch bei Ablauf; "Zurück" sichert dabei automatisch die Einsatzdetails
+- **Abschluss eines Einsatzes** – manuell im Moderator-Bereich (auch wieder
+  rückgängig zu machen) oder über zwei automatische Wege: ein "Alle
+  eingetragen"-Button im Gerätehaus plant den Abschluss für in einigen Minuten
+  ein (Verzögerung konfigurierbar), und ein nächtlicher Job schließt offene,
+  länger inaktive Einsätze automatisch (Uhrzeit und Inaktivitätsschwelle
+  konfigurierbar)
+- **Timeline** – jeder Einsatz hat im Moderator-Bereich eine grafische
+  Zeitleiste aller Ereignisse (Anlage, Eintragungen inkl. Fehlversuche,
+  Detail-Änderungen mit altem und neuem Wert, Abschluss, Wiedereröffnung,
+  E-Mail-Versand)
 - **Dienstbuch** – schnelles Eintragen in zuletzt eröffnete Dienste
 - **Dienststunden** – Erfassung pro Person/Funktion, kumulierte Übersicht mit
   konfigurierbaren Schwellenwerten
@@ -44,8 +60,12 @@ danach jederzeit über den Moderator-Bereich änderbar.
 - **Moderator-Bereich** – per Admin-Passwort zusätzlich abgesichert; Dashboard,
   gefilterte Listen, Stammdatenverwaltung (Fahrzeuge, Sitzplätze, Funktionen,
   Einsatz-Zusatzfelder, Personen), Moderator-Zugänge selbst verwalten
-- **Benachrichtigungen** – Telegram, E-Mail und Web Push, vollständig über den
-  Moderator-Bereich konfigurierbar (keine `.env`-Bearbeitung nötig)
+- **Benachrichtigungen** – eigener Bereich (getrennt von den Einstellungen) für
+  Telegram, E-Mail (SMTP, inkl. Testmail-Button) und Web Push, vollständig über
+  den Moderator-Bereich konfigurierbar (keine `.env`-Bearbeitung nötig). Die
+  Einsatz-Benachrichtigung wird erst beim Abschluss ausgelöst (nicht bei
+  Anlage); optional verschickt sie dabei den PDF-Bericht und den
+  Timeline-Verlauf direkt als Anhang/Text in einer einzigen Mail
 - **Divera 24/7** – Anbindung (Polling oder Webhook) ebenfalls komplett über den
   Moderator-Bereich konfigurierbar
 - **PWA** – installierbar, Service Worker, Icon und Name aus der Konfiguration
@@ -157,17 +177,20 @@ Alle Variablen in `.env.example` sind kommentiert. Fachliche Werte gehören
 den Moderator-Bereich gepflegt und landen in der `app_config`-Tabelle.
 
 Der Moderator-Bereich unter **Einstellungen** ist zusätzlich durch eine erneute
-Passwortabfrage geschützt, da dort sensible Zugangsdaten (Divera-API-Key,
-Notifier-Zugangsdaten) hinterlegt werden.
+Passwortabfrage geschützt, da dort sensible Zugangsdaten (Divera-API-Key)
+hinterlegt werden.
 
 ### Benachrichtigungen aktivieren
 
 Telegram, E-Mail (SMTP) und Web Push lassen sich vollständig im Moderator-Bereich
 unter **Benachrichtigungen** konfigurieren – Bot-Token, SMTP-Zugangsdaten und
 VAPID-Schlüssel werden in der Datenbank gespeichert, keine `.env`-Bearbeitung
-nötig. Welche Ereignisse (neuer Einsatz, neues Dienstbuch, neue Buchungsanfrage,
-Schwellenwert-Überschreitung) Benachrichtigungen auslösen und mit welchem Text,
-lässt sich unter **Einstellungen** steuern.
+nötig. Ein "Testmail senden"-Button prüft die SMTP-Konfiguration direkt vor Ort.
+Welche Ereignisse (Einsatz abgeschlossen, neues Dienstbuch, neue
+Buchungsanfrage, Schwellenwert-Überschreitung) Benachrichtigungen auslösen und
+mit welchem Text, lässt sich unter **Einstellungen** steuern. Für Einsätze kann
+zusätzlich aktiviert werden, dass die Mail beim Abschluss den PDF-Bericht und
+den Timeline-Verlauf direkt enthält.
 
 ### Divera-24/7-Integration
 
