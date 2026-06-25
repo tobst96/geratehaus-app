@@ -9,11 +9,19 @@
 {% endif %}
 <table>
     <thead>
-        <tr><th>Name</th></tr>
+        <tr>
+            <th>Name</th>
+            <th>Gruppe</th>
+            <th>Atemschutz (min)</th>
+        </tr>
     </thead>
     <tbody>
         {% for t in dienstbuch.teilnehmer %}
-        <tr><td>{{ t.person.name }}</td></tr>
+        <tr>
+            <td>{{ t.person.name }}</td>
+            <td>{{ t.gruppe.name if t.gruppe else "" }}</td>
+            <td>{{ t.atemschutzminuten if t.atemschutzminuten else "" }}</td>
+        </tr>
         {% endfor %}
     </tbody>
 </table>

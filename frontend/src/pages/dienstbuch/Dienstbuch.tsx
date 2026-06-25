@@ -1,13 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useAuth } from "../../context/AuthContext";
 import {
   holeLetzteDienstbuecher,
   dienstbuchAnlegen,
-  teilnehmerEintragen,
   dienstbuchPdfUrl,
 } from "../../api/dienstbuecher";
+import { holeGruppen } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
-import type { DienstbuchOut } from "../../api/types";
+import { DienstbuchDiagramm } from "./DienstbuchDiagramm";
+import type { DienstbuchOut, Gruppe } from "../../api/types";
 
 function jetztAlsDatetimeLocal(): string {
   const jetzt = new Date();
@@ -16,9 +16,10 @@ function jetztAlsDatetimeLocal(): string {
 }
 
 export function Dienstbuch() {
-  const { angezeigterName } = useAuth();
   const [dienstbuecher, setDienstbuecher] = useState<DienstbuchOut[] | null>(null);
+  const [gruppen, setGruppen] = useState<Gruppe[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
+  const [selectedDienstbuchId, setSelectedDienstbuchId] = useState<number | null>(null);
 
   const [formularOffen, setFormularOffen] = useState(false);
   const [titel, setTitel] = useState("");
@@ -27,7 +28,9 @@ export function Dienstbuch() {
 
   async function laden() {
     try {
-      setDienstbuecher(await holeLetzteDienstbuecher());
+      const [d, g] = await Promise.all([holeLetzteDienstbuecher(), holeGruppen()]);
+      setDienstbuecher(d);
+      setGruppen(g);
       setFehler(null);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Dienstbücher konnten nicht geladen werden.");
@@ -38,31 +41,35 @@ export function Dienstbuch() {
     laden();
   }, []);
 
+  if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
+  if (!dienstbuecher) return <p>Lädt …</p>;
+
+  const ausgewaehltesDienstbuch = dienstbuecher.find((d) => d.id === selectedDienstbuchId) ?? null;
+  if (ausgewaehltesDienstbuch) {
+    return (
+      <DienstbuchDiagramm
+        dienstbuch={ausgewaehltesDienstbuch}
+        gruppen={gruppen}
+        onAktualisiert={laden}
+        onCancel={() => setSelectedDienstbuchId(null)}
+      />
+    );
+  }
+
   async function anlegen(e: FormEvent) {
     e.preventDefault();
     if (!titel.trim()) return;
     try {
-      await dienstbuchAnlegen(titel.trim(), new Date(eroeffnetAm).toISOString(), notizen || null);
+      const neu = await dienstbuchAnlegen(titel.trim(), new Date(eroeffnetAm).toISOString(), notizen || null);
       setTitel("");
       setNotizen("");
       setFormularOffen(false);
       await laden();
+      setSelectedDienstbuchId(neu.id);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Dienstbuch konnte nicht angelegt werden.");
     }
   }
-
-  async function mitmachen(id: number) {
-    try {
-      await teilnehmerEintragen(id);
-      await laden();
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Eintragung fehlgeschlagen.");
-    }
-  }
-
-  if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
-  if (!dienstbuecher) return <p>Lädt …</p>;
 
   return (
     <div>
@@ -100,27 +107,25 @@ export function Dienstbuch() {
       )}
 
       {dienstbuecher.length === 0 && <p>Keine aktuellen Dienstbücher.</p>}
-      {dienstbuecher.map((d) => {
-        const istDabei = d.teilnehmer.some((t) => t.person_name === angezeigterName);
-        return (
-          <div key={d.id} className="karte">
-            <strong>{d.titel}</strong>
-            <div style={{ fontSize: "0.85rem", color: "#666" }}>
-              {new Date(d.eroeffnet_am).toLocaleString("de-DE")} · {d.teilnehmer.length} Teilnehmer
+      {dienstbuecher.map((d) => (
+        <div key={d.id} className="karte">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <strong>{d.titel}</strong>
+              <div style={{ fontSize: "0.85rem", color: "#666" }}>
+                {new Date(d.eroeffnet_am).toLocaleString("de-DE")} · {d.teilnehmer.length} Teilnehmer
+              </div>
+              {d.notizen && <p style={{ margin: "0.25rem 0 0" }}>{d.notizen}</p>}
             </div>
-            {d.notizen && <p>{d.notizen}</p>}
-            <ul>
-              {d.teilnehmer.map((t) => (
-                <li key={t.id}>{t.person_name}</li>
-              ))}
-            </ul>
-            {!istDabei && <button onClick={() => mitmachen(d.id)}>Ich war dabei</button>}{" "}
-            <a href={dienstbuchPdfUrl(d.id)} target="_blank" rel="noreferrer">
-              Als PDF exportieren
-            </a>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <a href={dienstbuchPdfUrl(d.id)} target="_blank" rel="noreferrer">
+                Als PDF exportieren
+              </a>
+              <button onClick={() => setSelectedDienstbuchId(d.id)}>Öffnen</button>
+            </div>
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 }

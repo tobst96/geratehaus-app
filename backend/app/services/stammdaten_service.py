@@ -9,6 +9,7 @@ from app.core.config import settings
 from app.models.einsatz_feld import EinsatzFeldDefinition
 from app.models.fahrzeug import Fahrzeug
 from app.models.funktion import FunktionDienststunden, FunktionEinsatz
+from app.models.gruppe import Gruppe
 from app.models.person import Person
 from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionCreate,
@@ -23,6 +24,8 @@ from app.schemas.stammdaten import (
     FunktionDienststundenUpdate,
     FunktionEinsatzCreate,
     FunktionEinsatzUpdate,
+    GruppeCreate,
+    GruppeUpdate,
 )
 
 
@@ -147,6 +150,43 @@ async def get_funktion_dienststunden(
     return result.scalar_one_or_none()
 
 
+# --- Gruppen --------------------------------------------------------------------
+
+
+async def liste_gruppen(db: AsyncSession, nur_aktive: bool = True) -> list[Gruppe]:
+    stmt = select(Gruppe)
+    if nur_aktive:
+        stmt = stmt.where(Gruppe.aktiv.is_(True))
+    result = await db.execute(stmt.order_by(Gruppe.name))
+    return list(result.scalars().all())
+
+
+async def gruppe_anlegen(db: AsyncSession, daten: GruppeCreate) -> Gruppe:
+    gruppe = Gruppe(**daten.model_dump())
+    db.add(gruppe)
+    await db.commit()
+    await db.refresh(gruppe)
+    return gruppe
+
+
+async def gruppe_aktualisieren(db: AsyncSession, gruppe: Gruppe, daten: GruppeUpdate) -> Gruppe:
+    for feld, wert in daten.model_dump(exclude_unset=True).items():
+        setattr(gruppe, feld, wert)
+    await db.commit()
+    await db.refresh(gruppe)
+    return gruppe
+
+
+async def gruppe_loeschen(db: AsyncSession, gruppe: Gruppe) -> None:
+    await db.delete(gruppe)
+    await db.commit()
+
+
+async def get_gruppe(db: AsyncSession, gruppe_id: int) -> Gruppe | None:
+    result = await db.execute(select(Gruppe).where(Gruppe.id == gruppe_id))
+    return result.scalar_one_or_none()
+
+
 # --- Einsatz-Felder (frei konfigurierbare Zusatzfelder) ------------------------
 
 
@@ -224,6 +264,7 @@ async def person_anlegen(db: AsyncSession, daten: PersonCreate) -> Person:
         zwischenname=daten.zwischenname,
         nachname=daten.nachname,
         name=_voller_name(daten.vorname, daten.zwischenname, daten.nachname),
+        gruppe_id=daten.gruppe_id,
     )
     db.add(person)
     await db.commit()

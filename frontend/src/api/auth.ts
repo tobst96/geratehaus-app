@@ -14,6 +14,7 @@ export interface BarcodeIdentitaet {
 export interface BarcodeVorschau {
   name: string;
   bild_url: string | null;
+  gruppe_id: number | null;
 }
 
 export const barcodeEinscannen = (token: string) =>

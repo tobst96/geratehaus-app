@@ -9,12 +9,20 @@ class DienstbuchAnlegen(BaseModel):
     notizen: str | None = None
 
 
+class TeilnehmerAnlegen(BaseModel):
+    gruppe_id: int | None = None
+    atemschutzminuten: int = Field(default=0, ge=0)
+
+
 class TeilnehmerOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     person_id: int
     person_name: str
+    gruppe_id: int | None
+    gruppe_name: str | None
+    atemschutzminuten: int
 
 
 class DienstbuchOut(BaseModel):

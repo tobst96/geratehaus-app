@@ -48,6 +48,13 @@ export interface Person {
   zwischenname: string | null;
   nachname: string | null;
   bild_url: string | null;
+  gruppe_id: number | null;
+}
+
+export interface Gruppe {
+  id: number;
+  name: string;
+  aktiv: boolean;
 }
 
 export interface FunktionDienststunden {
@@ -119,6 +126,9 @@ export interface TeilnehmerOut {
   id: number;
   person_id: number;
   person_name: string;
+  gruppe_id: number | null;
+  gruppe_name: string | null;
+  atemschutzminuten: number;
 }
 
 export interface DienstbuchOut {

@@ -17,6 +17,9 @@ from app.schemas.stammdaten import (
     FunktionEinsatzCreate,
     FunktionEinsatzOut,
     FunktionEinsatzUpdate,
+    GruppeCreate,
+    GruppeOut,
+    GruppeUpdate,
 )
 from app.services import stammdaten_service
 
@@ -93,6 +96,37 @@ async def funktion_einsatz_loeschen(
     if funktion is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Funktion nicht gefunden.")
     await stammdaten_service.funktion_einsatz_loeschen(db, funktion)
+
+
+# --- Gruppen --------------------------------------------------------------------
+
+
+@router.get("/gruppen", response_model=list[GruppeOut])
+async def gruppen_liste(db: DbSession, _moderator: CurrentModerator) -> list[GruppeOut]:
+    return await stammdaten_service.liste_gruppen(db, nur_aktive=False)
+
+
+@router.post("/gruppen", response_model=GruppeOut, status_code=status.HTTP_201_CREATED)
+async def gruppe_anlegen(db: DbSession, _moderator: CurrentModerator, daten: GruppeCreate) -> GruppeOut:
+    return await stammdaten_service.gruppe_anlegen(db, daten)
+
+
+@router.put("/gruppen/{gruppe_id}", response_model=GruppeOut)
+async def gruppe_aktualisieren(
+    db: DbSession, _moderator: CurrentModerator, gruppe_id: int, daten: GruppeUpdate
+) -> GruppeOut:
+    gruppe = await stammdaten_service.get_gruppe(db, gruppe_id)
+    if gruppe is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Gruppe nicht gefunden.")
+    return await stammdaten_service.gruppe_aktualisieren(db, gruppe, daten)
+
+
+@router.delete("/gruppen/{gruppe_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def gruppe_loeschen(db: DbSession, _moderator: CurrentModerator, gruppe_id: int) -> None:
+    gruppe = await stammdaten_service.get_gruppe(db, gruppe_id)
+    if gruppe is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Gruppe nicht gefunden.")
+    await stammdaten_service.gruppe_loeschen(db, gruppe)
 
 
 # --- Funktionen Dienststunden --------------------------------------------------

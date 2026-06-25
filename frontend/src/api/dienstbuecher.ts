@@ -10,8 +10,10 @@ export const holeDienstbuch = (id: number) =>
 export const dienstbuchAnlegen = (titel: string, eroeffnetAm: string, notizen: string | null) =>
   apiPost<DienstbuchOut>("/dienstbuecher", { titel, eroeffnet_am: eroeffnetAm, notizen });
 
-export const teilnehmerEintragen = (dienstbuchId: number) =>
-  apiPost<TeilnehmerOut>(`/dienstbuecher/${dienstbuchId}/teilnehmer`, undefined);
+export const teilnehmerEintragen = (
+  dienstbuchId: number,
+  daten: { gruppe_id: number | null; atemschutzminuten: number }
+) => apiPost<TeilnehmerOut>(`/dienstbuecher/${dienstbuchId}/teilnehmer`, daten);
 
 export const dienstbuchPdfUrl = (id: number) =>
   `/api/v1/dienstbuecher/${id}/pdf`;

@@ -5,11 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.dienstbuch import Dienstbuch, DienstbuchPerson
-from app.schemas.dienstbuch import DienstbuchAnlegen
+from app.schemas.dienstbuch import DienstbuchAnlegen, TeilnehmerAnlegen
 from app.services import notifier_service
 from app.services.config_service import config_service
 
-_TEILNEHMER_DETAILS = selectinload(Dienstbuch.teilnehmer).selectinload(DienstbuchPerson.person)
+_TEILNEHMER_DETAILS = (
+    selectinload(Dienstbuch.teilnehmer).selectinload(DienstbuchPerson.person),
+    selectinload(Dienstbuch.teilnehmer).selectinload(DienstbuchPerson.gruppe),
+)
 
 
 async def letzte_dienstbuecher(db: AsyncSession) -> list[Dienstbuch]:
@@ -18,7 +21,7 @@ async def letzte_dienstbuecher(db: AsyncSession) -> list[Dienstbuch]:
     grenze = datetime.now(timezone.utc) - timedelta(hours=zeitfenster_stunden)
     stmt = (
         select(Dienstbuch)
-        .options(_TEILNEHMER_DETAILS)
+        .options(*_TEILNEHMER_DETAILS)
         .where(Dienstbuch.archiviert.is_(False), Dienstbuch.eroeffnet_am >= grenze)
         .order_by(Dienstbuch.eroeffnet_am.desc())
     )
@@ -27,7 +30,7 @@ async def letzte_dienstbuecher(db: AsyncSession) -> list[Dienstbuch]:
 
 
 async def get_dienstbuch(db: AsyncSession, dienstbuch_id: int) -> Dienstbuch | None:
-    stmt = select(Dienstbuch).options(_TEILNEHMER_DETAILS).where(Dienstbuch.id == dienstbuch_id)
+    stmt = select(Dienstbuch).options(*_TEILNEHMER_DETAILS).where(Dienstbuch.id == dienstbuch_id)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -47,7 +50,7 @@ async def dienstbuch_anlegen(db: AsyncSession, daten: DienstbuchAnlegen) -> Dien
 
 
 async def teilnehmer_eintragen(
-    db: AsyncSession, dienstbuch: Dienstbuch, person_id: int
+    db: AsyncSession, dienstbuch: Dienstbuch, person_id: int, daten: TeilnehmerAnlegen
 ) -> DienstbuchPerson:
     stmt = select(DienstbuchPerson).where(
         DienstbuchPerson.dienstbuch_id == dienstbuch.id,
@@ -58,11 +61,14 @@ async def teilnehmer_eintragen(
     if teilnehmer is None:
         teilnehmer = DienstbuchPerson(dienstbuch_id=dienstbuch.id, person_id=person_id)
         db.add(teilnehmer)
-        await db.commit()
+
+    teilnehmer.gruppe_id = daten.gruppe_id
+    teilnehmer.atemschutzminuten = daten.atemschutzminuten
+    await db.commit()
 
     geladen = await db.execute(
         select(DienstbuchPerson)
-        .options(selectinload(DienstbuchPerson.person))
+        .options(selectinload(DienstbuchPerson.person), selectinload(DienstbuchPerson.gruppe))
         .where(DienstbuchPerson.dienstbuch_id == dienstbuch.id, DienstbuchPerson.person_id == person_id)
     )
     return geladen.scalar_one()

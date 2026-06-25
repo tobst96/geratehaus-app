@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.deps import DbSession
-from app.schemas.stammdaten import FahrzeugOut, FunktionDienststundenOut, FunktionEinsatzOut
+from app.schemas.stammdaten import FahrzeugOut, FunktionDienststundenOut, FunktionEinsatzOut, GruppeOut
 from app.services import stammdaten_service
 
 router = APIRouter(prefix="/stammdaten", tags=["stammdaten"])
@@ -22,3 +22,8 @@ async def funktionen_dienststunden(
     db: DbSession, nur_aktive: bool = True
 ) -> list[FunktionDienststundenOut]:
     return await stammdaten_service.liste_funktionen_dienststunden(db, nur_aktive)
+
+
+@router.get("/gruppen", response_model=list[GruppeOut])
+async def gruppen(db: DbSession, nur_aktive: bool = True) -> list[GruppeOut]:
+    return await stammdaten_service.liste_gruppen(db, nur_aktive)

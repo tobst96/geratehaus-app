@@ -16,6 +16,7 @@ class BarcodeIdentitaet(BaseModel):
 class BarcodeVorschau(BaseModel):
     name: str
     bild_url: str | None
+    gruppe_id: int | None
 
 
 class ModeratorToken(BaseModel):

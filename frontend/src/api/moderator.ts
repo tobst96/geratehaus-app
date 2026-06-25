@@ -7,6 +7,7 @@ import type {
   Fahrzeug,
   FunktionDienststunden,
   FunktionEinsatz,
+  Gruppe,
   Person,
   Sitzplatz,
 } from "./types";
@@ -182,6 +183,13 @@ export const funktionDienststundenAktualisieren = (
 export const funktionDienststundenLoeschen = (id: number) =>
   apiDelete<void>(`/moderator/stammdaten/funktionen-dienststunden/${id}`);
 
+export const holeAlleGruppen = () => apiGet<Gruppe[]>("/moderator/stammdaten/gruppen");
+export const gruppeAnlegen = (daten: { name: string; aktiv: boolean }) =>
+  apiPost<Gruppe>("/moderator/stammdaten/gruppen", daten);
+export const gruppeAktualisieren = (id: number, daten: Partial<{ name: string; aktiv: boolean }>) =>
+  apiPut<Gruppe>(`/moderator/stammdaten/gruppen/${id}`, daten);
+export const gruppeLoeschen = (id: number) => apiDelete<void>(`/moderator/stammdaten/gruppen/${id}`);
+
 export const holeAlleEinsatzFelder = () =>
   apiGet<EinsatzFeldDefinition[]>("/moderator/stammdaten/einsatz-felder");
 export const einsatzFeldAnlegen = (daten: {
@@ -198,11 +206,15 @@ export const einsatzFeldLoeschen = (id: number) =>
   apiDelete<void>(`/moderator/stammdaten/einsatz-felder/${id}`);
 
 export const holeAllePersonen = () => apiGet<Person[]>("/moderator/stammdaten/personen");
-export const personAnlegen = (daten: { vorname: string; zwischenname: string | null; nachname: string }) =>
-  apiPost<Person>("/moderator/stammdaten/personen", daten);
+export const personAnlegen = (daten: {
+  vorname: string;
+  zwischenname: string | null;
+  nachname: string;
+  gruppe_id?: number | null;
+}) => apiPost<Person>("/moderator/stammdaten/personen", daten);
 export const personAktualisieren = (
   id: number,
-  daten: Partial<{ vorname: string; zwischenname: string | null; nachname: string }>
+  daten: Partial<{ vorname: string; zwischenname: string | null; nachname: string; gruppe_id: number | null }>
 ) => apiPut<Person>(`/moderator/stammdaten/personen/${id}`, daten);
 export const personLoeschen = (id: number) => apiDelete<void>(`/moderator/stammdaten/personen/${id}`);
 export const personBildHochladen = (id: number, datei: File) =>

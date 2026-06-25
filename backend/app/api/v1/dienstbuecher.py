@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv
-from app.schemas.dienstbuch import DienstbuchAnlegen, DienstbuchOut, TeilnehmerOut
+from app.schemas.dienstbuch import DienstbuchAnlegen, DienstbuchOut, TeilnehmerAnlegen, TeilnehmerOut
 from app.services import dienstbuch_service, pdf_service
 
 router = APIRouter(
@@ -49,11 +49,11 @@ async def dienstbuch_pdf(db: DbSession, dienstbuch_id: int) -> Response:
 
 @router.post("/{dienstbuch_id}/teilnehmer", response_model=TeilnehmerOut)
 async def teilnehmer_eintragen(
-    db: DbSession, person: CurrentPerson, dienstbuch_id: int
+    db: DbSession, person: CurrentPerson, dienstbuch_id: int, daten: TeilnehmerAnlegen
 ) -> TeilnehmerOut:
     dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
     if dienstbuch is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden."
         )
-    return await dienstbuch_service.teilnehmer_eintragen(db, dienstbuch, person.id)
+    return await dienstbuch_service.teilnehmer_eintragen(db, dienstbuch, person.id, daten)
