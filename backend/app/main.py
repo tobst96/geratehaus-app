@@ -11,6 +11,7 @@ from app.api.v1 import (
     dienstbuch_reservierungen,
     dienstbuecher,
     dienststunden,
+    dienststunden_reservierungen,
     divera,
     einsaetze,
     manifest,
@@ -59,6 +60,7 @@ app.include_router(einsaetze.router, prefix="/api/v1")
 app.include_router(dienstbuecher.router, prefix="/api/v1")
 app.include_router(dienstbuch_reservierungen.router, prefix="/api/v1")
 app.include_router(dienststunden.router, prefix="/api/v1")
+app.include_router(dienststunden_reservierungen.router, prefix="/api/v1")
 app.include_router(buchungen.router, prefix="/api/v1")
 app.include_router(moderator_barcodes.router, prefix="/api/v1")
 app.include_router(moderator_einstellungen.router, prefix="/api/v1")

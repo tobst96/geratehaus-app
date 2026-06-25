@@ -103,6 +103,13 @@ export interface DienstbuchReservierungInfo {
   vorschau_bild_url: string | null;
 }
 
+export interface DienststundenReservierungInfo {
+  abgelaufen: boolean;
+  bereits_eingeloest: boolean;
+  vorschau_person_name: string | null;
+  vorschau_bild_url: string | null;
+}
+
 export interface EinsatzFeldDefinition {
   id: number;
   schluessel: string;

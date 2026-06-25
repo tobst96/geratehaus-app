@@ -24,6 +24,7 @@ import { Fahrzeugbuchung } from "./pages/fahrzeugbuchung/Fahrzeugbuchung";
 import { FahrzeugView } from "./pages/fahrzeug/FahrzeugView";
 import { ManuelleEintragung } from "./pages/ManuelleEintragung";
 import { DienstbuchManuelleEintragung } from "./pages/DienstbuchManuelleEintragung";
+import { DienststundenManuelleEintragung } from "./pages/DienststundenManuelleEintragung";
 
 export function App() {
   return (
@@ -57,6 +58,10 @@ export function App() {
           <Route path="/fahrzeug/:token" element={<FahrzeugView />} />
           <Route path="/eintragen/:token" element={<ManuelleEintragung />} />
           <Route path="/eintragen-dienstbuch/:token" element={<DienstbuchManuelleEintragung />} />
+          <Route
+            path="/eintragen-dienststunden/:token"
+            element={<DienststundenManuelleEintragung />}
+          />
 
           <Route path="*" element={<NotFound />} />
         </Route>

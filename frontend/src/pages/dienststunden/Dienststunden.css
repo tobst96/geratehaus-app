@@ -1,0 +1,65 @@
+.dienststunden-scan-layout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 480px) {
+  .dienststunden-scan-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.dienststunden-scan-vorschau {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 200px;
+}
+
+.dienststunden-scan-bild,
+.dienststunden-scan-initialen {
+  width: 200px;
+  height: 200px;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.dienststunden-scan-initialen {
+  background: var(--farbe-primaer, #ffa633);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.8rem;
+  font-weight: 700;
+}
+
+.dienststunden-scan-name {
+  font-weight: 700;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.dienststunden-scan-felder {
+  flex: 1;
+  min-width: 0;
+}
+
+.dienststunden-qr-ansicht {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.dienststunden-qr-bild {
+  width: 220px;
+  height: 220px;
+  border-radius: 12px;
+  border: 1px solid #ececec;
+}

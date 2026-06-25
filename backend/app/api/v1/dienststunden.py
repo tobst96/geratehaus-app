@@ -6,7 +6,8 @@ from app.schemas.dienststunden import (
     DienststundenErfassen,
     DienststundenSummeOut,
 )
-from app.services import dienststunden_service
+from app.schemas.dienststunden_reservierung import DienststundenReservierungOut
+from app.services import dienststunden_reservierung_service, dienststunden_service
 
 router = APIRouter(
     prefix="/dienststunden",
@@ -31,6 +32,14 @@ async def erfassen(
     "/meine", response_model=list[DienststundenSummeOut], dependencies=[]
 )
 async def meine_summen(db: DbSession, person: CurrentPerson) -> list[DienststundenSummeOut]:
-    """Eigene kumulierte Dienststunden – im Gerätehaus. Für den Außenzugriff
-    per PIN siehe /api/v1/aussen/dienststunden."""
+    """Eigene kumulierte Dienststunden – im Gerätehaus."""
     return await dienststunden_service.eigene_summen(db, person.id)
+
+
+@router.post("/reservierung", response_model=DienststundenReservierungOut, dependencies=[])
+async def reservierung_anlegen(db: DbSession) -> DienststundenReservierungOut:
+    """Erstellt einen Reservierungs-Token für 'Barcode vergessen': QR-Code
+    führt auf eine Seite, auf der sich die Person ohne Barcode komplett
+    selbst eintragen kann (Person, Funktion, Stunden, Datum)."""
+    reservierung = await dienststunden_reservierung_service.reservierung_anlegen(db)
+    return DienststundenReservierungOut(token=reservierung.token, ablauf_am=reservierung.ablauf_am)

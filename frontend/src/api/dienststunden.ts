@@ -14,3 +14,6 @@ export const stundenErfassen = (funktionId: number, stunden: number, datum: stri
 
 export const holeMeineSummen = () =>
   apiGet<DienststundenSummeOut[]>("/dienststunden/meine");
+
+export const dienststundenReservierungAnlegen = () =>
+  apiPost<{ token: string; ablauf_am: string }>("/dienststunden/reservierung");
