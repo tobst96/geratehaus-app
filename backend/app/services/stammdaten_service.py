@@ -11,6 +11,7 @@ from app.models.fahrzeug import Fahrzeug
 from app.models.funktion import FunktionDienststunden, FunktionEinsatz
 from app.models.gruppe import Gruppe
 from app.models.person import Person
+from app.models.person_ereignis import PersonEreignis
 from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionCreate,
     EinsatzFeldDefinitionUpdate,
@@ -274,6 +275,7 @@ async def person_anlegen(db: AsyncSession, daten: PersonCreate) -> Person:
         nachname=daten.nachname,
         name=_voller_name(daten.vorname, daten.zwischenname, daten.nachname),
         gruppe_id=daten.gruppe_id,
+        funktion_id=daten.funktion_id,
     )
     db.add(person)
     await db.commit()
@@ -282,14 +284,52 @@ async def person_anlegen(db: AsyncSession, daten: PersonCreate) -> Person:
 
 
 async def person_aktualisieren(db: AsyncSession, person: Person, daten: PersonUpdate) -> Person:
-    for feld, wert in daten.model_dump(exclude_unset=True).items():
+    aenderungen = daten.model_dump(exclude_unset=True)
+    alte_funktion_id = person.funktion_id
+    for feld, wert in aenderungen.items():
         setattr(person, feld, wert)
     person.name = _voller_name(
         person.vorname or "", person.zwischenname, person.nachname or ""
     ).strip() or person.name
+
+    if "funktion_id" in aenderungen and person.funktion_id != alte_funktion_id:
+        neue_funktion_name = await _funktion_name(db, person.funktion_id)
+        await person_ereignis_protokollieren(
+            db,
+            person.id,
+            "funktion_geaendert",
+            f"Funktion in Stammdaten geändert auf „{neue_funktion_name}“",
+        )
+
     await db.commit()
     await db.refresh(person)
     return person
+
+
+async def _funktion_name(db: AsyncSession, funktion_id: int | None) -> str:
+    if funktion_id is None:
+        return "keine"
+    result = await db.execute(
+        select(FunktionDienststunden).where(FunktionDienststunden.id == funktion_id)
+    )
+    funktion = result.scalar_one_or_none()
+    return funktion.name if funktion else "keine"
+
+
+async def person_ereignis_protokollieren(
+    db: AsyncSession, person_id: int, typ: str, beschreibung: str
+) -> None:
+    db.add(PersonEreignis(person_id=person_id, typ=typ, beschreibung=beschreibung))
+
+
+async def liste_person_ereignisse(db: AsyncSession, person_id: int) -> list[PersonEreignis]:
+    stmt = (
+        select(PersonEreignis)
+        .where(PersonEreignis.person_id == person_id)
+        .order_by(PersonEreignis.zeitpunkt)
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
 async def person_loeschen(db: AsyncSession, person: Person) -> None:

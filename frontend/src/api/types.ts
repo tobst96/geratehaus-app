@@ -49,6 +49,14 @@ export interface Person {
   nachname: string | null;
   bild_url: string | null;
   gruppe_id: number | null;
+  funktion_id: number | null;
+}
+
+export interface PersonEreignis {
+  id: number;
+  zeitpunkt: string;
+  typ: string;
+  beschreibung: string;
 }
 
 export interface Gruppe {

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -11,6 +13,7 @@ class PersonOut(BaseModel):
     nachname: str | None
     bild_url: str | None
     gruppe_id: int | None
+    funktion_id: int | None
 
 
 class PersonCreate(BaseModel):
@@ -18,6 +21,7 @@ class PersonCreate(BaseModel):
     zwischenname: str | None = Field(default=None, max_length=128)
     nachname: str = Field(min_length=1, max_length=128)
     gruppe_id: int | None = None
+    funktion_id: int | None = None
 
 
 class PersonUpdate(BaseModel):
@@ -25,3 +29,13 @@ class PersonUpdate(BaseModel):
     zwischenname: str | None = Field(default=None, max_length=128)
     nachname: str | None = Field(default=None, min_length=1, max_length=128)
     gruppe_id: int | None = None
+    funktion_id: int | None = None
+
+
+class PersonEreignisOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    zeitpunkt: datetime
+    typ: str
+    beschreibung: str

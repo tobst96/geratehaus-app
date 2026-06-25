@@ -2,6 +2,7 @@ from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+from app.models.funktion import FunktionDienststunden
 from app.models.gruppe import Gruppe
 from app.models.mixins import TimestampMixin
 
@@ -23,6 +24,10 @@ class Person(Base, TimestampMixin):
     nachname: Mapped[str | None] = mapped_column(String(128), nullable=True)
     bild_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     gruppe_id: Mapped[int | None] = mapped_column(ForeignKey("gruppen.id"), nullable=True)
+    funktion_id: Mapped[int | None] = mapped_column(
+        ForeignKey("funktionen_dienststunden.id"), nullable=True
+    )
 
     barcode_tokens = relationship("BarcodeToken", back_populates="person")
     gruppe: Mapped["Gruppe | None"] = relationship(viewonly=True)
+    funktion: Mapped["FunktionDienststunden | None"] = relationship(viewonly=True)

@@ -6,7 +6,7 @@ from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionOut,
     EinsatzFeldDefinitionUpdate,
 )
-from app.schemas.person import PersonCreate, PersonOut, PersonUpdate
+from app.schemas.person import PersonCreate, PersonEreignisOut, PersonOut, PersonUpdate
 from app.schemas.stammdaten import (
     FahrzeugCreate,
     FahrzeugOut,
@@ -247,3 +247,13 @@ async def person_bild_hochladen(
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
     return await stammdaten_service.person_bild_speichern(db, person, datei)
+
+
+@router.get("/personen/{person_id}/timeline", response_model=list[PersonEreignisOut])
+async def person_timeline(
+    db: DbSession, _moderator: CurrentModerator, person_id: int
+) -> list[PersonEreignisOut]:
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    return await stammdaten_service.liste_person_ereignisse(db, person_id)

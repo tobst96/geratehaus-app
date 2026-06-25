@@ -5,7 +5,7 @@ from app.models.dienststunden import Dienststunden
 from app.models.funktion import FunktionDienststunden
 from app.models.person import Person
 from app.schemas.dienststunden import DienststundenErfassen, DienststundenSummeOut
-from app.services import notifier_service
+from app.services import notifier_service, stammdaten_service
 
 
 async def funktion_existiert_und_aktiv(db: AsyncSession, funktion_id: int) -> bool:
@@ -25,10 +25,39 @@ async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfasse
         datum=daten.datum,
     )
     db.add(eintrag)
+    await _funktion_in_stammdaten_abgleichen(db, person_id, daten.funktion_id)
     await db.commit()
     await db.refresh(eintrag)
     await _pruefe_schwellenwert(db, person_id, daten.funktion_id, eintrag.stunden)
     return eintrag
+
+
+async def _funktion_in_stammdaten_abgleichen(
+    db: AsyncSession, person_id: int, funktion_id: int
+) -> None:
+    """Übernimmt die bei der Erfassung gewählte Funktion als neue Default-Funktion
+    der Person in den Stammdaten, sofern sie abweicht, und protokolliert die
+    Änderung in der Timeline der Person."""
+    person_result = await db.execute(select(Person).where(Person.id == person_id))
+    person = person_result.scalar_one_or_none()
+    if person is None or person.funktion_id == funktion_id:
+        return
+
+    alte_funktion_id = person.funktion_id
+    person.funktion_id = funktion_id
+
+    if alte_funktion_id is not None:
+        funktion_result = await db.execute(
+            select(FunktionDienststunden).where(FunktionDienststunden.id == funktion_id)
+        )
+        neue_funktion = funktion_result.scalar_one_or_none()
+        await stammdaten_service.person_ereignis_protokollieren(
+            db,
+            person_id,
+            "funktion_geaendert",
+            f"Funktion durch Dienststunden-Erfassung geändert auf "
+            f"„{neue_funktion.name if neue_funktion else '?'}“",
+        )
 
 
 async def _pruefe_schwellenwert(

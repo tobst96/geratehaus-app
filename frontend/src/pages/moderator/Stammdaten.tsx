@@ -22,6 +22,7 @@ import {
   personLoeschen,
   personBildHochladen,
   personBarcodeErzeugen,
+  holePersonTimeline,
   barcodeBildUrl,
   holeAlleGruppen,
   gruppeAnlegen,
@@ -36,6 +37,7 @@ import type {
   FunktionEinsatz,
   Gruppe,
   Person,
+  PersonEreignis,
 } from "../../api/types";
 import { SitzplatzEditor } from "./SitzplatzEditor";
 
@@ -615,9 +617,14 @@ async function tokenKopieren(token: string, knopf: HTMLButtonElement) {
   }
 }
 
+const PERSON_EREIGNIS_ICON: Record<string, string> = {
+  funktion_geaendert: "🔄",
+};
+
 function PersonenTab() {
   const [liste, setListe] = useState<Person[] | null>(null);
   const [gruppen, setGruppen] = useState<Gruppe[]>([]);
+  const [funktionen, setFunktionen] = useState<FunktionDienststunden[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
   const [neuerVorname, setNeuerVorname] = useState("");
   const [neuerZwischenname, setNeuerZwischenname] = useState("");
@@ -625,6 +632,8 @@ function PersonenTab() {
   const [barcodes, setBarcodes] = useState<Map<number, { token: string; ablaufAm: string | null }>>(
     new Map()
   );
+  const [offeneTimeline, setOffeneTimeline] = useState<number | null>(null);
+  const [timelines, setTimelines] = useState<Map<number, PersonEreignis[]>>(new Map());
 
   async function laden() {
     try {
@@ -637,11 +646,36 @@ function PersonenTab() {
   useEffect(() => {
     laden();
     holeAlleGruppen().then(setGruppen).catch(() => setGruppen([]));
+    holeAlleFunktionenDienststunden().then(setFunktionen).catch(() => setFunktionen([]));
   }, []);
 
   async function gruppeFeldAendern(p: Person, gruppeId: number | null) {
     await personAktualisieren(p.id, { gruppe_id: gruppeId });
     await laden();
+  }
+
+  async function funktionFeldAendern(p: Person, funktionId: number | null) {
+    await personAktualisieren(p.id, { funktion_id: funktionId });
+    await laden();
+    if (offeneTimeline === p.id) await timelineLaden(p.id);
+  }
+
+  async function timelineLaden(personId: number) {
+    try {
+      const ereignisse = await holePersonTimeline(personId);
+      setTimelines((vorher) => new Map(vorher).set(personId, ereignisse));
+    } catch {
+      setTimelines((vorher) => new Map(vorher).set(personId, []));
+    }
+  }
+
+  async function timelineUmschalten(personId: number) {
+    if (offeneTimeline === personId) {
+      setOffeneTimeline(null);
+      return;
+    }
+    setOffeneTimeline(personId);
+    await timelineLaden(personId);
   }
 
   async function anlegen(e: FormEvent) {
@@ -742,6 +776,18 @@ function PersonenTab() {
                   </option>
                 ))}
               </select>
+              <select
+                value={p.funktion_id ?? ""}
+                onChange={(e) => funktionFeldAendern(p, e.target.value ? Number(e.target.value) : null)}
+                title="Default-Funktion für Dienststunden"
+              >
+                <option value="">– keine Funktion –</option>
+                {funktionen.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <label className="sekundaer" style={{ display: "inline-flex", alignItems: "center", cursor: "pointer" }}>
@@ -788,9 +834,42 @@ function PersonenTab() {
               </div>
             )}
 
+            <button className="sekundaer" onClick={() => timelineUmschalten(p.id)}>
+              Timeline {offeneTimeline === p.id ? "▲" : "▼"}
+            </button>
+
             <button className="sekundaer" onClick={() => loeschen(p.id)}>
               Löschen
             </button>
+
+            {offeneTimeline === p.id && (
+              <div style={{ width: "100%", marginTop: 8 }}>
+                {!timelines.get(p.id) ? (
+                  <p>Lädt …</p>
+                ) : timelines.get(p.id)!.length === 0 ? (
+                  <p style={{ color: "#666" }}>Noch keine Ereignisse.</p>
+                ) : (
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                    {timelines
+                      .get(p.id)!
+                      .slice()
+                      .reverse()
+                      .map((ereignis) => (
+                        <li
+                          key={ereignis.id}
+                          style={{ display: "flex", gap: 8, alignItems: "baseline", padding: "4px 0" }}
+                        >
+                          <span>{PERSON_EREIGNIS_ICON[ereignis.typ] ?? "•"}</span>
+                          <span style={{ fontSize: "0.8rem", color: "#666", minWidth: 130 }}>
+                            {new Date(ereignis.zeitpunkt).toLocaleString("de-DE")}
+                          </span>
+                          <span>{ereignis.beschreibung}</span>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>

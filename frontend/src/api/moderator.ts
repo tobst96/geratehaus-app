@@ -9,6 +9,7 @@ import type {
   FunktionEinsatz,
   Gruppe,
   Person,
+  PersonEreignis,
   Sitzplatz,
 } from "./types";
 import type { DienststundenEintragOut } from "./dienststunden";
@@ -211,11 +212,20 @@ export const personAnlegen = (daten: {
   zwischenname: string | null;
   nachname: string;
   gruppe_id?: number | null;
+  funktion_id?: number | null;
 }) => apiPost<Person>("/moderator/stammdaten/personen", daten);
 export const personAktualisieren = (
   id: number,
-  daten: Partial<{ vorname: string; zwischenname: string | null; nachname: string; gruppe_id: number | null }>
+  daten: Partial<{
+    vorname: string;
+    zwischenname: string | null;
+    nachname: string;
+    gruppe_id: number | null;
+    funktion_id: number | null;
+  }>
 ) => apiPut<Person>(`/moderator/stammdaten/personen/${id}`, daten);
+export const holePersonTimeline = (id: number) =>
+  apiGet<PersonEreignis[]>(`/moderator/stammdaten/personen/${id}/timeline`);
 export const personLoeschen = (id: number) => apiDelete<void>(`/moderator/stammdaten/personen/${id}`);
 export const personBildHochladen = (id: number, datei: File) =>
   apiUpload<Person>(`/moderator/stammdaten/personen/${id}/bild`, datei, "datei");

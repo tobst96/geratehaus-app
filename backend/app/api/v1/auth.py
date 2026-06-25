@@ -95,7 +95,12 @@ async def barcode_vorschau(db: DbSession, token: str) -> BarcodeVorschau:
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
 
-    return BarcodeVorschau(name=person.name, bild_url=person.bild_url, gruppe_id=person.gruppe_id)
+    return BarcodeVorschau(
+        name=person.name,
+        bild_url=person.bild_url,
+        gruppe_id=person.gruppe_id,
+        funktion_id=person.funktion_id,
+    )
 
 
 @router.post("/moderator/login", response_model=ModeratorToken)

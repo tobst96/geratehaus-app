@@ -74,7 +74,10 @@ export function Dienststunden() {
     }
     const timeout = setTimeout(() => {
       barcodeVorschau(wert)
-        .then(setVorschau)
+        .then((v) => {
+          setVorschau(v);
+          if (v.funktion_id) setFunktionId(String(v.funktion_id));
+        })
         .catch(() => setVorschau(null));
     }, 250);
     return () => clearTimeout(timeout);

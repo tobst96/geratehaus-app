@@ -68,6 +68,7 @@ export function DienststundenManuelleEintragung() {
   async function personAuswaehlen(p: Person) {
     setAusgewaehltePerson(p);
     setSuche("");
+    if (p.funktion_id) setFunktionId(String(p.funktion_id));
     try {
       if (token) await dienststundenReservierungVorschauSetzen(token, p.id);
     } catch {
