@@ -622,51 +622,6 @@ export function Einstellungen() {
         </div>
 
         <div className="karte">
-          <h2>Barcodes</h2>
-          <label htmlFor="e-barcode-gueltigkeit">Gültigkeitsdauer neuer Barcodes (Tage)</label>
-          <input
-            id="e-barcode-gueltigkeit"
-            type="number"
-            min={1}
-            value={barcodeGueltigkeitTage}
-            onChange={(e) => setBarcodeGueltigkeitTage(Number(e.target.value))}
-          />
-          <p style={{ fontSize: "0.85rem", color: "#666" }}>
-            Gilt nur für neu erzeugte Barcodes. Bereits ausgegebene Barcodes behalten ihr
-            ursprüngliches Ablaufdatum.
-          </p>
-        </div>
-
-        <div className="karte">
-          <h2>Divera 24/7</h2>
-          <p style={{ fontSize: "0.85rem", color: "#666" }}>
-            Ersetzt die frühere .env-Konfiguration – Änderungen wirken ohne Neustart.
-          </p>
-          <label>
-            <input type="checkbox" checked={diveraAktiv} onChange={(e) => setDiveraAktiv(e.target.checked)} />{" "}
-            Divera-Anbindung aktiv
-          </label>
-          <br />
-          <br />
-          <label htmlFor="e-divera-modus">Modus</label>
-          <select id="e-divera-modus" value={diveraModus} onChange={(e) => setDiveraModus(e.target.value)}>
-            <option value="polling">Polling (alle 5 Minuten abfragen)</option>
-            <option value="webhook">Webhook (Divera sendet aktiv)</option>
-          </select>
-          <br />
-          <br />
-          <label htmlFor="e-divera-key">API-Key / Accesskey</label>
-          <input
-            id="e-divera-key"
-            type="password"
-            value={diveraApiKey}
-            onChange={(e) => setDiveraApiKey(e.target.value)}
-            placeholder="Accesskey aus Divera"
-            autoComplete="off"
-          />
-        </div>
-
-        <div className="karte">
           <h2>E-Mail-Benachrichtigungen</h2>
           <label>
             <input type="checkbox" checked={emailAktiv} onChange={(e) => setEmailAktiv(e.target.checked)} />{" "}
@@ -740,6 +695,51 @@ export function Einstellungen() {
             {testmailLaeuft ? "Sendet …" : "Testmail senden"}
           </button>
           {testmailErgebnis && <p style={{ fontSize: "0.85rem" }}>{testmailErgebnis}</p>}
+        </div>
+
+        <div className="karte">
+          <h2>Barcodes</h2>
+          <label htmlFor="e-barcode-gueltigkeit">Gültigkeitsdauer neuer Barcodes (Tage)</label>
+          <input
+            id="e-barcode-gueltigkeit"
+            type="number"
+            min={1}
+            value={barcodeGueltigkeitTage}
+            onChange={(e) => setBarcodeGueltigkeitTage(Number(e.target.value))}
+          />
+          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            Gilt nur für neu erzeugte Barcodes. Bereits ausgegebene Barcodes behalten ihr
+            ursprüngliches Ablaufdatum.
+          </p>
+        </div>
+
+        <div className="karte">
+          <h2>Divera 24/7</h2>
+          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            Ersetzt die frühere .env-Konfiguration – Änderungen wirken ohne Neustart.
+          </p>
+          <label>
+            <input type="checkbox" checked={diveraAktiv} onChange={(e) => setDiveraAktiv(e.target.checked)} />{" "}
+            Divera-Anbindung aktiv
+          </label>
+          <br />
+          <br />
+          <label htmlFor="e-divera-modus">Modus</label>
+          <select id="e-divera-modus" value={diveraModus} onChange={(e) => setDiveraModus(e.target.value)}>
+            <option value="polling">Polling (alle 5 Minuten abfragen)</option>
+            <option value="webhook">Webhook (Divera sendet aktiv)</option>
+          </select>
+          <br />
+          <br />
+          <label htmlFor="e-divera-key">API-Key / Accesskey</label>
+          <input
+            id="e-divera-key"
+            type="password"
+            value={diveraApiKey}
+            onChange={(e) => setDiveraApiKey(e.target.value)}
+            placeholder="Accesskey aus Divera"
+            autoComplete="off"
+          />
         </div>
 
         <button type="submit">Speichern</button>
