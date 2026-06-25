@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.models.einsatz import Einsatz, EinsatzPerson
 from app.models.einsatz_ereignis import EinsatzEreignis
 from app.schemas.einsatz import EinsatzAnlegen, TeilnahmeAnlegen
-from app.services import notifier_service, pdf_service
+from app.services import notifier_service, pdf_service, stammdaten_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -117,12 +117,33 @@ async def teilnahme_eintragen(
     return ergebnis
 
 
+def _feldwert_text(wert: object) -> str:
+    if wert is True:
+        return "Ja"
+    if wert in (None, "", False):
+        return "–"
+    return str(wert)
+
+
 async def zusatzfelder_aktualisieren(
     db: AsyncSession, einsatz: Einsatz, zusatzfelder: dict
 ) -> Einsatz:
-    einsatz.zusatzfelder = {**einsatz.zusatzfelder, **zusatzfelder}
+    alt = einsatz.zusatzfelder
+    geaendert = {k: v for k, v in zusatzfelder.items() if alt.get(k) != v}
+    einsatz.zusatzfelder = {**alt, **zusatzfelder}
     await db.commit()
-    await ereignis_protokollieren(db, einsatz.id, "details", "Einsatzdetails aktualisiert")
+
+    if geaendert:
+        felder = await stammdaten_service.liste_einsatz_felder(db, nur_aktive=False)
+        labels = {f.schluessel: f.label for f in felder}
+        aenderungen = "; ".join(
+            f"{labels.get(schluessel, schluessel)}: {_feldwert_text(alt.get(schluessel))} → {_feldwert_text(wert)}"
+            for schluessel, wert in geaendert.items()
+        )
+        beschreibung = f"Einsatzdetails aktualisiert: {aenderungen}"
+    else:
+        beschreibung = "Einsatzdetails aktualisiert"
+    await ereignis_protokollieren(db, einsatz.id, "details", beschreibung)
     geladen = await get_einsatz(db, einsatz.id)
     assert geladen is not None
     return geladen
