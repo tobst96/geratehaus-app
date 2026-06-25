@@ -490,6 +490,33 @@ function PersonenAvatar({ person }: { person: Person }) {
   );
 }
 
+async function tokenKopieren(token: string, knopf: HTMLButtonElement) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(token);
+    } else {
+      // navigator.clipboard ist nur in sicheren Kontexten (HTTPS) verfügbar –
+      // im LAN über HTTP läuft die App ohne TLS, daher dieser Fallback.
+      const textarea = document.createElement("textarea");
+      textarea.value = token;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+    const beschriftung = knopf.textContent;
+    knopf.textContent = "Kopiert!";
+    setTimeout(() => {
+      knopf.textContent = beschriftung;
+    }, 1500);
+  } catch {
+    window.prompt("Kopieren fehlgeschlagen – Text manuell kopieren:", token);
+  }
+}
+
 function PersonenTab() {
   const [liste, setListe] = useState<Person[] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -631,7 +658,7 @@ function PersonenTab() {
                     type="button"
                     className="sekundaer"
                     style={{ padding: "0.2rem 0.5rem" }}
-                    onClick={() => navigator.clipboard.writeText(barcodes.get(p.id)!.token)}
+                    onClick={(e) => tokenKopieren(barcodes.get(p.id)!.token, e.currentTarget)}
                   >
                     Kopieren
                   </button>
