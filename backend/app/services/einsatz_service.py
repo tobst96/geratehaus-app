@@ -58,7 +58,6 @@ async def einsatz_anlegen(db: AsyncSession, daten: EinsatzAnlegen, quelle: str =
     await ereignis_protokollieren(
         db, einsatz.id, "angelegt", f"Einsatz angelegt ({quelle})"
     )
-    await notifier_service.benachrichtige(db, "benachrichtigung_neuer_einsatz", titel=einsatz.titel)
     geladen = await get_einsatz(db, einsatz.id)
     assert geladen is not None
     return geladen
@@ -156,6 +155,7 @@ async def einsatz_abschliessen(db: AsyncSession, einsatz: Einsatz) -> Einsatz:
     await ereignis_protokollieren(db, einsatz.id, "abgeschlossen", "Einsatz abgeschlossen")
     geladen = await get_einsatz(db, einsatz.id)
     assert geladen is not None
+    await notifier_service.benachrichtige(db, "benachrichtigung_neuer_einsatz", titel=geladen.titel)
     await _pdf_per_mail_versenden(db, geladen)
     return geladen
 

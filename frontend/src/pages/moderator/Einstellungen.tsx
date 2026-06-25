@@ -550,7 +550,7 @@ export function Einstellungen() {
               checked={benachrichtigungEinsatz}
               onChange={(e) => setBenachrichtigungEinsatz(e.target.checked)}
             />{" "}
-            Neuer Einsatz
+            Einsatz abgeschlossen
           </label>
           <br />
           <label>

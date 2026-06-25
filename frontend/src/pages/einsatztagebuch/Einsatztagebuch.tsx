@@ -67,8 +67,12 @@ export function Einsatztagebuch() {
   if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
   if (!einsaetze) return <p>Lädt …</p>;
 
+  // Im Gerätehaus-Kiosk sollen nur offene Einsätze erscheinen – abgeschlossene
+  // sind hier nicht mehr relevant.
+  const offeneEinsaetze = einsaetze.filter((e) => e.status === "offen");
+
   // Diagram mode - selected einsatz
-  const ausgewaehlterEinsatz = einsaetze.find((e) => e.id === selectedEinsatzId) ?? null;
+  const ausgewaehlterEinsatz = offeneEinsaetze.find((e) => e.id === selectedEinsatzId) ?? null;
   if (ausgewaehlterEinsatz) {
     return (
       <EinsatzDiagramm
@@ -130,8 +134,8 @@ export function Einsatztagebuch() {
         </form>
       )}
 
-      {einsaetze.length === 0 && <p>Keine aktiven Einsätze.</p>}
-      {einsaetze.map((e) => (
+      {offeneEinsaetze.length === 0 && <p>Keine aktiven Einsätze.</p>}
+      {offeneEinsaetze.map((e) => (
         <div key={e.id} className="karte">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>

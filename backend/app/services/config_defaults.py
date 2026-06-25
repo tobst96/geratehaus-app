@@ -105,7 +105,10 @@ DEFAULTS: list[ConfigDefault] = [
     ),
     # Benachrichtigungen (Events einzeln an/abschaltbar)
     ConfigDefault(
-        "benachrichtigung_neuer_einsatz", "true", ConfigTyp.BOOL, "Benachrichtigung bei neuem Einsatz"
+        "benachrichtigung_neuer_einsatz",
+        "true",
+        ConfigTyp.BOOL,
+        "Benachrichtigung, wenn ein Einsatz abgeschlossen wird",
     ),
     ConfigDefault(
         "benachrichtigung_neues_dienstbuch",
@@ -161,7 +164,7 @@ DEFAULTS: list[ConfigDefault] = [
     # Benachrichtigungstexte (Platzhalter siehe Beschreibung)
     ConfigDefault(
         "benachrichtigung_text_neuer_einsatz",
-        "Neuer Einsatz erfasst: {titel}",
+        "Einsatz abgeschlossen: {titel}",
         ConfigTyp.STR,
         "Text bei neuem Einsatz. Platzhalter: {titel}",
     ),

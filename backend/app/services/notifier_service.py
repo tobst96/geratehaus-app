@@ -19,7 +19,7 @@ from app.services.notifier.webpush import WebPushNotifier
 logger = structlog.get_logger(__name__)
 
 EREIGNIS_BETREFF = {
-    "benachrichtigung_neuer_einsatz": "Neuer Einsatz",
+    "benachrichtigung_neuer_einsatz": "Einsatz abgeschlossen",
     "benachrichtigung_neues_dienstbuch": "Neues Dienstbuch",
     "benachrichtigung_buchungsanfrage": "Neue Buchungsanfrage",
     "benachrichtigung_schwellenwert_ueberschreitung": "Dienststunden-Schwellenwert überschritten",
