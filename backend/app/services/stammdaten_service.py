@@ -1,8 +1,9 @@
 import time
+from datetime import date, timedelta
 from pathlib import Path
 
 from fastapi import HTTPException, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -12,12 +13,13 @@ from app.models.funktion import FunktionDienststunden, FunktionEinsatz
 from app.models.gruppe import Gruppe
 from app.models.person import Person
 from app.models.person_ereignis import PersonEreignis
+from app.models.person_punkt import PersonPunkt
 from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionCreate,
     EinsatzFeldDefinitionUpdate,
     schluessel_aus_label,
 )
-from app.schemas.person import PersonCreate, PersonUpdate
+from app.schemas.person import PersonCreate, PersonOut, PersonUpdate
 from app.schemas.stammdaten import (
     FahrzeugCreate,
     FahrzeugUpdate,
@@ -249,6 +251,17 @@ async def get_einsatz_feld(db: AsyncSession, feld_id: int) -> EinsatzFeldDefinit
 
 # --- Personen -------------------------------------------------------------
 
+DEFAULT_PUNKTE_ANLAGE = 1
+DEFAULT_GUELTIGKEIT_TAGE_ANLAGE = 3
+
+FELD_LABELS = {
+    "vorname": "Vorname",
+    "zwischenname": "Zwischenname",
+    "nachname": "Nachname",
+    "gruppe_id": "Gruppe",
+    "funktion_id": "Funktion",
+}
+
 
 async def liste_personen(db: AsyncSession) -> list[Person]:
     sortierung = await config_service.get(db, "personen_sortierung", "nachname")
@@ -278,6 +291,17 @@ async def person_anlegen(db: AsyncSession, daten: PersonCreate) -> Person:
         funktion_id=daten.funktion_id,
     )
     db.add(person)
+    await db.flush()
+
+    gueltig_bis = date.today() + timedelta(days=DEFAULT_GUELTIGKEIT_TAGE_ANLAGE)
+    await punkte_vergeben(db, person.id, DEFAULT_PUNKTE_ANLAGE, "anlage", gueltig_bis)
+    await person_ereignis_protokollieren(
+        db,
+        person.id,
+        "punkte_vergeben",
+        f"{DEFAULT_PUNKTE_ANLAGE} Punkt(e) vergeben (gültig bis {gueltig_bis.strftime('%d.%m.%Y')})",
+    )
+
     await db.commit()
     await db.refresh(person)
     return person
@@ -285,21 +309,37 @@ async def person_anlegen(db: AsyncSession, daten: PersonCreate) -> Person:
 
 async def person_aktualisieren(db: AsyncSession, person: Person, daten: PersonUpdate) -> Person:
     aenderungen = daten.model_dump(exclude_unset=True)
-    alte_funktion_id = person.funktion_id
+    alte_werte = {feld: getattr(person, feld) for feld in aenderungen}
+
     for feld, wert in aenderungen.items():
         setattr(person, feld, wert)
     person.name = _voller_name(
         person.vorname or "", person.zwischenname, person.nachname or ""
     ).strip() or person.name
 
-    if "funktion_id" in aenderungen and person.funktion_id != alte_funktion_id:
-        neue_funktion_name = await _funktion_name(db, person.funktion_id)
-        await person_ereignis_protokollieren(
-            db,
-            person.id,
-            "funktion_geaendert",
-            f"Funktion in Stammdaten geändert auf „{neue_funktion_name}“",
-        )
+    diff_teile = []
+    for feld, neuer_wert in aenderungen.items():
+        alter_wert = alte_werte[feld]
+        if alter_wert == neuer_wert:
+            continue
+        if feld == "gruppe_id":
+            alt_label = await _gruppe_name(db, alter_wert)
+            neu_label = await _gruppe_name(db, neuer_wert)
+            diff_teile.append(f"{FELD_LABELS[feld]}: „{alt_label}“ → „{neu_label}“")
+        elif feld == "funktion_id":
+            alt_label = await _funktion_name(db, alter_wert)
+            neu_label = await _funktion_name(db, neuer_wert)
+            diff_teile.append(f"{FELD_LABELS[feld]}: „{alt_label}“ → „{neu_label}“")
+        else:
+            diff_teile.append(
+                f"{FELD_LABELS.get(feld, feld)}: „{alter_wert or '–'}“ → „{neuer_wert or '–'}“"
+            )
+
+    if diff_teile:
+        typ = "funktion_geaendert" if (
+            list(aenderungen.keys()) == ["funktion_id"] and len(diff_teile) == 1
+        ) else "stammdaten_geaendert"
+        await person_ereignis_protokollieren(db, person.id, typ, "Geändert: " + "; ".join(diff_teile))
 
     await db.commit()
     await db.refresh(person)
@@ -314,6 +354,14 @@ async def _funktion_name(db: AsyncSession, funktion_id: int | None) -> str:
     )
     funktion = result.scalar_one_or_none()
     return funktion.name if funktion else "keine"
+
+
+async def _gruppe_name(db: AsyncSession, gruppe_id: int | None) -> str:
+    if gruppe_id is None:
+        return "keine"
+    result = await db.execute(select(Gruppe).where(Gruppe.id == gruppe_id))
+    gruppe = result.scalar_one_or_none()
+    return gruppe.name if gruppe else "keine"
 
 
 async def person_ereignis_protokollieren(
@@ -360,6 +408,70 @@ async def person_bild_speichern(db: AsyncSession, person: Person, datei: UploadF
     # Cache-busting-Suffix, damit ein neu hochgeladenes Bild beim selben
     # Dateinamen nicht aus dem Browser-Cache des alten Bilds angezeigt wird.
     person.bild_url = f"/uploads/personen/{dateiname}?v={int(time.time())}"
+    await person_ereignis_protokollieren(db, person.id, "bild_geaendert", "Profilbild aktualisiert")
     await db.commit()
     await db.refresh(person)
     return person
+
+
+# --- Personen-Punkte --------------------------------------------------------
+
+
+async def punkte_vergeben(
+    db: AsyncSession, person_id: int, punkte: int, grund: str, gueltig_bis: date
+) -> PersonPunkt:
+    eintrag = PersonPunkt(person_id=person_id, punkte=punkte, grund=grund, gueltig_bis=gueltig_bis)
+    db.add(eintrag)
+    return eintrag
+
+
+async def gesamtpunkte(db: AsyncSession, person_id: int) -> int:
+    heute = date.today()
+    result = await db.execute(
+        select(func.coalesce(func.sum(PersonPunkt.punkte), 0)).where(
+            PersonPunkt.person_id == person_id, PersonPunkt.gueltig_bis >= heute
+        )
+    )
+    return int(result.scalar_one())
+
+
+async def gesamtpunkte_batch(db: AsyncSession, person_ids: list[int]) -> dict[int, int]:
+    if not person_ids:
+        return {}
+    heute = date.today()
+    stmt = (
+        select(PersonPunkt.person_id, func.sum(PersonPunkt.punkte))
+        .where(PersonPunkt.person_id.in_(person_ids), PersonPunkt.gueltig_bis >= heute)
+        .group_by(PersonPunkt.person_id)
+    )
+    result = await db.execute(stmt)
+    return dict(result.all())
+
+
+async def punkte_aufraeumen(db: AsyncSession) -> int:
+    heute = date.today()
+    result = await db.execute(delete(PersonPunkt).where(PersonPunkt.gueltig_bis < heute))
+    await db.commit()
+    return result.rowcount
+
+
+async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[PersonOut]:
+    punkte_je_person = await gesamtpunkte_batch(db, [p.id for p in personen])
+    return [
+        PersonOut(
+            id=p.id,
+            name=p.name,
+            vorname=p.vorname,
+            zwischenname=p.zwischenname,
+            nachname=p.nachname,
+            bild_url=p.bild_url,
+            gruppe_id=p.gruppe_id,
+            funktion_id=p.funktion_id,
+            gesamtpunkte=punkte_je_person.get(p.id, 0),
+        )
+        for p in personen
+    ]
+
+
+async def person_zu_out(db: AsyncSession, person: Person) -> PersonOut:
+    return (await personen_zu_out(db, [person]))[0]

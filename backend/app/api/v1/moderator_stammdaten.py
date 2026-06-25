@@ -213,12 +213,14 @@ async def einsatz_feld_loeschen(db: DbSession, _moderator: CurrentModerator, fel
 
 @router.get("/personen", response_model=list[PersonOut])
 async def personen_liste(db: DbSession, _moderator: CurrentModerator) -> list[PersonOut]:
-    return await stammdaten_service.liste_personen(db)
+    personen = await stammdaten_service.liste_personen(db)
+    return await stammdaten_service.personen_zu_out(db, personen)
 
 
 @router.post("/personen", response_model=PersonOut, status_code=status.HTTP_201_CREATED)
 async def person_anlegen(db: DbSession, _moderator: CurrentModerator, daten: PersonCreate) -> PersonOut:
-    return await stammdaten_service.person_anlegen(db, daten)
+    person = await stammdaten_service.person_anlegen(db, daten)
+    return await stammdaten_service.person_zu_out(db, person)
 
 
 @router.put("/personen/{person_id}", response_model=PersonOut)
@@ -228,7 +230,8 @@ async def person_aktualisieren(
     person = await stammdaten_service.get_person(db, person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
-    return await stammdaten_service.person_aktualisieren(db, person, daten)
+    person = await stammdaten_service.person_aktualisieren(db, person, daten)
+    return await stammdaten_service.person_zu_out(db, person)
 
 
 @router.delete("/personen/{person_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -246,7 +249,8 @@ async def person_bild_hochladen(
     person = await stammdaten_service.get_person(db, person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
-    return await stammdaten_service.person_bild_speichern(db, person, datei)
+    person = await stammdaten_service.person_bild_speichern(db, person, datei)
+    return await stammdaten_service.person_zu_out(db, person)
 
 
 @router.get("/personen/{person_id}/timeline", response_model=list[PersonEreignisOut])

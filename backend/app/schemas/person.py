@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -14,6 +14,7 @@ class PersonOut(BaseModel):
     bild_url: str | None
     gruppe_id: int | None
     funktion_id: int | None
+    gesamtpunkte: int
 
 
 class PersonCreate(BaseModel):
@@ -39,3 +40,13 @@ class PersonEreignisOut(BaseModel):
     zeitpunkt: datetime
     typ: str
     beschreibung: str
+
+
+class PersonPunktOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    punkte: int
+    grund: str
+    gueltig_bis: date
+    erstellt_am: datetime

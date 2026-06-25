@@ -50,6 +50,7 @@ export interface Person {
   bild_url: string | null;
   gruppe_id: number | null;
   funktion_id: number | null;
+  gesamtpunkte: number;
 }
 
 export interface PersonEreignis {

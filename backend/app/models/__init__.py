@@ -18,6 +18,8 @@ from app.models.gruppe import Gruppe
 from app.models.moderator import Moderator
 from app.models.namens_abweichung import NamensAbweichung
 from app.models.person import Person
+from app.models.person_ereignis import PersonEreignis
+from app.models.person_punkt import PersonPunkt
 from app.models.push_subscription import PushSubscription
 from app.models.reservierung import SitzplatzReservierung
 
@@ -42,6 +44,8 @@ __all__ = [
     "Moderator",
     "NamensAbweichung",
     "Person",
+    "PersonEreignis",
+    "PersonPunkt",
     "PushSubscription",
     "SitzplatzReservierung",
 ]

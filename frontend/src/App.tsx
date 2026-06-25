@@ -10,6 +10,7 @@ import { ModeratorLayout } from "./pages/moderator/ModeratorLayout";
 import { Dashboard } from "./pages/moderator/Dashboard";
 import { Listen } from "./pages/moderator/Listen";
 import { Buchungsmanagement } from "./pages/moderator/Buchungsmanagement";
+import { Personal } from "./pages/moderator/Personal";
 import { Stammdaten } from "./pages/moderator/Stammdaten";
 import { EinsatzDetailModerator } from "./pages/moderator/EinsatzDetailModerator";
 import { Einstellungen } from "./pages/moderator/Einstellungen";
@@ -43,6 +44,7 @@ export function App() {
               <Route path="listen" element={<Listen />} />
               <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
               <Route path="buchungen" element={<Buchungsmanagement />} />
+              <Route path="personal" element={<Personal />} />
               <Route path="stammdaten" element={<Stammdaten />} />
               <Route path="barcodes" element={<BarcodeGenerator />} />
               <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />

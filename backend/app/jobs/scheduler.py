@@ -7,7 +7,13 @@ import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.db.session import AsyncSessionLocal
-from app.services import archive_service, dienstbuch_service, divera_service, einsatz_service
+from app.services import (
+    archive_service,
+    dienstbuch_service,
+    divera_service,
+    einsatz_service,
+    stammdaten_service,
+)
 from app.services.config_service import config_service
 
 logger = structlog.get_logger(__name__)
@@ -67,6 +73,18 @@ async def _einsatz_geplanter_abschluss_job() -> None:
                 await einsatz_service.einsatz_abschliessen(db, einsatz)
         except Exception:
             logger.warning("einsatz_geplanter_abschluss_fehlgeschlagen", exc_info=True)
+
+
+async def _punkte_ablauf_job() -> None:
+    """Läuft täglich um 0 Uhr; entfernt abgelaufene Personen-Punkte (deren
+    Gültigkeit überschritten ist) aus der person_punkte-Tabelle."""
+    async with AsyncSessionLocal() as db:
+        try:
+            anzahl = await stammdaten_service.punkte_aufraeumen(db)
+            if anzahl:
+                logger.info("punkte_aufgeraeumt", anzahl=anzahl)
+        except Exception:
+            logger.warning("punkte_aufraeumen_fehlgeschlagen", exc_info=True)
 
 
 async def _dienstbuch_autoschluss_job() -> None:
@@ -137,6 +155,16 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("dienstbuch_autoschluss_job_registriert")
+
+    scheduler.add_job(
+        _punkte_ablauf_job,
+        "cron",
+        hour=0,
+        minute=0,
+        id="punkte_ablauf",
+        replace_existing=True,
+    )
+    logger.info("punkte_ablauf_job_registriert", uhrzeit="00:00")
 
 
 def start() -> None:
