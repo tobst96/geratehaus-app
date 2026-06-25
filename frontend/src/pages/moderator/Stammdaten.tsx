@@ -28,11 +28,11 @@ import { ApiError } from "../../api/client";
 import type { EinsatzFeldDefinition, Fahrzeug, FunktionDienststunden, FunktionEinsatz, Person } from "../../api/types";
 import { SitzplatzEditor } from "./SitzplatzEditor";
 
-const TABS = ["Fahrzeuge", "Einsatz-Funktionen", "Dienststunden-Funktionen", "Einsatz-Felder", "Personen"] as const;
+const TABS = ["Personen", "Fahrzeuge", "Einsatz-Funktionen", "Dienststunden-Funktionen", "Einsatz-Felder"] as const;
 type Tab = (typeof TABS)[number];
 
 export function Stammdaten() {
-  const [tab, setTab] = useState<Tab>("Fahrzeuge");
+  const [tab, setTab] = useState<Tab>("Personen");
 
   return (
     <div>
@@ -620,6 +620,22 @@ function PersonenTab() {
             {barcodes.get(p.id) && (
               <div style={{ textAlign: "center" }}>
                 <img src={barcodeBildUrl(barcodes.get(p.id)!.token)} alt="Barcode" style={{ height: 50 }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
+                  <input
+                    readOnly
+                    value={barcodes.get(p.id)!.token}
+                    onFocus={(e) => e.target.select()}
+                    style={{ width: 140, fontSize: "0.75rem", fontFamily: "monospace" }}
+                  />
+                  <button
+                    type="button"
+                    className="sekundaer"
+                    style={{ padding: "0.2rem 0.5rem" }}
+                    onClick={() => navigator.clipboard.writeText(barcodes.get(p.id)!.token)}
+                  >
+                    Kopieren
+                  </button>
+                </div>
                 {barcodes.get(p.id)!.ablaufAm && (
                   <div style={{ fontSize: "0.7rem", color: "#666" }}>
                     Gültig bis {new Date(barcodes.get(p.id)!.ablaufAm!).toLocaleDateString("de-DE")}

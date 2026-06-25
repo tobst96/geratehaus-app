@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 
 from app.api.deps import DbSession
 from app.schemas.einsatz import TeilnahmeOut
+from app.schemas.person import PersonOut
 from app.schemas.reservierung import ReservierungEinloesen, ReservierungInfo
 from app.services import einsatz_service, reservierung_service, stammdaten_service
 
@@ -36,8 +37,27 @@ async def reservierung_info(db: DbSession, token: str) -> ReservierungInfo:
     )
 
 
+@router.get("/{token}/personen", response_model=list[PersonOut])
+async def reservierung_personen(db: DbSession, token: str) -> list[PersonOut]:
+    """Personen zur Auswahl auf der mobilen Eintragungs-Seite – der Token
+    selbst ist auch hier das Geheimnis, das den Zugriff erlaubt."""
+    reservierung = await reservierung_service.get_reservierung_by_token(db, token)
+    if reservierung is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
+    return await stammdaten_service.liste_personen(db)
+
+
+def _client_ip(request: Request) -> str | None:
+    weitergeleitet = request.headers.get("x-real-ip") or request.headers.get("x-forwarded-for")
+    if weitergeleitet:
+        return weitergeleitet.split(",")[0].strip()
+    return request.client.host if request.client else None
+
+
 @router.post("/{token}/einloesen", response_model=TeilnahmeOut)
-async def reservierung_einloesen(db: DbSession, token: str, daten: ReservierungEinloesen) -> TeilnahmeOut:
+async def reservierung_einloesen(
+    db: DbSession, request: Request, token: str, daten: ReservierungEinloesen
+) -> TeilnahmeOut:
     reservierung = await reservierung_service.get_reservierung_by_token(db, token)
     if reservierung is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
@@ -48,4 +68,13 @@ async def reservierung_einloesen(db: DbSession, token: str, daten: ReservierungE
     if reservierung_service.ist_abgelaufen(reservierung):
         raise HTTPException(status_code=status.HTTP_410_GONE, detail="Diese Reservierung ist abgelaufen.")
 
-    return await reservierung_service.reservierung_einloesen(db, reservierung, daten)
+    try:
+        return await reservierung_service.reservierung_einloesen(
+            db,
+            reservierung,
+            daten,
+            ip=_client_ip(request),
+            user_agent=request.headers.get("user-agent"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

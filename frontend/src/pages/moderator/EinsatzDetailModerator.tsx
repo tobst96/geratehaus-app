@@ -150,13 +150,14 @@ export function EinsatzDetailModerator() {
             <th>Nur Gerätehaus</th>
             <th>Auf Anfahrt</th>
             <th>Ohne Barcode</th>
+            <th>IP / Browser</th>
             <th>Bemerkung</th>
           </tr>
         </thead>
         <tbody>
           {einsatz.teilnahmen.length === 0 && (
             <tr>
-              <td colSpan={10} style={{ color: "#999" }}>
+              <td colSpan={11} style={{ color: "#999" }}>
                 Keine Teilnehmer eingetragen.
               </td>
             </tr>
@@ -172,6 +173,9 @@ export function EinsatzDetailModerator() {
               <td>{t.nur_geraetehaus ? "Ja" : ""}</td>
               <td>{t.auf_anfahrt ? "Ja" : ""}</td>
               <td>{t.ohne_barcode ? "Ja" : ""}</td>
+              <td title={t.eintragung_user_agent ?? ""} style={{ fontSize: "0.8rem", color: "#666" }}>
+                {t.eintragung_ip ?? ""}
+              </td>
               <td>{t.bemerkung ?? ""}</td>
             </tr>
           ))}

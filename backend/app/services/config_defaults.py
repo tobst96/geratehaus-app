@@ -60,6 +60,18 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.INT,
         "Minuten bis die Garage-Ansicht eines Einsatzes ohne Aktivität automatisch schließt",
     ),
+    ConfigDefault(
+        "einsatz_autoabschluss_stunde",
+        "4",
+        ConfigTyp.INT,
+        "Stunde (0-23), zu der offene Einsätze täglich automatisch abgeschlossen werden",
+    ),
+    ConfigDefault(
+        "einsatz_autoabschluss_inaktivitaet_stunden",
+        "4",
+        ConfigTyp.INT,
+        "Ab wie vielen Stunden seit der letzten Bearbeitung ein offener Einsatz automatisch abgeschlossen wird",
+    ),
     # Barcodes
     ConfigDefault(
         "barcode_gueltigkeit_tage",

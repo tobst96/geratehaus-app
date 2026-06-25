@@ -195,6 +195,8 @@ export function Einstellungen() {
   const [dienstbuchZeitfenster, setDienstbuchZeitfenster] = useState(12);
   const [archivierungszeitraum, setArchivierungszeitraum] = useState(2);
   const [einsatzCountdownMinuten, setEinsatzCountdownMinuten] = useState(30);
+  const [autoabschlussStunde, setAutoabschlussStunde] = useState(4);
+  const [autoabschlussInaktivitaetStunden, setAutoabschlussInaktivitaetStunden] = useState(4);
   const [barcodeGueltigkeitTage, setBarcodeGueltigkeitTage] = useState(730);
 
   const [diveraAktiv, setDiveraAktiv] = useState(false);
@@ -224,6 +226,8 @@ export function Einstellungen() {
       setDienstbuchZeitfenster(Number(w.dienstbuch_zeitfenster_stunden ?? 12));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
       setEinsatzCountdownMinuten(Number(w.einsatz_countdown_minuten ?? 30));
+      setAutoabschlussStunde(Number(w.einsatz_autoabschluss_stunde ?? 4));
+      setAutoabschlussInaktivitaetStunden(Number(w.einsatz_autoabschluss_inaktivitaet_stunden ?? 4));
       setBarcodeGueltigkeitTage(Number(w.barcode_gueltigkeit_tage ?? 730));
       setDiveraAktiv(Boolean(w.divera_aktiv));
       setDiveraApiKey(String(w.divera_api_key ?? ""));
@@ -262,6 +266,8 @@ export function Einstellungen() {
         dienstbuch_zeitfenster_stunden: dienstbuchZeitfenster,
         archivierungszeitraum_jahre: archivierungszeitraum,
         einsatz_countdown_minuten: einsatzCountdownMinuten,
+        einsatz_autoabschluss_stunde: autoabschlussStunde,
+        einsatz_autoabschluss_inaktivitaet_stunden: autoabschlussInaktivitaetStunden,
         barcode_gueltigkeit_tage: barcodeGueltigkeitTage,
         divera_aktiv: diveraAktiv,
         divera_api_key: diveraApiKey,
@@ -492,6 +498,33 @@ export function Einstellungen() {
             value={einsatzCountdownMinuten}
             onChange={(e) => setEinsatzCountdownMinuten(Number(e.target.value))}
           />
+          <br />
+          <br />
+          <label htmlFor="e-autoabschluss-stunde">Automatischer Einsatzabschluss um (Uhrzeit, Stunde 0–23)</label>
+          <input
+            id="e-autoabschluss-stunde"
+            type="number"
+            min={0}
+            max={23}
+            value={autoabschlussStunde}
+            onChange={(e) => setAutoabschlussStunde(Number(e.target.value))}
+          />
+          <br />
+          <br />
+          <label htmlFor="e-autoabschluss-inaktivitaet">
+            … wenn die letzte Bearbeitung länger als (Stunden) zurückliegt
+          </label>
+          <input
+            id="e-autoabschluss-inaktivitaet"
+            type="number"
+            min={1}
+            value={autoabschlussInaktivitaetStunden}
+            onChange={(e) => setAutoabschlussInaktivitaetStunden(Number(e.target.value))}
+          />
+          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            Offene Einsätze werden täglich zur eingestellten Stunde automatisch abgeschlossen,
+            wenn seit der letzten Bearbeitung mindestens so viele Stunden vergangen sind.
+          </p>
         </div>
 
         <div className="karte">

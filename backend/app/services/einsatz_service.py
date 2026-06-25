@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -130,3 +130,29 @@ async def einsatz_abschliessen(db: AsyncSession, einsatz: Einsatz) -> Einsatz:
     geladen = await get_einsatz(db, einsatz.id)
     assert geladen is not None
     return geladen
+
+
+async def offene_einsaetze_inaktiv_seit(db: AsyncSession, inaktivitaet_stunden: int) -> list[Einsatz]:
+    """Offene Einsätze, deren letztes protokolliertes Ereignis (oder, falls
+    noch keines existiert, deren Anlage) mindestens `inaktivitaet_stunden`
+    zurückliegt – Grundlage für den nächtlichen Autoabschluss-Job."""
+    grenze = datetime.now(timezone.utc) - timedelta(hours=inaktivitaet_stunden)
+    letztes_ereignis = (
+        select(
+            EinsatzEreignis.einsatz_id.label("einsatz_id"),
+            func.max(EinsatzEreignis.zeitpunkt).label("letzte_aktivitaet"),
+        )
+        .group_by(EinsatzEreignis.einsatz_id)
+        .subquery()
+    )
+    stmt = (
+        select(Einsatz)
+        .options(_TEILNAHME_DETAILS)
+        .outerjoin(letztes_ereignis, letztes_ereignis.c.einsatz_id == Einsatz.id)
+        .where(
+            Einsatz.status != "abgeschlossen",
+            func.coalesce(letztes_ereignis.c.letzte_aktivitaet, Einsatz.erstellt_am) < grenze,
+        )
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())

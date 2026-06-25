@@ -50,6 +50,8 @@ class EinsatzPerson(Base, TimestampMixin):
     nur_geraetehaus: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     auf_anfahrt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     ohne_barcode: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    eintragung_ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    eintragung_user_agent: Mapped[str | None] = mapped_column(String(512), nullable=True)
     bemerkung: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     einsatz: Mapped["Einsatz"] = relationship(back_populates="teilnahmen")

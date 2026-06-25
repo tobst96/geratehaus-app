@@ -36,6 +36,8 @@ class TeilnahmeOut(BaseModel):
     nur_geraetehaus: bool
     auf_anfahrt: bool
     ohne_barcode: bool
+    eintragung_ip: str | None
+    eintragung_user_agent: str | None
     bemerkung: str | None
 
 

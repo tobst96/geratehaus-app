@@ -1,11 +1,13 @@
 """Zentraler APScheduler-Prozess für periodische Hintergrund-Jobs
 (Divera-Polling, Archivierung). Wird im FastAPI-Lifespan gestartet/gestoppt."""
 
+from datetime import datetime
+
 import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.db.session import AsyncSessionLocal
-from app.services import archive_service, divera_service
+from app.services import archive_service, divera_service, einsatz_service
 from app.services.config_service import config_service
 
 logger = structlog.get_logger(__name__)
@@ -34,6 +36,27 @@ async def _archivierung_job() -> None:
             logger.warning("archivierung_fehlgeschlagen", exc_info=True)
 
 
+async def _einsatz_autoabschluss_job() -> None:
+    """Läuft stündlich; schließt offene, inaktive Einsätze aber nur in der
+    in den Einstellungen konfigurierten Stunde – so wirkt eine Änderung der
+    Uhrzeit sofort, ohne den Scheduler-Job neu registrieren zu müssen."""
+    async with AsyncSessionLocal() as db:
+        try:
+            stunde = await config_service.get(db, "einsatz_autoabschluss_stunde", 4)
+            if datetime.now().hour != int(stunde):
+                return
+            inaktivitaet_stunden = await config_service.get(
+                db, "einsatz_autoabschluss_inaktivitaet_stunden", 4
+            )
+            einsaetze = await einsatz_service.offene_einsaetze_inaktiv_seit(db, int(inaktivitaet_stunden))
+            for einsatz in einsaetze:
+                await einsatz_service.einsatz_abschliessen(db, einsatz)
+            if einsaetze:
+                logger.info("einsaetze_automatisch_abgeschlossen", anzahl=len(einsaetze))
+        except Exception:
+            logger.warning("einsatz_autoabschluss_fehlgeschlagen", exc_info=True)
+
+
 def registriere_jobs() -> None:
     # Immer registriert; ob tatsächlich synchronisiert wird, entscheidet
     # _divera_polling_job anhand der app_config-Werte (Einstellungen-UI),
@@ -56,6 +79,17 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("archivierung_job_registriert", uhrzeit="03:00")
+
+    # Stündlich registriert; die konfigurierte Stunde wird im Job selbst
+    # geprüft, damit eine Änderung in den Einstellungen sofort wirkt.
+    scheduler.add_job(
+        _einsatz_autoabschluss_job,
+        "cron",
+        minute=0,
+        id="einsatz_autoabschluss",
+        replace_existing=True,
+    )
+    logger.info("einsatz_autoabschluss_job_registriert")
 
 
 def start() -> None:

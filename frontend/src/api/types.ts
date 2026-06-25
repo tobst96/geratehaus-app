@@ -69,6 +69,8 @@ export interface TeilnahmeOut {
   nur_geraetehaus: boolean;
   auf_anfahrt: boolean;
   ohne_barcode: boolean;
+  eintragung_ip: string | null;
+  eintragung_user_agent: string | null;
   bemerkung: string | null;
 }
 

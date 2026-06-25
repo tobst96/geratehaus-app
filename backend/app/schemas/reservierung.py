@@ -27,9 +27,7 @@ class ReservierungInfo(BaseModel):
 
 
 class ReservierungEinloesen(BaseModel):
-    vorname: str = Field(min_length=1, max_length=128)
-    zwischenname: str | None = Field(default=None, max_length=128)
-    nachname: str = Field(min_length=1, max_length=128)
+    person_id: int
     vab: bool = False
     atemschutzminuten: int = Field(default=0, ge=0)
     bemerkung: str | None = None

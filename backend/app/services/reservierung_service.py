@@ -5,32 +5,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.einsatz import EinsatzPerson
-from app.models.person import Person
 from app.models.reservierung import SitzplatzReservierung
 from app.schemas.einsatz import TeilnahmeAnlegen
 from app.schemas.reservierung import ReservierungAnlegen, ReservierungEinloesen
-from app.services import einsatz_service
+from app.services import einsatz_service, stammdaten_service
 
 GUELTIGKEIT_MINUTEN = 30
-
-
-def _voller_name(vorname: str, zwischenname: str | None, nachname: str) -> str:
-    teile = [vorname, zwischenname, nachname]
-    return " ".join(teil for teil in teile if teil)
-
-
-async def _get_or_create_person(
-    db: AsyncSession, vorname: str, zwischenname: str | None, nachname: str
-) -> Person:
-    name = _voller_name(vorname, zwischenname, nachname)
-    result = await db.execute(select(Person).where(Person.name == name))
-    person = result.scalar_one_or_none()
-    if person is None:
-        person = Person(vorname=vorname, zwischenname=zwischenname, nachname=nachname, name=name)
-        db.add(person)
-        await db.commit()
-        await db.refresh(person)
-    return person
 
 
 async def reservierung_anlegen(
@@ -68,9 +48,15 @@ def ist_abgelaufen(reservierung: SitzplatzReservierung) -> bool:
 
 
 async def reservierung_einloesen(
-    db: AsyncSession, reservierung: SitzplatzReservierung, daten: ReservierungEinloesen
+    db: AsyncSession,
+    reservierung: SitzplatzReservierung,
+    daten: ReservierungEinloesen,
+    ip: str | None = None,
+    user_agent: str | None = None,
 ) -> EinsatzPerson:
-    person = await _get_or_create_person(db, daten.vorname, daten.zwischenname, daten.nachname)
+    person = await stammdaten_service.get_person(db, daten.person_id)
+    if person is None:
+        raise ValueError("Person nicht gefunden.")
 
     einsatz = await einsatz_service.get_einsatz(db, reservierung.einsatz_id)
     if einsatz is None:
@@ -88,6 +74,8 @@ async def reservierung_einloesen(
         bemerkung=daten.bemerkung,
     )
     ergebnis = await einsatz_service.teilnahme_eintragen(db, einsatz, person.id, teilnahme_daten)
+    ergebnis.eintragung_ip = ip
+    ergebnis.eintragung_user_agent = user_agent
 
     reservierung.eingeloest = True
     await db.commit()

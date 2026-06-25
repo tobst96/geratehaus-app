@@ -7,6 +7,7 @@ import {
   reservierungAnlegen,
   teilnahmeEintragen,
 } from "../../api/einsaetze";
+import { holeReservierung } from "../../api/reservierungen";
 import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
@@ -62,7 +63,9 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
 
-  const [qrAnsicht, setQrAnsicht] = useState<{ bildUrl: string; ablaufAm: string } | null>(null);
+  const [qrAnsicht, setQrAnsicht] = useState<{ token: string; bildUrl: string; ablaufAm: string } | null>(
+    null
+  );
   const [qrFehler, setQrFehler] = useState<string | null>(null);
   const [qrLaeuft, setQrLaeuft] = useState(false);
 
@@ -131,6 +134,26 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     }, 8000);
     return () => clearInterval(intervall);
   }, [aktivesFahrzeugId, onAktualisiert]);
+
+  // Solange der QR-Code angezeigt wird, prüfen ob die Person sich auf dem
+  // eigenen Handy schon eingetragen hat – dann den Dialog automatisch schließen.
+  useEffect(() => {
+    if (!qrAnsicht) return;
+    const token = qrAnsicht.token;
+    const intervall = setInterval(async () => {
+      try {
+        const info = await holeReservierung(token);
+        if (info.bereits_eingeloest) {
+          await onAktualisiert();
+          setQrAnsicht(null);
+          setAusgewaehlteAktion(null);
+        }
+      } catch {
+        // Best effort – wird beim nächsten Intervall erneut versucht.
+      }
+    }, 3000);
+    return () => clearInterval(intervall);
+  }, [qrAnsicht, onAktualisiert]);
 
   const belegungByKey = new Map<string, TeilnahmeOut>();
   for (const t of einsatz.teilnahmen) {
@@ -249,7 +272,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
       });
       const url = `${window.location.origin}/eintragen/${token}`;
       const bildUrl = await QRCode.toDataURL(url, { width: 280, margin: 1 });
-      setQrAnsicht({ bildUrl, ablaufAm: ablauf_am });
+      setQrAnsicht({ token, bildUrl, ablaufAm: ablauf_am });
     } catch (err) {
       setQrFehler(err instanceof ApiError ? String(err.detail) : "QR-Code konnte nicht erzeugt werden.");
     } finally {

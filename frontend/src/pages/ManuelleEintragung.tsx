@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
-import { holeReservierung, reservierungEinloesen } from "../api/reservierungen";
+import { holeReservierung, holeReservierungPersonen, reservierungEinloesen } from "../api/reservierungen";
 import { ApiError } from "../api/client";
-import type { ReservierungInfo } from "../api/types";
+import type { Person, ReservierungInfo } from "../api/types";
 
 const AGT_MAX_MINUTEN = 35;
 const AGT_DEFAULT_MINUTEN = 30;
@@ -10,11 +10,11 @@ const AGT_DEFAULT_MINUTEN = 30;
 export function ManuelleEintragung() {
   const { token } = useParams<{ token: string }>();
   const [info, setInfo] = useState<ReservierungInfo | null>(null);
+  const [personen, setPersonen] = useState<Person[]>([]);
   const [ladeFehler, setLadeFehler] = useState<string | null>(null);
 
-  const [vorname, setVorname] = useState("");
-  const [zwischenname, setZwischenname] = useState("");
-  const [nachname, setNachname] = useState("");
+  const [suche, setSuche] = useState("");
+  const [ausgewaehltePerson, setAusgewaehltePerson] = useState<Person | null>(null);
   const [vab, setVab] = useState(false);
   const [atemschutzminuten, setAtemschutzminuten] = useState(AGT_DEFAULT_MINUTEN);
   const [bemerkung, setBemerkung] = useState("");
@@ -24,21 +24,29 @@ export function ManuelleEintragung() {
 
   useEffect(() => {
     if (!token) return;
-    holeReservierung(token)
-      .then(setInfo)
-      .catch((err) => setLadeFehler(err instanceof ApiError ? String(err.detail) : "Reservierung konnte nicht geladen werden."));
+    Promise.all([holeReservierung(token), holeReservierungPersonen(token)])
+      .then(([infoResult, personenResult]) => {
+        setInfo(infoResult);
+        setPersonen(personenResult);
+      })
+      .catch((err) =>
+        setLadeFehler(err instanceof ApiError ? String(err.detail) : "Reservierung konnte nicht geladen werden.")
+      );
   }, [token]);
+
+  const trefferliste =
+    suche.trim().length === 0
+      ? []
+      : personen.filter((p) => p.name.toLowerCase().includes(suche.trim().toLowerCase())).slice(0, 8);
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
-    if (!token || !vorname.trim() || !nachname.trim()) return;
+    if (!token || !ausgewaehltePerson) return;
     setLaeuft(true);
     setFehler(null);
     try {
       await reservierungEinloesen(token, {
-        vorname: vorname.trim(),
-        zwischenname: zwischenname.trim() || null,
-        nachname: nachname.trim(),
+        person_id: ausgewaehltePerson.id,
         vab,
         atemschutzminuten,
         bemerkung: bemerkung.trim() || null,
@@ -113,20 +121,49 @@ export function ManuelleEintragung() {
         </p>
 
         <form onSubmit={absenden}>
-          <label htmlFor="me-vorname">Vorname</label>
-          <input id="me-vorname" value={vorname} onChange={(e) => setVorname(e.target.value)} required />
-          <br />
-          <br />
-          <label htmlFor="me-zwischenname">Zwischenname (optional)</label>
-          <input
-            id="me-zwischenname"
-            value={zwischenname}
-            onChange={(e) => setZwischenname(e.target.value)}
-          />
-          <br />
-          <br />
-          <label htmlFor="me-nachname">Nachname</label>
-          <input id="me-nachname" value={nachname} onChange={(e) => setNachname(e.target.value)} required />
+          <label htmlFor="me-person">Wer bist du?</label>
+          {ausgewaehltePerson ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+              <strong>{ausgewaehltePerson.name}</strong>
+              <button type="button" className="sekundaer" onClick={() => setAusgewaehltePerson(null)}>
+                Ändern
+              </button>
+            </div>
+          ) : (
+            <>
+              <input
+                id="me-person"
+                value={suche}
+                onChange={(e) => setSuche(e.target.value)}
+                placeholder="Namen eingeben und auswählen…"
+                autoFocus
+              />
+              {trefferliste.length > 0 && (
+                <ul style={{ listStyle: "none", padding: 0, margin: "0.25rem 0" }}>
+                  {trefferliste.map((p) => (
+                    <li key={p.id}>
+                      <button
+                        type="button"
+                        className="sekundaer"
+                        style={{ width: "100%", textAlign: "left" }}
+                        onClick={() => {
+                          setAusgewaehltePerson(p);
+                          setSuche("");
+                        }}
+                      >
+                        {p.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {suche.trim().length > 0 && trefferliste.length === 0 && (
+                <p style={{ color: "#999", fontSize: "0.85rem" }}>
+                  Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
+                </p>
+              )}
+            </>
+          )}
           <br />
           <br />
 
@@ -169,7 +206,7 @@ export function ManuelleEintragung() {
 
           {fehler && <p className="fehlertext">{fehler}</p>}
 
-          <button type="submit" disabled={laeuft}>
+          <button type="submit" disabled={laeuft || !ausgewaehltePerson}>
             {laeuft ? "Wird gespeichert…" : "Eintragen"}
           </button>
         </form>

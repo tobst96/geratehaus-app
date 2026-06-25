@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 from fastapi import HTTPException, UploadFile, status
@@ -266,7 +267,9 @@ async def person_bild_speichern(db: AsyncSession, person: Person, datei: UploadF
     dateiname = f"person-{person.id}{erlaubte_typen[datei.content_type]}"
     (upload_verzeichnis / dateiname).write_bytes(inhalt)
 
-    person.bild_url = f"/uploads/personen/{dateiname}"
+    # Cache-busting-Suffix, damit ein neu hochgeladenes Bild beim selben
+    # Dateinamen nicht aus dem Browser-Cache des alten Bilds angezeigt wird.
+    person.bild_url = f"/uploads/personen/{dateiname}?v={int(time.time())}"
     await db.commit()
     await db.refresh(person)
     return person
