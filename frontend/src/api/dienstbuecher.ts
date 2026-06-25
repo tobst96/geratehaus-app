@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from "./client";
+import { apiGet, apiPost, apiPut } from "./client";
 import type { DienstbuchOut, TeilnehmerOut } from "./types";
 
 export const holeLetzteDienstbuecher = () =>
@@ -14,6 +14,12 @@ export const teilnehmerEintragen = (
   dienstbuchId: number,
   daten: { gruppe_id: number | null; atemschutzminuten: number }
 ) => apiPost<TeilnehmerOut>(`/dienstbuecher/${dienstbuchId}/teilnehmer`, daten);
+
+export const teilnehmerAktualisieren = (
+  dienstbuchId: number,
+  teilnehmerId: number,
+  daten: { atemschutzminuten: number }
+) => apiPut<TeilnehmerOut>(`/dienstbuecher/${dienstbuchId}/teilnehmer/${teilnehmerId}`, daten);
 
 export const dienstbuchPdfUrl = (id: number) =>
   `/api/v1/dienstbuecher/${id}/pdf`;

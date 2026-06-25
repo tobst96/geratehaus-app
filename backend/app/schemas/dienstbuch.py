@@ -14,6 +14,10 @@ class TeilnehmerAnlegen(BaseModel):
     atemschutzminuten: int = Field(default=0, ge=0)
 
 
+class TeilnehmerAktualisieren(BaseModel):
+    atemschutzminuten: int = Field(ge=0)
+
+
 class TeilnehmerOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

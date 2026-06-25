@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.dienstbuch import Dienstbuch, DienstbuchPerson
-from app.schemas.dienstbuch import DienstbuchAnlegen, TeilnehmerAnlegen
+from app.schemas.dienstbuch import DienstbuchAnlegen, TeilnehmerAktualisieren, TeilnehmerAnlegen
 from app.services import notifier_service
 from app.services.config_service import config_service
 
@@ -72,3 +72,28 @@ async def teilnehmer_eintragen(
         .where(DienstbuchPerson.dienstbuch_id == dienstbuch.id, DienstbuchPerson.person_id == person_id)
     )
     return geladen.scalar_one()
+
+
+async def get_teilnehmer(
+    db: AsyncSession, dienstbuch_id: int, teilnehmer_id: int
+) -> DienstbuchPerson | None:
+    result = await db.execute(
+        select(DienstbuchPerson)
+        .options(selectinload(DienstbuchPerson.person), selectinload(DienstbuchPerson.gruppe))
+        .where(DienstbuchPerson.id == teilnehmer_id, DienstbuchPerson.dienstbuch_id == dienstbuch_id)
+    )
+    return result.scalar_one_or_none()
+
+
+async def teilnehmer_aktualisieren(
+    db: AsyncSession, teilnehmer: DienstbuchPerson, daten: TeilnehmerAktualisieren
+) -> DienstbuchPerson:
+    """Atemschutzminuten lassen sich erst nach dem Dienst nachtragen – wird
+    daher nicht beim Scannen abgefragt, sondern direkt in der Teilnehmerliste
+    editiert."""
+    teilnehmer.atemschutzminuten = daten.atemschutzminuten
+    await db.commit()
+
+    geladen = await get_teilnehmer(db, teilnehmer.dienstbuch_id, teilnehmer.id)
+    assert geladen is not None
+    return geladen

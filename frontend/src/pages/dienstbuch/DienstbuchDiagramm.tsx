@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { teilnehmerEintragen } from "../../api/dienstbuecher";
+import { teilnehmerAktualisieren, teilnehmerEintragen } from "../../api/dienstbuecher";
 import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
-import type { DienstbuchOut, Gruppe } from "../../api/types";
+import type { DienstbuchOut, Gruppe, TeilnehmerOut } from "../../api/types";
 import "./DienstbuchDiagramm.css";
 
 function initialenAus(name: string): string {
@@ -31,8 +31,6 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
   const [barcode, setBarcode] = useState("");
   const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [gruppeId, setGruppeId] = useState<number | null>(null);
-  const [atemschutzAktiv, setAtemschutzAktiv] = useState(false);
-  const [atemschutzminuten, setAtemschutzminuten] = useState(0);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
 
@@ -70,8 +68,6 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
     setBarcode("");
     setVorschau(null);
     setGruppeId(null);
-    setAtemschutzAktiv(false);
-    setAtemschutzminuten(0);
     letzteVorschauName.current = null;
   }
 
@@ -87,7 +83,9 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
       await barcodeEinscannen(barcode.trim());
       await teilnehmerEintragen(dienstbuch.id, {
         gruppe_id: gruppeId,
-        atemschutzminuten: atemschutzAktiv ? atemschutzminuten : 0,
+        // Atemschutzminuten stehen erst nach dem Dienst fest und werden
+        // daher nicht beim Scannen abgefragt, sondern später in der Liste nachgetragen.
+        atemschutzminuten: 0,
       });
       await onAktualisiert();
       zuruecksetzen();
@@ -162,41 +160,6 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
                 <br />
                 <br />
 
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={atemschutzAktiv}
-                    onChange={(e) => {
-                      setAtemschutzAktiv(e.target.checked);
-                      if (!e.target.checked) setAtemschutzminuten(0);
-                      else if (atemschutzminuten === 0) setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
-                    }}
-                  />{" "}
-                  Atemschutz
-                </label>
-                <br />
-                <br />
-
-                {atemschutzAktiv && (
-                  <>
-                    <label htmlFor="db-atemschutz">
-                      Atemschutzminuten: <strong>{atemschutzminuten}</strong>
-                    </label>
-                    <input
-                      id="db-atemschutz"
-                      type="range"
-                      min={0}
-                      max={AGT_MAX_MINUTEN}
-                      step={1}
-                      value={atemschutzminuten}
-                      onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
-                      style={{ width: "100%" }}
-                    />
-                    <br />
-                    <br />
-                  </>
-                )}
-
                 {fehler && <p className="fehlertext">{fehler}</p>}
 
                 <button type="submit" disabled={laeuft}>
@@ -211,16 +174,64 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
             {dienstbuch.teilnehmer.length === 0 && <p style={{ color: "#999" }}>Noch niemand eingetragen.</p>}
             <ul className="dienstbuch-teilnehmer-liste">
               {dienstbuch.teilnehmer.map((t) => (
-                <li key={t.id}>
-                  <strong>{t.person_name}</strong>
-                  {t.gruppe_name ? ` – ${t.gruppe_name}` : ""}
-                  {t.atemschutzminuten ? ` · Atemschutz ${t.atemschutzminuten} min` : ""}
-                </li>
+                <TeilnehmerZeile
+                  key={t.id}
+                  teilnehmer={t}
+                  dienstbuchId={dienstbuch.id}
+                  onAktualisiert={onAktualisiert}
+                />
               ))}
             </ul>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+interface TeilnehmerZeileProps {
+  teilnehmer: TeilnehmerOut;
+  dienstbuchId: number;
+  onAktualisiert: () => Promise<void>;
+}
+
+function TeilnehmerZeile({ teilnehmer, dienstbuchId, onAktualisiert }: TeilnehmerZeileProps) {
+  const [minuten, setMinuten] = useState(teilnehmer.atemschutzminuten);
+
+  useEffect(() => {
+    setMinuten(teilnehmer.atemschutzminuten);
+  }, [teilnehmer.atemschutzminuten]);
+
+  async function speichern(wert: number) {
+    setMinuten(wert);
+    await teilnehmerAktualisieren(dienstbuchId, teilnehmer.id, { atemschutzminuten: wert });
+    await onAktualisiert();
+  }
+
+  return (
+    <li>
+      <strong>{teilnehmer.person_name}</strong>
+      {teilnehmer.gruppe_name ? ` – ${teilnehmer.gruppe_name}` : ""}
+      <label style={{ marginLeft: 12 }}>
+        <input
+          type="checkbox"
+          checked={minuten > 0}
+          onChange={(e) => speichern(e.target.checked ? AGT_DEFAULT_MINUTEN : 0)}
+        />{" "}
+        Atemschutz
+      </label>
+      {minuten > 0 && (
+        <input
+          type="number"
+          min={0}
+          max={AGT_MAX_MINUTEN}
+          value={minuten}
+          onChange={(e) => setMinuten(Number(e.target.value))}
+          onBlur={(e) => speichern(Number(e.target.value))}
+          style={{ width: 60, marginLeft: 8 }}
+        />
+      )}
+      {minuten > 0 && <span style={{ marginLeft: 4, color: "#666", fontSize: "0.85rem" }}>min</span>}
+    </li>
   );
 }

@@ -1,7 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv
-from app.schemas.dienstbuch import DienstbuchAnlegen, DienstbuchOut, TeilnehmerAnlegen, TeilnehmerOut
+from app.schemas.dienstbuch import (
+    DienstbuchAnlegen,
+    DienstbuchOut,
+    TeilnehmerAktualisieren,
+    TeilnehmerAnlegen,
+    TeilnehmerOut,
+)
 from app.services import dienstbuch_service, pdf_service
 
 router = APIRouter(
@@ -57,3 +63,15 @@ async def teilnehmer_eintragen(
             status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden."
         )
     return await dienstbuch_service.teilnehmer_eintragen(db, dienstbuch, person.id, daten)
+
+
+@router.put("/{dienstbuch_id}/teilnehmer/{teilnehmer_id}", response_model=TeilnehmerOut, dependencies=[])
+async def teilnehmer_aktualisieren(
+    db: DbSession, dienstbuch_id: int, teilnehmer_id: int, daten: TeilnehmerAktualisieren
+) -> TeilnehmerOut:
+    """Atemschutzminuten lassen sich erst nach dem Dienst nachtragen – daher
+    direkt in der Teilnehmerliste editierbar statt beim Scannen abgefragt."""
+    teilnehmer = await dienstbuch_service.get_teilnehmer(db, dienstbuch_id, teilnehmer_id)
+    if teilnehmer is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Teilnehmer nicht gefunden.")
+    return await dienstbuch_service.teilnehmer_aktualisieren(db, teilnehmer, daten)
