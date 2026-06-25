@@ -294,6 +294,17 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     }
   }
 
+  async function zurueckKlick() {
+    if (felder && felder.length > 0) {
+      try {
+        await einsatzZusatzfelderAktualisieren(einsatz.id, feldWerte);
+      } catch {
+        // Speichern ist best-effort, soll das Verlassen der Ansicht nicht blockieren.
+      }
+    }
+    onCancel();
+  }
+
   const aktiveFahrzeuge = fahrzeuge.filter((f) => f.aktiv);
   const aktivesFahrzeug = aktiveFahrzeuge.find((f) => f.id === aktivesFahrzeugId) ?? null;
   const hatLinkeSpalte = (felder && felder.length > 0) || geraetehausTeilnehmer.length > 0;
@@ -398,7 +409,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
           </div>
 
           <div style={{ marginTop: "1.5rem" }}>
-            <button className="sekundaer" onClick={onCancel}>
+            <button className="sekundaer" onClick={zurueckKlick}>
               Zurück
             </button>
           </div>

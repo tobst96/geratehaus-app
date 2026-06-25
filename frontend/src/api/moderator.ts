@@ -25,6 +25,8 @@ export const ladeLogoHoch = (datei: File) =>
 export const fuehreArchivierungAus = () =>
   apiPost<{ einsaetze: number; dienstbuecher: number }>("/moderator/einstellungen/archivierung-ausfuehren");
 
+export const sendeTestmail = () => apiPost<void>("/moderator/einstellungen/email-testen");
+
 export const einstellungenVerifizieren = (passwort: string) =>
   apiPost<void>("/moderator/einstellungen/verifizieren", { passwort });
 

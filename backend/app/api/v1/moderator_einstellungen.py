@@ -8,6 +8,7 @@ from app.schemas.auth import PasswortVerifizieren
 from app.schemas.moderator import ModeratorAnlegen, ModeratorOut, ModeratorPasswortAendern
 from app.services import archive_service, logo_service, moderator_service
 from app.services.config_service import config_service
+from app.services.notifier.email import EmailNotifier
 
 router = APIRouter(prefix="/moderator/einstellungen", tags=["moderator:einstellungen"])
 
@@ -44,6 +45,21 @@ async def logo_hochladen(
     logo_url = await logo_service.logo_speichern(datei)
     await config_service.set(db, "logo_url", logo_url)
     return {"logo_url": logo_url}
+
+
+@router.post("/email-testen", status_code=status.HTTP_204_NO_CONTENT)
+async def email_testen(db: DbSession, _moderator: CurrentModerator) -> None:
+    """Sendet eine Testmail mit der aktuell gespeicherten SMTP-Konfiguration,
+    damit Fehler in den Einstellungen sofort sichtbar werden (statt erst beim
+    nächsten echten Ereignis, dessen Versand bei Fehlern nur geloggt wird)."""
+    try:
+        await EmailNotifier().test_versenden(db)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Versand fehlgeschlagen: {exc}"
+        ) from exc
 
 
 @router.post("/archivierung-ausfuehren")
