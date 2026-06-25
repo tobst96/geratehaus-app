@@ -47,6 +47,16 @@ def ist_abgelaufen(reservierung: SitzplatzReservierung) -> bool:
     return ablauf < datetime.now(timezone.utc)
 
 
+async def reservierung_vorschau_setzen(
+    db: AsyncSession, reservierung: SitzplatzReservierung, person_id: int
+) -> None:
+    """Merkt sich die auf dem Handy ausgewählte Person, noch bevor die
+    Eintragung final abgesendet wird, damit das Gerätehaus-Display Name und
+    Bild bereits neben dem QR-Code zeigen kann."""
+    reservierung.vorschau_person_id = person_id
+    await db.commit()
+
+
 async def reservierung_einloesen(
     db: AsyncSession,
     reservierung: SitzplatzReservierung,

@@ -10,6 +10,9 @@ export const holeDienstbuch = (id: number) =>
 export const dienstbuchAnlegen = (titel: string, eroeffnetAm: string, notizen: string | null) =>
   apiPost<DienstbuchOut>("/dienstbuecher", { titel, eroeffnet_am: eroeffnetAm, notizen });
 
+export const dienstbuchReservierungAnlegen = (dienstbuchId: number) =>
+  apiPost<{ token: string; ablauf_am: string }>(`/dienstbuecher/${dienstbuchId}/reservierung`);
+
 export const teilnehmerEintragen = (
   dienstbuchId: number,
   daten: { gruppe_id: number | null; atemschutzminuten: number }

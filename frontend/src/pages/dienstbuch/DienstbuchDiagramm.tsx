@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { teilnehmerAktualisieren, teilnehmerEintragen } from "../../api/dienstbuecher";
+import QRCode from "qrcode";
+import {
+  dienstbuchReservierungAnlegen,
+  teilnehmerAktualisieren,
+  teilnehmerEintragen,
+} from "../../api/dienstbuecher";
+import { holeDienstbuchReservierung } from "../../api/dienstbuchReservierungen";
 import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
@@ -33,6 +39,17 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
   const [gruppeId, setGruppeId] = useState<number | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
+
+  const [qrAnsicht, setQrAnsicht] = useState<{ token: string; bildUrl: string; ablaufAm: string } | null>(
+    null
+  );
+  const [qrFehler, setQrFehler] = useState<string | null>(null);
+  const [qrLaeuft, setQrLaeuft] = useState(false);
+  const [qrVorschauPerson, setQrVorschauPerson] = useState<{ name: string; bildUrl: string | null } | null>(
+    null
+  );
+  const qrVorschauGezeigtSeit = useRef<number | null>(null);
+  const qrSchliessenGeplant = useRef(false);
 
   const letzteVorschauName = useRef<string | null>(null);
 
@@ -70,6 +87,60 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
     setGruppeId(null);
     letzteVorschauName.current = null;
   }
+
+  function qrAnsichtZuruecksetzen() {
+    setQrAnsicht(null);
+    setQrVorschauPerson(null);
+    qrVorschauGezeigtSeit.current = null;
+    qrSchliessenGeplant.current = false;
+  }
+
+  async function barcodeVergessenKlick() {
+    setQrLaeuft(true);
+    setQrFehler(null);
+    try {
+      const { token, ablauf_am } = await dienstbuchReservierungAnlegen(dienstbuch.id);
+      const url = `${window.location.origin}/eintragen-dienstbuch/${token}`;
+      const bildUrl = await QRCode.toDataURL(url, { width: 280, margin: 1 });
+      setQrAnsicht({ token, bildUrl, ablaufAm: ablauf_am });
+    } catch (err) {
+      setQrFehler(err instanceof ApiError ? String(err.detail) : "QR-Code konnte nicht erzeugt werden.");
+    } finally {
+      setQrLaeuft(false);
+    }
+  }
+
+  // Solange der QR-Code angezeigt wird, prüfen ob die Person sich auf dem
+  // eigenen Handy schon ausgewählt bzw. eingetragen hat. Die Vorschau
+  // (Name+Bild) muss mindestens 3 Sekunden sichtbar bleiben, bevor der
+  // Dialog nach erfolgter Eintragung automatisch schließt.
+  useEffect(() => {
+    if (!qrAnsicht) return;
+    const token = qrAnsicht.token;
+    const intervall = setInterval(async () => {
+      try {
+        const info = await holeDienstbuchReservierung(token);
+        if (info.vorschau_person_name && qrVorschauGezeigtSeit.current === null) {
+          qrVorschauGezeigtSeit.current = Date.now();
+        }
+        if (info.vorschau_person_name) {
+          setQrVorschauPerson({ name: info.vorschau_person_name, bildUrl: info.vorschau_bild_url });
+        }
+        if (info.bereits_eingeloest && !qrSchliessenGeplant.current) {
+          qrSchliessenGeplant.current = true;
+          const gezeigtSeit = qrVorschauGezeigtSeit.current;
+          const wartenMs = gezeigtSeit ? Math.max(0, 3000 - (Date.now() - gezeigtSeit)) : 0;
+          setTimeout(async () => {
+            await onAktualisiert();
+            qrAnsichtZuruecksetzen();
+          }, wartenMs);
+        }
+      } catch {
+        // Best effort – wird beim nächsten Intervall erneut versucht.
+      }
+    }, 1500);
+    return () => clearInterval(intervall);
+  }, [qrAnsicht, onAktualisiert]);
 
   async function eintragen(e: FormEvent) {
     e.preventDefault();
@@ -118,55 +189,112 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
         <div className="dienstbuch-diagramm-spalte">
           <form onSubmit={eintragen} className="karte dienstbuch-scan-karte">
             <h3 style={{ marginTop: 0 }}>Barcode scannen</h3>
-            <div className="dienstbuch-scan-layout">
-              {vorschau && (
-                <div className="dienstbuch-scan-vorschau">
-                  {vorschau.bild_url ? (
-                    <img src={vorschau.bild_url} alt={vorschau.name} className="dienstbuch-scan-bild" />
-                  ) : (
-                    <div className="dienstbuch-scan-initialen">{initialenAus(vorschau.name)}</div>
-                  )}
-                  <div className="dienstbuch-scan-name">{vorschau.name}</div>
-                </div>
-              )}
 
-              <div className="dienstbuch-scan-felder">
-                <label htmlFor="db-barcode">Barcode einscannen</label>
-                <input
-                  id="db-barcode"
-                  type="text"
-                  value={barcode}
-                  onChange={(e) => setBarcode(e.target.value)}
-                  placeholder="Barcode scannen oder eingeben"
-                  autoFocus
-                  required
-                />
-                <br />
-                <br />
-
-                <label htmlFor="db-gruppe">Gruppe</label>
-                <select
-                  id="db-gruppe"
-                  value={gruppeId ?? ""}
-                  onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
+            {qrAnsicht ? (
+              <div className="dienstbuch-qr-ansicht">
+                <p style={{ color: "#666" }}>
+                  Mit dem Handy scannen – die Person trägt sich dort selbst ein (ohne Barcode).
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "1.5rem",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                  }}
                 >
-                  <option value="">– keine –</option>
-                  {gruppen.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
-                <br />
-                <br />
-
-                {fehler && <p className="fehlertext">{fehler}</p>}
-
-                <button type="submit" disabled={laeuft}>
-                  {laeuft ? "Wird gespeichert…" : "Eintragen"}
-                </button>
+                  <img
+                    src={qrAnsicht.bildUrl}
+                    alt="QR-Code zum Eintragen ohne Barcode"
+                    className="dienstbuch-qr-bild"
+                  />
+                  {qrVorschauPerson && (
+                    <div className="dienstbuch-scan-vorschau">
+                      {qrVorschauPerson.bildUrl ? (
+                        <img
+                          src={qrVorschauPerson.bildUrl}
+                          alt={qrVorschauPerson.name}
+                          className="dienstbuch-scan-bild"
+                        />
+                      ) : (
+                        <div className="dienstbuch-scan-initialen">{initialenAus(qrVorschauPerson.name)}</div>
+                      )}
+                      <div className="dienstbuch-scan-name">{qrVorschauPerson.name}</div>
+                    </div>
+                  )}
+                </div>
+                <p style={{ fontSize: "0.8rem", color: "#999" }}>
+                  Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
+                </p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
+                    Zurück zum Scannen
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="dienstbuch-scan-layout">
+                {vorschau && (
+                  <div className="dienstbuch-scan-vorschau">
+                    {vorschau.bild_url ? (
+                      <img src={vorschau.bild_url} alt={vorschau.name} className="dienstbuch-scan-bild" />
+                    ) : (
+                      <div className="dienstbuch-scan-initialen">{initialenAus(vorschau.name)}</div>
+                    )}
+                    <div className="dienstbuch-scan-name">{vorschau.name}</div>
+                  </div>
+                )}
+
+                <div className="dienstbuch-scan-felder">
+                  <label htmlFor="db-barcode">Barcode einscannen</label>
+                  <input
+                    id="db-barcode"
+                    type="text"
+                    value={barcode}
+                    onChange={(e) => setBarcode(e.target.value)}
+                    placeholder="Barcode scannen oder eingeben"
+                    autoFocus
+                    required
+                  />
+                  <br />
+                  <br />
+
+                  <label htmlFor="db-gruppe">Gruppe</label>
+                  <select
+                    id="db-gruppe"
+                    value={gruppeId ?? ""}
+                    onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
+                  >
+                    <option value="">– keine –</option>
+                    {gruppen.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.name}
+                      </option>
+                    ))}
+                  </select>
+                  <br />
+                  <br />
+
+                  {fehler && <p className="fehlertext">{fehler}</p>}
+                  {qrFehler && <p className="fehlertext">{qrFehler}</p>}
+
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button type="submit" disabled={laeuft}>
+                      {laeuft ? "Wird gespeichert…" : "Eintragen"}
+                    </button>
+                    <button
+                      type="button"
+                      className="sekundaer"
+                      onClick={barcodeVergessenKlick}
+                      disabled={qrLaeuft}
+                    >
+                      {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
 
           <div className="karte">

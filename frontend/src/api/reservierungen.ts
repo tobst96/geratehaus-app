@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from "./client";
+import { apiGet, apiPost, apiPut } from "./client";
 import type { Person, ReservierungInfo, TeilnahmeOut } from "./types";
 
 export const holeReservierung = (token: string) =>
@@ -6,6 +6,9 @@ export const holeReservierung = (token: string) =>
 
 export const holeReservierungPersonen = (token: string) =>
   apiGet<Person[]>(`/reservierungen/${encodeURIComponent(token)}/personen`);
+
+export const reservierungVorschauSetzen = (token: string, personId: number) =>
+  apiPut<void>(`/reservierungen/${encodeURIComponent(token)}/vorschau`, { person_id: personId });
 
 export interface ReservierungEinloesen {
   person_id: number;

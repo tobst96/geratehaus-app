@@ -8,7 +8,8 @@ from app.schemas.dienstbuch import (
     TeilnehmerAnlegen,
     TeilnehmerOut,
 )
-from app.services import dienstbuch_service, pdf_service
+from app.schemas.dienstbuch_reservierung import DienstbuchReservierungOut
+from app.services import dienstbuch_reservierung_service, dienstbuch_service, pdf_service
 
 router = APIRouter(
     prefix="/dienstbuecher",
@@ -51,6 +52,18 @@ async def dienstbuch_pdf(db: DbSession, dienstbuch_id: int) -> Response:
         media_type="application/pdf",
         headers={"Content-Disposition": f'inline; filename="dienstbuch-{dienstbuch.id}.pdf"'},
     )
+
+
+@router.post("/{dienstbuch_id}/reservierung", response_model=DienstbuchReservierungOut, dependencies=[])
+async def reservierung_anlegen(db: DbSession, dienstbuch_id: int) -> DienstbuchReservierungOut:
+    """Erstellt einen Reservierungs-Token für 'Barcode vergessen' im
+    Dienstbuch. Bewusst ohne Auth, der Button steht im Kiosk ohne
+    Moderator-Login."""
+    dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
+    if dienstbuch is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden.")
+    reservierung = await dienstbuch_reservierung_service.reservierung_anlegen(db, dienstbuch_id)
+    return DienstbuchReservierungOut(token=reservierung.token, ablauf_am=reservierung.ablauf_am)
 
 
 @router.post("/{dienstbuch_id}/teilnehmer", response_model=TeilnehmerOut)

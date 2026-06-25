@@ -91,6 +91,16 @@ export interface ReservierungInfo {
   bereits_eingeloest: boolean;
   nur_geraetehaus: boolean;
   auf_anfahrt: boolean;
+  vorschau_person_name: string | null;
+  vorschau_bild_url: string | null;
+}
+
+export interface DienstbuchReservierungInfo {
+  dienstbuch_titel: string;
+  abgelaufen: boolean;
+  bereits_eingeloest: boolean;
+  vorschau_person_name: string | null;
+  vorschau_bild_url: string | null;
 }
 
 export interface EinsatzFeldDefinition {

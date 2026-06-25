@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from app.api.deps import DbSession
 from app.schemas.einsatz import TeilnahmeOut
 from app.schemas.person import PersonOut
-from app.schemas.reservierung import ReservierungEinloesen, ReservierungInfo
+from app.schemas.reservierung import ReservierungEinloesen, ReservierungInfo, ReservierungVorschauSetzen
 from app.services import einsatz_service, reservierung_service, stammdaten_service
 
 router = APIRouter(prefix="/reservierungen", tags=["reservierungen"])
@@ -26,6 +26,14 @@ async def reservierung_info(db: DbSession, token: str) -> ReservierungInfo:
         fahrzeug = await stammdaten_service.get_fahrzeug(db, reservierung.fahrzeug_id)
         fahrzeug_name = fahrzeug.name if fahrzeug else None
 
+    vorschau_person_name = None
+    vorschau_bild_url = None
+    if reservierung.vorschau_person_id is not None:
+        vorschau_person = await stammdaten_service.get_person(db, reservierung.vorschau_person_id)
+        if vorschau_person is not None:
+            vorschau_person_name = vorschau_person.name
+            vorschau_bild_url = vorschau_person.bild_url
+
     return ReservierungInfo(
         bezeichnung=reservierung.bezeichnung,
         einsatz_titel=einsatz.titel,
@@ -34,7 +42,22 @@ async def reservierung_info(db: DbSession, token: str) -> ReservierungInfo:
         bereits_eingeloest=reservierung.eingeloest,
         nur_geraetehaus=reservierung.nur_geraetehaus,
         auf_anfahrt=reservierung.auf_anfahrt,
+        vorschau_person_name=vorschau_person_name,
+        vorschau_bild_url=vorschau_bild_url,
     )
+
+
+@router.put("/{token}/vorschau", status_code=status.HTTP_204_NO_CONTENT, dependencies=[])
+async def reservierung_vorschau_setzen(
+    db: DbSession, token: str, daten: ReservierungVorschauSetzen
+) -> None:
+    """Wird aufgerufen, sobald die Person sich auf dem Handy auswählt –
+    noch vor dem endgültigen Absenden – damit das Gerätehaus-Display Name
+    und Bild bereits neben dem QR-Code zeigen kann."""
+    reservierung = await reservierung_service.get_reservierung_by_token(db, token)
+    if reservierung is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
+    await reservierung_service.reservierung_vorschau_setzen(db, reservierung, daten.person_id)
 
 
 @router.get("/{token}/personen", response_model=list[PersonOut])

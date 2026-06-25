@@ -71,6 +71,11 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   );
   const [qrFehler, setQrFehler] = useState<string | null>(null);
   const [qrLaeuft, setQrLaeuft] = useState(false);
+  const [qrVorschauPerson, setQrVorschauPerson] = useState<{ name: string; bildUrl: string | null } | null>(
+    null
+  );
+  const qrVorschauGezeigtSeit = useRef<number | null>(null);
+  const qrSchliessenGeplant = useRef(false);
 
   const [alleEingetragenLaeuft, setAlleEingetragenLaeuft] = useState(false);
   const [alleEingetragenFehler, setAlleEingetragenFehler] = useState<string | null>(null);
@@ -142,22 +147,38 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   }, [aktivesFahrzeugId, onAktualisiert]);
 
   // Solange der QR-Code angezeigt wird, prüfen ob die Person sich auf dem
-  // eigenen Handy schon eingetragen hat – dann den Dialog automatisch schließen.
+  // eigenen Handy schon ausgewählt bzw. eingetragen hat. Die Vorschau
+  // (Name+Bild) muss mindestens 3 Sekunden sichtbar bleiben, bevor der
+  // Dialog nach erfolgter Eintragung automatisch schließt.
   useEffect(() => {
     if (!qrAnsicht) return;
     const token = qrAnsicht.token;
     const intervall = setInterval(async () => {
       try {
         const info = await holeReservierung(token);
-        if (info.bereits_eingeloest) {
-          await onAktualisiert();
-          setQrAnsicht(null);
-          setAusgewaehlteAktion(null);
+        if (info.vorschau_person_name && qrVorschauGezeigtSeit.current === null) {
+          qrVorschauGezeigtSeit.current = Date.now();
+        }
+        if (info.vorschau_person_name) {
+          setQrVorschauPerson({ name: info.vorschau_person_name, bildUrl: info.vorschau_bild_url });
+        }
+        if (info.bereits_eingeloest && !qrSchliessenGeplant.current) {
+          qrSchliessenGeplant.current = true;
+          const gezeigtSeit = qrVorschauGezeigtSeit.current;
+          const wartenMs = gezeigtSeit ? Math.max(0, 3000 - (Date.now() - gezeigtSeit)) : 0;
+          setTimeout(async () => {
+            await onAktualisiert();
+            setQrAnsicht(null);
+            setQrVorschauPerson(null);
+            qrVorschauGezeigtSeit.current = null;
+            qrSchliessenGeplant.current = false;
+            setAusgewaehlteAktion(null);
+          }, wartenMs);
         }
       } catch {
         // Best effort – wird beim nächsten Intervall erneut versucht.
       }
-    }, 3000);
+    }, 1500);
     return () => clearInterval(intervall);
   }, [qrAnsicht, onAktualisiert]);
 
@@ -174,11 +195,18 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     return einsatz.teilnahmen.filter((t) => t.fahrzeug_id === fahrzeugId).length;
   }
 
+  function qrAnsichtZuruecksetzen() {
+    setQrAnsicht(null);
+    setQrVorschauPerson(null);
+    qrVorschauGezeigtSeit.current = null;
+    qrSchliessenGeplant.current = false;
+  }
+
   function sitzKlick(fahrzeug: Fahrzeug, sitzplatzId: string, bezeichnung: string, funktionId: number | null) {
     setAusgewaehlteAktion({ fahrzeug, sitzplatzId, bezeichnung, nurGeraetehaus: false, aufAnfahrt: false });
     setBarcode("");
     setVorschau(null);
-    setQrAnsicht(null);
+    qrAnsichtZuruecksetzen();
     setQrFehler(null);
     setVab(false);
     setFunktionId(funktionId);
@@ -198,7 +226,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     });
     setBarcode("");
     setVorschau(null);
-    setQrAnsicht(null);
+    qrAnsichtZuruecksetzen();
     setQrFehler(null);
     setVab(false);
     setFunktionId(null);
@@ -218,7 +246,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     });
     setBarcode("");
     setVorschau(null);
-    setQrAnsicht(null);
+    qrAnsichtZuruecksetzen();
     setQrFehler(null);
     setVab(false);
     setFunktionId(null);
@@ -519,12 +547,32 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                   Mit dem Handy scannen – die Person trägt sich dort selbst für genau diesen Platz ein
                   (ohne Barcode, wird im Bericht entsprechend vermerkt).
                 </p>
-                <img src={qrAnsicht.bildUrl} alt="QR-Code zum Eintragen ohne Barcode" />
+                <div style={{ display: "flex", gap: "1.5rem", alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>
+                  <img
+                    src={qrAnsicht.bildUrl}
+                    alt="QR-Code zum Eintragen ohne Barcode"
+                    className="sitzplatz-qr-bild"
+                  />
+                  {qrVorschauPerson && (
+                    <div className="sitzplatz-scan-vorschau">
+                      {qrVorschauPerson.bildUrl ? (
+                        <img
+                          src={qrVorschauPerson.bildUrl}
+                          alt={qrVorschauPerson.name}
+                          className="sitzplatz-scan-bild"
+                        />
+                      ) : (
+                        <div className="sitzplatz-scan-initialen">{initialenAus(qrVorschauPerson.name)}</div>
+                      )}
+                      <div className="sitzplatz-scan-name">{qrVorschauPerson.name}</div>
+                    </div>
+                  )}
+                </div>
                 <p style={{ fontSize: "0.8rem", color: "#999" }}>
                   Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button type="button" className="sekundaer" onClick={() => setQrAnsicht(null)}>
+                  <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
                     Zurück zum Scannen
                   </button>
                   <button type="button" className="sekundaer" onClick={() => setAusgewaehlteAktion(null)}>

@@ -27,3 +27,7 @@ class SitzplatzReservierung(Base):
     erstellt_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     ablauf_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     eingeloest: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Sobald die Person sich auf dem Handy auswählt (noch vor dem Absenden),
+    # wird das hier vermerkt, damit das Gerätehaus-Display Name+Bild neben
+    # dem QR-Code zeigen kann, ohne auf die endgültige Eintragung zu warten.
+    vorschau_person_id: Mapped[int | None] = mapped_column(ForeignKey("personen.id"), nullable=True)

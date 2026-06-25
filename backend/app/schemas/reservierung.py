@@ -24,6 +24,8 @@ class ReservierungInfo(BaseModel):
     bereits_eingeloest: bool
     nur_geraetehaus: bool
     auf_anfahrt: bool
+    vorschau_person_name: str | None = None
+    vorschau_bild_url: str | None = None
 
 
 class ReservierungEinloesen(BaseModel):
@@ -31,3 +33,7 @@ class ReservierungEinloesen(BaseModel):
     vab: bool = False
     atemschutzminuten: int = Field(default=0, ge=0)
     bemerkung: str | None = None
+
+
+class ReservierungVorschauSetzen(BaseModel):
+    person_id: int

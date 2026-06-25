@@ -1,17 +1,15 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import {
-  holeReservierung,
-  holeReservierungPersonen,
-  reservierungEinloesen,
-  reservierungVorschauSetzen,
-} from "../api/reservierungen";
+  dienstbuchReservierungEinloesen,
+  dienstbuchReservierungVorschauSetzen,
+  holeDienstbuchReservierung,
+  holeDienstbuchReservierungPersonen,
+} from "../api/dienstbuchReservierungen";
+import { holeGruppen } from "../api/stammdaten";
 import { ApiError } from "../api/client";
 import { eintragungGesperrtMinuten, eintragungVermerken } from "../utils/eintragungssperre";
-import type { Person, ReservierungInfo } from "../api/types";
-
-const AGT_MAX_MINUTEN = 35;
-const AGT_DEFAULT_MINUTEN = 30;
+import type { DienstbuchReservierungInfo, Gruppe, Person } from "../api/types";
 
 function initialenAus(name: string): string {
   return name
@@ -23,18 +21,16 @@ function initialenAus(name: string): string {
     .toUpperCase();
 }
 
-export function ManuelleEintragung() {
+export function DienstbuchManuelleEintragung() {
   const { token } = useParams<{ token: string }>();
-  const [info, setInfo] = useState<ReservierungInfo | null>(null);
+  const [info, setInfo] = useState<DienstbuchReservierungInfo | null>(null);
   const [personen, setPersonen] = useState<Person[]>([]);
+  const [gruppen, setGruppen] = useState<Gruppe[]>([]);
   const [ladeFehler, setLadeFehler] = useState<string | null>(null);
 
   const [suche, setSuche] = useState("");
   const [ausgewaehltePerson, setAusgewaehltePerson] = useState<Person | null>(null);
-  const [vab, setVab] = useState(false);
-  const [atemschutzAktiv, setAtemschutzAktiv] = useState(false);
-  const [atemschutzminuten, setAtemschutzminuten] = useState(0);
-  const [bemerkung, setBemerkung] = useState("");
+  const [gruppeId, setGruppeId] = useState<number | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
   const [erfolg, setErfolg] = useState(false);
@@ -42,10 +38,15 @@ export function ManuelleEintragung() {
 
   useEffect(() => {
     if (!token) return;
-    Promise.all([holeReservierung(token), holeReservierungPersonen(token)])
-      .then(([infoResult, personenResult]) => {
+    Promise.all([
+      holeDienstbuchReservierung(token),
+      holeDienstbuchReservierungPersonen(token),
+      holeGruppen(),
+    ])
+      .then(([infoResult, personenResult, gruppenResult]) => {
         setInfo(infoResult);
         setPersonen(personenResult);
+        setGruppen(gruppenResult);
       })
       .catch((err) =>
         setLadeFehler(err instanceof ApiError ? String(err.detail) : "Reservierung konnte nicht geladen werden.")
@@ -59,9 +60,10 @@ export function ManuelleEintragung() {
 
   async function personAuswaehlen(p: Person) {
     setAusgewaehltePerson(p);
+    setGruppeId(p.gruppe_id);
     setSuche("");
     try {
-      if (token) await reservierungVorschauSetzen(token, p.id);
+      if (token) await dienstbuchReservierungVorschauSetzen(token, p.id);
     } catch {
       // Best effort – die Vorschau am Gerätehaus ist nur ein Komfortfeature.
     }
@@ -73,11 +75,9 @@ export function ManuelleEintragung() {
     setLaeuft(true);
     setFehler(null);
     try {
-      await reservierungEinloesen(token, {
+      await dienstbuchReservierungEinloesen(token, {
         person_id: ausgewaehltePerson.id,
-        vab,
-        atemschutzminuten: atemschutzAktiv ? atemschutzminuten : 0,
-        bemerkung: bemerkung.trim() || null,
+        gruppe_id: gruppeId,
       });
       eintragungVermerken();
       setErfolg(true);
@@ -125,8 +125,8 @@ export function ManuelleEintragung() {
         <div className="karte">
           <h1>Eingetragen!</h1>
           <p>
-            Du wurdest für <strong>{info.bezeichnung}</strong> im Einsatz „{info.einsatz_titel}“
-            eingetragen. Du kannst diese Seite jetzt schließen.
+            Du wurdest für das Dienstbuch „{info.dienstbuch_titel}“ eingetragen. Du kannst diese Seite
+            jetzt schließen.
           </p>
         </div>
       </div>
@@ -159,13 +159,10 @@ export function ManuelleEintragung() {
     <div className="seite">
       <div className="karte">
         <h1>Ohne Barcode eintragen</h1>
-        <p style={{ color: "#666" }}>
-          {info.bezeichnung} · Einsatz „{info.einsatz_titel}“
-          {info.fahrzeug_name ? ` · ${info.fahrzeug_name}` : ""}
-        </p>
+        <p style={{ color: "#666" }}>Dienstbuch „{info.dienstbuch_titel}“</p>
 
         <form onSubmit={absenden}>
-          <label htmlFor="me-person">Wer bist du?</label>
+          <label htmlFor="dbme-person">Wer bist du?</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
               {ausgewaehltePerson.bild_url ? (
@@ -199,7 +196,7 @@ export function ManuelleEintragung() {
           ) : (
             <>
               <input
-                id="me-person"
+                id="dbme-person"
                 value={suche}
                 onChange={(e) => setSuche(e.target.value)}
                 placeholder="Namen eingeben und auswählen…"
@@ -231,59 +228,19 @@ export function ManuelleEintragung() {
           <br />
           <br />
 
-          {!info.nur_geraetehaus && !info.auf_anfahrt && (
-            <>
-              <label>
-                <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
-              </label>
-              <br />
-              <br />
-
-              <label>
-                <input
-                  type="checkbox"
-                  checked={atemschutzAktiv}
-                  onChange={(e) => {
-                    setAtemschutzAktiv(e.target.checked);
-                    if (!e.target.checked) setAtemschutzminuten(0);
-                    else if (atemschutzminuten === 0) setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
-                  }}
-                />{" "}
-                Atemschutz
-              </label>
-              <br />
-              <br />
-
-              {atemschutzAktiv && (
-                <>
-                  <label htmlFor="me-atemschutz">
-                    Atemschutzminuten: <strong>{atemschutzminuten}</strong>
-                  </label>
-                  <input
-                    id="me-atemschutz"
-                    type="range"
-                    min={0}
-                    max={AGT_MAX_MINUTEN}
-                    step={1}
-                    value={atemschutzminuten}
-                    onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
-                    style={{ width: "100%" }}
-                  />
-                  <br />
-                  <br />
-                </>
-              )}
-            </>
-          )}
-
-          <label htmlFor="me-bemerkung">Bemerkung (optional)</label>
-          <textarea
-            id="me-bemerkung"
-            rows={2}
-            value={bemerkung}
-            onChange={(e) => setBemerkung(e.target.value)}
-            placeholder="Notizen…"
-          />
+          <label htmlFor="dbme-gruppe">Gruppe</label>
+          <select
+            id="dbme-gruppe"
+            value={gruppeId ?? ""}
+            onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
+          >
+            <option value="">– keine –</option>
+            {gruppen.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
           <br />
           <br />
 
