@@ -314,8 +314,6 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   }
 
   async function alleEingetragenKlick() {
-    const minuten = config?.einsatz_alle_eingetragen_minuten ?? 30;
-    if (!window.confirm(`Einsatz in ${minuten} Minuten automatisch abschließen?`)) return;
     setAlleEingetragenLaeuft(true);
     setAlleEingetragenFehler(null);
     try {
