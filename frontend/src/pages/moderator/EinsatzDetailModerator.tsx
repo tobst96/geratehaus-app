@@ -59,7 +59,6 @@ export function EinsatzDetailModerator() {
 
   async function abschliessen() {
     if (!einsatz) return;
-    if (!confirm(`Einsatz "${einsatz.titel}" als abgeschlossen markieren?`)) return;
     setSchliesstAb(true);
     try {
       await einsatzAbschliessen(einsatz.id);
