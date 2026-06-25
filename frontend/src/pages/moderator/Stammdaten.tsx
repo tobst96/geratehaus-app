@@ -646,6 +646,7 @@ function PersonenTab() {
             </button>
             {barcodes.get(p.id) && (
               <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: 4 }}>{p.name}</div>
                 <img src={barcodeBildUrl(barcodes.get(p.id)!.token)} alt="Barcode" style={{ height: 50 }} />
                 <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
                   <input

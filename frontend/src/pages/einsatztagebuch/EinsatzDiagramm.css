@@ -209,7 +209,7 @@
 }
 
 .sitzplatz-scan-karte {
-  max-width: 620px;
+  max-width: 760px;
   width: 100%;
 }
 
@@ -232,13 +232,13 @@
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  width: 140px;
+  width: 280px;
 }
 
 .sitzplatz-scan-bild,
 .sitzplatz-scan-initialen {
-  width: 140px;
-  height: 140px;
+  width: 280px;
+  height: 280px;
   border-radius: 16px;
   object-fit: cover;
 }
@@ -249,14 +249,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.6rem;
+  font-size: 5.2rem;
   font-weight: 700;
 }
 
 .sitzplatz-scan-name {
   font-weight: 700;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 1.3rem;
 }
 
 .sitzplatz-scan-felder {
