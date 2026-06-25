@@ -199,6 +199,7 @@ export function Einstellungen() {
   const [autoabschlussStunde, setAutoabschlussStunde] = useState(4);
   const [autoabschlussInaktivitaetStunden, setAutoabschlussInaktivitaetStunden] = useState(4);
   const [barcodeGueltigkeitTage, setBarcodeGueltigkeitTage] = useState(730);
+  const [personenSortierung, setPersonenSortierung] = useState("nachname");
 
   const [diveraAktiv, setDiveraAktiv] = useState(false);
   const [diveraApiKey, setDiveraApiKey] = useState("");
@@ -231,6 +232,7 @@ export function Einstellungen() {
       setAutoabschlussStunde(Number(w.einsatz_autoabschluss_stunde ?? 4));
       setAutoabschlussInaktivitaetStunden(Number(w.einsatz_autoabschluss_inaktivitaet_stunden ?? 4));
       setBarcodeGueltigkeitTage(Number(w.barcode_gueltigkeit_tage ?? 730));
+      setPersonenSortierung(String(w.personen_sortierung ?? "nachname"));
       setDiveraAktiv(Boolean(w.divera_aktiv));
       setDiveraApiKey(String(w.divera_api_key ?? ""));
       setDiveraModus(String(w.divera_modus ?? "polling"));
@@ -272,6 +274,7 @@ export function Einstellungen() {
         einsatz_autoabschluss_stunde: autoabschlussStunde,
         einsatz_autoabschluss_inaktivitaet_stunden: autoabschlussInaktivitaetStunden,
         barcode_gueltigkeit_tage: barcodeGueltigkeitTage,
+        personen_sortierung: personenSortierung,
         divera_aktiv: diveraAktiv,
         divera_api_key: diveraApiKey,
         divera_modus: diveraModus,
@@ -579,6 +582,19 @@ export function Einstellungen() {
             />{" "}
             Schwellenwert-Überschreitung
           </label>
+        </div>
+
+        <div className="karte">
+          <h2>Personen</h2>
+          <label htmlFor="e-personen-sortierung">Sortierung der Personenliste</label>
+          <select
+            id="e-personen-sortierung"
+            value={personenSortierung}
+            onChange={(e) => setPersonenSortierung(e.target.value)}
+          >
+            <option value="nachname">Nach Nachname</option>
+            <option value="gruppe_nachname">Nach Gruppe, dann Nachname</option>
+          </select>
         </div>
 
         <div className="karte">

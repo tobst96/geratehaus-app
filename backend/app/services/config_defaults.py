@@ -85,6 +85,13 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.INT,
         "Gültigkeitsdauer neu erzeugter Personen-Barcodes in Tagen",
     ),
+    # Personen
+    ConfigDefault(
+        "personen_sortierung",
+        "nachname",
+        ConfigTyp.STR,
+        "Sortierung der Personenliste: 'nachname' oder 'gruppe_nachname'",
+    ),
     # Divera 24/7
     ConfigDefault("divera_aktiv", "false", ConfigTyp.BOOL, "Divera-Anbindung aktiv"),
     ConfigDefault("divera_api_key", "", ConfigTyp.STR, "Divera Accesskey/API-Key"),

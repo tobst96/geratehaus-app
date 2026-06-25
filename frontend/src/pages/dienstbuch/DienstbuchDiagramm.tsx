@@ -210,28 +210,37 @@ function TeilnehmerZeile({ teilnehmer, dienstbuchId, onAktualisiert }: Teilnehme
 
   return (
     <li>
-      <strong>{teilnehmer.person_name}</strong>
-      {teilnehmer.gruppe_name ? ` – ${teilnehmer.gruppe_name}` : ""}
-      <label style={{ marginLeft: 12 }}>
-        <input
-          type="checkbox"
-          checked={minuten > 0}
-          onChange={(e) => speichern(e.target.checked ? AGT_DEFAULT_MINUTEN : 0)}
-        />{" "}
-        Atemschutz
-      </label>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <strong>{teilnehmer.person_name}</strong>
+        {teilnehmer.gruppe_name ? <span>{teilnehmer.gruppe_name}</span> : null}
+        <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <input
+            type="checkbox"
+            checked={minuten > 0}
+            onChange={(e) => speichern(e.target.checked ? AGT_DEFAULT_MINUTEN : 0)}
+          />{" "}
+          Atemschutz
+        </label>
+      </div>
       {minuten > 0 && (
-        <input
-          type="number"
-          min={0}
-          max={AGT_MAX_MINUTEN}
-          value={minuten}
-          onChange={(e) => setMinuten(Number(e.target.value))}
-          onBlur={(e) => speichern(Number(e.target.value))}
-          style={{ width: 60, marginLeft: 8 }}
-        />
+        <div style={{ marginTop: 4 }}>
+          <label>
+            Atemschutzminuten: <strong>{minuten}</strong>
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={AGT_MAX_MINUTEN}
+            step={1}
+            value={minuten}
+            onChange={(e) => setMinuten(Number(e.target.value))}
+            onMouseUp={(e) => speichern(Number((e.target as HTMLInputElement).value))}
+            onTouchEnd={(e) => speichern(Number((e.target as HTMLInputElement).value))}
+            onKeyUp={(e) => speichern(Number((e.target as HTMLInputElement).value))}
+            style={{ width: "100%" }}
+          />
+        </div>
       )}
-      {minuten > 0 && <span style={{ marginLeft: 4, color: "#666", fontSize: "0.85rem" }}>min</span>}
     </li>
   );
 }

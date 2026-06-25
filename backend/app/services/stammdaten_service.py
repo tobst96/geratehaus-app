@@ -27,6 +27,7 @@ from app.schemas.stammdaten import (
     GruppeCreate,
     GruppeUpdate,
 )
+from app.services.config_service import config_service
 
 
 def _voller_name(vorname: str, zwischenname: str | None, nachname: str) -> str:
@@ -249,7 +250,15 @@ async def get_einsatz_feld(db: AsyncSession, feld_id: int) -> EinsatzFeldDefinit
 
 
 async def liste_personen(db: AsyncSession) -> list[Person]:
-    result = await db.execute(select(Person).order_by(Person.nachname, Person.vorname, Person.name))
+    sortierung = await config_service.get(db, "personen_sortierung", "nachname")
+    stmt = select(Person)
+    if sortierung == "gruppe_nachname":
+        stmt = stmt.outerjoin(Gruppe, Person.gruppe_id == Gruppe.id).order_by(
+            Gruppe.name, Person.nachname, Person.vorname, Person.name
+        )
+    else:
+        stmt = stmt.order_by(Person.nachname, Person.vorname, Person.name)
+    result = await db.execute(stmt)
     return list(result.scalars().all())
 
 
