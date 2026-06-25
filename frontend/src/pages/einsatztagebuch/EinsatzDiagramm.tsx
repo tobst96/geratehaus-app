@@ -59,7 +59,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   const [barcode, setBarcode] = useState("");
   const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [vab, setVab] = useState(false);
-  const [atemschutzminuten, setAtemschutzminuten] = useState(AGT_DEFAULT_MINUTEN);
+  const [atemschutzAktiv, setAtemschutzAktiv] = useState(false);
+  const [atemschutzminuten, setAtemschutzminuten] = useState(0);
   const [bemerkung, setBemerkung] = useState("");
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
@@ -179,7 +180,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     setQrAnsicht(null);
     setQrFehler(null);
     setVab(false);
-    setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
+    setAtemschutzAktiv(false);
+    setAtemschutzminuten(0);
     setBemerkung("");
     setFehler(null);
   }
@@ -197,7 +199,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     setQrAnsicht(null);
     setQrFehler(null);
     setVab(false);
-    setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
+    setAtemschutzAktiv(false);
+    setAtemschutzminuten(0);
     setBemerkung("");
     setFehler(null);
   }
@@ -215,7 +218,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     setQrAnsicht(null);
     setQrFehler(null);
     setVab(false);
-    setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
+    setAtemschutzAktiv(false);
+    setAtemschutzminuten(0);
     setBemerkung("");
     setFehler(null);
   }
@@ -235,7 +239,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
         sitzplatz_id: ausgewaehlteAktion.sitzplatzId,
         funktion_id: null,
         vab,
-        atemschutzminuten,
+        atemschutzminuten: atemschutzAktiv ? atemschutzminuten : 0,
         nur_geraetehaus: ausgewaehlteAktion.nurGeraetehaus,
         auf_anfahrt: ausgewaehlteAktion.aufAnfahrt,
         bemerkung: bemerkung.trim() || null,
@@ -559,20 +563,39 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
                       <br />
                       <br />
 
-                      <label htmlFor="ed-atemschutz">
-                        Atemschutzminuten: <strong>{atemschutzminuten}</strong>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={atemschutzAktiv}
+                          onChange={(e) => {
+                            setAtemschutzAktiv(e.target.checked);
+                            if (!e.target.checked) setAtemschutzminuten(0);
+                            else if (atemschutzminuten === 0) setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
+                          }}
+                        />{" "}
+                        Atemschutz
                       </label>
-                      <input
-                        id="ed-atemschutz"
-                        type="range"
-                        min={0}
-                        max={AGT_MAX_MINUTEN}
-                        step={1}
-                        value={atemschutzminuten}
-                        onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
-                        style={{ width: "100%" }}
-                      />
                       <br />
+                      <br />
+
+                      {atemschutzAktiv && (
+                        <>
+                          <label htmlFor="ed-atemschutz">
+                            Atemschutzminuten: <strong>{atemschutzminuten}</strong>
+                          </label>
+                          <input
+                            id="ed-atemschutz"
+                            type="range"
+                            min={0}
+                            max={AGT_MAX_MINUTEN}
+                            step={1}
+                            value={atemschutzminuten}
+                            onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
+                            style={{ width: "100%" }}
+                          />
+                          <br />
+                        </>
+                      )}
                       <br />
                     </>
                   )}

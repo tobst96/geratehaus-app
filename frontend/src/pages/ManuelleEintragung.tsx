@@ -16,7 +16,8 @@ export function ManuelleEintragung() {
   const [suche, setSuche] = useState("");
   const [ausgewaehltePerson, setAusgewaehltePerson] = useState<Person | null>(null);
   const [vab, setVab] = useState(false);
-  const [atemschutzminuten, setAtemschutzminuten] = useState(AGT_DEFAULT_MINUTEN);
+  const [atemschutzAktiv, setAtemschutzAktiv] = useState(false);
+  const [atemschutzminuten, setAtemschutzminuten] = useState(0);
   const [bemerkung, setBemerkung] = useState("");
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
@@ -48,7 +49,7 @@ export function ManuelleEintragung() {
       await reservierungEinloesen(token, {
         person_id: ausgewaehltePerson.id,
         vab,
-        atemschutzminuten,
+        atemschutzminuten: atemschutzAktiv ? atemschutzminuten : 0,
         bemerkung: bemerkung.trim() || null,
       });
       setErfolg(true);
@@ -175,21 +176,40 @@ export function ManuelleEintragung() {
               <br />
               <br />
 
-              <label htmlFor="me-atemschutz">
-                Atemschutzminuten: <strong>{atemschutzminuten}</strong>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={atemschutzAktiv}
+                  onChange={(e) => {
+                    setAtemschutzAktiv(e.target.checked);
+                    if (!e.target.checked) setAtemschutzminuten(0);
+                    else if (atemschutzminuten === 0) setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
+                  }}
+                />{" "}
+                Atemschutz
               </label>
-              <input
-                id="me-atemschutz"
-                type="range"
-                min={0}
-                max={AGT_MAX_MINUTEN}
-                step={1}
-                value={atemschutzminuten}
-                onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
-                style={{ width: "100%" }}
-              />
               <br />
               <br />
+
+              {atemschutzAktiv && (
+                <>
+                  <label htmlFor="me-atemschutz">
+                    Atemschutzminuten: <strong>{atemschutzminuten}</strong>
+                  </label>
+                  <input
+                    id="me-atemschutz"
+                    type="range"
+                    min={0}
+                    max={AGT_MAX_MINUTEN}
+                    step={1}
+                    value={atemschutzminuten}
+                    onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
+                    style={{ width: "100%" }}
+                  />
+                  <br />
+                  <br />
+                </>
+              )}
             </>
           )}
 
