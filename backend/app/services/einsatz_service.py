@@ -155,8 +155,19 @@ async def einsatz_abschliessen(db: AsyncSession, einsatz: Einsatz) -> Einsatz:
     await ereignis_protokollieren(db, einsatz.id, "abgeschlossen", "Einsatz abgeschlossen")
     geladen = await get_einsatz(db, einsatz.id)
     assert geladen is not None
-    await notifier_service.benachrichtige(db, "benachrichtigung_neuer_einsatz", titel=geladen.titel)
-    await _pdf_per_mail_versenden(db, geladen)
+
+    # Wenn die E-Mail bei Abschluss mit PDF+Timeline versendet wird, soll der
+    # generische Benachrichtigungs-Dispatch den E-Mail-Kanal für dieses
+    # Ereignis NICHT zusätzlich bedienen – sonst kämen zwei Mails an.
+    pdf_mail_aktiv = await config_service.get(db, "notifier_email_aktiv", False) and await config_service.get(
+        db, "notifier_email_pdf_bei_abschluss", False
+    )
+    ausschluss = {"email"} if pdf_mail_aktiv else None
+    await notifier_service.benachrichtige(
+        db, "benachrichtigung_neuer_einsatz", ausschluss_kanaele=ausschluss, titel=geladen.titel
+    )
+    if pdf_mail_aktiv:
+        await _pdf_per_mail_versenden(db, geladen)
     return geladen
 
 
@@ -200,19 +211,17 @@ async def einsaetze_mit_faelligem_abschluss(db: AsyncSession) -> list[Einsatz]:
 
 
 async def _pdf_per_mail_versenden(db: AsyncSession, einsatz: Einsatz) -> None:
-    if not await config_service.get(db, "notifier_email_aktiv", False):
-        return
-    if not await config_service.get(db, "notifier_email_pdf_bei_abschluss", False):
-        return
     try:
+        ereignisse = await liste_ereignisse(db, einsatz.id)
+        timeline_text = "\n".join(
+            f"{e.zeitpunkt.strftime('%d.%m.%Y %H:%M')} – {e.beschreibung}" for e in ereignisse
+        )
+        nachricht = f"Einsatz abgeschlossen: {einsatz.titel}\n\nVerlauf:\n{timeline_text}"
+
         pdf_inhalt = await pdf_service.einsatz_pdf(db, einsatz)
         dateiname = f"einsatz-{einsatz.id}.pdf"
         await EmailNotifier().pdf_versenden(
-            db,
-            f"Einsatzbericht: {einsatz.titel}",
-            f"Im Anhang der Einsatzbericht für „{einsatz.titel}“.",
-            dateiname,
-            pdf_inhalt,
+            db, f"Einsatz abgeschlossen: {einsatz.titel}", nachricht, dateiname, pdf_inhalt
         )
         await ereignis_protokollieren(db, einsatz.id, "email", "Einsatzbericht (PDF) per E-Mail versendet")
     except Exception as exc:

@@ -44,10 +44,17 @@ async def _aktive_notifier(db: AsyncSession) -> list[Notifier]:
     return notifier
 
 
-async def benachrichtige(db: AsyncSession, ereignis_schluessel: str, **platzhalter: object) -> None:
+async def benachrichtige(
+    db: AsyncSession,
+    ereignis_schluessel: str,
+    ausschluss_kanaele: set[str] | None = None,
+    **platzhalter: object,
+) -> None:
     """Sendet eine Benachrichtigung für ein Ereignis, falls es in app_config
     aktiviert ist. ereignis_schluessel ist einer der vier
-    benachrichtigung_*-Keys aus app_config."""
+    benachrichtigung_*-Keys aus app_config. `ausschluss_kanaele` erlaubt es
+    Aufrufern, einen Kanal hier auszulassen, wenn sie ihn selbst (z. B. mit
+    PDF-Anhang) separat bedienen, um Doppel-Mails zu vermeiden."""
     if not await config_service.get(db, ereignis_schluessel, True):
         return
 
@@ -61,6 +68,8 @@ async def benachrichtige(db: AsyncSession, ereignis_schluessel: str, **platzhalt
 
     betreff = EREIGNIS_BETREFF[ereignis_schluessel]
     for notifier in await _aktive_notifier(db):
+        if ausschluss_kanaele and notifier.name in ausschluss_kanaele:
+            continue
         try:
             await notifier.send(db, betreff, nachricht)
         except Exception:
