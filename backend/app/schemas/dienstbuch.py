@@ -37,4 +37,5 @@ class DienstbuchOut(BaseModel):
     eroeffnet_am: datetime
     notizen: str | None
     archiviert: bool
+    geschlossen: bool
     teilnehmer: list[TeilnehmerOut] = []

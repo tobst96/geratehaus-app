@@ -15,6 +15,7 @@ interface NotifierConfig {
   email_from: string;
   email_recipients: string;
   email_pdf_bei_abschluss: boolean;
+  email_pdf_bei_dienstbuch_abschluss: boolean;
   webpush_enabled: boolean;
   webpush_vapid_public: string;
   webpush_vapid_private: string;
@@ -46,6 +47,7 @@ export function NotifierEinstellungen() {
           email_from: String(w.notifier_email_from ?? ""),
           email_recipients: String(w.notifier_email_recipients ?? ""),
           email_pdf_bei_abschluss: Boolean(w.notifier_email_pdf_bei_abschluss),
+          email_pdf_bei_dienstbuch_abschluss: Boolean(w.notifier_email_pdf_bei_dienstbuch_abschluss),
           webpush_enabled: Boolean(w.notifier_webpush_aktiv),
           webpush_vapid_public: String(w.notifier_webpush_vapid_public_key ?? ""),
           webpush_vapid_private: String(w.notifier_webpush_vapid_private_key ?? ""),
@@ -78,6 +80,7 @@ export function NotifierEinstellungen() {
         notifier_email_from: config.email_from,
         notifier_email_recipients: config.email_recipients,
         notifier_email_pdf_bei_abschluss: config.email_pdf_bei_abschluss,
+        notifier_email_pdf_bei_dienstbuch_abschluss: config.email_pdf_bei_dienstbuch_abschluss,
         notifier_webpush_aktiv: config.webpush_enabled,
         notifier_webpush_vapid_public_key: config.webpush_vapid_public,
         notifier_webpush_vapid_private_key: config.webpush_vapid_private,
@@ -278,6 +281,18 @@ export function NotifierEinstellungen() {
               disabled={!config.email_enabled}
             />{" "}
             Einsatzbericht (PDF) bei Abschluss automatisch per E-Mail versenden
+          </label>
+          <br />
+          <label>
+            <input
+              type="checkbox"
+              checked={config.email_pdf_bei_dienstbuch_abschluss}
+              onChange={(e) =>
+                setConfig({ ...config, email_pdf_bei_dienstbuch_abschluss: e.target.checked })
+              }
+              disabled={!config.email_enabled}
+            />{" "}
+            Dienstbuch (PDF) beim automatischen nächtlichen Abschluss per E-Mail versenden
           </label>
           <br />
           <br />

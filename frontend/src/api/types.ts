@@ -137,6 +137,7 @@ export interface DienstbuchOut {
   eroeffnet_am: string;
   notizen: string | null;
   archiviert: boolean;
+  geschlossen: boolean;
   teilnehmer: TeilnehmerOut[];
 }
 

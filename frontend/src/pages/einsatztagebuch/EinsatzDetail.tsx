@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams, Link } from "react-router-dom";
-import { holeEinsatz, teilnahmeEintragen, einsatzPdfUrl } from "../../api/einsaetze";
+import { holeEinsatz, teilnahmeEintragen } from "../../api/einsaetze";
 import { holeFahrzeuge, holeFunktionenEinsatz } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import type { EinsatzOut, Fahrzeug, FunktionEinsatz } from "../../api/types";
@@ -70,11 +70,6 @@ export function EinsatzDetail() {
       <h1>{einsatz.titel}</h1>
       <p>
         {new Date(einsatz.zeitpunkt).toLocaleString("de-DE")} · {einsatz.quelle} · {einsatz.status}
-      </p>
-      <p>
-        <a href={einsatzPdfUrl(einsatz.id)} target="_blank" rel="noreferrer">
-          Als PDF exportieren
-        </a>
       </p>
 
       <div className="karte">

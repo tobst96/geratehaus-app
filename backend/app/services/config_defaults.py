@@ -108,6 +108,12 @@ DEFAULTS: list[ConfigDefault] = [
         "Zeitfenster (h) für 'letzte Dienstbücher'",
     ),
     ConfigDefault(
+        "dienstbuch_autoschluss_stunde",
+        "4",
+        ConfigTyp.INT,
+        "Stunde (0-23), zu der offene Dienstbücher täglich automatisch geschlossen werden",
+    ),
+    ConfigDefault(
         "archivierungszeitraum_jahre", "2", ConfigTyp.INT, "Archivierungszeitraum in Jahren"
     ),
     # Benachrichtigungen (Events einzeln an/abschaltbar)
@@ -147,6 +153,12 @@ DEFAULTS: list[ConfigDefault] = [
         "false",
         ConfigTyp.BOOL,
         "PDF-Export automatisch per E-Mail versenden, wenn ein Einsatz abgeschlossen wird",
+    ),
+    ConfigDefault(
+        "notifier_email_pdf_bei_dienstbuch_abschluss",
+        "false",
+        ConfigTyp.BOOL,
+        "PDF-Export automatisch per E-Mail versenden, wenn ein Dienstbuch automatisch geschlossen wird",
     ),
     ConfigDefault("notifier_email_smtp_host", "", ConfigTyp.STR, "SMTP-Server"),
     ConfigDefault("notifier_email_smtp_port", "587", ConfigTyp.INT, "SMTP-Port"),

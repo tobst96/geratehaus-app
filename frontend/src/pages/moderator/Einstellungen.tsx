@@ -193,6 +193,7 @@ export function Einstellungen() {
   const [modulFahrzeugbuchungStartseite, setModulFahrzeugbuchungStartseite] = useState(false);
 
   const [dienstbuchZeitfenster, setDienstbuchZeitfenster] = useState(12);
+  const [dienstbuchAutoschlussStunde, setDienstbuchAutoschlussStunde] = useState(4);
   const [archivierungszeitraum, setArchivierungszeitraum] = useState(2);
   const [einsatzCountdownMinuten, setEinsatzCountdownMinuten] = useState(30);
   const [alleEingetragenMinuten, setAlleEingetragenMinuten] = useState(30);
@@ -226,6 +227,7 @@ export function Einstellungen() {
       setModulDienststundenStartseite(Boolean(w.modul_dienststunden_startseite));
       setModulFahrzeugbuchungStartseite(Boolean(w.modul_fahrzeugbuchung_startseite));
       setDienstbuchZeitfenster(Number(w.dienstbuch_zeitfenster_stunden ?? 12));
+      setDienstbuchAutoschlussStunde(Number(w.dienstbuch_autoschluss_stunde ?? 4));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
       setEinsatzCountdownMinuten(Number(w.einsatz_countdown_minuten ?? 30));
       setAlleEingetragenMinuten(Number(w.einsatz_alle_eingetragen_minuten ?? 30));
@@ -268,6 +270,7 @@ export function Einstellungen() {
         modul_dienststunden_startseite: modulDienststundenStartseite,
         modul_fahrzeugbuchung_startseite: modulFahrzeugbuchungStartseite,
         dienstbuch_zeitfenster_stunden: dienstbuchZeitfenster,
+        dienstbuch_autoschluss_stunde: dienstbuchAutoschlussStunde,
         archivierungszeitraum_jahre: archivierungszeitraum,
         einsatz_countdown_minuten: einsatzCountdownMinuten,
         einsatz_alle_eingetragen_minuten: alleEingetragenMinuten,
@@ -483,6 +486,19 @@ export function Einstellungen() {
             min={1}
             value={dienstbuchZeitfenster}
             onChange={(e) => setDienstbuchZeitfenster(Number(e.target.value))}
+          />
+          <br />
+          <br />
+          <label htmlFor="e-dienstbuch-autoschluss">
+            Offene Dienstbücher automatisch schließen um (Uhrzeit, Stunde 0–23)
+          </label>
+          <input
+            id="e-dienstbuch-autoschluss"
+            type="number"
+            min={0}
+            max={23}
+            value={dienstbuchAutoschlussStunde}
+            onChange={(e) => setDienstbuchAutoschlussStunde(Number(e.target.value))}
           />
           <br />
           <br />

@@ -1,13 +1,17 @@
 from datetime import datetime, timedelta, timezone
 
+import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.dienstbuch import Dienstbuch, DienstbuchPerson
 from app.schemas.dienstbuch import DienstbuchAnlegen, TeilnehmerAktualisieren, TeilnehmerAnlegen
-from app.services import notifier_service
+from app.services import notifier_service, pdf_service
 from app.services.config_service import config_service
+from app.services.notifier.email import EmailNotifier
+
+logger = structlog.get_logger(__name__)
 
 _TEILNEHMER_DETAILS = (
     selectinload(Dienstbuch.teilnehmer).selectinload(DienstbuchPerson.person),
@@ -22,7 +26,11 @@ async def letzte_dienstbuecher(db: AsyncSession) -> list[Dienstbuch]:
     stmt = (
         select(Dienstbuch)
         .options(*_TEILNEHMER_DETAILS)
-        .where(Dienstbuch.archiviert.is_(False), Dienstbuch.eroeffnet_am >= grenze)
+        .where(
+            Dienstbuch.archiviert.is_(False),
+            Dienstbuch.geschlossen.is_(False),
+            Dienstbuch.eroeffnet_am >= grenze,
+        )
         .order_by(Dienstbuch.eroeffnet_am.desc())
     )
     result = await db.execute(stmt)
@@ -97,3 +105,41 @@ async def teilnehmer_aktualisieren(
     geladen = await get_teilnehmer(db, teilnehmer.dienstbuch_id, teilnehmer.id)
     assert geladen is not None
     return geladen
+
+
+async def offene_dienstbuecher(db: AsyncSession) -> list[Dienstbuch]:
+    """Alle noch nicht geschlossenen Dienstbücher – Grundlage für den
+    nächtlichen Autoschluss-Job (unabhängig vom Zeitfenster der Kiosk-Liste)."""
+    stmt = (
+        select(Dienstbuch).options(*_TEILNEHMER_DETAILS).where(Dienstbuch.geschlossen.is_(False))
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def dienstbuch_schliessen(db: AsyncSession, dienstbuch: Dienstbuch) -> Dienstbuch:
+    dienstbuch.geschlossen = True
+    await db.commit()
+    geladen = await get_dienstbuch(db, dienstbuch.id)
+    assert geladen is not None
+    await _pdf_per_mail_versenden(geladen, db)
+    return geladen
+
+
+async def _pdf_per_mail_versenden(dienstbuch: Dienstbuch, db: AsyncSession) -> None:
+    if not await config_service.get(db, "notifier_email_aktiv", False):
+        return
+    if not await config_service.get(db, "notifier_email_pdf_bei_dienstbuch_abschluss", False):
+        return
+    try:
+        pdf_inhalt = await pdf_service.dienstbuch_pdf(db, dienstbuch)
+        dateiname = f"dienstbuch-{dienstbuch.id}.pdf"
+        await EmailNotifier().pdf_versenden(
+            db,
+            f"Dienstbuch abgeschlossen: {dienstbuch.titel}",
+            f"Im Anhang das geschlossene Dienstbuch „{dienstbuch.titel}“.",
+            dateiname,
+            pdf_inhalt,
+        )
+    except Exception:
+        logger.warning("dienstbuch_pdf_mail_fehlgeschlagen", exc_info=True)

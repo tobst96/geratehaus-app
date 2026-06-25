@@ -1,9 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import {
-  holeLetzteDienstbuecher,
-  dienstbuchAnlegen,
-  dienstbuchPdfUrl,
-} from "../../api/dienstbuecher";
+import { holeLetzteDienstbuecher, dienstbuchAnlegen } from "../../api/dienstbuecher";
 import { holeGruppen } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import { DienstbuchDiagramm } from "./DienstbuchDiagramm";
@@ -117,12 +113,7 @@ export function Dienstbuch() {
               </div>
               {d.notizen && <p style={{ margin: "0.25rem 0 0" }}>{d.notizen}</p>}
             </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <a href={dienstbuchPdfUrl(d.id)} target="_blank" rel="noreferrer">
-                Als PDF exportieren
-              </a>
-              <button onClick={() => setSelectedDienstbuchId(d.id)}>Öffnen</button>
-            </div>
+            <button onClick={() => setSelectedDienstbuchId(d.id)}>Öffnen</button>
           </div>
         </div>
       ))}

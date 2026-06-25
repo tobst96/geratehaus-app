@@ -7,7 +7,7 @@ import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.db.session import AsyncSessionLocal
-from app.services import archive_service, divera_service, einsatz_service
+from app.services import archive_service, dienstbuch_service, divera_service, einsatz_service
 from app.services.config_service import config_service
 
 logger = structlog.get_logger(__name__)
@@ -69,6 +69,23 @@ async def _einsatz_geplanter_abschluss_job() -> None:
             logger.warning("einsatz_geplanter_abschluss_fehlgeschlagen", exc_info=True)
 
 
+async def _dienstbuch_autoschluss_job() -> None:
+    """Läuft stündlich; schließt alle noch offenen Dienstbücher in der in
+    den Einstellungen konfigurierten Stunde (Standard 4 Uhr)."""
+    async with AsyncSessionLocal() as db:
+        try:
+            stunde = await config_service.get(db, "dienstbuch_autoschluss_stunde", 4)
+            if datetime.now().hour != int(stunde):
+                return
+            dienstbuecher = await dienstbuch_service.offene_dienstbuecher(db)
+            for dienstbuch in dienstbuecher:
+                await dienstbuch_service.dienstbuch_schliessen(db, dienstbuch)
+            if dienstbuecher:
+                logger.info("dienstbuecher_automatisch_geschlossen", anzahl=len(dienstbuecher))
+        except Exception:
+            logger.warning("dienstbuch_autoschluss_fehlgeschlagen", exc_info=True)
+
+
 def registriere_jobs() -> None:
     # Immer registriert; ob tatsächlich synchronisiert wird, entscheidet
     # _divera_polling_job anhand der app_config-Werte (Einstellungen-UI),
@@ -111,6 +128,15 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("einsatz_geplanter_abschluss_job_registriert")
+
+    scheduler.add_job(
+        _dienstbuch_autoschluss_job,
+        "cron",
+        minute=0,
+        id="dienstbuch_autoschluss",
+        replace_existing=True,
+    )
+    logger.info("dienstbuch_autoschluss_job_registriert")
 
 
 def start() -> None:

@@ -8,6 +8,7 @@ import {
   holeNamensabweichungen,
   type NamensAbweichungOut,
 } from "../../api/moderator";
+import { dienstbuchPdfUrl } from "../../api/dienstbuecher";
 import { ApiError } from "../../api/client";
 import type { BuchungOut, DienstbuchOut, EinsatzOut } from "../../api/types";
 import type { DienststundenEintragOut } from "../../api/dienststunden";
@@ -149,6 +150,7 @@ function DienstbuecherTab() {
               <th>Eröffnet am</th>
               <th>Teilnehmer</th>
               <th>Archiviert</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -158,6 +160,11 @@ function DienstbuecherTab() {
                 <td>{new Date(d.eroeffnet_am).toLocaleString("de-DE")}</td>
                 <td>{d.teilnehmer.length}</td>
                 <td>{d.archiviert ? "Ja" : ""}</td>
+                <td>
+                  <a href={dienstbuchPdfUrl(d.id)} target="_blank" rel="noreferrer">
+                    Als PDF exportieren
+                  </a>
+                </td>
               </tr>
             ))}
           </tbody>
