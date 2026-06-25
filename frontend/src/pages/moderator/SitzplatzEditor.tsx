@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
 import { fahrzeugAktualisieren } from "../../api/moderator";
 import { ApiError } from "../../api/client";
-import type { Fahrzeug, Sitzplatz } from "../../api/types";
+import type { Fahrzeug, FunktionEinsatz, Sitzplatz } from "../../api/types";
 
 interface PresetDefinition {
   label: string;
-  sitzplaetze: Omit<Sitzplatz, "id">[];
+  sitzplaetze: Omit<Sitzplatz, "id" | "funktion_id">[];
 }
 
 // Standard-Besatzungen nach DIN 14502 / FwDV: Trupp (1+2), Staffel (1+5), Gruppe (1+8).
@@ -52,11 +52,12 @@ function neueSitzplatzId(): string {
 
 interface SitzplatzEditorProps {
   fahrzeug: Fahrzeug;
+  funktionen: FunktionEinsatz[];
   onClose: () => void;
   onGespeichert: (fahrzeug: Fahrzeug) => void;
 }
 
-export function SitzplatzEditor({ fahrzeug, onClose, onGespeichert }: SitzplatzEditorProps) {
+export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }: SitzplatzEditorProps) {
   const [sitzplaetze, setSitzplaetze] = useState<Sitzplatz[]>(fahrzeug.sitzplaetze ?? []);
   const [ausgewaehlt, setAusgewaehlt] = useState<string | null>(null);
   const [speichern, setSpeichern] = useState(false);
@@ -69,7 +70,7 @@ export function SitzplatzEditor({ fahrzeug, onClose, onGespeichert }: SitzplatzE
     if (sitzplaetze.length > 0 && !window.confirm("Vorhandene Sitzplätze durch Vorlage ersetzen?")) {
       return;
     }
-    setSitzplaetze(preset.sitzplaetze.map((s) => ({ ...s, id: neueSitzplatzId() })));
+    setSitzplaetze(preset.sitzplaetze.map((s) => ({ ...s, id: neueSitzplatzId(), funktion_id: null })));
     setAusgewaehlt(null);
   }
 
@@ -85,7 +86,7 @@ export function SitzplatzEditor({ fahrzeug, onClose, onGespeichert }: SitzplatzE
     const { x, y } = boxKoordinaten(e);
     const bezeichnung = window.prompt("Bezeichnung des neuen Sitzplatzes:", "Sitzplatz");
     if (!bezeichnung || !bezeichnung.trim()) return;
-    const neu: Sitzplatz = { id: neueSitzplatzId(), bezeichnung: bezeichnung.trim(), x, y };
+    const neu: Sitzplatz = { id: neueSitzplatzId(), bezeichnung: bezeichnung.trim(), x, y, funktion_id: null };
     setSitzplaetze((vorher) => [...vorher, neu]);
     setAusgewaehlt(neu.id);
   }
@@ -114,6 +115,10 @@ export function SitzplatzEditor({ fahrzeug, onClose, onGespeichert }: SitzplatzE
     const neuerName = window.prompt("Neue Bezeichnung:", aktuell.bezeichnung);
     if (!neuerName || !neuerName.trim()) return;
     setSitzplaetze((vorher) => vorher.map((s) => (s.id === id ? { ...s, bezeichnung: neuerName.trim() } : s)));
+  }
+
+  function funktionAendern(id: string, funktionId: number | null) {
+    setSitzplaetze((vorher) => vorher.map((s) => (s.id === id ? { ...s, funktion_id: funktionId } : s)));
   }
 
   function entfernen(id: string) {
@@ -220,13 +225,29 @@ export function SitzplatzEditor({ fahrzeug, onClose, onGespeichert }: SitzplatzE
         </div>
 
         {ausgewaehlt && (
-          <div style={{ marginTop: "1rem", display: "flex", gap: 8 }}>
+          <div style={{ marginTop: "1rem", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <button type="button" className="sekundaer" onClick={() => umbenennen(ausgewaehlt)}>
               Umbenennen
             </button>
             <button type="button" className="sekundaer" onClick={() => entfernen(ausgewaehlt)}>
               Löschen
             </button>
+            <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              Funktion (Vorschlag beim Scannen)
+              <select
+                value={sitzplaetze.find((s) => s.id === ausgewaehlt)?.funktion_id ?? ""}
+                onChange={(e) =>
+                  funktionAendern(ausgewaehlt, e.target.value ? Number(e.target.value) : null)
+                }
+              >
+                <option value="">– keine –</option>
+                {funktionen.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         )}
 

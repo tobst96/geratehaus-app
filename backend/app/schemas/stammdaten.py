@@ -6,6 +6,7 @@ class SitzplatzSchema(BaseModel):
     bezeichnung: str
     x: float = Field(ge=0, le=100)
     y: float = Field(ge=0, le=100)
+    funktion_id: int | None = None
 
 
 class FahrzeugOut(BaseModel):

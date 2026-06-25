@@ -55,6 +55,7 @@ export function Stammdaten() {
 
 function FahrzeugeTab() {
   const [liste, setListe] = useState<Fahrzeug[] | null>(null);
+  const [funktionen, setFunktionen] = useState<FunktionEinsatz[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
   const [neuerName, setNeuerName] = useState("");
   const [editorFahrzeug, setEditorFahrzeug] = useState<Fahrzeug | null>(null);
@@ -69,6 +70,7 @@ function FahrzeugeTab() {
 
   useEffect(() => {
     laden();
+    holeAlleFunktionenEinsatz().then(setFunktionen).catch(() => setFunktionen([]));
   }, []);
 
   async function anlegen(e: FormEvent) {
@@ -143,6 +145,7 @@ function FahrzeugeTab() {
       {editorFahrzeug && (
         <SitzplatzEditor
           fahrzeug={editorFahrzeug}
+          funktionen={funktionen}
           onClose={() => setEditorFahrzeug(null)}
           onGespeichert={async () => {
             setEditorFahrzeug(null);

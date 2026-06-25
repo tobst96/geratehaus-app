@@ -51,7 +51,7 @@ interface AusgewaehlteAktion {
 const AGT_MAX_MINUTEN = 35;
 const AGT_DEFAULT_MINUTEN = 30;
 
-export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }: EinsatzDiagrammProps) {
+export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert, onCancel }: EinsatzDiagrammProps) {
   const { barcodeEinscannen } = useAuth();
   const { config } = useConfig();
   const [aktivesFahrzeugId, setAktivesFahrzeugId] = useState<number | null>(null);
@@ -59,6 +59,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
   const [barcode, setBarcode] = useState("");
   const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [vab, setVab] = useState(false);
+  const [funktionId, setFunktionId] = useState<number | null>(null);
   const [atemschutzAktiv, setAtemschutzAktiv] = useState(false);
   const [atemschutzminuten, setAtemschutzminuten] = useState(0);
   const [bemerkung, setBemerkung] = useState("");
@@ -173,13 +174,14 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     return einsatz.teilnahmen.filter((t) => t.fahrzeug_id === fahrzeugId).length;
   }
 
-  function sitzKlick(fahrzeug: Fahrzeug, sitzplatzId: string, bezeichnung: string) {
+  function sitzKlick(fahrzeug: Fahrzeug, sitzplatzId: string, bezeichnung: string, funktionId: number | null) {
     setAusgewaehlteAktion({ fahrzeug, sitzplatzId, bezeichnung, nurGeraetehaus: false, aufAnfahrt: false });
     setBarcode("");
     setVorschau(null);
     setQrAnsicht(null);
     setQrFehler(null);
     setVab(false);
+    setFunktionId(funktionId);
     setAtemschutzAktiv(false);
     setAtemschutzminuten(0);
     setBemerkung("");
@@ -199,6 +201,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     setQrAnsicht(null);
     setQrFehler(null);
     setVab(false);
+    setFunktionId(null);
     setAtemschutzAktiv(false);
     setAtemschutzminuten(0);
     setBemerkung("");
@@ -218,6 +221,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
     setQrAnsicht(null);
     setQrFehler(null);
     setVab(false);
+    setFunktionId(null);
     setAtemschutzAktiv(false);
     setAtemschutzminuten(0);
     setBemerkung("");
@@ -237,7 +241,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
       await teilnahmeEintragen(einsatz.id, {
         fahrzeug_id: ausgewaehlteAktion.fahrzeug?.id ?? null,
         sitzplatz_id: ausgewaehlteAktion.sitzplatzId,
-        funktion_id: null,
+        funktion_id: funktionId,
         vab,
         atemschutzminuten: atemschutzAktiv ? atemschutzminuten : 0,
         nur_geraetehaus: ausgewaehlteAktion.nurGeraetehaus,
@@ -479,7 +483,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
                     type="button"
                     className="sitzplatz sitzplatz-frei"
                     style={{ left: `${s.x}%`, top: `${s.y}%` }}
-                    onClick={() => sitzKlick(aktivesFahrzeug, s.id, s.bezeichnung)}
+                    onClick={() => sitzKlick(aktivesFahrzeug, s.id, s.bezeichnung, s.funktion_id)}
                     title={s.bezeichnung}
                   >
                     {s.bezeichnung}
@@ -557,6 +561,22 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, onAktualisiert, onCancel }
 
                   {!ausgewaehlteAktion.nurGeraetehaus && !ausgewaehlteAktion.aufAnfahrt && (
                     <>
+                      <label htmlFor="ed-funktion">Funktion</label>
+                      <select
+                        id="ed-funktion"
+                        value={funktionId ?? ""}
+                        onChange={(e) => setFunktionId(e.target.value ? Number(e.target.value) : null)}
+                      >
+                        <option value="">– keine –</option>
+                        {funktionen.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.name}
+                          </option>
+                        ))}
+                      </select>
+                      <br />
+                      <br />
+
                       <label>
                         <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
                       </label>

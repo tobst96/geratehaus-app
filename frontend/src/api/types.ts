@@ -24,6 +24,7 @@ export interface Sitzplatz {
   bezeichnung: string;
   x: number;
   y: number;
+  funktion_id: number | null;
 }
 
 export interface Fahrzeug {
