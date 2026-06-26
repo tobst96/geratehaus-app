@@ -14,6 +14,7 @@ import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
+import { BarcodeEingabe } from "../../components/BarcodeEingabe";
 import type { EinsatzFeldDefinition, EinsatzOut, Fahrzeug, FunktionEinsatz, TeilnahmeOut } from "../../api/types";
 import "./EinsatzDiagramm.css";
 
@@ -596,11 +597,11 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
 
                 <div className="sitzplatz-scan-felder">
                   <label htmlFor="ed-barcode">Barcode einscannen</label>
-                  <input
+                  <BarcodeEingabe
                     id="ed-barcode"
                     type="text"
                     value={barcode}
-                    onChange={(e) => setBarcode(e.target.value)}
+                    onChange={setBarcode}
                     placeholder="Barcode scannen oder eingeben"
                     autoFocus
                     required

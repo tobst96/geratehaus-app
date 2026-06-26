@@ -11,6 +11,7 @@ import {
   mitgliedLoginReservierungAnlegen,
 } from "../../api/mitgliedLoginReservierungen";
 import { ApiError } from "../../api/client";
+import { BarcodeEingabe } from "../../components/BarcodeEingabe";
 
 function initialenAus(name: string): string {
   return name
@@ -187,10 +188,10 @@ export function MitgliedLogin() {
             )}
 
             <label htmlFor="ml-barcode">Barcode einscannen</label>
-            <input
+            <BarcodeEingabe
               id="ml-barcode"
               value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
+              onChange={setBarcode}
               placeholder="Barcode scannen oder eingeben"
               autoFocus
               required

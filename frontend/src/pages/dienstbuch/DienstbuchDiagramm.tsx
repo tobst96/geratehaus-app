@@ -11,6 +11,7 @@ import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
+import { BarcodeEingabe } from "../../components/BarcodeEingabe";
 import type { DienstbuchOut, Gruppe, TeilnehmerOut } from "../../api/types";
 import "./DienstbuchDiagramm.css";
 
@@ -251,11 +252,11 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
 
                 <div className="dienstbuch-scan-felder">
                   <label htmlFor="db-barcode">Barcode einscannen</label>
-                  <input
+                  <BarcodeEingabe
                     id="db-barcode"
                     type="text"
                     value={barcode}
-                    onChange={(e) => setBarcode(e.target.value)}
+                    onChange={setBarcode}
                     placeholder="Barcode scannen oder eingeben"
                     autoFocus
                     required

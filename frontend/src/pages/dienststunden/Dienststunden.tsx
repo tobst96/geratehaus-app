@@ -12,6 +12,7 @@ import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
+import { BarcodeEingabe } from "../../components/BarcodeEingabe";
 import type { DienststundenSummeOut, FunktionDienststunden } from "../../api/types";
 import "./Dienststunden.css";
 
@@ -232,11 +233,11 @@ export function Dienststunden() {
 
               <div className="dienststunden-scan-felder">
                 <label htmlFor="ds-barcode">Barcode einscannen</label>
-                <input
+                <BarcodeEingabe
                   id="ds-barcode"
                   type="text"
                   value={barcode}
-                  onChange={(e) => setBarcode(e.target.value)}
+                  onChange={setBarcode}
                   placeholder="Barcode scannen oder eingeben"
                   autoFocus
                   required

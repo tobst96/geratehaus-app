@@ -14,6 +14,7 @@ import { holeFahrzeuge } from "../../api/stammdaten";
 import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { BuchungsKalender } from "../../components/BuchungsKalender";
+import { BarcodeEingabe } from "../../components/BarcodeEingabe";
 import type { BuchungOut, Fahrzeug } from "../../api/types";
 import "../dienststunden/Dienststunden.css";
 
@@ -262,10 +263,10 @@ export function Fahrzeugbuchung() {
           <br />
           <br />
           <label htmlFor="fb-barcode">Barcode scannen (wer bist du?)</label>
-          <input
+          <BarcodeEingabe
             id="fb-barcode"
             value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
+            onChange={setBarcode}
             placeholder="Barcode scannen oder eingeben"
             autoFocus
             required

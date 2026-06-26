@@ -174,6 +174,11 @@ remotely".
   commit → push to `origin/main` → SSH to the production host → `git pull` →
   `docker compose up -d --build` → verify `docker compose exec backend alembic current` shows
   `head`. There is exactly one production environment, no staging.
+- **Exception:** a brand-new module (a self-contained new feature area, not a tweak to an
+  existing one) must be developed on a feature branch and shipped via PR (`gh pr create`, or by
+  pointing the user at the GitHub compare link if `gh` isn't installed) — not pushed straight to
+  `main`. Only deploy to the server after that PR is merged. Small fixes/extensions to existing
+  modules still go straight to `main` per the workflow above.
 - German is the UI/domain language throughout — identifiers, model fields, commit messages, and
   user-facing strings are German (`Einsatz`, `Dienstbuch`, `Gruppe`, `Funktion`, etc.). Keep new
   code consistent with this rather than introducing English domain terms.
