@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import DbSession
+from app.core.rate_limit import rate_limit
 from app.schemas.mitglied_login_reservierung import (
     MitgliedLoginAnmelden,
     MitgliedLoginReservierungInfo,
@@ -56,7 +57,11 @@ async def reservierung_personen(db: DbSession, token: str) -> list[PersonOut]:
     return await stammdaten_service.personen_zu_out(db, personen)
 
 
-@router.post("/{token}/anmelden", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/{token}/anmelden",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(rate_limit(15, 60))],
+)
 async def reservierung_anmelden(db: DbSession, token: str, daten: MitgliedLoginAnmelden) -> None:
     reservierung = await mitglied_login_reservierung_service.get_reservierung_by_token(db, token)
     if reservierung is None:

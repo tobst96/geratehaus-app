@@ -68,6 +68,17 @@ the built SPA and reverse-proxying `/api/` and `/uploads/` to the `backend` cont
   go through `config_service.get(db, key, default)`. New keys need an entry in
   `app/services/config_defaults.py` (`DEFAULTS`) so `ensure_defaults()` seeds them on startup.
 
+### Rate limiting on public/unauthenticated endpoints
+
+`app/core/rate_limit.py` provides `rate_limit(max_aufrufe, fenster_sekunden)`, a per-IP,
+per-path, in-memory sliding-window dependency (no Redis — fine for this single-process
+deployment, resets on restart). Applied via `dependencies=[Depends(rate_limit(...))]` on every
+endpoint that's reachable without auth and gates on a secret/token/password (moderator login,
+barcode resolve/preview, all five reservation `.../vorschau` /`.../anmelden`/`.../einloesen`
+endpoints, kiosk token validation). **Any new unauthenticated endpoint that checks a token, PIN,
+or password must get this too** — that's the actual brute-force defense for those flows, since
+reservation tokens/PINs have no per-token attempt lockout of their own.
+
 ### Auth/identity: three distinct, non-overlapping mechanisms
 
 1. **Moderator JWT** (`app/core/security.py`, `CurrentModerator`/`CurrentAdmin` in

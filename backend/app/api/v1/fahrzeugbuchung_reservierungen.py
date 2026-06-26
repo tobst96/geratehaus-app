@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import DbSession
+from app.core.rate_limit import rate_limit
 from app.schemas.buchung import BuchungOut
 from app.schemas.fahrzeugbuchung_reservierung import (
     FahrzeugbuchungReservierungEinloesen,
@@ -37,7 +38,11 @@ async def reservierung_info(db: DbSession, token: str) -> FahrzeugbuchungReservi
     )
 
 
-@router.put("/{token}/vorschau", status_code=status.HTTP_204_NO_CONTENT)
+@router.put(
+    "/{token}/vorschau",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(rate_limit(15, 60))],
+)
 async def reservierung_vorschau_setzen(
     db: DbSession, token: str, daten: FahrzeugbuchungReservierungVorschauSetzen
 ) -> None:

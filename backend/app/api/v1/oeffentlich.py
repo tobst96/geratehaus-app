@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.api.deps import DbSession
+from app.core.rate_limit import rate_limit
 from app.schemas.kiosk_token import KioskTokenValidierung
 from app.schemas.oeffentlich import OeffentlicheKonfiguration
 from app.services import kiosk_token_service
@@ -9,7 +10,11 @@ from app.services.config_service import config_service
 router = APIRouter(tags=["oeffentlich"])
 
 
-@router.get("/kiosk-tokens/{token}/validieren", response_model=KioskTokenValidierung)
+@router.get(
+    "/kiosk-tokens/{token}/validieren",
+    response_model=KioskTokenValidierung,
+    dependencies=[Depends(rate_limit(20, 60))],
+)
 async def kiosk_token_validieren(db: DbSession, token: str) -> KioskTokenValidierung:
     """Bewusst ohne Auth – der Token selbst ist das Geheimnis und steckt nur
     in der vom Admin generierten URL, die auf dem Tablet hinterlegt wird."""

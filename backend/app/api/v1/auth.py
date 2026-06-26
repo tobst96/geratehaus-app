@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 
 from app.api.deps import DbSession
+from app.core.rate_limit import rate_limit
 from app.core.security import create_access_token, verify_secret
 from app.models.barcode_token import BarcodeToken
 from app.models.moderator import Moderator
@@ -45,7 +46,9 @@ async def name_eintragen(
     )
 
 
-@router.post("/barcode", response_model=BarcodeIdentitaet)
+@router.post(
+    "/barcode", response_model=BarcodeIdentitaet, dependencies=[Depends(rate_limit(20, 60))]
+)
 async def barcode_einscannen(
     db: DbSession, response: Response, daten: BarcodeEinscannen
 ) -> BarcodeIdentitaet:
@@ -80,7 +83,11 @@ async def barcode_einscannen(
     return BarcodeIdentitaet(name=person.name)
 
 
-@router.post("/mitglied-login-reservierungen/{token}/einloesen", response_model=BarcodeIdentitaet)
+@router.post(
+    "/mitglied-login-reservierungen/{token}/einloesen",
+    response_model=BarcodeIdentitaet,
+    dependencies=[Depends(rate_limit(30, 60))],
+)
 async def mitglied_login_einloesen(db: DbSession, response: Response, token: str) -> BarcodeIdentitaet:
     """Wird vom URSPRÜNGLICHEN Gerät aufgerufen (nicht vom Handy!), sobald
     Polling ergibt, dass die Auswahl auf dem Handy bestätigt wurde – setzt
@@ -116,7 +123,11 @@ async def mitglied_login_einloesen(db: DbSession, response: Response, token: str
     return BarcodeIdentitaet(name=person.name)
 
 
-@router.get("/barcode-vorschau/{token}", response_model=BarcodeVorschau)
+@router.get(
+    "/barcode-vorschau/{token}",
+    response_model=BarcodeVorschau,
+    dependencies=[Depends(rate_limit(20, 60))],
+)
 async def barcode_vorschau(db: DbSession, token: str) -> BarcodeVorschau:
     """Liefert Name und Bild zu einem Token, ohne Identität/Cookie zu setzen –
     für die Live-Vorschau während des Scannens (z. B. Foto neben dem
@@ -139,7 +150,9 @@ async def barcode_vorschau(db: DbSession, token: str) -> BarcodeVorschau:
     )
 
 
-@router.post("/moderator/login", response_model=ModeratorToken)
+@router.post(
+    "/moderator/login", response_model=ModeratorToken, dependencies=[Depends(rate_limit(10, 60))]
+)
 async def moderator_login(
     db: DbSession, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ) -> ModeratorToken:
