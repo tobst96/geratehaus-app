@@ -15,6 +15,18 @@ export default defineConfig({
       registerType: "autoUpdate",
       workbox: {
         navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
+        // Ohne skipWaiting/clientsClaim übernimmt ein neuer Service Worker
+        // erst die Kontrolle, nachdem alle offenen Tabs geschlossen wurden –
+        // bis dahin liefert der alte SW über navigateFallback weiterhin das
+        // alte, gecachte index.html (mit altem JS-Bundle, alter Routen-
+        // Tabelle) für jede neue Navigation aus. Das führte dazu, dass neu
+        // hinzugekommene Routen (z. B. /mitglied-anmelden/:token) auf einem
+        // Gerät, das die Seite schon vor diesem Deploy besucht hatte, als
+        // "Seite nicht gefunden" erschienen, bis der SW durch einen
+        // zusätzlichen Reload aktualisiert wurde.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
       },
     }),
   ],
