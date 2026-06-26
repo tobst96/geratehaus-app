@@ -13,6 +13,7 @@ import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import { BarcodeEingabe } from "../../components/BarcodeEingabe";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
+import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 import type { DienstbuchOut, Gruppe, TeilnehmerOut } from "../../api/types";
 import "./DienstbuchDiagramm.css";
 
@@ -40,6 +41,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
   const { barcodeEinscannen } = useAuth();
   const { config } = useConfig();
   const mitgliedModus = useMitgliedModus();
+  const { spieleErkannt, spieleFehler } = useBarcodeSound();
   const [barcode, setBarcode] = useState("");
   const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [gruppeId, setGruppeId] = useState<number | null>(null);
@@ -78,13 +80,16 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
             letzteVorschauName.current = ergebnis.name;
             setGruppeId(ergebnis.gruppe_id);
           }
+          spieleErkannt();
         })
         .catch(() => {
           setVorschau(null);
           letzteVorschauName.current = null;
+          spieleFehler();
         });
     }, 250);
     return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [barcode]);
 
   function zuruecksetzen() {

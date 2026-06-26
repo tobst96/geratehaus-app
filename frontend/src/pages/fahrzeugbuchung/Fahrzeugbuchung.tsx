@@ -16,6 +16,7 @@ import { ApiError } from "../../api/client";
 import { BuchungsKalender } from "../../components/BuchungsKalender";
 import { BarcodeEingabe } from "../../components/BarcodeEingabe";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
+import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 import type { BuchungOut, Fahrzeug } from "../../api/types";
 import "../dienststunden/Dienststunden.css";
 
@@ -39,6 +40,7 @@ export function Fahrzeugbuchung() {
   const { angezeigterName, barcodeEinscannen } = useAuth();
   const { config } = useConfig();
   const mitgliedModus = useMitgliedModus();
+  const { spieleErkannt, spieleFehler } = useBarcodeSound();
   const [buchungen, setBuchungen] = useState<BuchungOut[] | null>(null);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -71,9 +73,18 @@ export function Fahrzeugbuchung() {
       return;
     }
     const timeout = setTimeout(() => {
-      barcodeVorschau(wert).then(setVorschau).catch(() => setVorschau(null));
+      barcodeVorschau(wert)
+        .then((ergebnis) => {
+          setVorschau(ergebnis);
+          spieleErkannt();
+        })
+        .catch(() => {
+          setVorschau(null);
+          spieleFehler();
+        });
     }, 250);
     return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [barcode]);
 
   function qrAnsichtZuruecksetzen() {

@@ -16,6 +16,7 @@ import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import { BarcodeEingabe } from "../../components/BarcodeEingabe";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
+import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 import type { EinsatzFeldDefinition, EinsatzOut, Fahrzeug, FunktionEinsatz, TeilnahmeOut } from "../../api/types";
 import "./EinsatzDiagramm.css";
 
@@ -57,6 +58,7 @@ const AGT_DEFAULT_MINUTEN = 30;
 export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert, onCancel }: EinsatzDiagrammProps) {
   const { barcodeEinscannen } = useAuth();
   const mitgliedModus = useMitgliedModus();
+  const { spieleErkannt, spieleFehler } = useBarcodeSound();
   const { config } = useConfig();
   const [aktivesFahrzeugId, setAktivesFahrzeugId] = useState<number | null>(null);
   const [ausgewaehlteAktion, setAusgewaehlteAktion] = useState<AusgewaehlteAktion | null>(null);
@@ -110,10 +112,17 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     }
     const timeout = setTimeout(() => {
       barcodeVorschau(wert)
-        .then(setVorschau)
-        .catch(() => setVorschau(null));
+        .then((ergebnis) => {
+          setVorschau(ergebnis);
+          spieleErkannt();
+        })
+        .catch(() => {
+          setVorschau(null);
+          spieleFehler();
+        });
     }, 250);
     return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [barcode]);
 
   // Countdown läuft unabhängig vom Render-Zyklus runter und schließt die

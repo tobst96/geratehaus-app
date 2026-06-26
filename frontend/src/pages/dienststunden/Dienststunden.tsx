@@ -14,6 +14,7 @@ import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import { BarcodeEingabe } from "../../components/BarcodeEingabe";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
+import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 import type { DienststundenSummeOut, FunktionDienststunden } from "../../api/types";
 import "./Dienststunden.css";
 
@@ -35,6 +36,7 @@ export function Dienststunden() {
   const { barcodeEinscannen } = useAuth();
   const { config } = useConfig();
   const mitgliedModus = useMitgliedModus();
+  const { spieleErkannt, spieleFehler } = useBarcodeSound();
   const [funktionen, setFunktionen] = useState<FunktionDienststunden[]>([]);
   const [ladeFehler, setLadeFehler] = useState<string | null>(null);
 
@@ -83,10 +85,15 @@ export function Dienststunden() {
         .then((v) => {
           setVorschau(v);
           if (v.funktion_id) setFunktionId(String(v.funktion_id));
+          spieleErkannt();
         })
-        .catch(() => setVorschau(null));
+        .catch(() => {
+          setVorschau(null);
+          spieleFehler();
+        });
     }, 250);
     return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [barcode]);
 
   function qrAnsichtZuruecksetzen() {

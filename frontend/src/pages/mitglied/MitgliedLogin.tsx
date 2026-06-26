@@ -12,6 +12,7 @@ import {
 } from "../../api/mitgliedLoginReservierungen";
 import { ApiError } from "../../api/client";
 import { BarcodeEingabe } from "../../components/BarcodeEingabe";
+import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 
 function initialenAus(name: string): string {
   return name
@@ -32,6 +33,7 @@ export function MitgliedLogin() {
   const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
+  const { spieleErkannt, spieleFehler } = useBarcodeSound();
 
   const [qrAnsicht, setQrAnsicht] = useState<{ token: string; bildUrl: string; ablaufAm: string } | null>(
     null
@@ -49,9 +51,18 @@ export function MitgliedLogin() {
       return;
     }
     const timeout = setTimeout(() => {
-      barcodeVorschau(wert).then(setVorschau).catch(() => setVorschau(null));
+      barcodeVorschau(wert)
+        .then((ergebnis) => {
+          setVorschau(ergebnis);
+          spieleErkannt();
+        })
+        .catch(() => {
+          setVorschau(null);
+          spieleFehler();
+        });
     }, 250);
     return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [barcode]);
 
   async function absenden(e: FormEvent) {

@@ -19,15 +19,6 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
       und als zusätzliche, nicht buchbare "Fremdtermine" im Kalender überlagern. Divera-API-Key
       ist schon vorhanden (`divera_service.py`/`divera_client.py`) – ggf. erst prüfen, ob Divera
       Termine auch direkt über die bestehende API statt iCal liefert.
-- [ ] [Barcodes] Sound beim Scannen abspielen: Erfolgston, wenn eine Person beim Scannen
-      erkannt wurde, Fehlerton, wenn der Barcode nicht gefunden wird. Betrifft alle Stellen mit
-      Live-Vorschau beim Scannen (`barcodeVorschau()` in `frontend/src/api/auth.ts`, genutzt in
-      `EinsatzDiagramm.tsx`, `DienstbuchDiagramm.tsx`, `Dienststunden.tsx`,
-      `Fahrzeugbuchung.tsx`, `MitgliedLogin.tsx` sowie im neuen `BarcodeScanner.tsx` für die
-      Kamera-Erkennung). Sinnvoller Ansatz: zwei kurze Sound-Dateien (z. B. `erkannt.mp3`/
-      `fehler.mp3`) statisch im Frontend, ein kleiner `useBarcodeSound()`-Hook, der bei
-      Vorschau-Erfolg/-Fehler abspielt – am besten zentral in der `barcodeVorschau`-Debounce-
-      Logik statt in jeder Seite einzeln dupliziert.
 - [ ] [Benachrichtigungen] Mail-Versand: evtl. eine "Ausdrucken statt/zusätzlich zu E-Mail"-
       Alternative anbieten – z. B. für Moderatoren ohne hinterlegte E-Mail, oder als
       Backup-Kanal, wenn der SMTP-Versand fehlschlägt. Genauer Bedarf/Umfang noch unklar (reine
@@ -59,6 +50,15 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 ## In Arbeit
 
 ## Erledigt
+
+- [x] [Barcodes] Sound beim Scannen: Erfolgston, wenn eine Person erkannt wurde, Fehlerton bei
+      nicht gefundenem Barcode. Zwei synthetisch erzeugte WAV-Dateien (`frontend/public/sounds/
+      erkannt.wav`/`fehler.wav`, keine externe Audio-Lizenz nötig) + neuer `useBarcodeSound()`-
+      Hook (`frontend/src/hooks/useBarcodeSound.ts`), eingebunden in die `barcodeVorschau()`-
+      Debounce-Logik aller 5 Stellen (`EinsatzDiagramm.tsx`, `DienstbuchDiagramm.tsx`,
+      `Dienststunden.tsx`, `Fahrzeugbuchung.tsx`, `MitgliedLogin.tsx`). Die Kamera-Erkennung
+      (`BarcodeScanner.tsx`) braucht keine eigene Anbindung – sie füllt nur das Textfeld, der
+      Erfolgs-/Fehlerton kommt dann ohnehin über die normale Vorschau-Auflösung.
 
 - [x] [Buchungen] Fahrzeugbuchungs-Anfrage-Mail hat jetzt direkte "Annehmen"/"Ablehnen"-Buttons,
       ohne dass sich der Moderator einloggen muss. Neue Tabelle `buchung_aktion_tokens`
