@@ -13,6 +13,8 @@ import {
 import { setupErneutAusfuehren } from "../../api/setup";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
+import { Banner } from "../../components/Banner";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 function ModeratorenVerwaltung() {
   const [liste, setListe] = useState<ModeratorKonto[] | null>(null);
@@ -322,25 +324,13 @@ export function Einstellungen() {
     }
   }
 
-  if (!geladen && !fehler) return <p>Lädt …</p>;
+  if (!geladen && !fehler) return <Ladeanzeige />;
 
   return (
     <div>
       <h1>Einstellungen</h1>
       {fehler && <p className="fehlertext">{fehler}</p>}
-      {gespeichert && (
-        <p
-          style={{
-            background: "#e6f7ec",
-            color: "#1a7a3a",
-            padding: "0.6rem 1rem",
-            borderRadius: "var(--radius)",
-            fontWeight: 600,
-          }}
-        >
-          ✓ Einstellungen erfolgreich gespeichert
-        </p>
-      )}
+      {gespeichert && <Banner art="erfolg">Einstellungen erfolgreich gespeichert</Banner>}
 
       <form onSubmit={speichern}>
         <div className="karte">

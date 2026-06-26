@@ -177,6 +177,54 @@ a {
   font-weight: 600;
 }
 
+/* Formular-Layout: Ersatz für <label>...<input>...<br /><br />-Ketten.
+   .formular-feld für ein einzelnes Label+Input-Paar mit definiertem Abstand,
+   .formular-zeile für mehrere Felder nebeneinander (z. B. Person/Punkte/Grund
+   in einer Reihe), bricht auf schmalen Screens automatisch um. */
+.formular-feld {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--abstand);
+}
+
+.formular-feld label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.formular-zeile {
+  display: flex;
+  gap: var(--abstand);
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.formular-zeile > .formular-feld {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 160px;
+}
+
+/* Banner für Erfolgs-/Fehlermeldungen, die den Layout-Fluss nicht
+   verschieben sollen wie ein loser <p>-Block. */
+.banner {
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  margin-bottom: var(--abstand);
+}
+
+.banner-erfolg {
+  background: #e6f7ec;
+  color: #1a7a3a;
+}
+
+.banner-fehler {
+  background: #fdecea;
+  color: #b00020;
+}
+
 .karte {
   background: #fff;
   border-radius: var(--radius);

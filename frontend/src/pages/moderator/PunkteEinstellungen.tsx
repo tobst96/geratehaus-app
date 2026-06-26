@@ -7,6 +7,7 @@ import {
 } from "../../api/moderator";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import { Banner } from "../../components/Banner";
 import type { Person } from "../../api/types";
 
 interface PunkteRegelState {
@@ -179,11 +180,7 @@ export function PunkteEinstellungen() {
           Zusätzlich zu den automatischen Regeln kannst du einer Person hier jederzeit Punkte als
           Belohnung gutschreiben, z. B. für besonderes Engagement.
         </p>
-        {belohnungErfolg && (
-          <p style={{ background: "#e6f7ec", color: "#1a7a3a", padding: "0.6rem 1rem", borderRadius: "var(--radius)", fontWeight: 600 }}>
-            ✓ {belohnungErfolg}
-          </p>
-        )}
+        {belohnungErfolg && <Banner art="erfolg">{belohnungErfolg}</Banner>}
         <form onSubmit={belohnungAbsenden} style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
           <div>
             <label htmlFor="belohnung-person">Person</label>
@@ -255,19 +252,7 @@ export function PunkteEinstellungen() {
         wie lange diese gültig sind, und ob sie bis zum Ende voll erhalten bleiben ("Halten bis Ende")
         oder linear bis auf 0 abgebaut werden ("Abziehend bis Ende").
       </p>
-      {gespeichert && (
-        <p
-          style={{
-            background: "#e6f7ec",
-            color: "#1a7a3a",
-            padding: "0.6rem 1rem",
-            borderRadius: "var(--radius)",
-            fontWeight: 600,
-          }}
-        >
-          ✓ Einstellungen erfolgreich gespeichert
-        </p>
-      )}
+      {gespeichert && <Banner art="erfolg">Einstellungen erfolgreich gespeichert</Banner>}
 
       <form onSubmit={speichern}>
         <div className="karte">

@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { holeEinstellungen, schreibeEinstellungen, sendeTestmail } from "../../api/moderator";
 import { ApiError } from "../../api/client";
+import { Banner } from "../../components/Banner";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 interface NotifierConfig {
   telegram_enabled: boolean;
@@ -124,7 +126,7 @@ export function NotifierEinstellungen() {
     }
   }
 
-  if (!config) return <p>Lädt…</p>;
+  if (!config) return <Ladeanzeige />;
 
   return (
     <div>
@@ -132,174 +134,165 @@ export function NotifierEinstellungen() {
       <p>Stelle hier Telegram, Email und Web Push ein – ganz ohne .env!</p>
 
       {fehler && <p className="fehlertext">{fehler}</p>}
-      {gespeichert && (
-        <p
-          style={{
-            background: "#e6f7ec",
-            color: "#1a7a3a",
-            padding: "0.6rem 1rem",
-            borderRadius: "var(--radius)",
-            fontWeight: 600,
-          }}
-        >
-          ✓ Konfiguration gespeichert
-        </p>
-      )}
+      {gespeichert && <Banner art="erfolg">Konfiguration gespeichert</Banner>}
 
       <form onSubmit={speichern}>
         {/* Telegram */}
         <div className="karte">
           <h2>🤖 Telegram</h2>
-          <label>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={config.telegram_enabled}
+                onChange={(e) => setConfig({ ...config, telegram_enabled: e.target.checked })}
+              />{" "}
+              Telegram aktivieren
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="tg-token">Bot Token</label>
             <input
-              type="checkbox"
-              checked={config.telegram_enabled}
-              onChange={(e) => setConfig({ ...config, telegram_enabled: e.target.checked })}
-            />{" "}
-            Telegram aktivieren
-          </label>
-          <br />
-          <br />
-          <label htmlFor="tg-token">Bot Token</label>
-          <input
-            id="tg-token"
-            type="password"
-            value={config.telegram_bot_token}
-            onChange={(e) => setConfig({ ...config, telegram_bot_token: e.target.value })}
-            placeholder="123456:ABC-DEF..."
-            disabled={!config.telegram_enabled}
-            autoComplete="off"
-          />
-          <br />
-          <br />
-          <label htmlFor="tg-chat">Chat-IDs (kommagetrennt)</label>
-          <input
-            id="tg-chat"
-            type="text"
-            value={config.telegram_chat_ids}
-            onChange={(e) => setConfig({ ...config, telegram_chat_ids: e.target.value })}
-            placeholder="-123456789, -987654321"
-            disabled={!config.telegram_enabled}
-          />
+              id="tg-token"
+              type="password"
+              value={config.telegram_bot_token}
+              onChange={(e) => setConfig({ ...config, telegram_bot_token: e.target.value })}
+              placeholder="123456:ABC-DEF..."
+              disabled={!config.telegram_enabled}
+              autoComplete="off"
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="tg-chat">Chat-IDs (kommagetrennt)</label>
+            <input
+              id="tg-chat"
+              type="text"
+              value={config.telegram_chat_ids}
+              onChange={(e) => setConfig({ ...config, telegram_chat_ids: e.target.value })}
+              placeholder="-123456789, -987654321"
+              disabled={!config.telegram_enabled}
+            />
+          </div>
         </div>
 
         {/* Email */}
         <div className="karte">
           <h2>📧 Email (SMTP)</h2>
-          <label>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={config.email_enabled}
+                onChange={(e) => setConfig({ ...config, email_enabled: e.target.checked })}
+              />{" "}
+              Email aktivieren
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="email-server">SMTP Server</label>
             <input
-              type="checkbox"
-              checked={config.email_enabled}
-              onChange={(e) => setConfig({ ...config, email_enabled: e.target.checked })}
-            />{" "}
-            Email aktivieren
-          </label>
-          <br />
-          <br />
-          <label htmlFor="email-server">SMTP Server</label>
-          <input
-            id="email-server"
-            type="text"
-            value={config.email_smtp_host}
-            onChange={(e) => setConfig({ ...config, email_smtp_host: e.target.value })}
-            placeholder="smtp.gmail.com"
-            disabled={!config.email_enabled}
-          />
-          <br />
-          <br />
-          <label htmlFor="email-port">SMTP Port</label>
-          <input
-            id="email-port"
-            type="number"
-            value={config.email_smtp_port}
-            onChange={(e) => setConfig({ ...config, email_smtp_port: Number(e.target.value) })}
-            disabled={!config.email_enabled}
-          />
-          <br />
-          <br />
-          <label>
-            <input
-              type="checkbox"
-              checked={config.email_smtp_use_tls}
-              onChange={(e) => setConfig({ ...config, email_smtp_use_tls: e.target.checked })}
+              id="email-server"
+              type="text"
+              value={config.email_smtp_host}
+              onChange={(e) => setConfig({ ...config, email_smtp_host: e.target.value })}
+              placeholder="smtp.gmail.com"
               disabled={!config.email_enabled}
-            />{" "}
-            STARTTLS verwenden
-          </label>
-          <br />
-          <br />
-          <label htmlFor="email-from">Von Email-Adresse</label>
-          <input
-            id="email-from"
-            type="email"
-            value={config.email_from}
-            onChange={(e) => setConfig({ ...config, email_from: e.target.value })}
-            placeholder="notifications@example.com"
-            disabled={!config.email_enabled}
-          />
-          <br />
-          <br />
-          <label htmlFor="email-recipients">Empfänger für Testmail (kommagetrennt)</label>
-          <input
-            id="email-recipients"
-            type="text"
-            value={config.email_recipients}
-            onChange={(e) => setConfig({ ...config, email_recipients: e.target.value })}
-            placeholder="moderator@example.com"
-            disabled={!config.email_enabled}
-          />
-          <p style={{ fontSize: "0.85rem", color: "#666" }}>
-            Nur für die Testmail unten. Echte Benachrichtigungen gehen an die Personen, die das in
-            ihren Stammdaten (Personal) individuell aktiviert haben.
-          </p>
-          <br />
-          <br />
-          <label htmlFor="email-user">Benutzername</label>
-          <input
-            id="email-user"
-            type="text"
-            value={config.email_smtp_user}
-            onChange={(e) => setConfig({ ...config, email_smtp_user: e.target.value })}
-            placeholder="user@gmail.com"
-            disabled={!config.email_enabled}
-          />
-          <br />
-          <br />
-          <label htmlFor="email-pass">Passwort</label>
-          <input
-            id="email-pass"
-            type="password"
-            value={config.email_smtp_password}
-            onChange={(e) => setConfig({ ...config, email_smtp_password: e.target.value })}
-            placeholder="••••••••"
-            disabled={!config.email_enabled}
-            autoComplete="off"
-          />
-          <br />
-          <br />
-          <label>
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="email-port">SMTP Port</label>
             <input
-              type="checkbox"
-              checked={config.email_pdf_bei_abschluss}
-              onChange={(e) => setConfig({ ...config, email_pdf_bei_abschluss: e.target.checked })}
+              id="email-port"
+              type="number"
+              value={config.email_smtp_port}
+              onChange={(e) => setConfig({ ...config, email_smtp_port: Number(e.target.value) })}
               disabled={!config.email_enabled}
-            />{" "}
-            Einsatzbericht (PDF) bei Abschluss automatisch per E-Mail versenden
-          </label>
-          <br />
-          <label>
+            />
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={config.email_smtp_use_tls}
+                onChange={(e) => setConfig({ ...config, email_smtp_use_tls: e.target.checked })}
+                disabled={!config.email_enabled}
+              />{" "}
+              STARTTLS verwenden
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="email-from">Von Email-Adresse</label>
             <input
-              type="checkbox"
-              checked={config.email_pdf_bei_dienstbuch_abschluss}
-              onChange={(e) =>
-                setConfig({ ...config, email_pdf_bei_dienstbuch_abschluss: e.target.checked })
-              }
+              id="email-from"
+              type="email"
+              value={config.email_from}
+              onChange={(e) => setConfig({ ...config, email_from: e.target.value })}
+              placeholder="notifications@example.com"
               disabled={!config.email_enabled}
-            />{" "}
-            Dienstbuch (PDF) beim automatischen nächtlichen Abschluss per E-Mail versenden
-          </label>
-          <br />
-          <br />
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="email-recipients">Empfänger für Testmail (kommagetrennt)</label>
+            <input
+              id="email-recipients"
+              type="text"
+              value={config.email_recipients}
+              onChange={(e) => setConfig({ ...config, email_recipients: e.target.value })}
+              placeholder="moderator@example.com"
+              disabled={!config.email_enabled}
+            />
+            <p style={{ fontSize: "0.85rem", color: "#666" }}>
+              Nur für die Testmail unten. Echte Benachrichtigungen gehen an die Personen, die das
+              in ihren Stammdaten (Personal) individuell aktiviert haben.
+            </p>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="email-user">Benutzername</label>
+            <input
+              id="email-user"
+              type="text"
+              value={config.email_smtp_user}
+              onChange={(e) => setConfig({ ...config, email_smtp_user: e.target.value })}
+              placeholder="user@gmail.com"
+              disabled={!config.email_enabled}
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="email-pass">Passwort</label>
+            <input
+              id="email-pass"
+              type="password"
+              value={config.email_smtp_password}
+              onChange={(e) => setConfig({ ...config, email_smtp_password: e.target.value })}
+              placeholder="••••••••"
+              disabled={!config.email_enabled}
+              autoComplete="off"
+            />
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={config.email_pdf_bei_abschluss}
+                onChange={(e) => setConfig({ ...config, email_pdf_bei_abschluss: e.target.checked })}
+                disabled={!config.email_enabled}
+              />{" "}
+              Einsatzbericht (PDF) bei Abschluss automatisch per E-Mail versenden
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={config.email_pdf_bei_dienstbuch_abschluss}
+                onChange={(e) =>
+                  setConfig({ ...config, email_pdf_bei_dienstbuch_abschluss: e.target.checked })
+                }
+                disabled={!config.email_enabled}
+              />{" "}
+              Dienstbuch (PDF) beim automatischen nächtlichen Abschluss per E-Mail versenden
+            </label>
+          </div>
           <button
             type="button"
             className="sekundaer"
@@ -314,52 +307,54 @@ export function NotifierEinstellungen() {
         {/* Web Push */}
         <div className="karte">
           <h2>🔔 Web Push (VAPID)</h2>
-          <label>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={config.webpush_enabled}
+                onChange={(e) => setConfig({ ...config, webpush_enabled: e.target.checked })}
+              />{" "}
+              Web Push aktivieren
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="wp-public">VAPID Public Key</label>
             <input
-              type="checkbox"
-              checked={config.webpush_enabled}
-              onChange={(e) => setConfig({ ...config, webpush_enabled: e.target.checked })}
-            />{" "}
-            Web Push aktivieren
-          </label>
-          <br />
-          <br />
-          <label htmlFor="wp-public">VAPID Public Key</label>
-          <input
-            id="wp-public"
-            type="password"
-            value={config.webpush_vapid_public}
-            onChange={(e) => setConfig({ ...config, webpush_vapid_public: e.target.value })}
-            placeholder="BFx..."
-            disabled={!config.webpush_enabled}
-            autoComplete="off"
-          />
-          <br />
-          <br />
-          <label htmlFor="wp-private">VAPID Private Key</label>
-          <input
-            id="wp-private"
-            type="password"
-            value={config.webpush_vapid_private}
-            onChange={(e) => setConfig({ ...config, webpush_vapid_private: e.target.value })}
-            placeholder="abc..."
-            disabled={!config.webpush_enabled}
-            autoComplete="off"
-          />
-          <br />
-          <br />
-          <label htmlFor="wp-subject">VAPID Subject (mailto:-Adresse)</label>
-          <input
-            id="wp-subject"
-            type="text"
-            value={config.webpush_vapid_subject}
-            onChange={(e) => setConfig({ ...config, webpush_vapid_subject: e.target.value })}
-            placeholder="mailto:admin@example.org"
-            disabled={!config.webpush_enabled}
-          />
-          <p style={{ fontSize: "0.85rem", color: "#666" }}>
-            Generiere Keys mit: <code>webpush generate-vapid-keys</code>
-          </p>
+              id="wp-public"
+              type="password"
+              value={config.webpush_vapid_public}
+              onChange={(e) => setConfig({ ...config, webpush_vapid_public: e.target.value })}
+              placeholder="BFx..."
+              disabled={!config.webpush_enabled}
+              autoComplete="off"
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="wp-private">VAPID Private Key</label>
+            <input
+              id="wp-private"
+              type="password"
+              value={config.webpush_vapid_private}
+              onChange={(e) => setConfig({ ...config, webpush_vapid_private: e.target.value })}
+              placeholder="abc..."
+              disabled={!config.webpush_enabled}
+              autoComplete="off"
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="wp-subject">VAPID Subject (mailto:-Adresse)</label>
+            <input
+              id="wp-subject"
+              type="text"
+              value={config.webpush_vapid_subject}
+              onChange={(e) => setConfig({ ...config, webpush_vapid_subject: e.target.value })}
+              placeholder="mailto:admin@example.org"
+              disabled={!config.webpush_enabled}
+            />
+            <p style={{ fontSize: "0.85rem", color: "#666" }}>
+              Generiere Keys mit: <code>webpush generate-vapid-keys</code>
+            </p>
+          </div>
         </div>
 
         <button type="submit" disabled={loading}>
