@@ -31,6 +31,7 @@ from app.api.v1 import (
     stammdaten,
 )
 from app.core.config import settings
+from app.core.security_headers import SecurityHeadersMiddleware
 from app.db.session import AsyncSessionLocal
 from app.jobs import scheduler
 from app.services.config_service import config_service
@@ -54,6 +55,8 @@ app = FastAPI(
     redoc_url="/api/v1/redoc",
     openapi_url="/api/v1/openapi.json",
 )
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 if settings.cors_origins_list:
     app.add_middleware(
