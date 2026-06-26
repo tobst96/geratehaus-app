@@ -9,18 +9,20 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
-- [ ] [Design] Frontend-Design modernisieren. Bewertung (siehe Konversation): CSS-Variablen/
-      Theming, Buttons, Kachel-Raster sind ok; größte Schwachstellen sind (1) durchgängige
-      `<br /><br />`-Formularabstände statt CSS-Grid/Flex in fast jeder Moderator-Seite
-      (`Einstellungen.tsx`, `PunkteEinstellungen.tsx`, etc. – kein einheitliches Formular-System,
-      keine Feld-Fehlerzustände), (2) reine HTML-`<table>`-Listen ohne Card-Layout für Mobile
-      (relevant, da Mitglieder-Login per Handy genutzt wird), (3) keine Toasts – Erfolg/Fehler
-      sind Inline-`<p>`-Blöcke, die den Layout-Fluss verschieben, (4) kein Skeleton-Loading (nur
-      "Lädt …"-Text), (5) kein Dark Mode, (6) keine responsive Typografie-Skala. Größter Hebel
-      mit wenig Risiko: zuerst eine einheitliche `.formular-feld`-CSS-Klasse einführen und
-      Seite für Seite von `<br />` darauf migrieren, danach Toast-Komponente statt Inline-
-      Fehlertexte, danach Card-Layout für Tabellen auf schmalen Screens. Umfang ist groß (zieht
-      sich durch fast jede Datei) – eigener, separat geplanter Umbau statt Nebenbei-Häppchen.
+- [ ] [Design] Frontend-Design modernisieren (Etappe 1 angefangen, siehe Plan unter
+      `~/.claude/plans/ich-m-chte-das-personal-linked-eclipse.md`). **Bereits erledigt:**
+      `.formular-feld`/`.formular-zeile`/`.banner-erfolg`/`.banner-fehler`-CSS-Klassen +
+      `Banner.tsx`/`Ladeanzeige.tsx`-Komponenten in `index.css`/`frontend/src/components/`; alle
+      3 ad-hoc duplizierten Erfolgs-Banner (`Einstellungen.tsx`, `NotifierEinstellungen.tsx`,
+      `PunkteEinstellungen.tsx`) nutzen jetzt `<Banner>`; `NotifierEinstellungen.tsx` komplett
+      von `<br />` auf `.formular-feld` migriert (alle 29 Vorkommen). **Noch offen (laut Plan):**
+      Etappe 1 Rest – `Einstellungen.tsx` (31 `<br />`-Vorkommen) noch migrieren; Etappe 2 –
+      restliche `<br />`-Dateien (`EinsatzDiagramm.tsx`, `Fahrzeugbuchung.tsx`,
+      `EinsatzDetail.tsx`, `ManuelleEintragung.tsx`, `FahrzeugbuchungManuelleEintragung.tsx`,
+      `DienstbuchManuelleEintragung.tsx`, `DienststundenManuelleEintragung.tsx`,
+      `PunkteEinstellungen.tsx`-Rest); Etappe 3 – Tabellen in `<div className="tabelle-scroll">`
+      wrappen (Mobile-Scroll); Etappe 4 – `<Ladeanzeige />` an den 29 `<p>Lädt …</p>`-Stellen
+      ausrollen. Dark Mode/responsive Typografie bewusst zurückgestellt (siehe Plan).
 - [ ] [Buchungen] Externe Kalender (z. B. den Divera-Kalender) per Einstellungen hinterlegen
       können, damit sie zusätzlich zu den Gerätehaus.app-eigenen Fahrzeugbuchungen im
       Buchungskalender angezeigt werden (Konflikterkennung soll dann auch externe Termine
