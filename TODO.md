@@ -6,16 +6,17 @@ mir einfach sagen "trag X in die TODO ein" / "schau dir die TODO an und mach Y".
 
 ## Offen
 
-- [ ] QR-Login per Mitglieder-Login zeigt teils "Seite nicht gefunden" (Verdacht: Service-Worker-Cache) – diagnostizieren und fixen
-- [ ] Dienststunden-Schwellenwert-Überschreitungen: Liste mit Möglichkeit, übernommene Stunden einzutragen und vom Überschuss abzuziehen
-- [ ] Barcode im Mitgliederbereich nicht erneut scannen, wenn die Identität schon über den Mitglieder-Login bekannt ist
+(aktuell nichts offen – trag hier Neues ein)
 
 ## In Arbeit
 
-- [ ] Kamera-Icon neben allen Barcode-Textfeldern zum Scannen per Handykamera
-
 ## Erledigt
 
+- [x] API-Sicherheitsprüfung: Rate-Limiting auf Login/Barcode/PIN/Reservierungs-Endpunkte (öffentlich erreichbar)
+- [x] QR-Login "Seite nicht gefunden" gefixt (Service-Worker: skipWaiting/clientsClaim)
+- [x] Dienststunden-Schwellenwert-Überschreitungen: Liste mit Stunden-Übernahme (Listen > Dienststunden)
+- [x] Barcode im Mitgliederbereich nicht mehr erneut scannen (Identität schon über Mitglieder-Login bekannt)
+- [x] Kamera-Icon neben allen Barcode-Textfeldern zum Scannen per Handykamera
 - [x] Admin-Passwort-Gate für Einstellungen entfernt
 - [x] Footer-Link auf eigenes GitHub-Repo geändert
 - [x] Namensabweichungen nur für Admin sichtbar (nicht Gruppenführer)
