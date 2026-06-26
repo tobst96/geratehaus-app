@@ -9,9 +9,10 @@ interface PunkteRegelState {
 }
 
 interface RegelZeile {
-  schluessel: "anlage" | "profilbild" | "email";
+  schluessel: "anlage" | "profilbild" | "email" | "einsatz" | "dienstbuch" | "dienststunden";
   titel: string;
   beschreibung: string;
+  einheit: string;
 }
 
 const REGEL_ZEILEN: RegelZeile[] = [
@@ -19,16 +20,43 @@ const REGEL_ZEILEN: RegelZeile[] = [
     schluessel: "anlage",
     titel: "Neuanlage einer Person",
     beschreibung: "Wird einmalig bei Anlage im Personal-Tab vergeben.",
+    einheit: "Punkte",
   },
   {
     schluessel: "profilbild",
     titel: "Erstes Profilbild",
     beschreibung: "Wird einmalig vergeben, sobald die Person zum ersten Mal ein Profilbild erhält.",
+    einheit: "Punkte",
   },
   {
     schluessel: "email",
     titel: "Erste E-Mail-Adresse",
     beschreibung: "Wird einmalig vergeben, sobald für die Person zum ersten Mal eine E-Mail hinterlegt wird.",
+    einheit: "Punkte",
+  },
+  {
+    schluessel: "einsatz",
+    titel: "Einsatz abgeschlossen",
+    beschreibung:
+      "Wird je Teilnahme vergeben, wenn ein Einsatz abgeschlossen wird. Bei Wiedereröffnung werden die " +
+      "Punkte zurückgenommen, bei erneutem Abschluss wieder vergeben.",
+    einheit: "Punkte",
+  },
+  {
+    schluessel: "dienstbuch",
+    titel: "Dienstbuch geschlossen",
+    beschreibung:
+      "Wird je Teilnahme vergeben, wenn ein Dienstbuch geschlossen wird. Bei Wiedereröffnung werden die " +
+      "Punkte zurückgenommen, bei erneutem Schließen wieder vergeben.",
+    einheit: "Punkte",
+  },
+  {
+    schluessel: "dienststunden",
+    titel: "Dienststunden erfasst",
+    beschreibung:
+      "Punkte PRO STUNDE bei jeder Dienststunden-Erfassung, präzise auf die Minute berechnet " +
+      "(z. B. 1,5 Std. = 1,5-facher Wert). Kommazahlen sind hier erlaubt.",
+    einheit: "Punkte/Std.",
   },
 ];
 
@@ -41,6 +69,9 @@ export function PunkteEinstellungen() {
     anlage: { punkte: 1, tage: 3, modus: "halten" },
     profilbild: { punkte: 50, tage: 365, modus: "halten" },
     email: { punkte: 30, tage: 100, modus: "halten" },
+    einsatz: { punkte: 5, tage: 180, modus: "halten" },
+    dienstbuch: { punkte: 5, tage: 180, modus: "halten" },
+    dienststunden: { punkte: 1, tage: 180, modus: "halten" },
   });
 
   function regelAendern(schluessel: string, regel: PunkteRegelState) {
@@ -126,7 +157,7 @@ export function PunkteEinstellungen() {
               </tr>
             </thead>
             <tbody>
-              {REGEL_ZEILEN.map(({ schluessel, titel, beschreibung }) => {
+              {REGEL_ZEILEN.map(({ schluessel, titel, beschreibung, einheit }) => {
                 const regel = regeln[schluessel];
                 return (
                   <tr key={schluessel}>
@@ -139,10 +170,12 @@ export function PunkteEinstellungen() {
                       <input
                         type="number"
                         min={0}
+                        step={0.1}
                         value={regel.punkte}
                         onChange={(e) => regelAendern(schluessel, { ...regel, punkte: Number(e.target.value) })}
                         style={{ width: 70 }}
                       />
+                      <div style={{ fontSize: "0.75rem", color: "#666" }}>{einheit}</div>
                     </td>
                     <td>
                       <input

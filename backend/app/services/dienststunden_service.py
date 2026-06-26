@@ -29,6 +29,10 @@ async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfasse
     await db.commit()
     await db.refresh(eintrag)
     await _pruefe_schwellenwert(db, person_id, daten.funktion_id, eintrag.stunden)
+    # Punkte je Stunde, präzise anteilig (z. B. 1,5 Std. = 1,5-facher Wert,
+    # also auch auf die Minute genau berücksichtigt).
+    await stammdaten_service.punkte_regel_anwenden(db, person_id, "dienststunden", faktor=eintrag.stunden)
+    await db.commit()
     return eintrag
 
 

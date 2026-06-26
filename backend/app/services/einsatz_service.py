@@ -156,6 +156,11 @@ async def einsatz_abschliessen(db: AsyncSession, einsatz: Einsatz) -> Einsatz:
     geladen = await get_einsatz(db, einsatz.id)
     assert geladen is not None
 
+    grund = f"einsatz_{einsatz.id}"
+    for person_id in {teilnahme.person_id for teilnahme in geladen.teilnahmen}:
+        await stammdaten_service.punkte_regel_anwenden(db, person_id, "einsatz", grund=grund, einmalig=True)
+    await db.commit()
+
     # Wenn die E-Mail bei Abschluss mit PDF+Timeline versendet wird, soll der
     # generische Benachrichtigungs-Dispatch den E-Mail-Kanal für dieses
     # Ereignis NICHT zusätzlich bedienen – sonst kämen zwei Mails an.
@@ -175,6 +180,7 @@ async def einsatz_wieder_oeffnen(db: AsyncSession, einsatz: Einsatz) -> Einsatz:
     einsatz.status = "offen"
     einsatz.geplanter_abschluss_am = None
     await db.commit()
+    await stammdaten_service.punkte_entfernen(db, f"einsatz_{einsatz.id}")
     await ereignis_protokollieren(db, einsatz.id, "wiedereroeffnet", "Einsatz wieder geöffnet")
     geladen = await get_einsatz(db, einsatz.id)
     assert geladen is not None

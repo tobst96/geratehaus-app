@@ -26,3 +26,9 @@ export const teilnehmerAktualisieren = (
 
 export const dienstbuchPdfUrl = (id: number) =>
   `/api/v1/dienstbuecher/${id}/pdf`;
+
+export const dienstbuchSchliessen = (id: number) =>
+  apiPost<DienstbuchOut>(`/dienstbuecher/${id}/schliessen`);
+
+export const dienstbuchWiederOeffnen = (id: number) =>
+  apiPost<DienstbuchOut>(`/dienstbuecher/${id}/wieder-oeffnen`);

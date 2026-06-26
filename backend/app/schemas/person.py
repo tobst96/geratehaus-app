@@ -54,7 +54,7 @@ class PersonPunktOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    punkte: int
+    punkte: float
     grund: str
     gueltig_bis: date
     erstellt_am: datetime

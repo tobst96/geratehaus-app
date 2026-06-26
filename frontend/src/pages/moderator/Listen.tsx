@@ -8,7 +8,7 @@ import {
   holeNamensabweichungen,
   type NamensAbweichungOut,
 } from "../../api/moderator";
-import { dienstbuchPdfUrl } from "../../api/dienstbuecher";
+import { dienstbuchPdfUrl, dienstbuchSchliessen, dienstbuchWiederOeffnen } from "../../api/dienstbuecher";
 import { ApiError } from "../../api/client";
 import type { BuchungOut, DienstbuchOut, EinsatzOut } from "../../api/types";
 import type { DienststundenEintragOut } from "../../api/dienststunden";
@@ -110,6 +110,7 @@ function DienstbuecherTab() {
   const [von, setVon] = useState("");
   const [bis, setBis] = useState("");
   const [archiviert, setArchiviert] = useState("");
+  const [status, setStatus] = useState("");
   const [daten, setDaten] = useState<DienstbuchOut[] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
 
@@ -133,11 +134,40 @@ function DienstbuecherTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  async function schliessen(id: number) {
+    try {
+      await dienstbuchSchliessen(id);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Schließen fehlgeschlagen.");
+    }
+  }
+
+  async function wiederOeffnen(id: number) {
+    try {
+      await dienstbuchWiederOeffnen(id);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Wieder öffnen fehlgeschlagen.");
+    }
+  }
+
+  const gefiltert = (daten ?? []).filter((d) => {
+    if (status === "offen") return !d.geschlossen;
+    if (status === "geschlossen") return d.geschlossen;
+    return true;
+  });
+
   return (
     <div>
       <FilterZeile>
         <DatumFeld label="Von" value={von} onChange={setVon} />
         <DatumFeld label="Bis" value={bis} onChange={setBis} />
+        <select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value="">Alle Status</option>
+          <option value="offen">Nur offene</option>
+          <option value="geschlossen">Nur geschlossene</option>
+        </select>
         <ArchiviertFeld value={archiviert} onChange={setArchiviert} />
         <button onClick={laden}>Filtern</button>
       </FilterZeile>
@@ -148,22 +178,33 @@ function DienstbuecherTab() {
             <tr>
               <th>Titel</th>
               <th>Eröffnet am</th>
+              <th>Status</th>
               <th>Teilnehmer</th>
               <th>Archiviert</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {daten.map((d) => (
+            {gefiltert.map((d) => (
               <tr key={d.id}>
                 <td>{d.titel}</td>
                 <td>{new Date(d.eroeffnet_am).toLocaleString("de-DE")}</td>
+                <td>{d.geschlossen ? "Geschlossen" : "Offen"}</td>
                 <td>{d.teilnehmer.length}</td>
                 <td>{d.archiviert ? "Ja" : ""}</td>
-                <td>
+                <td style={{ display: "flex", gap: 8, alignItems: "center" }}>
                   <a href={dienstbuchPdfUrl(d.id)} target="_blank" rel="noreferrer">
-                    Als PDF exportieren
+                    PDF
                   </a>
+                  {d.geschlossen ? (
+                    <button className="sekundaer" onClick={() => wiederOeffnen(d.id)}>
+                      Wieder öffnen
+                    </button>
+                  ) : (
+                    <button className="sekundaer" onClick={() => schliessen(d.id)}>
+                      Schließen
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

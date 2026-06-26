@@ -101,24 +101,58 @@ DEFAULTS: list[ConfigDefault] = [
     ),
     # Personen-Punkte (automatische Vergaberegeln, einstellbar im Moderator-
     # Bereich > Punkte). modus ist "halten" (voller Wert bis gueltig_bis) oder
-    # "abziehend" (linearer Abbau auf 0 bis gueltig_bis).
-    ConfigDefault("punkte_anlage_punkte", "1", ConfigTyp.INT, "Punkte bei Neuanlage einer Person"),
+    # "abziehend" (linearer Abbau auf 0 bis gueltig_bis). Die "_punkte"-Werte
+    # sind FLOAT, da Kommazahlen erlaubt sind (z. B. Punkte je Dienststunde).
+    ConfigDefault("punkte_anlage_punkte", "1", ConfigTyp.FLOAT, "Punkte bei Neuanlage einer Person"),
     ConfigDefault("punkte_anlage_tage", "3", ConfigTyp.INT, "Gültigkeitsdauer (Tage) bei Neuanlage"),
     ConfigDefault("punkte_anlage_modus", "halten", ConfigTyp.STR, "Abbau-Modus bei Neuanlage"),
     ConfigDefault(
-        "punkte_profilbild_punkte", "50", ConfigTyp.INT, "Punkte für das erste Profilbild einer Person"
+        "punkte_profilbild_punkte", "50", ConfigTyp.FLOAT, "Punkte für das erste Profilbild einer Person"
     ),
     ConfigDefault(
         "punkte_profilbild_tage", "365", ConfigTyp.INT, "Gültigkeitsdauer (Tage) für Profilbild-Punkte"
     ),
     ConfigDefault("punkte_profilbild_modus", "halten", ConfigTyp.STR, "Abbau-Modus für Profilbild-Punkte"),
     ConfigDefault(
-        "punkte_email_punkte", "30", ConfigTyp.INT, "Punkte für die erste hinterlegte E-Mail-Adresse"
+        "punkte_email_punkte", "30", ConfigTyp.FLOAT, "Punkte für die erste hinterlegte E-Mail-Adresse"
     ),
     ConfigDefault(
         "punkte_email_tage", "100", ConfigTyp.INT, "Gültigkeitsdauer (Tage) für E-Mail-Punkte"
     ),
     ConfigDefault("punkte_email_modus", "halten", ConfigTyp.STR, "Abbau-Modus für E-Mail-Punkte"),
+    ConfigDefault(
+        "punkte_einsatz_punkte",
+        "5",
+        ConfigTyp.FLOAT,
+        "Punkte je Teilnahme, wenn ein Einsatz abgeschlossen wird (bei Wiedereröffnung "
+        "werden sie zurückgenommen, bei erneutem Abschluss wieder vergeben)",
+    ),
+    ConfigDefault("punkte_einsatz_tage", "180", ConfigTyp.INT, "Gültigkeitsdauer (Tage) für Einsatz-Punkte"),
+    ConfigDefault("punkte_einsatz_modus", "halten", ConfigTyp.STR, "Abbau-Modus für Einsatz-Punkte"),
+    ConfigDefault(
+        "punkte_dienstbuch_punkte",
+        "5",
+        ConfigTyp.FLOAT,
+        "Punkte je Teilnahme, wenn ein Dienstbuch geschlossen wird (bei Wiedereröffnung "
+        "werden sie zurückgenommen, bei erneutem Schließen wieder vergeben)",
+    ),
+    ConfigDefault(
+        "punkte_dienstbuch_tage", "180", ConfigTyp.INT, "Gültigkeitsdauer (Tage) für Dienstbuch-Punkte"
+    ),
+    ConfigDefault("punkte_dienstbuch_modus", "halten", ConfigTyp.STR, "Abbau-Modus für Dienstbuch-Punkte"),
+    ConfigDefault(
+        "punkte_dienststunden_punkte",
+        "1",
+        ConfigTyp.FLOAT,
+        "Punkte PRO STUNDE bei jeder Dienststunden-Erfassung (präzise auf die Minute "
+        "berechnet, z. B. 1,5 Stunden = 1,5-facher Wert)",
+    ),
+    ConfigDefault(
+        "punkte_dienststunden_tage", "180", ConfigTyp.INT, "Gültigkeitsdauer (Tage) für Dienststunden-Punkte"
+    ),
+    ConfigDefault(
+        "punkte_dienststunden_modus", "halten", ConfigTyp.STR, "Abbau-Modus für Dienststunden-Punkte"
+    ),
     # Personen-Inaktivität
     ConfigDefault(
         "personen_inaktivitaet_tage",

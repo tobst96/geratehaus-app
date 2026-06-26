@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Date, DateTime, Float, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -17,7 +17,10 @@ class PersonPunkt(Base):
     person_id: Mapped[int] = mapped_column(
         ForeignKey("personen.id", ondelete="CASCADE"), nullable=False
     )
-    punkte: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Kommazahlen erlaubt (z. B. Dienststunden-Punkte je Stunde, präzise auf
+    # die Minute berechnet) – angezeigt wird der Person immer nur die
+    # gerundete Gesamtsumme (siehe stammdaten_service.gesamtpunkte_batch).
+    punkte: Mapped[float] = mapped_column(Float, nullable=False)
     grund: Mapped[str] = mapped_column(String(64), nullable=False)
     gueltig_bis: Mapped[date] = mapped_column(Date, nullable=False)
     # "halten": Punkte bleiben bis gueltig_bis voll erhalten (Standard).

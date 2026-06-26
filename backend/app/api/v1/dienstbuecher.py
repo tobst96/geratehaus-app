@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv
+from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_modul_aktiv
 from app.schemas.dienstbuch import (
     DienstbuchAnlegen,
     DienstbuchOut,
@@ -52,6 +52,22 @@ async def dienstbuch_pdf(db: DbSession, dienstbuch_id: int) -> Response:
         media_type="application/pdf",
         headers={"Content-Disposition": f'inline; filename="dienstbuch-{dienstbuch.id}.pdf"'},
     )
+
+
+@router.post("/{dienstbuch_id}/schliessen", response_model=DienstbuchOut)
+async def schliessen(db: DbSession, _moderator: CurrentModerator, dienstbuch_id: int) -> DienstbuchOut:
+    dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
+    if dienstbuch is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden.")
+    return await dienstbuch_service.dienstbuch_schliessen(db, dienstbuch)
+
+
+@router.post("/{dienstbuch_id}/wieder-oeffnen", response_model=DienstbuchOut)
+async def wieder_oeffnen(db: DbSession, _moderator: CurrentModerator, dienstbuch_id: int) -> DienstbuchOut:
+    dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
+    if dienstbuch is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden.")
+    return await dienstbuch_service.dienstbuch_wieder_oeffnen(db, dienstbuch)
 
 
 @router.post("/{dienstbuch_id}/reservierung", response_model=DienstbuchReservierungOut, dependencies=[])
