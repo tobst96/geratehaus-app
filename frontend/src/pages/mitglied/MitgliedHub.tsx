@@ -36,7 +36,11 @@ export function MitgliedHub() {
       ) : (
         <div className="kiosk-grid">
           {sichtbar.map((m) => (
-            <button key={m.route} className="kiosk-tile" onClick={() => navigate(m.route)}>
+            <button
+              key={m.route}
+              className="kiosk-tile"
+              onClick={() => navigate(m.route, { state: { mitgliedModus: true } })}
+            >
               <div className="kiosk-tile-icon-badge">{KACHEL_ICONS[m.key]}</div>
               <div className="kiosk-tile-text">{m.label}</div>
             </button>

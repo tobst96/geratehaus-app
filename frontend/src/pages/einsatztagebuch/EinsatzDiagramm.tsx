@@ -15,6 +15,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import { BarcodeEingabe } from "../../components/BarcodeEingabe";
+import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import type { EinsatzFeldDefinition, EinsatzOut, Fahrzeug, FunktionEinsatz, TeilnahmeOut } from "../../api/types";
 import "./EinsatzDiagramm.css";
 
@@ -55,6 +56,7 @@ const AGT_DEFAULT_MINUTEN = 30;
 
 export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert, onCancel }: EinsatzDiagrammProps) {
   const { barcodeEinscannen } = useAuth();
+  const mitgliedModus = useMitgliedModus();
   const { config } = useConfig();
   const [aktivesFahrzeugId, setAktivesFahrzeugId] = useState<number | null>(null);
   const [ausgewaehlteAktion, setAusgewaehlteAktion] = useState<AusgewaehlteAktion | null>(null);
@@ -260,14 +262,16 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
 
   async function eintragen(e: FormEvent) {
     e.preventDefault();
-    if (!ausgewaehlteAktion || !barcode.trim()) {
+    if (!ausgewaehlteAktion || (!mitgliedModus.aktiv && !barcode.trim())) {
       setFehler("Barcode erforderlich");
       return;
     }
     setLaeuft(true);
     setFehler(null);
     try {
-      await barcodeEinscannen(barcode.trim());
+      if (!mitgliedModus.aktiv) {
+        await barcodeEinscannen(barcode.trim());
+      }
       await teilnahmeEintragen(einsatz.id, {
         fahrzeug_id: ausgewaehlteAktion.fahrzeug?.id ?? null,
         sitzplatz_id: ausgewaehlteAktion.sitzplatzId,
@@ -584,7 +588,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
               </div>
             ) : (
               <div className="sitzplatz-scan-layout">
-                {vorschau && (
+                {!mitgliedModus.aktiv && vorschau && (
                   <div className="sitzplatz-scan-vorschau">
                     {vorschau.bild_url ? (
                       <img src={vorschau.bild_url} alt={vorschau.name} className="sitzplatz-scan-bild" />
@@ -596,16 +600,24 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                 )}
 
                 <div className="sitzplatz-scan-felder">
-                  <label htmlFor="ed-barcode">Barcode einscannen</label>
-                  <BarcodeEingabe
-                    id="ed-barcode"
-                    type="text"
-                    value={barcode}
-                    onChange={setBarcode}
-                    placeholder="Barcode scannen oder eingeben"
-                    autoFocus
-                    required
-                  />
+                  {mitgliedModus.aktiv ? (
+                    <p style={{ color: "#666" }}>
+                      Eingeloggt als <strong>{mitgliedModus.name}</strong>
+                    </p>
+                  ) : (
+                    <>
+                      <label htmlFor="ed-barcode">Barcode einscannen</label>
+                      <BarcodeEingabe
+                        id="ed-barcode"
+                        type="text"
+                        value={barcode}
+                        onChange={setBarcode}
+                        placeholder="Barcode scannen oder eingeben"
+                        autoFocus
+                        required
+                      />
+                    </>
+                  )}
                   <br />
                   <br />
 
@@ -688,14 +700,16 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                     <button type="submit" disabled={laeuft}>
                       {laeuft ? "Wird gespeichert…" : "Eintragen"}
                     </button>
-                    <button
-                      type="button"
-                      className="sekundaer"
-                      onClick={barcodeVergessenKlick}
-                      disabled={qrLaeuft}
-                    >
-                      {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
-                    </button>
+                    {!mitgliedModus.aktiv && (
+                      <button
+                        type="button"
+                        className="sekundaer"
+                        onClick={barcodeVergessenKlick}
+                        disabled={qrLaeuft}
+                      >
+                        {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
+                      </button>
+                    )}
                     <button type="button" className="sekundaer" onClick={() => setAusgewaehlteAktion(null)}>
                       Abbrechen
                     </button>

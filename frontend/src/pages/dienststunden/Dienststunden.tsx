@@ -13,6 +13,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import { BarcodeEingabe } from "../../components/BarcodeEingabe";
+import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import type { DienststundenSummeOut, FunktionDienststunden } from "../../api/types";
 import "./Dienststunden.css";
 
@@ -33,6 +34,7 @@ function initialenAus(name: string): string {
 export function Dienststunden() {
   const { barcodeEinscannen } = useAuth();
   const { config } = useConfig();
+  const mitgliedModus = useMitgliedModus();
   const [funktionen, setFunktionen] = useState<FunktionDienststunden[]>([]);
   const [ladeFehler, setLadeFehler] = useState<string | null>(null);
 
@@ -141,15 +143,17 @@ export function Dienststunden() {
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
-    if (!funktionId || !barcode.trim()) {
+    if (!funktionId || (!mitgliedModus.aktiv && !barcode.trim())) {
       setFehler("Barcode erforderlich");
       return;
     }
     setLaeuft(true);
     setFehler(null);
     try {
-      const name = vorschau?.name ?? null;
-      await barcodeEinscannen(barcode.trim());
+      const name = mitgliedModus.aktiv ? mitgliedModus.name : vorschau?.name ?? null;
+      if (!mitgliedModus.aktiv) {
+        await barcodeEinscannen(barcode.trim());
+      }
       await stundenErfassen(Number(funktionId), stunden, datum);
       const summen = await holeMeineSummen();
       setLetztePerson(name);
@@ -220,7 +224,7 @@ export function Dienststunden() {
         ) : (
           <form onSubmit={absenden}>
             <div className="dienststunden-scan-layout">
-              {vorschau && (
+              {!mitgliedModus.aktiv && vorschau && (
                 <div className="dienststunden-scan-vorschau">
                   {vorschau.bild_url ? (
                     <img src={vorschau.bild_url} alt={vorschau.name} className="dienststunden-scan-bild" />
@@ -232,18 +236,26 @@ export function Dienststunden() {
               )}
 
               <div className="dienststunden-scan-felder">
-                <label htmlFor="ds-barcode">Barcode einscannen</label>
-                <BarcodeEingabe
-                  id="ds-barcode"
-                  type="text"
-                  value={barcode}
-                  onChange={setBarcode}
-                  placeholder="Barcode scannen oder eingeben"
-                  autoFocus
-                  required
-                />
-                <br />
-                <br />
+                {mitgliedModus.aktiv ? (
+                  <p style={{ color: "#666" }}>
+                    Eingeloggt als <strong>{mitgliedModus.name}</strong>
+                  </p>
+                ) : (
+                  <>
+                    <label htmlFor="ds-barcode">Barcode einscannen</label>
+                    <BarcodeEingabe
+                      id="ds-barcode"
+                      type="text"
+                      value={barcode}
+                      onChange={setBarcode}
+                      placeholder="Barcode scannen oder eingeben"
+                      autoFocus
+                      required
+                    />
+                    <br />
+                    <br />
+                  </>
+                )}
 
                 <label htmlFor="ds-funktion">Funktion</label>
                 <select
@@ -290,14 +302,16 @@ export function Dienststunden() {
                   <button type="submit" disabled={laeuft}>
                     {laeuft ? "Wird gespeichert…" : "Erfassen"}
                   </button>
-                  <button
-                    type="button"
-                    className="sekundaer"
-                    onClick={barcodeVergessenKlick}
-                    disabled={qrLaeuft}
-                  >
-                    {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
-                  </button>
+                  {!mitgliedModus.aktiv && (
+                    <button
+                      type="button"
+                      className="sekundaer"
+                      onClick={barcodeVergessenKlick}
+                      disabled={qrLaeuft}
+                    >
+                      {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

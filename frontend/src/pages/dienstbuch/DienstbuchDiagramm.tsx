@@ -12,6 +12,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import { BarcodeEingabe } from "../../components/BarcodeEingabe";
+import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import type { DienstbuchOut, Gruppe, TeilnehmerOut } from "../../api/types";
 import "./DienstbuchDiagramm.css";
 
@@ -38,6 +39,7 @@ const AGT_DEFAULT_MINUTEN = 30;
 export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCancel }: DienstbuchDiagrammProps) {
   const { barcodeEinscannen } = useAuth();
   const { config } = useConfig();
+  const mitgliedModus = useMitgliedModus();
   const [barcode, setBarcode] = useState("");
   const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [gruppeId, setGruppeId] = useState<number | null>(null);
@@ -148,14 +150,16 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
 
   async function eintragen(e: FormEvent) {
     e.preventDefault();
-    if (!barcode.trim()) {
+    if (!mitgliedModus.aktiv && !barcode.trim()) {
       setFehler("Barcode erforderlich");
       return;
     }
     setLaeuft(true);
     setFehler(null);
     try {
-      await barcodeEinscannen(barcode.trim());
+      if (!mitgliedModus.aktiv) {
+        await barcodeEinscannen(barcode.trim());
+      }
       await teilnehmerEintragen(dienstbuch.id, {
         gruppe_id: gruppeId,
         // Atemschutzminuten stehen erst nach dem Dienst fest und werden
@@ -239,7 +243,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
               </div>
             ) : (
               <div className="dienstbuch-scan-layout">
-                {vorschau && (
+                {!mitgliedModus.aktiv && vorschau && (
                   <div className="dienstbuch-scan-vorschau">
                     {vorschau.bild_url ? (
                       <img src={vorschau.bild_url} alt={vorschau.name} className="dienstbuch-scan-bild" />
@@ -251,18 +255,26 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
                 )}
 
                 <div className="dienstbuch-scan-felder">
-                  <label htmlFor="db-barcode">Barcode einscannen</label>
-                  <BarcodeEingabe
-                    id="db-barcode"
-                    type="text"
-                    value={barcode}
-                    onChange={setBarcode}
-                    placeholder="Barcode scannen oder eingeben"
-                    autoFocus
-                    required
-                  />
-                  <br />
-                  <br />
+                  {mitgliedModus.aktiv ? (
+                    <p style={{ color: "#666" }}>
+                      Eingeloggt als <strong>{mitgliedModus.name}</strong>
+                    </p>
+                  ) : (
+                    <>
+                      <label htmlFor="db-barcode">Barcode einscannen</label>
+                      <BarcodeEingabe
+                        id="db-barcode"
+                        type="text"
+                        value={barcode}
+                        onChange={setBarcode}
+                        placeholder="Barcode scannen oder eingeben"
+                        autoFocus
+                        required
+                      />
+                      <br />
+                      <br />
+                    </>
+                  )}
 
                   <label htmlFor="db-gruppe">Gruppe</label>
                   <select
@@ -287,14 +299,16 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
                     <button type="submit" disabled={laeuft}>
                       {laeuft ? "Wird gespeichert…" : "Eintragen"}
                     </button>
-                    <button
-                      type="button"
-                      className="sekundaer"
-                      onClick={barcodeVergessenKlick}
-                      disabled={qrLaeuft}
-                    >
-                      {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
-                    </button>
+                    {!mitgliedModus.aktiv && (
+                      <button
+                        type="button"
+                        className="sekundaer"
+                        onClick={barcodeVergessenKlick}
+                        disabled={qrLaeuft}
+                      >
+                        {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

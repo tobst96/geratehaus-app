@@ -15,6 +15,7 @@ import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { BuchungsKalender } from "../../components/BuchungsKalender";
 import { BarcodeEingabe } from "../../components/BarcodeEingabe";
+import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import type { BuchungOut, Fahrzeug } from "../../api/types";
 import "../dienststunden/Dienststunden.css";
 
@@ -37,6 +38,7 @@ function initialenAus(name: string): string {
 export function Fahrzeugbuchung() {
   const { angezeigterName, barcodeEinscannen } = useAuth();
   const { config } = useConfig();
+  const mitgliedModus = useMitgliedModus();
   const [buchungen, setBuchungen] = useState<BuchungOut[] | null>(null);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -145,12 +147,14 @@ export function Fahrzeugbuchung() {
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
-    if (!fahrzeugId || !zweck.trim() || !barcode.trim()) return;
+    if (!fahrzeugId || !zweck.trim() || (!mitgliedModus.aktiv && !barcode.trim())) return;
     setHinweis(null);
     setFehler(null);
     setLaeuft(true);
     try {
-      await barcodeEinscannen(barcode.trim());
+      if (!mitgliedModus.aktiv) {
+        await barcodeEinscannen(barcode.trim());
+      }
       const ergebnis = await buchungAnfrage({
         fahrzeug_id: Number(fahrzeugId),
         von: new Date(von).toISOString(),
@@ -262,36 +266,46 @@ export function Fahrzeugbuchung() {
           <input id="fb-zweck" value={zweck} onChange={(e) => setZweck(e.target.value)} required />
           <br />
           <br />
-          <label htmlFor="fb-barcode">Barcode scannen (wer bist du?)</label>
-          <BarcodeEingabe
-            id="fb-barcode"
-            value={barcode}
-            onChange={setBarcode}
-            placeholder="Barcode scannen oder eingeben"
-            autoFocus
-            required
-          />
-          {vorschau && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-              {vorschau.bild_url && (
-                <img
-                  src={vorschau.bild_url}
-                  alt={vorschau.name}
-                  style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
-                />
+          {mitgliedModus.aktiv ? (
+            <p style={{ color: "#666" }}>
+              Eingeloggt als <strong>{mitgliedModus.name}</strong>
+            </p>
+          ) : (
+            <>
+              <label htmlFor="fb-barcode">Barcode scannen (wer bist du?)</label>
+              <BarcodeEingabe
+                id="fb-barcode"
+                value={barcode}
+                onChange={setBarcode}
+                placeholder="Barcode scannen oder eingeben"
+                autoFocus
+                required
+              />
+              {vorschau && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                  {vorschau.bild_url && (
+                    <img
+                      src={vorschau.bild_url}
+                      alt={vorschau.name}
+                      style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
+                    />
+                  )}
+                  <strong>{vorschau.name}</strong>
+                </div>
               )}
-              <strong>{vorschau.name}</strong>
-            </div>
+              <br />
+              <br />
+            </>
           )}
-          <br />
-          <br />
           {qrFehler && <p className="fehlertext">{qrFehler}</p>}
           <button type="submit" disabled={laeuft}>
             {laeuft ? "Wird gestellt…" : "Anfrage stellen"}
           </button>{" "}
-          <button type="button" className="sekundaer" onClick={barcodeVergessenKlick} disabled={qrLaeuft}>
-            {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
-          </button>{" "}
+          {!mitgliedModus.aktiv && (
+            <button type="button" className="sekundaer" onClick={barcodeVergessenKlick} disabled={qrLaeuft}>
+              {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
+            </button>
+          )}{" "}
           <button type="button" className="sekundaer" onClick={() => setFormularOffen(false)}>
             Abbrechen
           </button>
