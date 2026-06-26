@@ -9,7 +9,52 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
-(aktuell nichts offen – trag hier Neues ein)
+- [ ] [Buchungen] Externe Kalender (z. B. den Divera-Kalender) per Einstellungen hinterlegen
+      können, damit sie zusätzlich zu den Gerätehaus.app-eigenen Fahrzeugbuchungen im
+      Buchungskalender angezeigt werden (Konflikterkennung soll dann auch externe Termine
+      berücksichtigen, nicht nur eigene Buchungen). Betrifft `BuchungsKalender.tsx`
+      (react-big-calendar) und `buchung_service.hat_konflikt()`. Naheliegendster Ansatz: pro
+      Fahrzeug oder global eine iCal-/webcal-URL in app_config hinterlegen (Divera bietet i.d.R.
+      einen iCal-Export), serverseitig periodisch abrufen/parsen (z. B. mit `icalendar`-Paket)
+      und als zusätzliche, nicht buchbare "Fremdtermine" im Kalender überlagern. Divera-API-Key
+      ist schon vorhanden (`divera_service.py`/`divera_client.py`) – ggf. erst prüfen, ob Divera
+      Termine auch direkt über die bestehende API statt iCal liefert.
+- [ ] [Barcodes] Sound beim Scannen abspielen: Erfolgston, wenn eine Person beim Scannen
+      erkannt wurde, Fehlerton, wenn der Barcode nicht gefunden wird. Betrifft alle Stellen mit
+      Live-Vorschau beim Scannen (`barcodeVorschau()` in `frontend/src/api/auth.ts`, genutzt in
+      `EinsatzDiagramm.tsx`, `DienstbuchDiagramm.tsx`, `Dienststunden.tsx`,
+      `Fahrzeugbuchung.tsx`, `MitgliedLogin.tsx` sowie im neuen `BarcodeScanner.tsx` für die
+      Kamera-Erkennung). Sinnvoller Ansatz: zwei kurze Sound-Dateien (z. B. `erkannt.mp3`/
+      `fehler.mp3`) statisch im Frontend, ein kleiner `useBarcodeSound()`-Hook, der bei
+      Vorschau-Erfolg/-Fehler abspielt – am besten zentral in der `barcodeVorschau`-Debounce-
+      Logik statt in jeder Seite einzeln dupliziert.
+- [ ] [Benachrichtigungen] Mail-Versand: evtl. eine "Ausdrucken statt/zusätzlich zu E-Mail"-
+      Alternative anbieten – z. B. für Moderatoren ohne hinterlegte E-Mail, oder als
+      Backup-Kanal, wenn der SMTP-Versand fehlschlägt. Genauer Bedarf/Umfang noch unklar (reine
+      Druckansicht im Browser? PDF-Download der Benachrichtigung? Automatisch bei
+      SMTP-Fehlschlag?) – beim Aufgreifen erst klären, was genau gewünscht ist, bevor
+      implementiert wird. Die HTML-Mail-Infrastruktur (`email_template_service.render_html()`)
+      liefert bereits druckfähiges, gestyltes HTML, das sich als Basis eignen sollte.
+- [ ] [Punkte] Punkte-Vergabe als manuelle "Belohnung": Gruppenführer sollen Personen direkt auf
+      der Punkte-Seite (`frontend/src/pages/moderator/PunkteEinstellungen.tsx`) Punkte
+      gutschreiben können, nicht nur über die automatischen Regeln (Einsatz, Dienstbuch,
+      Dienststunden, E-Mail, Anlage). Backend-Funktion `stammdaten_service.punkte_vergeben(db,
+      person_id, punkte, grund, gueltig_bis, abbau_modus)` existiert bereits und wird intern von
+      `punkte_regel_anwenden()` genutzt – braucht nur einen neuen Endpunkt (z. B. POST
+      `/moderator/punkte/belohnung` mit `person_id`/`punkte`/`grund`/`gueltig_bis`) und ein
+      Formular auf der Punkte-Seite (Personen-Auswahl, Punktezahl, Grund-Text, Gültigkeitsdauer).
+      Da Gruppenführer das können sollen (nicht nur Admin): prüfen, ob die Punkte-Seite aktuell
+      admin-only ist (`ModeratorLayout.tsx` NAV_ITEMS) und ggf. für Gruppenführer freigeben –
+      nur für diese neue Aktion, nicht zwangsläufig für die übrigen Punkte-Einstellungen.
+- [ ] [Personal] CSV-Import für Personen, inkl. Beispieldatei zum Download (Spalten-Vorlage:
+      vorname, zwischenname, nachname, email, gruppe, funktion o. ä.). Betrifft
+      `Personal.tsx`/`stammdaten_service.person_anlegen()`. Sinnvoller Ansatz: neuer Endpunkt
+      POST `/moderator/stammdaten/personen/csv-import`, der eine hochgeladene CSV zeilenweise
+      gegen `person_anlegen()` durchläuft (inkl. der bestehenden Punkte-Vergabe/Timeline-Logik
+      pro Anlage), Gruppen/Funktionen per Name auflöst (anlegen, falls nicht vorhanden, oder
+      Fehler pro Zeile sammeln und am Ende als Ergebnis-Liste zurückgeben statt beim ersten
+      Fehler abzubrechen). Beispieldatei als statische Datei im Frontend (z. B.
+      `public/personen-vorlage.csv`) zum Download neben dem Upload-Button auf der Personal-Seite.
 
 ## In Arbeit
 
