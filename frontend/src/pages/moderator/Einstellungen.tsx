@@ -164,7 +164,6 @@ export function Einstellungen() {
   const [alleEingetragenMinuten, setAlleEingetragenMinuten] = useState(30);
   const [autoabschlussStunde, setAutoabschlussStunde] = useState(4);
   const [autoabschlussInaktivitaetStunden, setAutoabschlussInaktivitaetStunden] = useState(4);
-  const [barcodeGueltigkeitTage, setBarcodeGueltigkeitTage] = useState(730);
   const [personenSortierung, setPersonenSortierung] = useState("nachname");
   const [personenInaktivitaetTage, setPersonenInaktivitaetTage] = useState(90);
 
@@ -205,7 +204,6 @@ export function Einstellungen() {
       setAlleEingetragenMinuten(Number(w.einsatz_alle_eingetragen_minuten ?? 30));
       setAutoabschlussStunde(Number(w.einsatz_autoabschluss_stunde ?? 4));
       setAutoabschlussInaktivitaetStunden(Number(w.einsatz_autoabschluss_inaktivitaet_stunden ?? 4));
-      setBarcodeGueltigkeitTage(Number(w.barcode_gueltigkeit_tage ?? 730));
       setPersonenSortierung(String(w.personen_sortierung ?? "nachname"));
       setPersonenInaktivitaetTage(Number(w.personen_inaktivitaet_tage ?? 90));
       setDiveraAktiv(Boolean(w.divera_aktiv));
@@ -256,7 +254,6 @@ export function Einstellungen() {
         einsatz_alle_eingetragen_minuten: alleEingetragenMinuten,
         einsatz_autoabschluss_stunde: autoabschlussStunde,
         einsatz_autoabschluss_inaktivitaet_stunden: autoabschlussInaktivitaetStunden,
-        barcode_gueltigkeit_tage: barcodeGueltigkeitTage,
         personen_sortierung: personenSortierung,
         personen_inaktivitaet_tage: personenInaktivitaetTage,
         divera_aktiv: diveraAktiv,
@@ -657,22 +654,6 @@ export function Einstellungen() {
             7 Tage vor der automatischen Löschung wird einmalig eine Benachrichtigung verschickt.
             Erfolgt in dieser Zeit keine neue Aktivität, wird die Person inkl. aller zugehörigen Daten
             (Dienststunden, Einsätze, Dienstbücher, Barcodes, Buchungen) endgültig gelöscht. 0 = deaktiviert.
-          </p>
-        </div>
-
-        <div className="karte">
-          <h2>Barcodes</h2>
-          <label htmlFor="e-barcode-gueltigkeit">Gültigkeitsdauer neuer Barcodes (Tage)</label>
-          <input
-            id="e-barcode-gueltigkeit"
-            type="number"
-            min={1}
-            value={barcodeGueltigkeitTage}
-            onChange={(e) => setBarcodeGueltigkeitTage(Number(e.target.value))}
-          />
-          <p style={{ fontSize: "0.85rem", color: "#666" }}>
-            Gilt nur für neu erzeugte Barcodes. Bereits ausgegebene Barcodes behalten ihr
-            ursprüngliches Ablaufdatum.
           </p>
         </div>
 

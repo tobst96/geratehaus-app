@@ -58,6 +58,7 @@ export interface Person {
   funktion_id: number | null;
   gesamtpunkte: number;
   pin_gesetzt: boolean;
+  benachrichtigungen_aktiv: boolean;
 }
 
 export interface PersonEreignis {

@@ -260,6 +260,7 @@ FELD_LABELS = {
     "email": "E-Mail",
     "gruppe_id": "Gruppe",
     "funktion_id": "Funktion",
+    "benachrichtigungen_aktiv": "Benachrichtigungen aktiv",
 }
 
 
@@ -562,6 +563,7 @@ async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[Pers
             funktion_id=p.funktion_id,
             gesamtpunkte=punkte_je_person.get(p.id, 0),
             pin_gesetzt=p.pin_gesetzt,
+            benachrichtigungen_aktiv=p.benachrichtigungen_aktiv,
         )
         for p in personen
     ]

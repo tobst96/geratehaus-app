@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { barcodeBildUrl, holeAllePersonen, personBarcodeErzeugen } from "../../api/moderator";
+import {
+  barcodeBildUrl,
+  holeAllePersonen,
+  personBarcodeErzeugen,
+  holeEinstellungen,
+  schreibeEinstellungen,
+} from "../../api/moderator";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
@@ -15,12 +21,28 @@ export function BarcodeGenerator() {
   const [personen, setPersonen] = useState<Person[] | null>(null);
   const [barcodes, setBarcodes] = useState<Map<number, BarcodeInfo>>(new Map());
   const [fehler, setFehler] = useState<string | null>(null);
+  const [gueltigkeitTage, setGueltigkeitTage] = useState(730);
+  const [speichertGueltigkeit, setSpeichertGueltigkeit] = useState(false);
 
   useEffect(() => {
     holeAllePersonen()
       .then(setPersonen)
       .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : "Personen konnten nicht geladen werden."));
+    holeEinstellungen()
+      .then((w) => setGueltigkeitTage(Number(w.barcode_gueltigkeit_tage ?? 730)))
+      .catch(() => {});
   }, []);
+
+  async function gueltigkeitSpeichern() {
+    setSpeichertGueltigkeit(true);
+    try {
+      await schreibeEinstellungen({ barcode_gueltigkeit_tage: gueltigkeitTage });
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Speichern fehlgeschlagen.");
+    } finally {
+      setSpeichertGueltigkeit(false);
+    }
+  }
 
   async function generateBarcode(personId: number): Promise<BarcodeInfo> {
     const { token, ablauf_am } = await personBarcodeErzeugen(personId);
@@ -100,6 +122,26 @@ export function BarcodeGenerator() {
         Erzeugt für jede Person einen echten Strichcode (Code128), der ein eindeutiges Geheimnis
         codiert und 2 Jahre gültig ist. Personen werden unter Stammdaten → Personen verwaltet.
       </p>
+
+      <div className="karte" style={{ marginBottom: "2rem", maxWidth: 400 }}>
+        <label htmlFor="barcode-gueltigkeit">Gültigkeitsdauer neuer Barcodes (Tage)</label>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input
+            id="barcode-gueltigkeit"
+            type="number"
+            min={1}
+            value={gueltigkeitTage}
+            onChange={(e) => setGueltigkeitTage(Number(e.target.value))}
+          />
+          <button onClick={gueltigkeitSpeichern} disabled={speichertGueltigkeit}>
+            {speichertGueltigkeit ? "Speichert …" : "Speichern"}
+          </button>
+        </div>
+        <p style={{ fontSize: "0.85rem", color: "#666", marginBottom: 0 }}>
+          Gilt nur für neu erzeugte Barcodes. Bereits ausgegebene Barcodes behalten ihr
+          ursprüngliches Ablaufdatum.
+        </p>
+      </div>
 
       <div style={{ marginBottom: "2rem" }}>
         <button onClick={downloadAllAsHTML}>📥 Alle Barcodes als HTML herunterladen</button>

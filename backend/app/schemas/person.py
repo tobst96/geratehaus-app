@@ -17,6 +17,7 @@ class PersonOut(BaseModel):
     funktion_id: int | None
     gesamtpunkte: int
     pin_gesetzt: bool
+    benachrichtigungen_aktiv: bool
 
 
 class PersonCreate(BaseModel):
@@ -35,6 +36,7 @@ class PersonUpdate(BaseModel):
     email: str | None = Field(default=None, max_length=255)
     gruppe_id: int | None = None
     funktion_id: int | None = None
+    benachrichtigungen_aktiv: bool | None = None
 
 
 class PersonEreignisOut(BaseModel):

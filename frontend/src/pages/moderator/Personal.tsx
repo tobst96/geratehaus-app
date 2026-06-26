@@ -287,6 +287,12 @@ export function Personal() {
     await timelineLaden(p.id);
   }
 
+  async function benachrichtigungenAendern(p: Person, aktiv: boolean) {
+    await personAktualisieren(p.id, { benachrichtigungen_aktiv: aktiv });
+    await laden();
+    await timelineLaden(p.id);
+  }
+
   async function pinSetzen(p: Person) {
     const pin = window.prompt("Neuen PIN für " + p.name + " festlegen (4-6 Ziffern):");
     if (!pin) return;
@@ -595,6 +601,21 @@ export function Personal() {
                   onBlur={(e) => feldAendern(ausgewaehltePerson, "email", e.target.value)}
                   style={{ width: 200 }}
                 />
+                <label
+                  style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.9rem" }}
+                  title={
+                    !ausgewaehltePerson.email
+                      ? "Erst eine E-Mail-Adresse hinterlegen, sonst kommen keine Benachrichtigungen an"
+                      : undefined
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    checked={ausgewaehltePerson.benachrichtigungen_aktiv}
+                    onChange={(e) => benachrichtigungenAendern(ausgewaehltePerson, e.target.checked)}
+                  />
+                  Benachrichtigungen aktiv
+                </label>
                 <select
                   value={ausgewaehltePerson.gruppe_id ?? ""}
                   onChange={(e) =>

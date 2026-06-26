@@ -222,6 +222,7 @@ export const personAktualisieren = (
     email: string | null;
     gruppe_id: number | null;
     funktion_id: number | null;
+    benachrichtigungen_aktiv: boolean;
   }>
 ) => apiPut<Person>(`/moderator/stammdaten/personen/${id}`, daten);
 export const personPinSetzen = (id: number, pin: string) =>

@@ -239,7 +239,7 @@ export function NotifierEinstellungen() {
           />
           <br />
           <br />
-          <label htmlFor="email-recipients">Empfänger (kommagetrennt)</label>
+          <label htmlFor="email-recipients">Empfänger für Testmail (kommagetrennt)</label>
           <input
             id="email-recipients"
             type="text"
@@ -248,6 +248,10 @@ export function NotifierEinstellungen() {
             placeholder="moderator@example.com"
             disabled={!config.email_enabled}
           />
+          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            Nur für die Testmail unten. Echte Benachrichtigungen gehen an die Personen, die das in
+            ihren Stammdaten (Personal) individuell aktiviert haben.
+          </p>
           <br />
           <br />
           <label htmlFor="email-user">Benutzername</label>

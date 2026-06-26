@@ -2,8 +2,10 @@ from email.message import EmailMessage
 
 import aiosmtplib
 import structlog
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.person import Person
 from app.services.config_service import config_service
 from app.services.notifier.base import Notifier
 
@@ -14,19 +16,40 @@ class EmailNotifier(Notifier):
     name = "email"
 
     async def send(self, db: AsyncSession, betreff: str, nachricht: str) -> None:
+        """Event-Benachrichtigungen gehen an jede Person, die in ihren
+        Stammdaten Benachrichtigungen aktiviert und eine E-Mail-Adresse
+        hinterlegt hat (Default: aus) – nicht an eine zentrale Adressliste."""
+        empfaenger = await self._aktive_personen_emails(db)
+        if not empfaenger:
+            return
         try:
-            await self._versenden(db, betreff, nachricht)
+            await self._versenden(db, betreff, nachricht, empfaenger_liste=empfaenger)
         except (aiosmtplib.SMTPException, OSError):
             logger.warning("email_versand_fehlgeschlagen", exc_info=True)
+
+    async def _aktive_personen_emails(self, db: AsyncSession) -> list[str]:
+        result = await db.execute(
+            select(Person.email).where(
+                Person.benachrichtigungen_aktiv.is_(True), Person.email.is_not(None)
+            )
+        )
+        return [e for e in result.scalars().all() if e]
 
     async def test_versenden(self, db: AsyncSession) -> None:
         """Wie send(), wirft aber Fehler weiter – anders als bei
         Event-Benachrichtigungen soll die Einstellungen-UI eine konkrete
-        Fehlermeldung zur SMTP-Konfiguration anzeigen können."""
+        Fehlermeldung zur SMTP-Konfiguration anzeigen können. Nutzt bewusst
+        die zentrale Empfängeradresse aus den Einstellungen (statt der
+        Personen-Adressen), da hier nur die SMTP-Konfiguration geprüft wird."""
+        empfaenger_roh = await config_service.get(db, "notifier_email_recipients", "")
+        empfaenger = [e.strip() for e in empfaenger_roh.split(",") if e.strip()]
+        if not empfaenger:
+            raise ValueError("Keine Empfängeradresse in den Einstellungen hinterlegt.")
         await self._versenden(
             db,
             "Testmail von Gerätehaus.app",
             "Das ist eine Testmail. Wenn du sie erhältst, ist die SMTP-Konfiguration korrekt.",
+            empfaenger_liste=empfaenger,
         )
 
     async def pdf_versenden(

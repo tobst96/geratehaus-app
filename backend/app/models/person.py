@@ -30,6 +30,7 @@ class Person(Base, TimestampMixin):
     )
     pin_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     pin_gesetzt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    benachrichtigungen_aktiv: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # passive_deletes: überlässt das Entfernen abhängiger Zeilen der
     # DB-FK-CASCADE (siehe Migration 0023), statt dass SQLAlchemy versucht,
