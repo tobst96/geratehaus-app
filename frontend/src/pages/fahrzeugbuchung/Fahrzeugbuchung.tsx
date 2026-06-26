@@ -1,11 +1,21 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import QRCode from "qrcode";
 import { useAuth } from "../../context/AuthContext";
-import { holeBuchungen, buchungAnfrage, buchungZurueckziehen } from "../../api/buchungen";
+import { useConfig } from "../../context/ConfigContext";
+import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
+import {
+  holeBuchungen,
+  buchungAnfrage,
+  buchungZurueckziehen,
+  fahrzeugbuchungReservierungAnlegen,
+} from "../../api/buchungen";
+import { holeFahrzeugbuchungReservierung } from "../../api/fahrzeugbuchungReservierungen";
 import { holeFahrzeuge } from "../../api/stammdaten";
 import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { BuchungsKalender } from "../../components/BuchungsKalender";
 import type { BuchungOut, Fahrzeug } from "../../api/types";
+import "../dienststunden/Dienststunden.css";
 
 function jetztAlsDatetimeLocal(minutenSpaeter = 0): string {
   const jetzt = new Date();
@@ -13,8 +23,19 @@ function jetztAlsDatetimeLocal(minutenSpaeter = 0): string {
   return jetzt.toISOString().slice(0, 16);
 }
 
+function initialenAus(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((teil) => teil.charAt(0))
+    .join("")
+    .toUpperCase();
+}
+
 export function Fahrzeugbuchung() {
   const { angezeigterName, barcodeEinscannen } = useAuth();
+  const { config } = useConfig();
   const [buchungen, setBuchungen] = useState<BuchungOut[] | null>(null);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -29,6 +50,17 @@ export function Fahrzeugbuchung() {
   const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [laeuft, setLaeuft] = useState(false);
 
+  const [qrAnsicht, setQrAnsicht] = useState<{ token: string; bildUrl: string; ablaufAm: string } | null>(
+    null
+  );
+  const [qrFehler, setQrFehler] = useState<string | null>(null);
+  const [qrLaeuft, setQrLaeuft] = useState(false);
+  const [qrVorschauPerson, setQrVorschauPerson] = useState<{ name: string; bildUrl: string | null } | null>(
+    null
+  );
+  const qrVorschauGezeigtSeit = useRef<number | null>(null);
+  const qrSchliessenGeplant = useRef(false);
+
   useEffect(() => {
     const wert = barcode.trim();
     if (!wert) {
@@ -40,6 +72,60 @@ export function Fahrzeugbuchung() {
     }, 250);
     return () => clearTimeout(timeout);
   }, [barcode]);
+
+  function qrAnsichtZuruecksetzen() {
+    setQrAnsicht(null);
+    setQrVorschauPerson(null);
+    qrVorschauGezeigtSeit.current = null;
+    qrSchliessenGeplant.current = false;
+  }
+
+  async function barcodeVergessenKlick() {
+    setQrLaeuft(true);
+    setQrFehler(null);
+    try {
+      const { token, ablauf_am } = await fahrzeugbuchungReservierungAnlegen();
+      const url = `${oeffentlicheBasisUrl(config)}/eintragen-fahrzeugbuchung/${token}`;
+      const bildUrl = await QRCode.toDataURL(url, { width: 280, margin: 1 });
+      setQrAnsicht({ token, bildUrl, ablaufAm: ablauf_am });
+    } catch (err) {
+      setQrFehler(err instanceof ApiError ? String(err.detail) : "QR-Code konnte nicht erzeugt werden.");
+    } finally {
+      setQrLaeuft(false);
+    }
+  }
+
+  // Solange der QR-Code angezeigt wird, prüfen ob die Person sich auf dem
+  // eigenen Handy schon ausgewählt bzw. eingetragen hat. Die Vorschau
+  // (Name+Bild) muss mindestens 3 Sekunden sichtbar bleiben.
+  useEffect(() => {
+    if (!qrAnsicht) return;
+    const token = qrAnsicht.token;
+    const intervall = setInterval(async () => {
+      try {
+        const info = await holeFahrzeugbuchungReservierung(token);
+        if (info.vorschau_person_name && qrVorschauGezeigtSeit.current === null) {
+          qrVorschauGezeigtSeit.current = Date.now();
+        }
+        if (info.vorschau_person_name) {
+          setQrVorschauPerson({ name: info.vorschau_person_name, bildUrl: info.vorschau_bild_url });
+        }
+        if (info.bereits_eingeloest && !qrSchliessenGeplant.current) {
+          qrSchliessenGeplant.current = true;
+          const gezeigtSeit = qrVorschauGezeigtSeit.current;
+          const wartenMs = gezeigtSeit ? Math.max(0, 3000 - (Date.now() - gezeigtSeit)) : 0;
+          setTimeout(async () => {
+            qrAnsichtZuruecksetzen();
+            setFormularOffen(false);
+            await laden();
+          }, wartenMs);
+        }
+      } catch {
+        // Best effort – wird beim nächsten Intervall erneut versucht.
+      }
+    }, 1500);
+    return () => clearInterval(intervall);
+  }, [qrAnsicht]);
 
   async function laden() {
     try {
@@ -109,7 +195,49 @@ export function Fahrzeugbuchung() {
 
       {!formularOffen && <button onClick={() => setFormularOffen(true)}>Neue Anfrage</button>}
       {hinweis && <p className="karte">{hinweis}</p>}
-      {formularOffen && (
+      {formularOffen && qrAnsicht && (
+        <div className="karte dienststunden-qr-ansicht">
+          <p style={{ color: "#666" }}>
+            Mit dem Handy scannen – die Person trägt sich dort selbst ein (ohne Barcode).
+          </p>
+          <div
+            style={{
+              display: "flex",
+              gap: "1.5rem",
+              alignItems: "center",
+              flexWrap: "wrap",
+              justifyContent: "center",
+            }}
+          >
+            <img
+              src={qrAnsicht.bildUrl}
+              alt="QR-Code zum Eintragen ohne Barcode"
+              className="dienststunden-qr-bild"
+            />
+            {qrVorschauPerson && (
+              <div className="dienststunden-scan-vorschau">
+                {qrVorschauPerson.bildUrl ? (
+                  <img
+                    src={qrVorschauPerson.bildUrl}
+                    alt={qrVorschauPerson.name}
+                    className="dienststunden-scan-bild"
+                  />
+                ) : (
+                  <div className="dienststunden-scan-initialen">{initialenAus(qrVorschauPerson.name)}</div>
+                )}
+                <div className="dienststunden-scan-name">{qrVorschauPerson.name}</div>
+              </div>
+            )}
+          </div>
+          <p style={{ fontSize: "0.8rem", color: "#999" }}>
+            Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
+          </p>
+          <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
+            Zurück zum Formular
+          </button>
+        </div>
+      )}
+      {formularOffen && !qrAnsicht && (
         <form onSubmit={absenden} className="karte">
           <label htmlFor="fb-fahrzeug">Fahrzeug</label>
           <select id="fb-fahrzeug" value={fahrzeugId} onChange={(e) => setFahrzeugId(e.target.value)} required>
@@ -156,8 +284,12 @@ export function Fahrzeugbuchung() {
           )}
           <br />
           <br />
+          {qrFehler && <p className="fehlertext">{qrFehler}</p>}
           <button type="submit" disabled={laeuft}>
             {laeuft ? "Wird gestellt…" : "Anfrage stellen"}
+          </button>{" "}
+          <button type="button" className="sekundaer" onClick={barcodeVergessenKlick} disabled={qrLaeuft}>
+            {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
           </button>{" "}
           <button type="button" className="sekundaer" onClick={() => setFormularOffen(false)}>
             Abbrechen

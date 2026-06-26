@@ -1,0 +1,85 @@
+from fastapi import APIRouter, HTTPException, status
+
+from app.api.deps import DbSession
+from app.schemas.buchung import BuchungOut
+from app.schemas.fahrzeugbuchung_reservierung import (
+    FahrzeugbuchungReservierungEinloesen,
+    FahrzeugbuchungReservierungInfo,
+    FahrzeugbuchungReservierungVorschauSetzen,
+)
+from app.schemas.person import PersonOut
+from app.services import fahrzeugbuchung_reservierung_service, stammdaten_service
+
+router = APIRouter(prefix="/fahrzeugbuchung-reservierungen", tags=["fahrzeugbuchung-reservierungen"])
+
+
+@router.get("/{token}", response_model=FahrzeugbuchungReservierungInfo)
+async def reservierung_info(db: DbSession, token: str) -> FahrzeugbuchungReservierungInfo:
+    """Kontext für die mobile Eintragungs-Seite – bewusst ohne Auth, der
+    Token selbst ist das Geheimnis (kurzlebig, einmal verwendbar)."""
+    reservierung = await fahrzeugbuchung_reservierung_service.get_reservierung_by_token(db, token)
+    if reservierung is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
+
+    vorschau_person_name = None
+    vorschau_bild_url = None
+    if reservierung.vorschau_person_id is not None:
+        vorschau_person = await stammdaten_service.get_person(db, reservierung.vorschau_person_id)
+        if vorschau_person is not None:
+            vorschau_person_name = vorschau_person.name
+            vorschau_bild_url = vorschau_person.bild_url
+
+    return FahrzeugbuchungReservierungInfo(
+        abgelaufen=fahrzeugbuchung_reservierung_service.ist_abgelaufen(reservierung),
+        bereits_eingeloest=reservierung.eingeloest,
+        vorschau_person_name=vorschau_person_name,
+        vorschau_bild_url=vorschau_bild_url,
+    )
+
+
+@router.put("/{token}/vorschau", status_code=status.HTTP_204_NO_CONTENT)
+async def reservierung_vorschau_setzen(
+    db: DbSession, token: str, daten: FahrzeugbuchungReservierungVorschauSetzen
+) -> None:
+    """Wird aufgerufen, sobald die Person sich auf dem Handy auswählt – noch
+    vor dem endgültigen Absenden – damit das Gerätehaus-Display Name und
+    Bild bereits neben dem QR-Code zeigen kann."""
+    reservierung = await fahrzeugbuchung_reservierung_service.get_reservierung_by_token(db, token)
+    if reservierung is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
+    try:
+        await fahrzeugbuchung_reservierung_service.reservierung_vorschau_setzen(
+            db, reservierung, daten.person_id, daten.pin
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.get("/{token}/personen", response_model=list[PersonOut])
+async def reservierung_personen(db: DbSession, token: str) -> list[PersonOut]:
+    reservierung = await fahrzeugbuchung_reservierung_service.get_reservierung_by_token(db, token)
+    if reservierung is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
+    return await stammdaten_service.liste_personen(db)
+
+
+@router.post("/{token}/einloesen", response_model=BuchungOut)
+async def reservierung_einloesen(
+    db: DbSession, token: str, daten: FahrzeugbuchungReservierungEinloesen
+) -> BuchungOut:
+    reservierung = await fahrzeugbuchung_reservierung_service.get_reservierung_by_token(db, token)
+    if reservierung is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
+    if reservierung.eingeloest:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Diese Reservierung wurde bereits genutzt."
+        )
+    if fahrzeugbuchung_reservierung_service.ist_abgelaufen(reservierung):
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Diese Reservierung ist abgelaufen.")
+
+    try:
+        return await fahrzeugbuchung_reservierung_service.reservierung_einloesen(db, reservierung, daten)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

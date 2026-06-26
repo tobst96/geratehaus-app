@@ -8,85 +8,57 @@ interface PunkteRegelState {
   modus: string;
 }
 
-function RegelKarte({
-  titel,
-  beschreibung,
-  regel,
-  onAendern,
-}: {
+interface RegelZeile {
+  schluessel: "anlage" | "profilbild" | "email";
   titel: string;
   beschreibung: string;
-  regel: PunkteRegelState;
-  onAendern: (regel: PunkteRegelState) => void;
-}) {
-  const taeglicherAbbau =
-    regel.modus === "abziehend" && regel.tage > 0 ? (regel.punkte / regel.tage).toFixed(2) : null;
-
-  return (
-    <div className="karte">
-      <h2>{titel}</h2>
-      <p style={{ fontSize: "0.85rem", color: "#666" }}>{beschreibung}</p>
-
-      <label>Punkte</label>
-      <input
-        type="number"
-        min={0}
-        value={regel.punkte}
-        onChange={(e) => onAendern({ ...regel, punkte: Number(e.target.value) })}
-      />
-      <br />
-      <br />
-      <label>Gültigkeitsdauer (Tage)</label>
-      <input
-        type="number"
-        min={0}
-        value={regel.tage}
-        onChange={(e) => onAendern({ ...regel, tage: Number(e.target.value) })}
-      />
-      <br />
-      <br />
-      <label>Abbau-Modus</label>
-      <select value={regel.modus} onChange={(e) => onAendern({ ...regel, modus: e.target.value })}>
-        <option value="halten">Halten bis Ende</option>
-        <option value="abziehend">Abziehend bis Ende</option>
-      </select>
-      {taeglicherAbbau && (
-        <p style={{ fontSize: "0.8rem", color: "#666", marginTop: 4 }}>
-          Entspricht ca. {taeglicherAbbau} Punkten Abzug pro Tag, sodass die Punkte nach {regel.tage}{" "}
-          Tagen bei 0 ankommen.
-        </p>
-      )}
-    </div>
-  );
 }
+
+const REGEL_ZEILEN: RegelZeile[] = [
+  {
+    schluessel: "anlage",
+    titel: "Neuanlage einer Person",
+    beschreibung: "Wird einmalig bei Anlage im Personal-Tab vergeben.",
+  },
+  {
+    schluessel: "profilbild",
+    titel: "Erstes Profilbild",
+    beschreibung: "Wird einmalig vergeben, sobald die Person zum ersten Mal ein Profilbild erhält.",
+  },
+  {
+    schluessel: "email",
+    titel: "Erste E-Mail-Adresse",
+    beschreibung: "Wird einmalig vergeben, sobald für die Person zum ersten Mal eine E-Mail hinterlegt wird.",
+  },
+];
 
 export function PunkteEinstellungen() {
   const [geladen, setGeladen] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [gespeichert, setGespeichert] = useState(false);
 
-  const [anlage, setAnlage] = useState<PunkteRegelState>({ punkte: 1, tage: 3, modus: "halten" });
-  const [profilbild, setProfilbild] = useState<PunkteRegelState>({ punkte: 50, tage: 365, modus: "halten" });
-  const [email, setEmail] = useState<PunkteRegelState>({ punkte: 30, tage: 100, modus: "halten" });
+  const [regeln, setRegeln] = useState<Record<string, PunkteRegelState>>({
+    anlage: { punkte: 1, tage: 3, modus: "halten" },
+    profilbild: { punkte: 50, tage: 365, modus: "halten" },
+    email: { punkte: 30, tage: 100, modus: "halten" },
+  });
+
+  function regelAendern(schluessel: string, regel: PunkteRegelState) {
+    setRegeln((vorher) => ({ ...vorher, [schluessel]: regel }));
+  }
 
   async function laden() {
     try {
       const w = await holeEinstellungen();
-      setAnlage({
-        punkte: Number(w.punkte_anlage_punkte ?? 1),
-        tage: Number(w.punkte_anlage_tage ?? 3),
-        modus: String(w.punkte_anlage_modus ?? "halten"),
-      });
-      setProfilbild({
-        punkte: Number(w.punkte_profilbild_punkte ?? 50),
-        tage: Number(w.punkte_profilbild_tage ?? 365),
-        modus: String(w.punkte_profilbild_modus ?? "halten"),
-      });
-      setEmail({
-        punkte: Number(w.punkte_email_punkte ?? 30),
-        tage: Number(w.punkte_email_tage ?? 100),
-        modus: String(w.punkte_email_modus ?? "halten"),
-      });
+      const neu: Record<string, PunkteRegelState> = {};
+      for (const { schluessel } of REGEL_ZEILEN) {
+        neu[schluessel] = {
+          punkte: Number(w[`punkte_${schluessel}_punkte`] ?? regeln[schluessel].punkte),
+          tage: Number(w[`punkte_${schluessel}_tage`] ?? regeln[schluessel].tage),
+          modus: String(w[`punkte_${schluessel}_modus`] ?? regeln[schluessel].modus),
+        };
+      }
+      setRegeln(neu);
       setGeladen(true);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Einstellungen konnten nicht geladen werden.");
@@ -95,6 +67,7 @@ export function PunkteEinstellungen() {
 
   useEffect(() => {
     laden();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function speichern(e: FormEvent) {
@@ -102,17 +75,13 @@ export function PunkteEinstellungen() {
     setFehler(null);
     setGespeichert(false);
     try {
-      await schreibeEinstellungen({
-        punkte_anlage_punkte: anlage.punkte,
-        punkte_anlage_tage: anlage.tage,
-        punkte_anlage_modus: anlage.modus,
-        punkte_profilbild_punkte: profilbild.punkte,
-        punkte_profilbild_tage: profilbild.tage,
-        punkte_profilbild_modus: profilbild.modus,
-        punkte_email_punkte: email.punkte,
-        punkte_email_tage: email.tage,
-        punkte_email_modus: email.modus,
-      });
+      const werte: Record<string, unknown> = {};
+      for (const { schluessel } of REGEL_ZEILEN) {
+        werte[`punkte_${schluessel}_punkte`] = regeln[schluessel].punkte;
+        werte[`punkte_${schluessel}_tage`] = regeln[schluessel].tage;
+        werte[`punkte_${schluessel}_modus`] = regeln[schluessel].modus;
+      }
+      await schreibeEinstellungen(werte);
       setGespeichert(true);
       setTimeout(() => setGespeichert(false), 4000);
     } catch (err) {
@@ -146,24 +115,64 @@ export function PunkteEinstellungen() {
       )}
 
       <form onSubmit={speichern}>
-        <RegelKarte
-          titel="Neuanlage einer Person"
-          beschreibung="Wird einmalig vergeben, wenn eine Person im Personal-Tab neu angelegt wird."
-          regel={anlage}
-          onAendern={setAnlage}
-        />
-        <RegelKarte
-          titel="Erstes Profilbild"
-          beschreibung="Wird einmalig vergeben, sobald eine Person zum ersten Mal ein Profilbild erhält."
-          regel={profilbild}
-          onAendern={setProfilbild}
-        />
-        <RegelKarte
-          titel="Erste E-Mail-Adresse"
-          beschreibung="Wird einmalig vergeben, sobald für eine Person zum ersten Mal eine E-Mail-Adresse hinterlegt wird."
-          regel={email}
-          onAendern={setEmail}
-        />
+        <div className="karte">
+          <table>
+            <thead>
+              <tr>
+                <th>Ereignis</th>
+                <th>Punkte</th>
+                <th>Gültigkeit (Tage)</th>
+                <th>Abbau-Modus</th>
+              </tr>
+            </thead>
+            <tbody>
+              {REGEL_ZEILEN.map(({ schluessel, titel, beschreibung }) => {
+                const regel = regeln[schluessel];
+                return (
+                  <tr key={schluessel}>
+                    <td>
+                      <strong>{titel}</strong>
+                      <br />
+                      <span style={{ fontSize: "0.8rem", color: "#666" }}>{beschreibung}</span>
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        min={0}
+                        value={regel.punkte}
+                        onChange={(e) => regelAendern(schluessel, { ...regel, punkte: Number(e.target.value) })}
+                        style={{ width: 70 }}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        min={0}
+                        value={regel.tage}
+                        onChange={(e) => regelAendern(schluessel, { ...regel, tage: Number(e.target.value) })}
+                        style={{ width: 70 }}
+                      />
+                    </td>
+                    <td>
+                      <select
+                        value={regel.modus}
+                        onChange={(e) => regelAendern(schluessel, { ...regel, modus: e.target.value })}
+                      >
+                        <option value="halten">Halten bis Ende</option>
+                        <option value="abziehend">Abziehend bis Ende</option>
+                      </select>
+                      {regel.modus === "abziehend" && regel.tage > 0 && (
+                        <div style={{ fontSize: "0.75rem", color: "#666", marginTop: 4 }}>
+                          ≈ {(regel.punkte / regel.tage).toFixed(2)} Punkte/Tag
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
         <button type="submit">Speichern</button>
       </form>
     </div>

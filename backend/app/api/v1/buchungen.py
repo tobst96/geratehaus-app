@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv
 from app.schemas.buchung import BuchungAnfrage, BuchungAnfrageErgebnis, BuchungOut
-from app.services import buchung_service
+from app.schemas.fahrzeugbuchung_reservierung import FahrzeugbuchungReservierungOut
+from app.services import buchung_service, fahrzeugbuchung_reservierung_service
 
 router = APIRouter(
     prefix="/buchungen",
@@ -31,6 +32,15 @@ async def anfrage_erstellen(
         )
     buchung, konflikt = await buchung_service.anfrage_erstellen(db, person.id, daten)
     return BuchungAnfrageErgebnis(buchung=buchung, konflikt_hinweis=konflikt)
+
+
+@router.post("/reservierung", response_model=FahrzeugbuchungReservierungOut, dependencies=[])
+async def reservierung_anlegen(db: DbSession) -> FahrzeugbuchungReservierungOut:
+    """Erstellt einen Reservierungs-Token für 'Barcode vergessen': QR-Code
+    führt auf eine Seite, auf der sich die Person ohne Barcode komplett
+    selbst eintragen kann (Person, Fahrzeug, Zeitraum, Zweck)."""
+    reservierung = await fahrzeugbuchung_reservierung_service.reservierung_anlegen(db)
+    return FahrzeugbuchungReservierungOut(token=reservierung.token, ablauf_am=reservierung.ablauf_am)
 
 
 @router.post("/{buchung_id}/zurueckziehen", response_model=BuchungOut)

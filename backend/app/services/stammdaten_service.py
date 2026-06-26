@@ -336,7 +336,7 @@ async def person_aktualisieren(db: AsyncSession, person: Person, daten: PersonUp
         await person_ereignis_protokollieren(db, person.id, typ, "Geändert: " + "; ".join(diff_teile))
 
     if "email" in aenderungen and not alte_werte["email"] and aenderungen["email"]:
-        await _punkte_regel_anwenden(db, person.id, "email_hinzugefuegt", einmalig=True)
+        await _punkte_regel_anwenden(db, person.id, "email", einmalig=True)
 
     await db.commit()
     await db.refresh(person)
@@ -423,7 +423,7 @@ async def person_bild_speichern(db: AsyncSession, person: Person, datei: UploadF
 # einmalig vergeben (siehe `_bereits_vergeben`), damit z. B. das erste
 # Profilbild nicht bei jedem erneuten Hochladen erneut Punkte bringt.
 
-PUNKTE_REGEL_SCHLUESSEL = ("anlage", "profilbild", "email_hinzugefuegt")
+PUNKTE_REGEL_SCHLUESSEL = ("anlage", "profilbild", "email")
 
 
 async def _punkte_regel_lesen(db: AsyncSession, schluessel: str) -> tuple[int, int, str]:

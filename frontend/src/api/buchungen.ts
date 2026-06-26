@@ -21,3 +21,6 @@ export const buchungAnfrage = (daten: BuchungAnfrage) =>
 
 export const buchungZurueckziehen = (id: number) =>
   apiPost<BuchungOut>(`/buchungen/${id}/zurueckziehen`, undefined);
+
+export const fahrzeugbuchungReservierungAnlegen = () =>
+  apiPost<{ token: string; ablauf_am: string }>("/buchungen/reservierung");

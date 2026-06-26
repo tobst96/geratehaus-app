@@ -27,6 +27,7 @@ import { FahrzeugView } from "./pages/fahrzeug/FahrzeugView";
 import { ManuelleEintragung } from "./pages/ManuelleEintragung";
 import { DienstbuchManuelleEintragung } from "./pages/DienstbuchManuelleEintragung";
 import { DienststundenManuelleEintragung } from "./pages/DienststundenManuelleEintragung";
+import { FahrzeugbuchungManuelleEintragung } from "./pages/FahrzeugbuchungManuelleEintragung";
 import { PersonBildHochladen } from "./pages/PersonBildHochladen";
 
 export function App() {
@@ -68,6 +69,10 @@ export function App() {
             element={<DienststundenManuelleEintragung />}
           />
           <Route path="/person-bild/:token" element={<PersonBildHochladen />} />
+          <Route
+            path="/eintragen-fahrzeugbuchung/:token"
+            element={<FahrzeugbuchungManuelleEintragung />}
+          />
 
           <Route path="*" element={<NotFound />} />
         </Route>
