@@ -41,6 +41,10 @@ beliebiger Reihenfolge laufen.
 - `test_dienststunden_schwellenwert.py` – Schwellenwert-Überschreitungsliste,
   Stunden-Übernahme reduziert/entfernt den Überschuss, Endpunkte erfordern
   Moderator-Login
+- `test_update_kanal.py` – Update-Status/Kanal-Endpunkte (Admin-only, Default
+  "stable", Umschalten auf "beta", ungültiger Kanal wird abgelehnt). Ruft die
+  echte GitHub-Releases-API auf (kein Mock) – braucht Internetzugang beim
+  Testlauf.
 
 Das ist **kein** vollständiger Abdeckungsanspruch über die ganze App,
 sondern bewusst der sicherheitskritische und zuletzt geänderte Teil. Die
