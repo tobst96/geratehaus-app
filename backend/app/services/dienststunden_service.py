@@ -2,9 +2,14 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.dienststunden import Dienststunden
+from app.models.dienststunden_uebernahme import DienststundenUebernahme
 from app.models.funktion import FunktionDienststunden
 from app.models.person import Person
-from app.schemas.dienststunden import DienststundenErfassen, DienststundenSummeOut
+from app.schemas.dienststunden import (
+    DienststundenErfassen,
+    DienststundenSummeOut,
+    SchwellenwertEintragOut,
+)
 from app.services import notifier_service, stammdaten_service
 
 
@@ -137,3 +142,71 @@ async def eigene_summen(db: AsyncSession, person_id: int) -> list[DienststundenS
         )
         for funktion_id, name, schwellenwert, summe in result.all()
     ]
+
+
+async def schwellenwert_liste(db: AsyncSession) -> list[SchwellenwertEintragOut]:
+    """Personen, die den Schwellenwert einer Funktion auch nach Abzug bereits
+    übernommener Stunden noch überschreiten – für die Liste unter
+    Listen > Dienststunden im Moderator-Bereich."""
+    summen_stmt = (
+        select(
+            Person.id,
+            Person.name,
+            FunktionDienststunden.id,
+            FunktionDienststunden.name,
+            func.sum(Dienststunden.stunden),
+            FunktionDienststunden.schwellenwert_stunden,
+        )
+        .join(Dienststunden, Dienststunden.person_id == Person.id)
+        .join(FunktionDienststunden, FunktionDienststunden.id == Dienststunden.funktion_id)
+        .where(FunktionDienststunden.aktiv.is_(True), FunktionDienststunden.schwellenwert_stunden > 0)
+        .group_by(
+            Person.id, Person.name, FunktionDienststunden.id, FunktionDienststunden.name,
+            FunktionDienststunden.schwellenwert_stunden,
+        )
+    )
+    summen_result = await db.execute(summen_stmt)
+    summen = summen_result.all()
+    if not summen:
+        return []
+
+    uebernahmen_stmt = (
+        select(
+            DienststundenUebernahme.person_id,
+            DienststundenUebernahme.funktion_id,
+            func.sum(DienststundenUebernahme.stunden),
+        ).group_by(DienststundenUebernahme.person_id, DienststundenUebernahme.funktion_id)
+    )
+    uebernahmen_result = await db.execute(uebernahmen_stmt)
+    uebernommen_je_paar = {(pid, fid): summe for pid, fid, summe in uebernahmen_result.all()}
+
+    eintraege = []
+    for pid, pname, fid, fname, summe, schwellenwert in summen:
+        uebernommen = uebernommen_je_paar.get((pid, fid), 0.0)
+        ueberschuss = summe - schwellenwert - uebernommen
+        if ueberschuss <= 0:
+            continue
+        eintraege.append(
+            SchwellenwertEintragOut(
+                person_id=pid,
+                person_name=pname,
+                funktion_id=fid,
+                funktion_name=fname,
+                summe_stunden=summe,
+                schwellenwert_stunden=schwellenwert,
+                uebernommen_stunden=uebernommen,
+                ueberschuss_stunden=ueberschuss,
+            )
+        )
+    eintraege.sort(key=lambda e: e.ueberschuss_stunden, reverse=True)
+    return eintraege
+
+
+async def uebernahme_eintragen(
+    db: AsyncSession, person_id: int, funktion_id: int, stunden: float
+) -> DienststundenUebernahme:
+    uebernahme = DienststundenUebernahme(person_id=person_id, funktion_id=funktion_id, stunden=stunden)
+    db.add(uebernahme)
+    await db.commit()
+    await db.refresh(uebernahme)
+    return uebernahme

@@ -6,7 +6,10 @@ import {
   holeDienststundenListe,
   holeBuchungenListe,
   holeNamensabweichungen,
+  holeDienststundenSchwellenwert,
+  dienststundenUebernahmeEintragen,
   type NamensAbweichungOut,
+  type SchwellenwertEintrag,
 } from "../../api/moderator";
 import { ApiError } from "../../api/client";
 import type { BuchungOut, DienstbuchOut, EinsatzOut } from "../../api/types";
@@ -235,6 +238,108 @@ function DienststundenTab() {
                 <td>{d.funktion_id}</td>
                 <td>{d.stunden}</td>
                 <td>{d.datum}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <SchwellenwertUeberschreitungenTab />
+    </div>
+  );
+}
+
+function SchwellenwertUeberschreitungenTab() {
+  const [daten, setDaten] = useState<SchwellenwertEintrag[] | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+  const [eingabe, setEingabe] = useState<Record<string, string>>({});
+  const [speichertSchluessel, setSpeichertSchluessel] = useState<string | null>(null);
+
+  async function laden() {
+    try {
+      setDaten(await holeDienststundenSchwellenwert());
+      setFehler(null);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Liste konnte nicht geladen werden.");
+    }
+  }
+
+  useEffect(() => {
+    laden();
+  }, []);
+
+  function schluessel(e: SchwellenwertEintrag): string {
+    return `${e.person_id}-${e.funktion_id}`;
+  }
+
+  async function uebernehmen(e: SchwellenwertEintrag) {
+    const wert = Number(eingabe[schluessel(e)] ?? "");
+    if (!wert || wert <= 0) return;
+    setSpeichertSchluessel(schluessel(e));
+    try {
+      await dienststundenUebernahmeEintragen(e.person_id, e.funktion_id, wert);
+      setEingabe((vorher) => ({ ...vorher, [schluessel(e)]: "" }));
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Übernahme konnte nicht gespeichert werden.");
+    } finally {
+      setSpeichertSchluessel(null);
+    }
+  }
+
+  return (
+    <div style={{ marginTop: "2rem" }}>
+      <h2>Schwellenwert-Überschreitungen</h2>
+      <p style={{ color: "#666" }}>
+        Personen, die den Schwellenwert ihrer Funktion auch nach Abzug bereits übernommener Stunden
+        noch überschreiten. Übernommene Stunden werden vom Überschuss abgezogen, ohne die
+        Dienststunden-Einträge selbst zu verändern.
+      </p>
+      {fehler && <p className="fehlertext">{fehler}</p>}
+      {daten && daten.length === 0 && <p style={{ color: "#666" }}>Aktuell keine Überschreitungen.</p>}
+      {daten && daten.length > 0 && (
+        <table>
+          <thead>
+            <tr>
+              <th>Person</th>
+              <th>Funktion</th>
+              <th>Summe</th>
+              <th>Schwellenwert</th>
+              <th>Bereits übernommen</th>
+              <th>Überschuss</th>
+              <th>Stunden übernehmen</th>
+            </tr>
+          </thead>
+          <tbody>
+            {daten.map((e) => (
+              <tr key={schluessel(e)}>
+                <td>{e.person_name}</td>
+                <td>{e.funktion_name}</td>
+                <td>{e.summe_stunden}</td>
+                <td>{e.schwellenwert_stunden}</td>
+                <td>{e.uebernommen_stunden}</td>
+                <td>
+                  <strong>{e.ueberschuss_stunden}</strong>
+                </td>
+                <td style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <input
+                    type="number"
+                    min={0.5}
+                    step={0.5}
+                    style={{ width: 80 }}
+                    value={eingabe[schluessel(e)] ?? ""}
+                    onChange={(ev) =>
+                      setEingabe((vorher) => ({ ...vorher, [schluessel(e)]: ev.target.value }))
+                    }
+                  />
+                  <button
+                    className="sekundaer"
+                    onClick={() => uebernehmen(e)}
+                    disabled={speichertSchluessel === schluessel(e)}
+                  >
+                    {speichertSchluessel === schluessel(e) ? "Speichert …" : "Übernehmen"}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

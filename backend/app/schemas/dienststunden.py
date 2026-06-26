@@ -25,3 +25,20 @@ class DienststundenSummeOut(BaseModel):
     summe_stunden: float
     schwellenwert_stunden: float
     schwellenwert_ueberschritten: bool
+
+
+class SchwellenwertEintragOut(BaseModel):
+    person_id: int
+    person_name: str
+    funktion_id: int
+    funktion_name: str
+    summe_stunden: float
+    schwellenwert_stunden: float
+    uebernommen_stunden: float
+    ueberschuss_stunden: float
+
+
+class UebernahmeAnlegen(BaseModel):
+    person_id: int
+    funktion_id: int
+    stunden: float = Field(gt=0)

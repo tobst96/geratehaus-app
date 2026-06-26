@@ -5,10 +5,14 @@ from fastapi import APIRouter, Response
 from app.api.deps import CurrentAdmin, CurrentModerator, DbSession
 from app.schemas.buchung import BuchungOut
 from app.schemas.dienstbuch import DienstbuchOut
-from app.schemas.dienststunden import DienststundenEintragOut
+from app.schemas.dienststunden import (
+    DienststundenEintragOut,
+    SchwellenwertEintragOut,
+    UebernahmeAnlegen,
+)
 from app.schemas.einsatz import EinsatzOut
 from app.schemas.namens_abweichung import NamensAbweichungOut
-from app.services import auth_service, moderator_listen_service, pdf_service
+from app.services import auth_service, dienststunden_service, moderator_listen_service, pdf_service
 
 router = APIRouter(prefix="/moderator/listen", tags=["moderator:listen"])
 
@@ -50,6 +54,22 @@ async def dienststunden(
     funktion_id: int | None = None,
 ) -> list[DienststundenEintragOut]:
     return await moderator_listen_service.dienststunden_liste(db, von, bis, person_id, funktion_id)
+
+
+@router.get("/dienststunden-schwellenwert", response_model=list[SchwellenwertEintragOut])
+async def dienststunden_schwellenwert(
+    db: DbSession, _moderator: CurrentModerator
+) -> list[SchwellenwertEintragOut]:
+    return await dienststunden_service.schwellenwert_liste(db)
+
+
+@router.post(
+    "/dienststunden-schwellenwert/uebernahme", status_code=204
+)
+async def dienststunden_uebernahme_eintragen(
+    db: DbSession, _moderator: CurrentModerator, daten: UebernahmeAnlegen
+) -> None:
+    await dienststunden_service.uebernahme_eintragen(db, daten.person_id, daten.funktion_id, daten.stunden)
 
 
 @router.get("/buchungen", response_model=list[BuchungOut])

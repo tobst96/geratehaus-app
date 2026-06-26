@@ -115,6 +115,25 @@ export const holeDienststundenListe = (filter: DienststundenListenFilter) =>
 export const dienststundenListePdfUrl = (filter: DienststundenListenFilter) =>
   buildePdfUrl("/moderator/listen/dienststunden/pdf", filter);
 
+export interface SchwellenwertEintrag {
+  person_id: number;
+  person_name: string;
+  funktion_id: number;
+  funktion_name: string;
+  summe_stunden: number;
+  schwellenwert_stunden: number;
+  uebernommen_stunden: number;
+  ueberschuss_stunden: number;
+}
+export const holeDienststundenSchwellenwert = () =>
+  apiGet<SchwellenwertEintrag[]>("/moderator/listen/dienststunden-schwellenwert");
+export const dienststundenUebernahmeEintragen = (person_id: number, funktion_id: number, stunden: number) =>
+  apiPost<void>("/moderator/listen/dienststunden-schwellenwert/uebernahme", {
+    person_id,
+    funktion_id,
+    stunden,
+  });
+
 export interface BuchungListenFilter {
   [key: string]: string | number | boolean | undefined;
   von?: string;
