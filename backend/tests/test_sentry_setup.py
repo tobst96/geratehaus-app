@@ -1,3 +1,7 @@
+import logging
+
+from sentry_sdk.integrations.logging import LoggingIntegration
+
 from app.core import sentry_setup
 
 
@@ -34,3 +38,21 @@ def test_mit_zustimmung_und_code_konstante_initialisiert(monkeypatch):
 def test_expliziter_override_wird_verwendet(monkeypatch):
     monkeypatch.setattr(sentry_setup.settings, "sentry_dsn", "https://abc@o0.ingest.sentry.io/1")
     assert sentry_setup._aktive_dsn() == "https://abc@o0.ingest.sentry.io/1"
+
+
+def test_logging_integration_meldet_warnungen_als_events(monkeypatch):
+    """Stellt sicher, dass structlog-Warnungen (nicht nur Exceptions) als
+    eigene Sentry-Events ankommen, INFO nur als Breadcrumb – sonst würde
+    Sentry trotz aktivierter Logging-Integration leer bleiben."""
+    aufgerufen_mit = {}
+    monkeypatch.setattr(sentry_setup.settings, "sentry_dsn", None)
+    monkeypatch.setattr(
+        sentry_setup.sentry_sdk, "init", lambda **kwargs: aufgerufen_mit.update(kwargs)
+    )
+
+    sentry_setup.init_sentry_wenn_aktiviert(True)
+
+    integrationen = aufgerufen_mit["integrations"]
+    logging_integration = next(i for i in integrationen if isinstance(i, LoggingIntegration))
+    assert logging_integration._handler.level == logging.WARNING
+    assert logging_integration._breadcrumb_handler.level == logging.INFO

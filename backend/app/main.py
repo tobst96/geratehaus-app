@@ -34,11 +34,14 @@ from app.api.v1 import (
     stammdaten,
 )
 from app.core.config import settings
+from app.core.logging_setup import konfiguriere_logging
 from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.sentry_setup import init_sentry_wenn_aktiviert
 from app.db.session import AsyncSessionLocal
 from app.jobs import scheduler
 from app.services.config_service import config_service
+
+konfiguriere_logging()
 
 
 @asynccontextmanager
