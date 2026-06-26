@@ -1,17 +1,12 @@
-import io
 import secrets
-from datetime import datetime, timedelta
 
-import barcode as barcode_lib
-from barcode.writer import ImageWriter
 from fastapi import APIRouter, HTTPException, Response, status
 from sqlalchemy import select
 
 from app.api.deps import CurrentModerator, DbSession
-from app.models.barcode_token import BarcodeToken, FahrzeugToken
+from app.models.barcode_token import FahrzeugToken
 from app.models.person import Person
-from app.services import stammdaten_service
-from app.services.config_service import config_service
+from app.services import barcode_service, stammdaten_service
 
 router = APIRouter(prefix="/moderator/barcodes", tags=["moderator:barcodes"])
 
@@ -27,25 +22,11 @@ async def generate_barcode_for_person(
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found.")
 
-    # Check if already has a token
-    result = await db.execute(
-        select(BarcodeToken).where(BarcodeToken.person_id == person_id)
-    )
-    existing = result.scalar_one_or_none()
-    if existing:
-        return {
-            "token": existing.token,
-            "ablauf_am": existing.ablauf_am.isoformat() if existing.ablauf_am else None,
-        }
-
-    # Generate new token
-    token = secrets.token_hex(8)  # 16 chars
-    gueltigkeit_tage = await config_service.get(db, "barcode_gueltigkeit_tage", 730)
-    ablauf_am = datetime.utcnow() + timedelta(days=gueltigkeit_tage)
-    barcode = BarcodeToken(person_id=person_id, token=token, ablauf_am=ablauf_am)
-    db.add(barcode)
-    await db.commit()
-    return {"token": token, "ablauf_am": ablauf_am.isoformat()}
+    token = await barcode_service.token_fuer_person(db, person_id)
+    return {
+        "token": token.token,
+        "ablauf_am": token.ablauf_am.isoformat() if token.ablauf_am else None,
+    }
 
 
 @router.get("/render/{token}")
@@ -55,10 +36,7 @@ async def barcode_bild_rendern(token: str) -> Response:
     Bewusst ohne Moderator-Auth: ein <img>-Tag kann keinen Bearer-Token senden.
     Unbedenklich, da das Bild nur den bereits bekannten Token visualisiert –
     wer den Token nicht hat, kann ihn auch nicht in die URL einsetzen."""
-    code128 = barcode_lib.get("code128", token, writer=ImageWriter())
-    puffer = io.BytesIO()
-    code128.write(puffer, options={"write_text": False, "module_height": 10})
-    return Response(content=puffer.getvalue(), media_type="image/png")
+    return Response(content=barcode_service.render_png(token), media_type="image/png")
 
 
 @router.post("/fahrzeug/{fahrzeug_id}")

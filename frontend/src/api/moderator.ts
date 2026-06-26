@@ -239,6 +239,8 @@ export const personDienststundenErfassen = (
 ) => apiPost<DienststundenEintragOut>(`/moderator/stammdaten/personen/${id}/dienststunden`, daten);
 export const personBildReservierungAnlegen = (id: number) =>
   apiPost<{ token: string; ablauf_am: string }>(`/moderator/stammdaten/personen/${id}/bild-reservierung`);
+export const personBarcodePerMailSenden = (id: number) =>
+  apiPost<void>(`/moderator/stammdaten/personen/${id}/barcode-mail`);
 export const personLoeschen = (id: number) => apiDelete<void>(`/moderator/stammdaten/personen/${id}`);
 export const personBildHochladen = (id: number, datei: File) =>
   apiUpload<Person>(`/moderator/stammdaten/personen/${id}/bild`, datei, "datei");

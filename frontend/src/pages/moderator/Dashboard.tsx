@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { holeDashboard, type DashboardOut } from "../../api/moderator";
 import { ApiError } from "../../api/client";
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const [daten, setDaten] = useState<DashboardOut | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
 
@@ -22,7 +24,12 @@ export function Dashboard() {
       <h1>Dashboard</h1>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
-        <div className="karte">
+        <div
+          className="karte"
+          onClick={() => navigate("/moderator/buchungen")}
+          style={{ cursor: "pointer" }}
+          title="Zu den Buchungen"
+        >
           <div style={{ fontSize: "2rem", fontWeight: 700 }}>{daten.offene_buchungen_anzahl}</div>
           <div>Offene Buchungen</div>
         </div>

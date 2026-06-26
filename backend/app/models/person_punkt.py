@@ -20,6 +20,9 @@ class PersonPunkt(Base):
     punkte: Mapped[int] = mapped_column(Integer, nullable=False)
     grund: Mapped[str] = mapped_column(String(64), nullable=False)
     gueltig_bis: Mapped[date] = mapped_column(Date, nullable=False)
+    # "halten": Punkte bleiben bis gueltig_bis voll erhalten (Standard).
+    # "abziehend": linearer Abbau von `punkte` auf 0, exakt erreicht an gueltig_bis.
+    abbau_modus: Mapped[str] = mapped_column(String(16), default="halten", nullable=False)
     erstellt_am: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

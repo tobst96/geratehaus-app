@@ -8,6 +8,7 @@ import {
   personBildHochladen,
   personBarcodeErzeugen,
   personBildReservierungAnlegen,
+  personBarcodePerMailSenden,
   personPinSetzen,
   holePersonTimeline,
   holePersonDienststunden,
@@ -29,6 +30,7 @@ import type {
 } from "../../api/types";
 
 interface BildQr {
+  personId: number;
   token: string;
   bildUrl: string;
   ablaufAm: string;
@@ -211,7 +213,7 @@ export function Personal() {
     const { token, ablauf_am } = await personBildReservierungAnlegen(personId);
     const url = `${oeffentlicheBasisUrl(config)}/person-bild/${token}`;
     const bildUrl = await QRCode.toDataURL(url, { width: 240, margin: 1 });
-    return { token, bildUrl, ablaufAm: ablauf_am };
+    return { personId, token, bildUrl, ablaufAm: ablauf_am };
   }
 
   async function anlegen(e: FormEvent) {
@@ -233,7 +235,8 @@ export function Personal() {
   }
 
   // Solange eines der beiden QR-Foto-Popups offen ist, prüfen ob das Foto
-  // bereits vom Handy aus hochgeladen wurde.
+  // bereits vom Handy aus hochgeladen wurde – dabei direkt die Person (Avatar,
+  // Punkte, Timeline) aktualisieren, ohne dass man erst abwählen/auswählen muss.
   useEffect(() => {
     if (!bildQr || bildHochgeladen) return;
     const intervall = setInterval(async () => {
@@ -242,13 +245,14 @@ export function Personal() {
         if (info.bereits_eingeloest) {
           setBildHochgeladen(true);
           await laden();
+          if (ausgewaehlteId === bildQr.personId) await timelineLaden(bildQr.personId);
         }
       } catch {
         // Best effort – wird beim nächsten Intervall erneut versucht.
       }
     }, 1500);
     return () => clearInterval(intervall);
-  }, [bildQr, bildHochgeladen]);
+  }, [bildQr, bildHochgeladen, ausgewaehlteId]);
 
   async function bildQrStandaloneOeffnen(p: Person) {
     setBildQrStandaloneHochgeladen(false);
@@ -268,6 +272,7 @@ export function Personal() {
         if (info.bereits_eingeloest) {
           setBildQrStandaloneHochgeladen(true);
           await laden();
+          await timelineLaden(bildQrStandalone.personId);
         }
       } catch {
         // Best effort – wird beim nächsten Intervall erneut versucht.
@@ -287,6 +292,12 @@ export function Personal() {
     if (!pin) return;
     if (!/^\d{4,6}$/.test(pin)) {
       alert("Der PIN muss aus 4 bis 6 Ziffern bestehen.");
+      return;
+    }
+    const wiederholung = window.prompt("PIN zur Bestätigung erneut eingeben:");
+    if (!wiederholung) return;
+    if (wiederholung !== pin) {
+      alert("Die beiden Eingaben stimmen nicht überein. Bitte erneut versuchen.");
       return;
     }
     try {
@@ -341,6 +352,15 @@ export function Personal() {
   async function barcodeErzeugen(p: Person) {
     const { token, ablauf_am } = await personBarcodeErzeugen(p.id);
     setBarcode({ token, ablaufAm: ablauf_am });
+  }
+
+  async function barcodePerMailSenden(p: Person) {
+    try {
+      await personBarcodePerMailSenden(p.id);
+      alert(`Barcode wurde an ${p.email} gesendet.`);
+    } catch (err) {
+      alert(err instanceof ApiError ? String(err.detail) : "Barcode konnte nicht per Mail gesendet werden.");
+    }
   }
 
   async function loeschen(id: number) {
@@ -628,6 +648,15 @@ export function Personal() {
                   Barcode erzeugen
                 </button>
 
+                <button
+                  className="sekundaer"
+                  disabled={!ausgewaehltePerson.email}
+                  title={!ausgewaehltePerson.email ? "Erst eine E-Mail-Adresse hinterlegen" : undefined}
+                  onClick={() => barcodePerMailSenden(ausgewaehltePerson)}
+                >
+                  Barcode per Mail senden
+                </button>
+
                 <button className="sekundaer" onClick={() => pinSetzen(ausgewaehltePerson)}>
                   PIN setzen
                 </button>
@@ -684,21 +713,23 @@ export function Personal() {
                       </tr>
                     </thead>
                     <tbody>
-                      {dienststundenSummen.map((s) => (
-                        <tr key={s.funktion_id}>
-                          <td>{s.funktion_name}</td>
-                          <td>{s.summe_stunden}</td>
-                          <td>
-                            {s.schwellenwert_stunden
-                              ? Math.max(s.schwellenwert_stunden - s.summe_stunden, 0)
-                              : "–"}
-                          </td>
-                        </tr>
-                      ))}
-                      {dienststundenSummen.length === 0 && (
+                      {dienststundenSummen
+                        .filter((s) => s.summe_stunden > 0)
+                        .map((s) => (
+                          <tr key={s.funktion_id}>
+                            <td>{s.funktion_name}</td>
+                            <td>{s.summe_stunden}</td>
+                            <td>
+                              {s.schwellenwert_stunden
+                                ? Math.max(s.schwellenwert_stunden - s.summe_stunden, 0)
+                                : "–"}
+                            </td>
+                          </tr>
+                        ))}
+                      {dienststundenSummen.filter((s) => s.summe_stunden > 0).length === 0 && (
                         <tr>
                           <td colSpan={3} style={{ color: "#666" }}>
-                            Keine Dienststunden-Funktionen vorhanden.
+                            Noch keine Dienststunden erfasst.
                           </td>
                         </tr>
                       )}

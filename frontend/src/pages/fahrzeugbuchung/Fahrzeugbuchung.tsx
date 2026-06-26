@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { holeBuchungen, buchungAnfrage, buchungZurueckziehen } from "../../api/buchungen";
 import { holeFahrzeuge } from "../../api/stammdaten";
+import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { BuchungsKalender } from "../../components/BuchungsKalender";
 import type { BuchungOut, Fahrzeug } from "../../api/types";
@@ -13,7 +14,7 @@ function jetztAlsDatetimeLocal(minutenSpaeter = 0): string {
 }
 
 export function Fahrzeugbuchung() {
-  const { angezeigterName } = useAuth();
+  const { angezeigterName, barcodeEinscannen } = useAuth();
   const [buchungen, setBuchungen] = useState<BuchungOut[] | null>(null);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -24,6 +25,21 @@ export function Fahrzeugbuchung() {
   const [von, setVon] = useState(jetztAlsDatetimeLocal());
   const [bis, setBis] = useState(jetztAlsDatetimeLocal(120));
   const [zweck, setZweck] = useState("");
+  const [barcode, setBarcode] = useState("");
+  const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
+  const [laeuft, setLaeuft] = useState(false);
+
+  useEffect(() => {
+    const wert = barcode.trim();
+    if (!wert) {
+      setVorschau(null);
+      return;
+    }
+    const timeout = setTimeout(() => {
+      barcodeVorschau(wert).then(setVorschau).catch(() => setVorschau(null));
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [barcode]);
 
   async function laden() {
     try {
@@ -42,9 +58,12 @@ export function Fahrzeugbuchung() {
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
-    if (!fahrzeugId || !zweck.trim()) return;
+    if (!fahrzeugId || !zweck.trim() || !barcode.trim()) return;
     setHinweis(null);
+    setFehler(null);
+    setLaeuft(true);
     try {
+      await barcodeEinscannen(barcode.trim());
       const ergebnis = await buchungAnfrage({
         fahrzeug_id: Number(fahrzeugId),
         von: new Date(von).toISOString(),
@@ -57,10 +76,14 @@ export function Fahrzeugbuchung() {
           : "Anfrage gespeichert."
       );
       setZweck("");
+      setBarcode("");
+      setVorschau(null);
       setFormularOffen(false);
       await laden();
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Anfrage konnte nicht gestellt werden.");
+    } finally {
+      setLaeuft(false);
     }
   }
 
@@ -110,7 +133,32 @@ export function Fahrzeugbuchung() {
           <input id="fb-zweck" value={zweck} onChange={(e) => setZweck(e.target.value)} required />
           <br />
           <br />
-          <button type="submit">Anfrage stellen</button>{" "}
+          <label htmlFor="fb-barcode">Barcode scannen (wer bist du?)</label>
+          <input
+            id="fb-barcode"
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            placeholder="Barcode scannen oder eingeben"
+            autoFocus
+            required
+          />
+          {vorschau && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+              {vorschau.bild_url && (
+                <img
+                  src={vorschau.bild_url}
+                  alt={vorschau.name}
+                  style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
+                />
+              )}
+              <strong>{vorschau.name}</strong>
+            </div>
+          )}
+          <br />
+          <br />
+          <button type="submit" disabled={laeuft}>
+            {laeuft ? "Wird gestellt…" : "Anfrage stellen"}
+          </button>{" "}
           <button type="button" className="sekundaer" onClick={() => setFormularOffen(false)}>
             Abbrechen
           </button>

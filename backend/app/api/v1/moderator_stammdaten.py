@@ -23,7 +23,9 @@ from app.schemas.stammdaten import (
     GruppeOut,
     GruppeUpdate,
 )
-from app.services import dienststunden_service, person_bild_reservierung_service, stammdaten_service
+from app.services import barcode_service, dienststunden_service, person_bild_reservierung_service, stammdaten_service
+from app.services.config_service import config_service
+from app.services.notifier.email import EmailNotifier
 
 router = APIRouter(prefix="/moderator/stammdaten", tags=["moderator:stammdaten"])
 
@@ -275,6 +277,47 @@ async def person_bild_reservierung_anlegen(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
     reservierung = await person_bild_reservierung_service.reservierung_anlegen(db, person_id)
     return PersonBildReservierungOut(token=reservierung.token, ablauf_am=reservierung.ablauf_am)
+
+
+@router.post("/personen/{person_id}/barcode-mail", status_code=status.HTTP_204_NO_CONTENT)
+async def person_barcode_per_mail(
+    db: DbSession, _moderator: CurrentModerator, person_id: int
+) -> None:
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    if not person.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Für diese Person ist keine E-Mail-Adresse hinterlegt."
+        )
+    if not await config_service.get(db, "notifier_email_aktiv", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="E-Mail-Versand ist in den Einstellungen nicht aktiv."
+        )
+
+    token = await barcode_service.token_fuer_person(db, person_id)
+    png = barcode_service.render_png(token.token)
+    vorlage = await config_service.get(db, "benachrichtigung_text_barcode_mail", "")
+    try:
+        nachricht = vorlage.format(person=person.name)
+    except (KeyError, IndexError):
+        nachricht = vorlage
+
+    try:
+        await EmailNotifier().send_an_mit_anhang(
+            db,
+            person.email,
+            "Dein Barcode für Gerätehaus.app",
+            nachricht,
+            f"barcode-{person.id}.png",
+            png,
+            "image",
+            "png",
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Versand fehlgeschlagen: {exc}"
+        ) from exc
 
 
 @router.get("/personen/{person_id}/timeline", response_model=list[PersonEreignisOut])

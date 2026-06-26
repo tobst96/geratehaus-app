@@ -1,5 +1,3 @@
-from datetime import date
-
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,13 +6,13 @@ from app.models.dienststunden import Dienststunden
 from app.models.einsatz import Einsatz, EinsatzPerson
 from app.models.funktion import FunktionDienststunden
 from app.models.person import Person
-from app.models.person_punkt import PersonPunkt
 from app.schemas.dashboard import (
     DashboardOut,
     EinsaetzeProMonat,
     PunkteRangliste,
     SchwellenwertUeberschreitung,
 )
+from app.services import stammdaten_service
 
 
 async def _einsaetze_pro_monat(db: AsyncSession, monate: int = 12) -> list[EinsaetzeProMonat]:
@@ -31,22 +29,18 @@ async def _einsaetze_pro_monat(db: AsyncSession, monate: int = 12) -> list[Einsa
 
 
 async def _punkte_rangliste(db: AsyncSession, limit: int = 10) -> list[PunkteRangliste]:
-    heute = date.today()
-    stmt = (
-        select(Person.id, Person.name, func.coalesce(func.sum(PersonPunkt.punkte), 0))
-        .join(
-            PersonPunkt,
-            (PersonPunkt.person_id == Person.id) & (PersonPunkt.gueltig_bis >= heute),
-        )
-        .group_by(Person.id, Person.name)
-        .order_by(func.coalesce(func.sum(PersonPunkt.punkte), 0).desc())
-        .limit(limit)
+    personen = await stammdaten_service.liste_personen(db)
+    punkte_je_person = await stammdaten_service.gesamtpunkte_batch(db, [p.id for p in personen])
+    rangliste = sorted(
+        (
+            PunkteRangliste(person_id=p.id, person_name=p.name, punkte=punkte_je_person.get(p.id, 0))
+            for p in personen
+            if punkte_je_person.get(p.id, 0) > 0
+        ),
+        key=lambda r: r.punkte,
+        reverse=True,
     )
-    result = await db.execute(stmt)
-    return [
-        PunkteRangliste(person_id=pid, person_name=name, punkte=punkte)
-        for pid, name, punkte in result.all()
-    ]
+    return rangliste[:limit]
 
 
 async def _vab_faelle_anzahl(db: AsyncSession) -> int:

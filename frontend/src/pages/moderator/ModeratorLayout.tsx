@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { pfad: "/moderator/listen", titel: "Listen" },
   { pfad: "/moderator/buchungen", titel: "Buchungen" },
   { pfad: "/moderator/personal", titel: "Personal" },
+  { pfad: "/moderator/punkte", titel: "Punkte" },
   { pfad: "/moderator/stammdaten", titel: "Stammdaten" },
   { pfad: "/moderator/barcodes", titel: "Barcodes" },
   { pfad: "/moderator/benachrichtigungen", titel: "Benachrichtigungen" },

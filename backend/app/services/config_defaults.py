@@ -99,6 +99,26 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.STR,
         "Sortierung der Personenliste: 'nachname' oder 'gruppe_nachname'",
     ),
+    # Personen-Punkte (automatische Vergaberegeln, einstellbar im Moderator-
+    # Bereich > Punkte). modus ist "halten" (voller Wert bis gueltig_bis) oder
+    # "abziehend" (linearer Abbau auf 0 bis gueltig_bis).
+    ConfigDefault("punkte_anlage_punkte", "1", ConfigTyp.INT, "Punkte bei Neuanlage einer Person"),
+    ConfigDefault("punkte_anlage_tage", "3", ConfigTyp.INT, "Gültigkeitsdauer (Tage) bei Neuanlage"),
+    ConfigDefault("punkte_anlage_modus", "halten", ConfigTyp.STR, "Abbau-Modus bei Neuanlage"),
+    ConfigDefault(
+        "punkte_profilbild_punkte", "50", ConfigTyp.INT, "Punkte für das erste Profilbild einer Person"
+    ),
+    ConfigDefault(
+        "punkte_profilbild_tage", "365", ConfigTyp.INT, "Gültigkeitsdauer (Tage) für Profilbild-Punkte"
+    ),
+    ConfigDefault("punkte_profilbild_modus", "halten", ConfigTyp.STR, "Abbau-Modus für Profilbild-Punkte"),
+    ConfigDefault(
+        "punkte_email_punkte", "30", ConfigTyp.INT, "Punkte für die erste hinterlegte E-Mail-Adresse"
+    ),
+    ConfigDefault(
+        "punkte_email_tage", "100", ConfigTyp.INT, "Gültigkeitsdauer (Tage) für E-Mail-Punkte"
+    ),
+    ConfigDefault("punkte_email_modus", "halten", ConfigTyp.STR, "Abbau-Modus für E-Mail-Punkte"),
     # Personen-Inaktivität
     ConfigDefault(
         "personen_inaktivitaet_tage",
@@ -219,6 +239,12 @@ DEFAULTS: list[ConfigDefault] = [
         "Neue Buchungsanfrage für {fahrzeug}: {von} bis {bis} ({zweck})",
         ConfigTyp.STR,
         "Text bei neuer Buchungsanfrage. Platzhalter: {fahrzeug}, {von}, {bis}, {zweck}",
+    ),
+    ConfigDefault(
+        "benachrichtigung_text_barcode_mail",
+        "Hallo {person},\n\nim Anhang findest du deinen persönlichen Barcode für Gerätehaus.app.",
+        ConfigTyp.STR,
+        "Text beim Versand des Barcodes per E-Mail. Platzhalter: {person}",
     ),
     ConfigDefault(
         "benachrichtigung_text_buchung_genehmigt",

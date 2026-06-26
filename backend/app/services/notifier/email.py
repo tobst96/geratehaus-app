@@ -34,7 +34,7 @@ class EmailNotifier(Notifier):
     ) -> None:
         """Wie test_versenden(): wirft bei Fehlern weiter, damit der Aufrufer
         (Einsatzabschluss) den Versand in der Timeline protokollieren kann."""
-        await self._versenden(db, betreff, nachricht, anhang=(dateiname, pdf_inhalt))
+        await self._versenden(db, betreff, nachricht, anhang=(dateiname, pdf_inhalt, "application", "pdf"))
 
     async def send_an(self, db: AsyncSession, empfaenger: str, betreff: str, nachricht: str) -> None:
         """Wie send(): an eine einzelne, individuelle Adresse statt an die
@@ -45,12 +45,34 @@ class EmailNotifier(Notifier):
         except (aiosmtplib.SMTPException, OSError):
             logger.warning("email_versand_fehlgeschlagen", exc_info=True)
 
+    async def send_an_mit_anhang(
+        self,
+        db: AsyncSession,
+        empfaenger: str,
+        betreff: str,
+        nachricht: str,
+        dateiname: str,
+        inhalt: bytes,
+        maintype: str,
+        subtype: str,
+    ) -> None:
+        """Wie send_an(), zusätzlich mit Datei-Anhang (z. B. Barcode-PNG).
+        Wirft Fehler weiter (wie test_versenden), da dies eine gezielte
+        Moderator-Aktion ist, deren Erfolg/Fehler zurückgemeldet werden soll."""
+        await self._versenden(
+            db,
+            betreff,
+            nachricht,
+            anhang=(dateiname, inhalt, maintype, subtype),
+            empfaenger_liste=[empfaenger],
+        )
+
     async def _versenden(
         self,
         db: AsyncSession,
         betreff: str,
         nachricht: str,
-        anhang: tuple[str, bytes] | None = None,
+        anhang: tuple[str, bytes, str, str] | None = None,
         empfaenger_liste: list[str] | None = None,
     ) -> None:
         if empfaenger_liste is not None:
@@ -66,10 +88,8 @@ class EmailNotifier(Notifier):
         message["Subject"] = betreff
         message.set_content(nachricht)
         if anhang is not None:
-            dateiname, pdf_inhalt = anhang
-            message.add_attachment(
-                pdf_inhalt, maintype="application", subtype="pdf", filename=dateiname
-            )
+            dateiname, inhalt, maintype, subtype = anhang
+            message.add_attachment(inhalt, maintype=maintype, subtype=subtype, filename=dateiname)
         await aiosmtplib.send(
             message,
             hostname=await config_service.get(db, "notifier_email_smtp_host", ""),
