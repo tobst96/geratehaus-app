@@ -9,16 +9,6 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
-- [ ] [Benachrichtigungen] E-Mails als HTML statt Plaintext versenden, im Design der
-      eingestellten Website (Logo, `farbe_primaer`/`farbe_akzent` aus app_config). Betrifft
-      `EmailNotifier._versenden()` in `backend/app/services/notifier/email.py` (aktuell nur
-      `message.set_content(nachricht)`, reiner Text) sowie alle Aufrufer, die eigene Texte
-      bauen (`buchung_service.py`, `einsatz_service.py` für den PDF-Anhang-Mailtext, etc.).
-      Sinnvoller Ansatz: ein Jinja2-HTML-Template (das Projekt nutzt Jinja2 bereits für
-      PDF-Templates, siehe `app/templates/`), das Logo-URL und Farben aus `config_service`
-      einsetzt; `set_content()` für Plaintext-Fallback behalten und zusätzlich
-      `message.add_alternative(html, subtype="html")` setzen (Multipart, nicht ersetzen –
-      manche Mailclients/Spamfilter bevorzugen Plaintext-Teil weiterhin).
 - [ ] [Buchungen] Fahrzeugbuchungs-Anfrage-Mail soll direkte "Annehmen"/"Ablehnen"-Buttons
       enthalten, ohne dass sich der Moderator erst einloggen muss. `genehmigen`/`ablehnen` in
       `backend/app/api/v1/moderator_buchungen.py` sitzen aktuell hinter `CurrentModerator`
@@ -31,12 +21,20 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
       zwei Buttons/Links verlinkt. Sicherheitsaspekt nicht vergessen: Token an die konkrete
       Buchung binden, nach erster Nutzung invalidieren, sinnvolle Ablaufzeit (siehe
       Rate-Limiting-Policy aus TESTS.md/CLAUDE.md für neue unauthentifizierte Endpunkte).
-      Sollte sich gut mit dem HTML-Mail-Punkt oben kombinieren lassen (Buttons brauchen HTML).
+      Die HTML-Mail-Infrastruktur dafür existiert bereits: `email_template_service.render_html()`
+      nimmt schon einen optionalen `aktionen`-Parameter (Liste von `{label, url, farbe}`) für
+      genau solche Buttons entgegen, aktuell von noch keinem Aufrufer befüllt.
 
 ## In Arbeit
 
 ## Erledigt
 
+- [x] [Benachrichtigungen] E-Mails werden als HTML im Design der eingestellten Website versendet
+      (Logo, `farbe_primaer`/`farbe_akzent` aus app_config) – neues
+      `app/services/email_template_service.py` + `app/templates/email/basis.html` (Jinja2,
+      analog zu den PDF-Templates), `EmailNotifier._versenden()` ergänzt `add_alternative()`
+      neben dem bestehenden Plaintext (Multipart, kein Ersatz). 5 neue Tests in
+      `test_email_html.py` (Rendering, Autoescaping, MIME-Struktur, SMTP-Versand gemockt).
 - [x] [Setup] Setup-Wizard-Bug gefixt: tote `geofence_lat`/`geofence_lon`/`geofence_radius_meter`-
       Pflichtfelder (Überbleibsel vom Umbau geofence → barcode/kiosk, nirgends mehr gelesen)
       komplett aus Schema, Service, Config-Defaults und `core/geofence.py` entfernt.

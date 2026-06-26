@@ -51,6 +51,10 @@ beliebiger Reihenfolge laufen.
 - `test_setup.py` – POST /setup mit dem tatsächlichen Frontend-Payload
   (Regressionstest für den behobenen geofence-Pflichtfelder-Bug), Login nach
   Einrichtung, zweiter Setup-Versuch wird abgelehnt (409)
+- `test_email_html.py` – HTML-Mail-Rendering (Organisation/Text/Logo aus
+  app_config, Autoescaping gegen HTML-Injection über z. B. Organisationsname),
+  `EmailNotifier._versenden()` baut multipart mit Text- UND HTML-Alternative
+  (SMTP-Versand gemockt, kein echter Netzwerkzugriff)
 
 Das ist **kein** vollständiger Abdeckungsanspruch über die ganze App,
 sondern bewusst der sicherheitskritische und zuletzt geänderte Teil. Die

@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.person import Person
+from app.services import email_template_service
 from app.services.config_service import config_service
 from app.services.notifier.base import Notifier
 
@@ -110,6 +111,11 @@ class EmailNotifier(Notifier):
         message["To"] = ", ".join(empfaenger)
         message["Subject"] = betreff
         message.set_content(nachricht)
+        # HTML-Alternative im Design der eingestellten Website (Logo, Farben) –
+        # Plaintext-Teil bleibt als Fallback erhalten (manche Clients/Spamfilter
+        # bevorzugen ihn weiterhin), wird also ergänzt statt ersetzt.
+        html = await email_template_service.render_html(db, betreff, nachricht)
+        message.add_alternative(html, subtype="html")
         if anhang is not None:
             dateiname, inhalt, maintype, subtype = anhang
             message.add_attachment(inhalt, maintype=maintype, subtype=subtype, filename=dateiname)
