@@ -45,6 +45,9 @@ beliebiger Reihenfolge laufen.
   "stable", Umschalten auf "beta", ungültiger Kanal wird abgelehnt). Ruft die
   echte GitHub-Releases-API auf (kein Mock) – braucht Internetzugang beim
   Testlauf.
+- `test_sentry_setup.py` – feste DSN-Konstante wird standardmäßig verwendet,
+  per .env überschreibbar (auch auf leer zum zuverlässigen Ausschalten),
+  initialisiert nur bei Zustimmung der Instanz (app_config)
 
 Das ist **kein** vollständiger Abdeckungsanspruch über die ganze App,
 sondern bewusst der sicherheitskritische und zuletzt geänderte Teil. Die

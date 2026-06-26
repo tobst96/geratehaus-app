@@ -34,6 +34,16 @@ class Settings(BaseSettings):
     cors_origins: str = ""
     upload_dir: str = "/app/uploads"
 
+    # Fehlerberichte (Sentry): die eigentliche DSN ist eine feste Konstante
+    # im Code (app/core/sentry_setup.PROJECT_DSN), damit alle Installationen
+    # dieses Open-Source-Repos an dasselbe zentrale Sentry-Projekt berichten
+    # können – nicht jede Instanz an ihr eigenes. `None` (Default) bedeutet
+    # "Code-Konstante verwenden"; nur explizit gesetzt (auch auf "") wird sie
+    # überschrieben, z. B. für lokale Entwicklung. Ob überhaupt gesendet
+    # wird, ist eine separate Zustimmungs-Entscheidung pro Instanz
+    # (app_config-Key "fehlerberichte_aktiv") – siehe app/core/sentry_setup.py.
+    sentry_dsn: str | None = None
+
     @property
     def sqlalchemy_database_url(self) -> str:
         if self.database_url:

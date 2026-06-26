@@ -6,6 +6,7 @@ export interface SetupRequest {
   farbe_primaer: string;
   farbe_akzent: string;
   admin_passwort: string;
+  fehlerberichte_aktiv?: boolean;
 }
 
 export const holeSetupStatus = () => apiGet<SetupStatus>("/setup/status");
