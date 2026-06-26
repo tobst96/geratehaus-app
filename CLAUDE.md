@@ -178,9 +178,13 @@ remotely".
 
 ## Notes for making changes
 
-- This repo has no automated test suite. Verification is: `npx tsc --noEmit` (frontend) /
-  `python -c "from app.api.v1 import <module>"` smoke import (backend) /
-  `alembic upgrade head` against a real Postgres, plus manual exercise of the affected UI.
+- `backend/tests/` has a pytest suite (see [TESTS.md](TESTS.md) for setup/running). It runs
+  against a real local Postgres (`createdb geratehaus_test`) — not SQLite, since several
+  models/services use Postgres-only `JSONB` and `INSERT ... ON CONFLICT`. **When you change
+  backend behavior, add or update the matching test in the same change**, and keep TESTS.md's
+  coverage list in sync. Run `pytest` (from `backend/`) before considering backend work done.
+- Beyond that: `npx tsc --noEmit` (frontend) / `alembic upgrade head` against a real Postgres,
+  plus manual exercise of the affected UI — there's no frontend test suite.
 - The user's standing deployment workflow for this project (when asked to ship changes) is:
   commit → push to `origin/main` → SSH to the production host → `git pull` →
   `docker compose up -d --build` → verify `docker compose exec backend alembic current` shows
