@@ -304,3 +304,12 @@ export const buchungGenehmigen = (buchungId: number) =>
   apiPost<BuchungOut>(`/moderator/buchungen/${buchungId}/genehmigen`);
 export const buchungAblehnen = (buchungId: number, grund: string | null) =>
   apiPost<BuchungOut>(`/moderator/buchungen/${buchungId}/ablehnen`, { grund });
+
+// --- Punkte (Belohnung) ------------------------------------------------------
+
+export const punkteBelohnungVergeben = (daten: {
+  person_id: number;
+  punkte: number;
+  grund: string;
+  gueltig_tage: number;
+}) => apiPost<{ gesamtpunkte: number }>("/moderator/punkte/belohnung", daten);

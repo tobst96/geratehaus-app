@@ -1,6 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { holeEinstellungen, schreibeEinstellungen } from "../../api/moderator";
+import {
+  holeEinstellungen,
+  schreibeEinstellungen,
+  holeAllePersonen,
+  punkteBelohnungVergeben,
+} from "../../api/moderator";
 import { ApiError } from "../../api/client";
+import { useAuth } from "../../context/AuthContext";
+import type { Person } from "../../api/types";
 
 interface PunkteRegelState {
   punkte: number;
@@ -61,6 +68,9 @@ const REGEL_ZEILEN: RegelZeile[] = [
 ];
 
 export function PunkteEinstellungen() {
+  const { moderatorRolle } = useAuth();
+  const istAdmin = moderatorRolle === "admin";
+
   const [geladen, setGeladen] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [gespeichert, setGespeichert] = useState(false);
@@ -74,22 +84,33 @@ export function PunkteEinstellungen() {
     dienststunden: { punkte: 1, tage: 180, modus: "halten" },
   });
 
+  const [personen, setPersonen] = useState<Person[]>([]);
+  const [belohnungPersonId, setBelohnungPersonId] = useState<string>("");
+  const [belohnungPunkte, setBelohnungPunkte] = useState(5);
+  const [belohnungGrund, setBelohnungGrund] = useState("");
+  const [belohnungTage, setBelohnungTage] = useState(180);
+  const [belohnungLaeuft, setBelohnungLaeuft] = useState(false);
+  const [belohnungErfolg, setBelohnungErfolg] = useState<string | null>(null);
+
   function regelAendern(schluessel: string, regel: PunkteRegelState) {
     setRegeln((vorher) => ({ ...vorher, [schluessel]: regel }));
   }
 
   async function laden() {
     try {
-      const w = await holeEinstellungen();
-      const neu: Record<string, PunkteRegelState> = {};
-      for (const { schluessel } of REGEL_ZEILEN) {
-        neu[schluessel] = {
-          punkte: Number(w[`punkte_${schluessel}_punkte`] ?? regeln[schluessel].punkte),
-          tage: Number(w[`punkte_${schluessel}_tage`] ?? regeln[schluessel].tage),
-          modus: String(w[`punkte_${schluessel}_modus`] ?? regeln[schluessel].modus),
-        };
+      if (istAdmin) {
+        const w = await holeEinstellungen();
+        const neu: Record<string, PunkteRegelState> = {};
+        for (const { schluessel } of REGEL_ZEILEN) {
+          neu[schluessel] = {
+            punkte: Number(w[`punkte_${schluessel}_punkte`] ?? regeln[schluessel].punkte),
+            tage: Number(w[`punkte_${schluessel}_tage`] ?? regeln[schluessel].tage),
+            modus: String(w[`punkte_${schluessel}_modus`] ?? regeln[schluessel].modus),
+          };
+        }
+        setRegeln(neu);
       }
-      setRegeln(neu);
+      setPersonen(await holeAllePersonen());
       setGeladen(true);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Einstellungen konnten nicht geladen werden.");
@@ -100,6 +121,31 @@ export function PunkteEinstellungen() {
     laden();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function belohnungAbsenden(e: FormEvent) {
+    e.preventDefault();
+    if (!belohnungPersonId || !belohnungGrund.trim()) return;
+    setBelohnungLaeuft(true);
+    setFehler(null);
+    setBelohnungErfolg(null);
+    try {
+      const ergebnis = await punkteBelohnungVergeben({
+        person_id: Number(belohnungPersonId),
+        punkte: belohnungPunkte,
+        grund: belohnungGrund.trim(),
+        gueltig_tage: belohnungTage,
+      });
+      const person = personen.find((p) => p.id === Number(belohnungPersonId));
+      setBelohnungErfolg(
+        `${belohnungPunkte} Punkte an ${person?.name ?? "die Person"} vergeben (Gesamtpunkte: ${ergebnis.gesamtpunkte}).`
+      );
+      setBelohnungGrund("");
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Belohnung konnte nicht vergeben werden.");
+    } finally {
+      setBelohnungLaeuft(false);
+    }
+  }
 
   async function speichern(e: FormEvent) {
     e.preventDefault();
@@ -125,12 +171,90 @@ export function PunkteEinstellungen() {
   return (
     <div>
       <h1>Punkte</h1>
+      {fehler && <p className="fehlertext">{fehler}</p>}
+
+      <div className="karte">
+        <h2>Punkte als Belohnung vergeben</h2>
+        <p style={{ color: "#666" }}>
+          Zusätzlich zu den automatischen Regeln kannst du einer Person hier jederzeit Punkte als
+          Belohnung gutschreiben, z. B. für besonderes Engagement.
+        </p>
+        {belohnungErfolg && (
+          <p style={{ background: "#e6f7ec", color: "#1a7a3a", padding: "0.6rem 1rem", borderRadius: "var(--radius)", fontWeight: 600 }}>
+            ✓ {belohnungErfolg}
+          </p>
+        )}
+        <form onSubmit={belohnungAbsenden} style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div>
+            <label htmlFor="belohnung-person">Person</label>
+            <select
+              id="belohnung-person"
+              value={belohnungPersonId}
+              onChange={(e) => setBelohnungPersonId(e.target.value)}
+              required
+            >
+              <option value="">– auswählen –</option>
+              {personen.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="belohnung-punkte">Punkte</label>
+            <input
+              id="belohnung-punkte"
+              type="number"
+              min={0.1}
+              step={0.1}
+              value={belohnungPunkte}
+              onChange={(e) => setBelohnungPunkte(Number(e.target.value))}
+              style={{ width: 80 }}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="belohnung-tage">Gültig (Tage)</label>
+            <input
+              id="belohnung-tage"
+              type="number"
+              min={1}
+              value={belohnungTage}
+              onChange={(e) => setBelohnungTage(Number(e.target.value))}
+              style={{ width: 80 }}
+              required
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <label htmlFor="belohnung-grund">Grund</label>
+            <input
+              id="belohnung-grund"
+              value={belohnungGrund}
+              onChange={(e) => setBelohnungGrund(e.target.value)}
+              placeholder="z. B. Besonderer Einsatz bei der Übung"
+              required
+            />
+          </div>
+          <button type="submit" disabled={belohnungLaeuft}>
+            {belohnungLaeuft ? "Wird vergeben …" : "Punkte vergeben"}
+          </button>
+        </form>
+      </div>
+
+      {!istAdmin && (
+        <p style={{ color: "#666" }}>
+          Die automatischen Punkte-Regeln (unten) kann nur ein Admin einsehen und ändern.
+        </p>
+      )}
+
+      {istAdmin && (
+      <>
       <p style={{ color: "#666" }}>
         Hier legst du fest, wie viele Punkte Personen für bestimmte Ereignisse automatisch erhalten,
         wie lange diese gültig sind, und ob sie bis zum Ende voll erhalten bleiben ("Halten bis Ende")
         oder linear bis auf 0 abgebaut werden ("Abziehend bis Ende").
       </p>
-      {fehler && <p className="fehlertext">{fehler}</p>}
       {gespeichert && (
         <p
           style={{
@@ -208,6 +332,8 @@ export function PunkteEinstellungen() {
         </div>
         <button type="submit">Speichern</button>
       </form>
+      </>
+      )}
     </div>
   );
 }

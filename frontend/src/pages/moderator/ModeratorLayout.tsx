@@ -2,14 +2,16 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 // "admin: false" = auch für Gruppenführer sichtbar (Einsatzberichte,
-// Dienstbucheinträge, Fahrzeugreservierungen). "admin: true" = nur Admin
-// (Personal, Punkte, Stammdaten, Barcodes, Benachrichtigungen, Einstellungen).
+// Dienstbucheinträge, Fahrzeugreservierungen, Punkte-Belohnung). "admin: true"
+// = nur Admin (Personal, Stammdaten, Barcodes, Benachrichtigungen, Einstellungen).
+// Punkte selbst ist für alle Moderatoren erreichbar, die Regel-Einstellungen
+// auf der Seite sind dort zusätzlich frontend-seitig auf Admin beschränkt.
 const NAV_ITEMS = [
   { pfad: "/moderator/dashboard", titel: "Dashboard", admin: false },
   { pfad: "/moderator/listen", titel: "Listen", admin: false },
   { pfad: "/moderator/buchungen", titel: "Buchungen", admin: false },
+  { pfad: "/moderator/punkte", titel: "Punkte", admin: false },
   { pfad: "/moderator/personal", titel: "Personal", admin: true },
-  { pfad: "/moderator/punkte", titel: "Punkte", admin: true },
   { pfad: "/moderator/stammdaten", titel: "Stammdaten", admin: true },
   { pfad: "/moderator/barcodes", titel: "Barcodes", admin: true },
   { pfad: "/moderator/kiosk-geraete", titel: "Kiosk-Geräte", admin: true },

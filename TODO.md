@@ -26,17 +26,6 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
       SMTP-Fehlschlag?) – beim Aufgreifen erst klären, was genau gewünscht ist, bevor
       implementiert wird. Die HTML-Mail-Infrastruktur (`email_template_service.render_html()`)
       liefert bereits druckfähiges, gestyltes HTML, das sich als Basis eignen sollte.
-- [ ] [Punkte] Punkte-Vergabe als manuelle "Belohnung": Gruppenführer sollen Personen direkt auf
-      der Punkte-Seite (`frontend/src/pages/moderator/PunkteEinstellungen.tsx`) Punkte
-      gutschreiben können, nicht nur über die automatischen Regeln (Einsatz, Dienstbuch,
-      Dienststunden, E-Mail, Anlage). Backend-Funktion `stammdaten_service.punkte_vergeben(db,
-      person_id, punkte, grund, gueltig_bis, abbau_modus)` existiert bereits und wird intern von
-      `punkte_regel_anwenden()` genutzt – braucht nur einen neuen Endpunkt (z. B. POST
-      `/moderator/punkte/belohnung` mit `person_id`/`punkte`/`grund`/`gueltig_bis`) und ein
-      Formular auf der Punkte-Seite (Personen-Auswahl, Punktezahl, Grund-Text, Gültigkeitsdauer).
-      Da Gruppenführer das können sollen (nicht nur Admin): prüfen, ob die Punkte-Seite aktuell
-      admin-only ist (`ModeratorLayout.tsx` NAV_ITEMS) und ggf. für Gruppenführer freigeben –
-      nur für diese neue Aktion, nicht zwangsläufig für die übrigen Punkte-Einstellungen.
 - [ ] [Personal] CSV-Import für Personen, inkl. Beispieldatei zum Download (Spalten-Vorlage:
       vorname, zwischenname, nachname, email, gruppe, funktion o. ä.). Betrifft
       `Personal.tsx`/`stammdaten_service.person_anlegen()`. Sinnvoller Ansatz: neuer Endpunkt
@@ -51,6 +40,16 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Erledigt
 
+- [x] [Punkte] Punkte-Vergabe als manuelle "Belohnung": jeder Moderator (auch Gruppenführer,
+      nicht nur Admin) kann auf der Punkte-Seite jetzt Personen direkt Punkte gutschreiben.
+      Neuer Endpunkt `POST /moderator/punkte/belohnung` (`moderator_punkte.py`, CurrentModerator)
+      nutzt die bereits vorhandene `stammdaten_service.punkte_vergeben()`. Die Punkte-Route
+      selbst ist jetzt für alle Moderatoren erreichbar (`App.tsx`/`ModeratorLayout.tsx`), die
+      automatischen Regel-Einstellungen auf derselben Seite bleiben aber admin-only
+      (frontend-seitig ausgeblendet für Gruppenführer). `GET /moderator/stammdaten/personen`
+      (Personenliste) ist dafür jetzt ebenfalls für jeden Moderator lesbar statt nur Admin –
+      alle schreibenden Personen-Endpunkte (anlegen/ändern/löschen/PIN/Bild) bleiben admin-only.
+      5 neue Tests in `test_punkte_belohnung.py`.
 - [x] [Barcodes] Sound beim Scannen: Erfolgston, wenn eine Person erkannt wurde, Fehlerton bei
       nicht gefundenem Barcode. Zwei synthetisch erzeugte WAV-Dateien (`frontend/public/sounds/
       erkannt.wav`/`fehler.wav`, keine externe Audio-Lizenz nötig) + neuer `useBarcodeSound()`-

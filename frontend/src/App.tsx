@@ -60,9 +60,12 @@ export function App() {
               <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
               <Route path="dienstbuecher/:id" element={<DienstbuchDetailModerator />} />
               <Route path="buchungen" element={<Buchungsmanagement />} />
+              {/* Punkte: für jeden Moderator erreichbar (Gruppenführer können
+                  Belohnungen vergeben), die Regel-Einstellungen auf der Seite
+                  selbst bleiben dabei admin-only (siehe PunkteEinstellungen.tsx). */}
+              <Route path="punkte" element={<PunkteEinstellungen />} />
               <Route element={<AdminRoute />}>
                 <Route path="personal" element={<Personal />} />
-                <Route path="punkte" element={<PunkteEinstellungen />} />
                 <Route path="stammdaten" element={<Stammdaten />} />
                 <Route path="barcodes" element={<BarcodeGenerator />} />
                 <Route path="kiosk-geraete" element={<KioskGeraete />} />

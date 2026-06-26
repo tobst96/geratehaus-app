@@ -60,3 +60,10 @@ class PersonPunktOut(BaseModel):
     grund: str
     gueltig_bis: date
     erstellt_am: datetime
+
+
+class PunkteBelohnung(BaseModel):
+    person_id: int
+    punkte: float = Field(gt=0)
+    grund: str = Field(min_length=1, max_length=255)
+    gueltig_tage: int = Field(gt=0, default=180)

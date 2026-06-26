@@ -23,6 +23,7 @@ from app.api.v1 import (
     moderator_dashboard,
     moderator_einstellungen,
     moderator_listen,
+    moderator_punkte,
     moderator_stammdaten,
     moderator_update,
     oeffentlich,
@@ -88,6 +89,7 @@ app.include_router(moderator_stammdaten.router, prefix="/api/v1")
 app.include_router(person_bild_reservierungen.router, prefix="/api/v1")
 app.include_router(moderator_dashboard.router, prefix="/api/v1")
 app.include_router(moderator_listen.router, prefix="/api/v1")
+app.include_router(moderator_punkte.router, prefix="/api/v1")
 app.include_router(moderator_buchungen.router, prefix="/api/v1")
 app.include_router(push.router, prefix="/api/v1")
 app.include_router(divera.router, prefix="/api/v1")

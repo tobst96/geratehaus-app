@@ -1,6 +1,6 @@
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
-from app.api.deps import CurrentAdmin, DbSession
+from app.api.deps import CurrentAdmin, CurrentModerator, DbSession
 from app.schemas.dienststunden import DienststundenEintragOut, DienststundenErfassen, DienststundenSummeOut
 from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionCreate,
@@ -216,7 +216,10 @@ async def einsatz_feld_loeschen(db: DbSession, _admin: CurrentAdmin, feld_id: in
 
 
 @router.get("/personen", response_model=list[PersonOut])
-async def personen_liste(db: DbSession, _admin: CurrentAdmin) -> list[PersonOut]:
+async def personen_liste(db: DbSession, _moderator: CurrentModerator) -> list[PersonOut]:
+    """Bewusst für jeden Moderator lesbar (nicht nur Admin) – Gruppenführer
+    brauchen die Personenliste z. B., um auf der Punkte-Seite eine Belohnung
+    zu vergeben. Schreibende Personen-Endpunkte bleiben admin-only."""
     personen = await stammdaten_service.liste_personen(db)
     return await stammdaten_service.personen_zu_out(db, personen)
 

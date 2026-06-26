@@ -59,6 +59,9 @@ beliebiger Reihenfolge laufen.
   Buchungsanfrage-Mail: Token wird bei Anfrage erzeugt, Aktion ändert den
   Buchungsstatus, zweite Aktion nach bereits getroffener Entscheidung ändert
   nichts mehr, abgelaufener/ungültiger Token wird erkannt (404)
+- `test_punkte_belohnung.py` – Punkte-Belohnung erfordert Moderator-Login,
+  Gruppenführer (nicht nur Admin) kann sie vergeben und die Personenliste
+  lesen, kann aber weiterhin keine Personen anlegen (403)
 
 Das ist **kein** vollständiger Abdeckungsanspruch über die ganze App,
 sondern bewusst der sicherheitskritische und zuletzt geänderte Teil. Die
