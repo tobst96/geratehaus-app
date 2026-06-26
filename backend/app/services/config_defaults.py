@@ -189,10 +189,6 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.BOOL,
         "Technische Fehlerberichte zur Verbesserung der App an den Entwickler senden",
     ),
-    # Geofence
-    ConfigDefault("geofence_lat", "0.0", ConfigTyp.FLOAT, "Breitengrad des Gerätehauses"),
-    ConfigDefault("geofence_lon", "0.0", ConfigTyp.FLOAT, "Längengrad des Gerätehauses"),
-    ConfigDefault("geofence_radius_meter", "150", ConfigTyp.FLOAT, "Geofence-Radius in Metern"),
     # Zeitfenster & Schwellenwerte
     ConfigDefault(
         "dienstbuch_zeitfenster_stunden",

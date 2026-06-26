@@ -9,16 +9,16 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
-- [ ] [Setup] Setup-Wizard ist kaputt: `SetupRequest` verlangt serverseitig noch
-      `geofence_lat`/`geofence_lon`/`geofence_radius_meter` als Pflichtfelder, das Frontend
-      sendet sie aber nicht mehr (Überbleibsel vom Umbau geofence → barcode/kiosk). Ein frischer
-      Wizard-Durchlauf (Neuinstallation oder "Setup-Wizard erneut ausführen") würde aktuell mit
-      422 fehlschlagen.
+(aktuell nichts offen – trag hier Neues ein)
 
 ## In Arbeit
 
 ## Erledigt
 
+- [x] [Setup] Setup-Wizard-Bug gefixt: tote `geofence_lat`/`geofence_lon`/`geofence_radius_meter`-
+      Pflichtfelder (Überbleibsel vom Umbau geofence → barcode/kiosk, nirgends mehr gelesen)
+      komplett aus Schema, Service, Config-Defaults und `core/geofence.py` entfernt.
+      Regressionstest in `test_setup.py` mit dem tatsächlichen Frontend-Payload.
 - [x] [Admin] Update-Anzeige im Admin-Bereich mit stable/beta-Kanal (GitHub-Releases-API)
 - [x] [Sicherheit] Opt-in Fehlerberichte (Sentry) im Setup-Wizard und Einstellungen, feste
       DSN-Konstante im Code für zentrales Monitoring auch fremder Installationen

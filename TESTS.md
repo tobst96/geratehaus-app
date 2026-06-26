@@ -48,6 +48,9 @@ beliebiger Reihenfolge laufen.
 - `test_sentry_setup.py` – feste DSN-Konstante wird standardmäßig verwendet,
   per .env überschreibbar (auch auf leer zum zuverlässigen Ausschalten),
   initialisiert nur bei Zustimmung der Instanz (app_config)
+- `test_setup.py` – POST /setup mit dem tatsächlichen Frontend-Payload
+  (Regressionstest für den behobenen geofence-Pflichtfelder-Bug), Login nach
+  Einrichtung, zweiter Setup-Versuch wird abgelehnt (409)
 
 Das ist **kein** vollständiger Abdeckungsanspruch über die ganze App,
 sondern bewusst der sicherheitskritische und zuletzt geänderte Teil. Die
