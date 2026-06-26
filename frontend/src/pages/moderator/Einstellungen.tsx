@@ -698,12 +698,12 @@ export function Einstellungen() {
               checked={fehlerberichteAktiv}
               onChange={(e) => setFehlerberichteAktiv(e.target.checked)}
             />{" "}
-            Technische Fehlerberichte zur Verbesserung der App senden
+            Technische Fehlerberichte an den Entwickler senden
           </label>
           <p style={{ fontSize: "0.85rem", color: "#666" }}>
-            Es werden nur Stacktraces und technische Fehlerdetails übertragen, keine Namen oder
-            sonstigen Inhalte. Wirkt nur, wenn auf dem Server zusätzlich ein Sentry-DSN
-            hinterlegt ist, und erst nach einem Neustart des Backend-Containers.
+            Hilft, Bugs über alle Installationen von Gerätehaus.app hinweg schneller zu finden und
+            zu beheben. Es werden nur Stacktraces und technische Fehlerdetails übertragen, keine
+            Namen oder sonstigen Inhalte. Wirkt erst nach einem Neustart des Backend-Containers.
           </p>
         </div>
 

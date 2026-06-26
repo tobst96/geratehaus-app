@@ -158,9 +158,10 @@ export function SetupWizard() {
                 style={{ marginTop: 4 }}
               />
               <span>
-                Technische Fehlerberichte zur Verbesserung der App senden. Es werden nur
-                Stacktraces und technische Fehlerdetails übertragen, keine Namen oder sonstigen
-                Inhalte. Jederzeit änderbar unter Moderator → Einstellungen.
+                Technische Fehlerberichte an den Entwickler von Gerätehaus.app senden, damit Bugs
+                über alle Installationen hinweg schneller gefunden und behoben werden können. Es
+                werden nur Stacktraces und technische Fehlerdetails übertragen, keine Namen oder
+                sonstigen Inhalte. Jederzeit änderbar unter Moderator → Einstellungen.
               </span>
             </label>
           </>
