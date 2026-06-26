@@ -59,7 +59,8 @@ async def reservierung_personen(db: DbSession, token: str) -> list[PersonOut]:
     reservierung = await dienststunden_reservierung_service.get_reservierung_by_token(db, token)
     if reservierung is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
-    return await stammdaten_service.liste_personen(db)
+    personen = await stammdaten_service.liste_personen(db)
+    return await stammdaten_service.personen_zu_out(db, personen)
 
 
 @router.post("/{token}/einloesen", response_model=DienststundenEintragOut)
