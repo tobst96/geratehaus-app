@@ -260,6 +260,7 @@ FELD_LABELS = {
     "vorname": "Vorname",
     "zwischenname": "Zwischenname",
     "nachname": "Nachname",
+    "email": "E-Mail",
     "gruppe_id": "Gruppe",
     "funktion_id": "Funktion",
 }
@@ -289,6 +290,7 @@ async def person_anlegen(db: AsyncSession, daten: PersonCreate) -> Person:
         zwischenname=daten.zwischenname,
         nachname=daten.nachname,
         name=_voller_name(daten.vorname, daten.zwischenname, daten.nachname),
+        email=daten.email,
         gruppe_id=daten.gruppe_id,
         funktion_id=daten.funktion_id,
     )
@@ -467,6 +469,7 @@ async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[Pers
             zwischenname=p.zwischenname,
             nachname=p.nachname,
             bild_url=p.bild_url,
+            email=p.email,
             gruppe_id=p.gruppe_id,
             funktion_id=p.funktion_id,
             gesamtpunkte=punkte_je_person.get(p.id, 0),

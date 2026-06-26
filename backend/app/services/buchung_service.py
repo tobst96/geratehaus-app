@@ -8,6 +8,8 @@ from app.models.buchung import FahrzeugBuchung
 from app.models.fahrzeug import Fahrzeug
 from app.schemas.buchung import BuchungAnfrage
 from app.services import notifier_service
+from app.services.config_service import config_service
+from app.services.notifier.email import EmailNotifier
 
 AKTIVE_STATUS = ("ausstehend", "genehmigt")
 
@@ -116,11 +118,47 @@ async def genehmigen(db: AsyncSession, buchung: FahrzeugBuchung) -> FahrzeugBuch
     buchung.status = "genehmigt"
     buchung.ablehnungsgrund = None
     await db.commit()
-    return await _neu_laden(db, buchung.id)
+    buchung = await _neu_laden(db, buchung.id)
+    await _rueckmeldung_per_email(db, buchung, genehmigt=True)
+    return buchung
 
 
 async def ablehnen(db: AsyncSession, buchung: FahrzeugBuchung, grund: str | None) -> FahrzeugBuchung:
     buchung.status = "abgelehnt"
     buchung.ablehnungsgrund = grund
     await db.commit()
-    return await _neu_laden(db, buchung.id)
+    buchung = await _neu_laden(db, buchung.id)
+    await _rueckmeldung_per_email(db, buchung, genehmigt=False)
+    return buchung
+
+
+async def _rueckmeldung_per_email(db: AsyncSession, buchung: FahrzeugBuchung, genehmigt: bool) -> None:
+    """Schickt der anfragenden Person eine individuelle Rückmeldung, ob ihre
+    Fahrzeugbuchung genehmigt oder abgelehnt wurde – unabhängig von der
+    global konfigurierten Empfängerliste der übrigen Benachrichtigungen."""
+    person = buchung.verantwortliche_person
+    if not person or not person.email:
+        return
+    if not await config_service.get(db, "notifier_email_aktiv", False):
+        return
+
+    schluessel = (
+        "benachrichtigung_text_buchung_genehmigt"
+        if genehmigt
+        else "benachrichtigung_text_buchung_abgelehnt"
+    )
+    vorlage = await config_service.get(db, schluessel, "")
+    platzhalter = {
+        "fahrzeug": buchung.fahrzeug.name if buchung.fahrzeug else "?",
+        "von": buchung.von.strftime("%d.%m.%Y %H:%M"),
+        "bis": buchung.bis.strftime("%d.%m.%Y %H:%M"),
+        "zweck": buchung.zweck,
+        "grund": buchung.ablehnungsgrund or "",
+    }
+    try:
+        nachricht = vorlage.format(**platzhalter)
+    except (KeyError, IndexError):
+        nachricht = vorlage
+
+    betreff = "Fahrzeugbuchung genehmigt" if genehmigt else "Fahrzeugbuchung abgelehnt"
+    await EmailNotifier().send_an(db, person.email, betreff, nachricht)

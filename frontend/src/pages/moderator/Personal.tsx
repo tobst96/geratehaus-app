@@ -8,7 +8,10 @@ import {
   personBildHochladen,
   personBarcodeErzeugen,
   personBildReservierungAnlegen,
+  personPinSetzen,
   holePersonTimeline,
+  holePersonDienststunden,
+  personDienststundenErfassen,
   barcodeBildUrl,
   holeAlleGruppen,
   holeAlleFunktionenDienststunden,
@@ -17,7 +20,13 @@ import { holePersonBildReservierung } from "../../api/personBildReservierungen";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
-import type { FunktionDienststunden, Gruppe, Person, PersonEreignis } from "../../api/types";
+import type {
+  DienststundenSummeOut,
+  FunktionDienststunden,
+  Gruppe,
+  Person,
+  PersonEreignis,
+} from "../../api/types";
 
 interface BildQr {
   token: string;
@@ -100,7 +109,13 @@ const PERSON_EREIGNIS_ICON: Record<string, string> = {
   stammdaten_geaendert: "✏️",
   punkte_vergeben: "🎯",
   bild_geaendert: "🖼️",
+  pin_gesetzt: "🔒",
+  inaktivitaets_warnung: "⚠️",
 };
+
+function heuteAlsDatum(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export function Personal() {
   const { config } = useConfig();
@@ -129,6 +144,12 @@ export function Personal() {
   const [timeline, setTimeline] = useState<PersonEreignis[] | null>(null);
   const [barcode, setBarcode] = useState<{ token: string; ablaufAm: string | null } | null>(null);
 
+  const [dienststundenSummen, setDienststundenSummen] = useState<DienststundenSummeOut[] | null>(null);
+  const [neueStundenFunktionId, setNeueStundenFunktionId] = useState("");
+  const [neueStunden, setNeueStunden] = useState(1);
+  const [neueStundenDatum, setNeueStundenDatum] = useState(heuteAlsDatum());
+  const [dienststundenFehler, setDienststundenFehler] = useState<string | null>(null);
+
   async function laden() {
     try {
       setListe(await holeAllePersonen());
@@ -151,10 +172,23 @@ export function Personal() {
     }
   }
 
+  async function dienststundenLaden(personId: number) {
+    try {
+      setDienststundenSummen(await holePersonDienststunden(personId));
+    } catch {
+      setDienststundenSummen([]);
+    }
+  }
+
   function auswaehlen(personId: number) {
     setAusgewaehlteId(personId);
     setBarcode(null);
+    setDienststundenFehler(null);
+    setNeueStundenFunktionId("");
+    setNeueStunden(1);
+    setNeueStundenDatum(heuteAlsDatum());
     timelineLaden(personId);
+    dienststundenLaden(personId);
   }
 
   function anlegenModalOeffnen() {
@@ -242,10 +276,48 @@ export function Personal() {
     return () => clearInterval(intervall);
   }, [bildQrStandalone, bildQrStandaloneHochgeladen]);
 
-  async function feldAendern(p: Person, feld: "vorname" | "zwischenname" | "nachname", wert: string) {
+  async function feldAendern(p: Person, feld: "vorname" | "zwischenname" | "nachname" | "email", wert: string) {
     await personAktualisieren(p.id, { [feld]: wert || null });
     await laden();
     await timelineLaden(p.id);
+  }
+
+  async function pinSetzen(p: Person) {
+    const pin = window.prompt("Neuen PIN für " + p.name + " festlegen (4-6 Ziffern):");
+    if (!pin) return;
+    if (!/^\d{4,6}$/.test(pin)) {
+      alert("Der PIN muss aus 4 bis 6 Ziffern bestehen.");
+      return;
+    }
+    try {
+      await personPinSetzen(p.id, pin);
+      await laden();
+      await timelineLaden(p.id);
+    } catch (err) {
+      alert(err instanceof ApiError ? String(err.detail) : "PIN konnte nicht gespeichert werden.");
+    }
+  }
+
+  async function stundenEintragen(p: Person, e: FormEvent) {
+    e.preventDefault();
+    setDienststundenFehler(null);
+    if (!neueStundenFunktionId || neueStunden <= 0) return;
+    try {
+      await personDienststundenErfassen(p.id, {
+        funktion_id: Number(neueStundenFunktionId),
+        stunden: neueStunden,
+        datum: neueStundenDatum,
+      });
+      setNeueStunden(1);
+      setNeueStundenDatum(heuteAlsDatum());
+      await dienststundenLaden(p.id);
+      await laden();
+      await timelineLaden(p.id);
+    } catch (err) {
+      setDienststundenFehler(
+        err instanceof ApiError ? String(err.detail) : "Stunden konnten nicht eingetragen werden."
+      );
+    }
   }
 
   async function gruppeFeldAendern(p: Person, gruppeId: number | null) {
@@ -496,6 +568,13 @@ export function Personal() {
                   onBlur={(e) => feldAendern(ausgewaehltePerson, "nachname", e.target.value)}
                   style={{ width: 160 }}
                 />
+                <input
+                  defaultValue={ausgewaehltePerson.email ?? ""}
+                  placeholder="E-Mail"
+                  type="email"
+                  onBlur={(e) => feldAendern(ausgewaehltePerson, "email", e.target.value)}
+                  style={{ width: 200 }}
+                />
                 <select
                   value={ausgewaehltePerson.gruppe_id ?? ""}
                   onChange={(e) =>
@@ -549,6 +628,13 @@ export function Personal() {
                   Barcode erzeugen
                 </button>
 
+                <button className="sekundaer" onClick={() => pinSetzen(ausgewaehltePerson)}>
+                  PIN setzen
+                </button>
+                <span style={{ fontSize: "0.8rem", color: "#666" }}>
+                  {ausgewaehltePerson.pin_gesetzt ? "🔒 PIN gesetzt" : "Kein PIN gesetzt"}
+                </span>
+
                 <button className="sekundaer" onClick={() => loeschen(ausgewaehltePerson.id)}>
                   Löschen
                 </button>
@@ -582,6 +668,76 @@ export function Personal() {
                     </div>
                   )}
                 </div>
+              )}
+
+              <h3>Dienststunden</h3>
+              {!dienststundenSummen ? (
+                <p>Lädt …</p>
+              ) : (
+                <>
+                  <table style={{ marginBottom: 12 }}>
+                    <thead>
+                      <tr>
+                        <th>Funktion</th>
+                        <th>Bisher</th>
+                        <th>Offen</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dienststundenSummen.map((s) => (
+                        <tr key={s.funktion_id}>
+                          <td>{s.funktion_name}</td>
+                          <td>{s.summe_stunden}</td>
+                          <td>
+                            {s.schwellenwert_stunden
+                              ? Math.max(s.schwellenwert_stunden - s.summe_stunden, 0)
+                              : "–"}
+                          </td>
+                        </tr>
+                      ))}
+                      {dienststundenSummen.length === 0 && (
+                        <tr>
+                          <td colSpan={3} style={{ color: "#666" }}>
+                            Keine Dienststunden-Funktionen vorhanden.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+
+                  <form
+                    onSubmit={(e) => stundenEintragen(ausgewaehltePerson, e)}
+                    style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}
+                  >
+                    <select
+                      value={neueStundenFunktionId}
+                      onChange={(e) => setNeueStundenFunktionId(e.target.value)}
+                      required
+                    >
+                      <option value="">– Funktion wählen –</option>
+                      {funktionen.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.name}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min={0.5}
+                      step={0.5}
+                      value={neueStunden}
+                      onChange={(e) => setNeueStunden(Number(e.target.value))}
+                      style={{ width: 80 }}
+                    />
+                    <input
+                      type="date"
+                      value={neueStundenDatum}
+                      onChange={(e) => setNeueStundenDatum(e.target.value)}
+                    />
+                    <button type="submit">Stunden eintragen</button>
+                  </form>
+                  {dienststundenFehler && <p className="fehlertext">{dienststundenFehler}</p>}
+                </>
               )}
 
               <h3>Timeline</h3>

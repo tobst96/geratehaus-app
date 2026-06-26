@@ -2,6 +2,7 @@ import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from "./client";
 import type {
   BuchungOut,
   DienstbuchOut,
+  DienststundenSummeOut,
   EinsatzFeldDefinition,
   EinsatzOut,
   Fahrzeug,
@@ -56,10 +57,10 @@ export interface EinsaetzeProMonat {
   monat: string;
   anzahl: number;
 }
-export interface TopAktive {
+export interface PunkteRangliste {
   person_id: number;
   person_name: string;
-  anzahl_teilnahmen: number;
+  punkte: number;
 }
 export interface SchwellenwertUeberschreitung {
   person_id: number;
@@ -71,7 +72,7 @@ export interface SchwellenwertUeberschreitung {
 }
 export interface DashboardOut {
   einsaetze_pro_monat: EinsaetzeProMonat[];
-  top_aktive: TopAktive[];
+  punkte_rangliste: PunkteRangliste[];
   vab_faelle_anzahl: number;
   offene_buchungen_anzahl: number;
   schwellenwert_ueberschreitungen: SchwellenwertUeberschreitung[];
@@ -211,6 +212,7 @@ export const personAnlegen = (daten: {
   vorname: string;
   zwischenname: string | null;
   nachname: string;
+  email?: string | null;
   gruppe_id?: number | null;
   funktion_id?: number | null;
 }) => apiPost<Person>("/moderator/stammdaten/personen", daten);
@@ -220,12 +222,21 @@ export const personAktualisieren = (
     vorname: string;
     zwischenname: string | null;
     nachname: string;
+    email: string | null;
     gruppe_id: number | null;
     funktion_id: number | null;
   }>
 ) => apiPut<Person>(`/moderator/stammdaten/personen/${id}`, daten);
+export const personPinSetzen = (id: number, pin: string) =>
+  apiPut<Person>(`/moderator/stammdaten/personen/${id}/pin`, { pin });
 export const holePersonTimeline = (id: number) =>
   apiGet<PersonEreignis[]>(`/moderator/stammdaten/personen/${id}/timeline`);
+export const holePersonDienststunden = (id: number) =>
+  apiGet<DienststundenSummeOut[]>(`/moderator/stammdaten/personen/${id}/dienststunden`);
+export const personDienststundenErfassen = (
+  id: number,
+  daten: { funktion_id: number; stunden: number; datum: string }
+) => apiPost<DienststundenEintragOut>(`/moderator/stammdaten/personen/${id}/dienststunden`, daten);
 export const personBildReservierungAnlegen = (id: number) =>
   apiPost<{ token: string; ablauf_am: string }>(`/moderator/stammdaten/personen/${id}/bild-reservierung`);
 export const personLoeschen = (id: number) => apiDelete<void>(`/moderator/stammdaten/personen/${id}`);

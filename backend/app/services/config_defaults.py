@@ -221,6 +221,20 @@ DEFAULTS: list[ConfigDefault] = [
         "Text bei neuer Buchungsanfrage. Platzhalter: {fahrzeug}, {von}, {bis}, {zweck}",
     ),
     ConfigDefault(
+        "benachrichtigung_text_buchung_genehmigt",
+        "Deine Fahrzeugbuchung für {fahrzeug} ({von} bis {bis}, {zweck}) wurde genehmigt.",
+        ConfigTyp.STR,
+        "Text bei genehmigter Fahrzeugbuchung (E-Mail an anfragende Person). "
+        "Platzhalter: {fahrzeug}, {von}, {bis}, {zweck}",
+    ),
+    ConfigDefault(
+        "benachrichtigung_text_buchung_abgelehnt",
+        "Deine Fahrzeugbuchung für {fahrzeug} ({von} bis {bis}, {zweck}) wurde abgelehnt. Grund: {grund}",
+        ConfigTyp.STR,
+        "Text bei abgelehnter Fahrzeugbuchung (E-Mail an anfragende Person). "
+        "Platzhalter: {fahrzeug}, {von}, {bis}, {zweck}, {grund}",
+    ),
+    ConfigDefault(
         "benachrichtigung_text_schwellenwert_ueberschreitung",
         "{person} hat den Schwellenwert für {funktion} überschritten ({summe} von {schwellenwert} Stunden)",
         ConfigTyp.STR,

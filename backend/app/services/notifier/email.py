@@ -36,15 +36,28 @@ class EmailNotifier(Notifier):
         (Einsatzabschluss) den Versand in der Timeline protokollieren kann."""
         await self._versenden(db, betreff, nachricht, anhang=(dateiname, pdf_inhalt))
 
+    async def send_an(self, db: AsyncSession, empfaenger: str, betreff: str, nachricht: str) -> None:
+        """Wie send(): an eine einzelne, individuelle Adresse statt an die
+        global konfigurierte Empfängerliste – z. B. Rückmeldung an die
+        anfragende Person einer Fahrzeugbuchung."""
+        try:
+            await self._versenden(db, betreff, nachricht, empfaenger_liste=[empfaenger])
+        except (aiosmtplib.SMTPException, OSError):
+            logger.warning("email_versand_fehlgeschlagen", exc_info=True)
+
     async def _versenden(
         self,
         db: AsyncSession,
         betreff: str,
         nachricht: str,
         anhang: tuple[str, bytes] | None = None,
+        empfaenger_liste: list[str] | None = None,
     ) -> None:
-        empfaenger_roh = await config_service.get(db, "notifier_email_recipients", "")
-        empfaenger = [e.strip() for e in empfaenger_roh.split(",") if e.strip()]
+        if empfaenger_liste is not None:
+            empfaenger = empfaenger_liste
+        else:
+            empfaenger_roh = await config_service.get(db, "notifier_email_recipients", "")
+            empfaenger = [e.strip() for e in empfaenger_roh.split(",") if e.strip()]
         if not empfaenger:
             raise ValueError("Keine Empfängeradresse in den Einstellungen hinterlegt.")
         message = EmailMessage()

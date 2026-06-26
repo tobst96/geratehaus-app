@@ -54,19 +54,19 @@ export function Dashboard() {
         ))}
       </div>
 
-      <h2>Top-Aktive</h2>
+      <h2>Rangliste nach Punkten</h2>
       <table>
         <thead>
           <tr>
             <th>Name</th>
-            <th>Teilnahmen</th>
+            <th>Punkte</th>
           </tr>
         </thead>
         <tbody>
-          {daten.top_aktive.map((t) => (
+          {daten.punkte_rangliste.map((t) => (
             <tr key={t.person_id}>
               <td>{t.person_name}</td>
-              <td>{t.anzahl_teilnahmen}</td>
+              <td>{t.punkte}</td>
             </tr>
           ))}
         </tbody>

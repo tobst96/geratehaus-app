@@ -1,6 +1,7 @@
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from app.api.deps import CurrentModerator, DbSession
+from app.schemas.dienststunden import DienststundenEintragOut, DienststundenErfassen, DienststundenSummeOut
 from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionCreate,
     EinsatzFeldDefinitionOut,
@@ -22,7 +23,7 @@ from app.schemas.stammdaten import (
     GruppeOut,
     GruppeUpdate,
 )
-from app.services import person_bild_reservierung_service, stammdaten_service
+from app.services import dienststunden_service, person_bild_reservierung_service, stammdaten_service
 
 router = APIRouter(prefix="/moderator/stammdaten", tags=["moderator:stammdaten"])
 
@@ -284,3 +285,31 @@ async def person_timeline(
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
     return await stammdaten_service.liste_person_ereignisse(db, person_id)
+
+
+@router.get("/personen/{person_id}/dienststunden", response_model=list[DienststundenSummeOut])
+async def person_dienststunden_summen(
+    db: DbSession, _moderator: CurrentModerator, person_id: int
+) -> list[DienststundenSummeOut]:
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    return await dienststunden_service.eigene_summen(db, person_id)
+
+
+@router.post(
+    "/personen/{person_id}/dienststunden",
+    response_model=DienststundenEintragOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def person_dienststunden_erfassen(
+    db: DbSession, _moderator: CurrentModerator, person_id: int, daten: DienststundenErfassen
+) -> DienststundenEintragOut:
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    if not await dienststunden_service.funktion_existiert_und_aktiv(db, daten.funktion_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Funktion nicht gefunden oder inaktiv."
+        )
+    return await dienststunden_service.erfassen(db, person_id, daten)

@@ -49,9 +49,11 @@ export interface Person {
   zwischenname: string | null;
   nachname: string | null;
   bild_url: string | null;
+  email: string | null;
   gruppe_id: number | null;
   funktion_id: number | null;
   gesamtpunkte: number;
+  pin_gesetzt: boolean;
 }
 
 export interface PersonEreignis {
