@@ -30,6 +30,7 @@ dependencies = [
     "pillow>=10.4",
     "python-barcode>=0.15",
     "sentry-sdk[fastapi]>=2.0",
+    "packaging>=23.0",
 ]
 
 [project.optional-dependencies]

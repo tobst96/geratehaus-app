@@ -34,6 +34,7 @@ import logging
 
 import sentry_sdk
 import structlog
+from packaging.version import InvalidVersion, Version
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from app.core.config import settings
@@ -45,10 +46,6 @@ PROJECT_DSN = (
     "https://68e023a6b238e5694ba132671c87d31f@o4511632673669120.ingest.de.sentry.io/4511632679436368"
 )
 
-# Marker, an denen eine Vorab-/Beta-Version in der installierten Versions-
-# nummer erkannt wird (PEP 440 / SemVer-Konvention, z. B. "0.3.0-beta.1").
-_VORAB_MARKER = ("beta", "alpha", "rc", "dev")
-
 
 def _aktive_dsn() -> str:
     return settings.sentry_dsn if settings.sentry_dsn is not None else PROJECT_DSN
@@ -59,11 +56,13 @@ def _sentry_umgebung(version: str) -> str:
     tatsächlich installierten Versionsnummer – nicht vom gewählten
     Update-Kanal (der zeigt nur an, ob ein Update verfügbar ist, sagt aber
     nichts darüber aus, was wirklich läuft, falls jemand manuell einen
-    anderen Tag deployed hat)."""
-    version_klein = version.lower()
-    if any(marker in version_klein for marker in _VORAB_MARKER):
-        return "beta"
-    return "production"
+    anderen Tag deployed hat). `importlib.metadata.version()` liefert die
+    PEP-440-normalisierte Form (z. B. "0.3.0b1" statt "0.3.0-beta.1") –
+    daher echtes Parsen statt Substring-Suche nach "beta"."""
+    try:
+        return "beta" if Version(version).is_prerelease else "production"
+    except InvalidVersion:
+        return "production"
 
 
 def init_sentry_wenn_aktiviert(fehlerberichte_aktiv: bool) -> bool:
