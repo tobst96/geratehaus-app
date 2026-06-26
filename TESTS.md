@@ -48,7 +48,9 @@ beliebiger Reihenfolge laufen.
 - `test_sentry_setup.py` – feste DSN-Konstante wird standardmäßig verwendet,
   per .env überschreibbar (auch auf leer zum zuverlässigen Ausschalten),
   initialisiert nur bei Zustimmung der Instanz (app_config); LoggingIntegration
-  meldet WARNING+ als eigene Events, INFO nur als Breadcrumb
+  meldet WARNING+ als eigene Events, INFO nur als Breadcrumb; `environment`/
+  `release` werden anhand der installierten Versionsnummer gesetzt (z. B.
+  "0.3.0-beta.1" → environment "beta")
 - `test_logging_setup.py` – structlog-Aufrufe landen über einen echten
   stdlib-`logging`-Handler (sonst sieht Sentrys LoggingIntegration nichts)
 - `test_setup.py` – POST /setup mit dem tatsächlichen Frontend-Payload

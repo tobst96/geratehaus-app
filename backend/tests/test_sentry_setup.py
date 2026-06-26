@@ -56,3 +56,25 @@ def test_logging_integration_meldet_warnungen_als_events(monkeypatch):
     logging_integration = next(i for i in integrationen if isinstance(i, LoggingIntegration))
     assert logging_integration._handler.level == logging.WARNING
     assert logging_integration._breadcrumb_handler.level == logging.INFO
+
+
+def test_sentry_umgebung_erkennt_vorab_versionen():
+    assert sentry_setup._sentry_umgebung("0.3.0-beta.1") == "beta"
+    assert sentry_setup._sentry_umgebung("1.0.0-rc.2") == "beta"
+    assert sentry_setup._sentry_umgebung("0.3.0-alpha") == "beta"
+    assert sentry_setup._sentry_umgebung("0.3.0") == "production"
+    assert sentry_setup._sentry_umgebung("1.4.2") == "production"
+
+
+def test_init_taggt_environment_und_release_nach_installierter_version(monkeypatch):
+    aufgerufen_mit = {}
+    monkeypatch.setattr(sentry_setup.settings, "sentry_dsn", None)
+    monkeypatch.setattr(sentry_setup, "installierte_version", lambda: "0.3.0-beta.1")
+    monkeypatch.setattr(
+        sentry_setup.sentry_sdk, "init", lambda **kwargs: aufgerufen_mit.update(kwargs)
+    )
+
+    sentry_setup.init_sentry_wenn_aktiviert(True)
+
+    assert aufgerufen_mit["environment"] == "beta"
+    assert aufgerufen_mit["release"] == "0.3.0-beta.1"
