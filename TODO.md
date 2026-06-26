@@ -9,7 +9,29 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
-(aktuell nichts offen – trag hier Neues ein)
+- [ ] [Benachrichtigungen] E-Mails als HTML statt Plaintext versenden, im Design der
+      eingestellten Website (Logo, `farbe_primaer`/`farbe_akzent` aus app_config). Betrifft
+      `EmailNotifier._versenden()` in `backend/app/services/notifier/email.py` (aktuell nur
+      `message.set_content(nachricht)`, reiner Text) sowie alle Aufrufer, die eigene Texte
+      bauen (`buchung_service.py`, `einsatz_service.py` für den PDF-Anhang-Mailtext, etc.).
+      Sinnvoller Ansatz: ein Jinja2-HTML-Template (das Projekt nutzt Jinja2 bereits für
+      PDF-Templates, siehe `app/templates/`), das Logo-URL und Farben aus `config_service`
+      einsetzt; `set_content()` für Plaintext-Fallback behalten und zusätzlich
+      `message.add_alternative(html, subtype="html")` setzen (Multipart, nicht ersetzen –
+      manche Mailclients/Spamfilter bevorzugen Plaintext-Teil weiterhin).
+- [ ] [Buchungen] Fahrzeugbuchungs-Anfrage-Mail soll direkte "Annehmen"/"Ablehnen"-Buttons
+      enthalten, ohne dass sich der Moderator erst einloggen muss. `genehmigen`/`ablehnen` in
+      `backend/app/api/v1/moderator_buchungen.py` sitzen aktuell hinter `CurrentModerator`
+      (JWT-Login nötig). Naheliegendster Ansatz: dasselbe Reservierungs-Token-Muster wie
+      "Barcode vergessen" (siehe CLAUDE.md, z. B. `fahrzeugbuchung_reservierung_service.py`)
+      auf Moderator-Seite spiegeln – ein kurzlebiger, einmal verwendbarer Token pro
+      Buchungsanfrage, der `/buchungen/{id}/genehmigen-per-token/{token}` bzw.
+      `.../ablehnen-per-token/{token}` ohne Auth freischaltet, in der Benachrichtigungsmail
+      (`benachrichtigung_buchungsanfrage` in `notifier_service.py`/`buchung_service.py`) als
+      zwei Buttons/Links verlinkt. Sicherheitsaspekt nicht vergessen: Token an die konkrete
+      Buchung binden, nach erster Nutzung invalidieren, sinnvolle Ablaufzeit (siehe
+      Rate-Limiting-Policy aus TESTS.md/CLAUDE.md für neue unauthentifizierte Endpunkte).
+      Sollte sich gut mit dem HTML-Mail-Punkt oben kombinieren lassen (Buttons brauchen HTML).
 
 ## In Arbeit
 
