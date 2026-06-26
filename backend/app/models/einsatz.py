@@ -44,7 +44,7 @@ class EinsatzPerson(Base, TimestampMixin):
     einsatz_id: Mapped[int] = mapped_column(
         ForeignKey("einsaetze.id", ondelete="CASCADE"), nullable=False
     )
-    person_id: Mapped[int] = mapped_column(ForeignKey("personen.id"), nullable=False)
+    person_id: Mapped[int] = mapped_column(ForeignKey("personen.id", ondelete="CASCADE"), nullable=False)
     fahrzeug_id: Mapped[int | None] = mapped_column(ForeignKey("fahrzeuge.id"), nullable=True)
     sitzplatz_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     funktion_id: Mapped[int | None] = mapped_column(

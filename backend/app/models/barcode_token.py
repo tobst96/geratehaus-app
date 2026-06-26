@@ -9,7 +9,7 @@ class BarcodeToken(Base):
     __tablename__ = "barcode_tokens"
 
     id = Column(Integer, primary_key=True)
-    person_id = Column(Integer, ForeignKey("personen.id"), nullable=False)
+    person_id = Column(Integer, ForeignKey("personen.id", ondelete="CASCADE"), nullable=False)
     token = Column(String(50), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_used_at = Column(DateTime, nullable=True)

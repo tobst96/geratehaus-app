@@ -48,11 +48,18 @@ def ist_abgelaufen(reservierung: SitzplatzReservierung) -> bool:
 
 
 async def reservierung_vorschau_setzen(
-    db: AsyncSession, reservierung: SitzplatzReservierung, person_id: int
+    db: AsyncSession, reservierung: SitzplatzReservierung, person_id: int, pin: str | None = None
 ) -> None:
     """Merkt sich die auf dem Handy ausgewählte Person, noch bevor die
     Eintragung final abgesendet wird, damit das Gerätehaus-Display Name und
-    Bild bereits neben dem QR-Code zeigen kann."""
+    Bild bereits neben dem QR-Code zeigen kann. Hat die Person einen PIN
+    gesetzt, wird die Vorschau (und damit ihr Profilbild) erst nach
+    korrekter PIN-Eingabe freigeschaltet."""
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise ValueError("Person nicht gefunden.")
+    if not stammdaten_service.person_pin_korrekt(person, pin):
+        raise PermissionError("PIN falsch oder fehlt.")
     reservierung.vorschau_person_id = person_id
     await db.commit()
 

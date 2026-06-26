@@ -69,7 +69,10 @@ export function PersonBildHochladen() {
               style={{ width: 200, height: 200, borderRadius: 16, objectFit: "cover" }}
             />
           )}
-          <p>Du kannst diese Seite jetzt schließen.</p>
+          <p>
+            Das Profilfoto für <strong>{info.person_name}</strong> wurde gespeichert. Du kannst diese
+            Seite jetzt schließen.
+          </p>
         </div>
       </div>
     );

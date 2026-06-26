@@ -13,6 +13,7 @@ import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
+import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import type { EinsatzFeldDefinition, EinsatzOut, Fahrzeug, FunktionEinsatz, TeilnahmeOut } from "../../api/types";
 import "./EinsatzDiagramm.css";
 
@@ -310,7 +311,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         nur_geraetehaus: ausgewaehlteAktion.nurGeraetehaus,
         auf_anfahrt: ausgewaehlteAktion.aufAnfahrt,
       });
-      const url = `${window.location.origin}/eintragen/${token}`;
+      const url = `${oeffentlicheBasisUrl(config)}/eintragen/${token}`;
       const bildUrl = await QRCode.toDataURL(url, { width: 280, margin: 1 });
       setQrAnsicht({ token, bildUrl, ablaufAm: ablauf_am });
     } catch (err) {

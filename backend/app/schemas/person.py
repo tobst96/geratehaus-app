@@ -15,6 +15,7 @@ class PersonOut(BaseModel):
     gruppe_id: int | None
     funktion_id: int | None
     gesamtpunkte: int
+    pin_gesetzt: bool
 
 
 class PersonCreate(BaseModel):
@@ -40,6 +41,10 @@ class PersonEreignisOut(BaseModel):
     zeitpunkt: datetime
     typ: str
     beschreibung: str
+
+
+class PersonPinSetzen(BaseModel):
+    pin: str = Field(min_length=4, max_length=6, pattern=r"^\d+$")
 
 
 class PersonPunktOut(BaseModel):

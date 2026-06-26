@@ -28,6 +28,13 @@ class ConfigDefault:
 DEFAULTS: list[ConfigDefault] = [
     # Organisation & Branding
     ConfigDefault("organisation_name", "Meine Feuerwehr", ConfigTyp.STR, "Name der Organisation"),
+    ConfigDefault(
+        "oeffentliche_basis_url",
+        "https://geraetehausapp.feuerwehr-musterstadt.de",
+        ConfigTyp.STR,
+        "Öffentliche Basis-URL der App, wird für alle QR-Code-Links (Barcode vergessen, "
+        "Profilbild-Upload usw.) statt der aktuellen Browser-Adresse verwendet",
+    ),
     ConfigDefault("logo_url", "", ConfigTyp.STR, "URL/Pfad zum hochgeladenen Logo"),
     ConfigDefault("farbe_primaer", "#FFA633", ConfigTyp.STR, "Primärfarbe (Hex)"),
     ConfigDefault("farbe_akzent", "#1A1A1A", ConfigTyp.STR, "Akzentfarbe (Hex)"),
@@ -92,6 +99,14 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.STR,
         "Sortierung der Personenliste: 'nachname' oder 'gruppe_nachname'",
     ),
+    # Personen-Inaktivität
+    ConfigDefault(
+        "personen_inaktivitaet_tage",
+        "90",
+        ConfigTyp.INT,
+        "Tage ohne neuen Timeline-Eintrag, nach denen eine Person automatisch gelöscht wird "
+        "(7 Tage vorher kommt eine Warn-Benachrichtigung). 0 = Funktion deaktiviert.",
+    ),
     # Divera 24/7
     ConfigDefault("divera_aktiv", "false", ConfigTyp.BOOL, "Divera-Anbindung aktiv"),
     ConfigDefault("divera_api_key", "", ConfigTyp.STR, "Divera Accesskey/API-Key"),
@@ -140,6 +155,12 @@ DEFAULTS: list[ConfigDefault] = [
         "true",
         ConfigTyp.BOOL,
         "Benachrichtigung bei Dienststunden-Schwellenwert-Überschreitung",
+    ),
+    ConfigDefault(
+        "benachrichtigung_person_inaktiv",
+        "true",
+        ConfigTyp.BOOL,
+        "Benachrichtigung, wenn eine inaktive Person bald automatisch gelöscht wird",
     ),
     # Benachrichtigungskanäle (Zugangsdaten, ersetzt frühere .env-Werte)
     ConfigDefault("notifier_telegram_aktiv", "false", ConfigTyp.BOOL, "Telegram-Versand aktiv"),
@@ -204,6 +225,13 @@ DEFAULTS: list[ConfigDefault] = [
         "{person} hat den Schwellenwert für {funktion} überschritten ({summe} von {schwellenwert} Stunden)",
         ConfigTyp.STR,
         "Text bei Schwellenwert-Überschreitung. Platzhalter: {person}, {funktion}, {summe}, {schwellenwert}",
+    ),
+    ConfigDefault(
+        "benachrichtigung_text_person_inaktiv",
+        "{person} war seit {tage_inaktiv} Tagen nicht aktiv und wird in 7 Tagen automatisch gelöscht, "
+        "falls keine neue Aktivität erfolgt.",
+        ConfigTyp.STR,
+        "Text bei Inaktivitäts-Warnung. Platzhalter: {person}, {tage_inaktiv}",
     ),
     # Setup
     ConfigDefault("setup_abgeschlossen", "false", ConfigTyp.BOOL, "Setup-Wizard abgeschlossen"),

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import {
   holeAllePersonen,
@@ -15,7 +15,15 @@ import {
 } from "../../api/moderator";
 import { holePersonBildReservierung } from "../../api/personBildReservierungen";
 import { ApiError } from "../../api/client";
+import { useConfig } from "../../context/ConfigContext";
+import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import type { FunktionDienststunden, Gruppe, Person, PersonEreignis } from "../../api/types";
+
+interface BildQr {
+  token: string;
+  bildUrl: string;
+  ablaufAm: string;
+}
 
 function Initialen(vorname: string | null, nachname: string | null, name: string): string {
   if (vorname || nachname) {
@@ -95,12 +103,14 @@ const PERSON_EREIGNIS_ICON: Record<string, string> = {
 };
 
 export function Personal() {
+  const { config } = useConfig();
   const [liste, setListe] = useState<Person[] | null>(null);
   const [gruppen, setGruppen] = useState<Gruppe[]>([]);
   const [funktionen, setFunktionen] = useState<FunktionDienststunden[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
   const [suche, setSuche] = useState("");
   const [ausgewaehlteId, setAusgewaehlteId] = useState<number | null>(null);
+  const bildInputRef = useRef<HTMLInputElement>(null);
 
   const [zeigeAnlegenModal, setZeigeAnlegenModal] = useState(false);
   const [neuerVorname, setNeuerVorname] = useState("");
@@ -108,8 +118,13 @@ export function Personal() {
   const [neuerNachname, setNeuerNachname] = useState("");
   const [anlegenFehler, setAnlegenFehler] = useState<string | null>(null);
   const [neuePerson, setNeuePerson] = useState<Person | null>(null);
-  const [bildQr, setBildQr] = useState<{ token: string; bildUrl: string; ablaufAm: string } | null>(null);
+  const [bildQr, setBildQr] = useState<BildQr | null>(null);
   const [bildHochgeladen, setBildHochgeladen] = useState(false);
+
+  // "Bild per QR-Code hochladen" für eine bereits vorhandene Person aus der
+  // Detailansicht (unabhängig vom Anlegen-Popup oben).
+  const [bildQrStandalone, setBildQrStandalone] = useState<BildQr | null>(null);
+  const [bildQrStandaloneHochgeladen, setBildQrStandaloneHochgeladen] = useState(false);
 
   const [timeline, setTimeline] = useState<PersonEreignis[] | null>(null);
   const [barcode, setBarcode] = useState<{ token: string; ablaufAm: string | null } | null>(null);
@@ -158,6 +173,13 @@ export function Personal() {
     if (neuePerson) auswaehlen(neuePerson.id);
   }
 
+  async function bildQrErzeugen(personId: number): Promise<BildQr> {
+    const { token, ablauf_am } = await personBildReservierungAnlegen(personId);
+    const url = `${oeffentlicheBasisUrl(config)}/person-bild/${token}`;
+    const bildUrl = await QRCode.toDataURL(url, { width: 240, margin: 1 });
+    return { token, bildUrl, ablaufAm: ablauf_am };
+  }
+
   async function anlegen(e: FormEvent) {
     e.preventDefault();
     if (!neuerVorname.trim() || !neuerNachname.trim()) return;
@@ -170,18 +192,14 @@ export function Personal() {
       });
       await laden();
       setNeuePerson(person);
-
-      const { token, ablauf_am } = await personBildReservierungAnlegen(person.id);
-      const url = `${window.location.origin}/person-bild/${token}`;
-      const bildUrl = await QRCode.toDataURL(url, { width: 240, margin: 1 });
-      setBildQr({ token, bildUrl, ablaufAm: ablauf_am });
+      setBildQr(await bildQrErzeugen(person.id));
     } catch (err) {
       setAnlegenFehler(err instanceof ApiError ? String(err.detail) : "Person konnte nicht angelegt werden.");
     }
   }
 
-  // Solange das QR-Foto-Popup offen ist, prüfen ob das Foto bereits vom
-  // Handy aus hochgeladen wurde.
+  // Solange eines der beiden QR-Foto-Popups offen ist, prüfen ob das Foto
+  // bereits vom Handy aus hochgeladen wurde.
   useEffect(() => {
     if (!bildQr || bildHochgeladen) return;
     const intervall = setInterval(async () => {
@@ -197,6 +215,32 @@ export function Personal() {
     }, 1500);
     return () => clearInterval(intervall);
   }, [bildQr, bildHochgeladen]);
+
+  async function bildQrStandaloneOeffnen(p: Person) {
+    setBildQrStandaloneHochgeladen(false);
+    setBildQrStandalone(await bildQrErzeugen(p.id));
+  }
+
+  function bildQrStandaloneSchliessen() {
+    setBildQrStandalone(null);
+    setBildQrStandaloneHochgeladen(false);
+  }
+
+  useEffect(() => {
+    if (!bildQrStandalone || bildQrStandaloneHochgeladen) return;
+    const intervall = setInterval(async () => {
+      try {
+        const info = await holePersonBildReservierung(bildQrStandalone.token);
+        if (info.bereits_eingeloest) {
+          setBildQrStandaloneHochgeladen(true);
+          await laden();
+        }
+      } catch {
+        // Best effort – wird beim nächsten Intervall erneut versucht.
+      }
+    }, 1500);
+    return () => clearInterval(intervall);
+  }, [bildQrStandalone, bildQrStandaloneHochgeladen]);
 
   async function feldAendern(p: Person, feld: "vorname" | "zwischenname" | "nachname", wert: string) {
     await personAktualisieren(p.id, { [feld]: wert || null });
@@ -335,6 +379,56 @@ export function Personal() {
         </div>
       )}
 
+      {bildQrStandalone && ausgewaehltePerson && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={bildQrStandaloneSchliessen}
+        >
+          <div
+            className="karte"
+            style={{ width: 360, maxWidth: "90vw", textAlign: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {bildQrStandaloneHochgeladen ? (
+              <>
+                <h2>Foto gespeichert!</h2>
+                <PersonenAvatar person={liste.find((p) => p.id === ausgewaehltePerson.id) ?? ausgewaehltePerson} groesse={120} />
+                <p style={{ marginTop: 12 }}>{ausgewaehltePerson.name}</p>
+                <button type="button" onClick={bildQrStandaloneSchliessen}>
+                  Fertig
+                </button>
+              </>
+            ) : (
+              <>
+                <h2>Bild per QR-Code hochladen</h2>
+                <p style={{ color: "#666" }}>
+                  Mit dem Handy scannen, um ein Profilfoto für <strong>{ausgewaehltePerson.name}</strong>{" "}
+                  aufzunehmen oder hochzuladen.
+                </p>
+                <img src={bildQrStandalone.bildUrl} alt="QR-Code für Foto-Upload" style={{ width: 220, height: 220 }} />
+                <p style={{ fontSize: "0.8rem", color: "#999" }}>
+                  Gültig bis {new Date(bildQrStandalone.ablaufAm).toLocaleTimeString("de-DE")}
+                </p>
+                <button type="button" className="sekundaer" onClick={bildQrStandaloneSchliessen}>
+                  Schließen
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
         <div style={{ width: 300, flexShrink: 0 }}>
           <input
@@ -432,18 +526,24 @@ export function Personal() {
               </div>
 
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
-                <label className="sekundaer" style={{ display: "inline-flex", alignItems: "center", cursor: "pointer" }}>
+                <input
+                  ref={bildInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const datei = e.target.files?.[0];
+                    if (datei) bildHochladen(ausgewaehltePerson, datei);
+                    e.target.value = "";
+                  }}
+                />
+                <button className="sekundaer" onClick={() => bildInputRef.current?.click()}>
                   Bild hochladen
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      const datei = e.target.files?.[0];
-                      if (datei) bildHochladen(ausgewaehltePerson, datei);
-                    }}
-                  />
-                </label>
+                </button>
+
+                <button className="sekundaer" onClick={() => bildQrStandaloneOeffnen(ausgewaehltePerson)}>
+                  Bild per QR-Code hochladen
+                </button>
 
                 <button className="sekundaer" onClick={() => barcodeErzeugen(ausgewaehltePerson)}>
                   Barcode erzeugen

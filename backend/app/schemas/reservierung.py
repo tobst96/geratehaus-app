@@ -37,3 +37,4 @@ class ReservierungEinloesen(BaseModel):
 
 class ReservierungVorschauSetzen(BaseModel):
     person_id: int
+    pin: str | None = None

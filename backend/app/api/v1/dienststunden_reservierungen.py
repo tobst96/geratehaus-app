@@ -44,7 +44,14 @@ async def reservierung_vorschau_setzen(
     reservierung = await dienststunden_reservierung_service.get_reservierung_by_token(db, token)
     if reservierung is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
-    await dienststunden_reservierung_service.reservierung_vorschau_setzen(db, reservierung, daten.person_id)
+    try:
+        await dienststunden_reservierung_service.reservierung_vorschau_setzen(
+            db, reservierung, daten.person_id, daten.pin
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
 @router.get("/{token}/personen", response_model=list[PersonOut])

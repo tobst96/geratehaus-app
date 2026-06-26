@@ -9,6 +9,8 @@ import { holeDienstbuchReservierung } from "../../api/dienstbuchReservierungen";
 import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import { useConfig } from "../../context/ConfigContext";
+import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import type { DienstbuchOut, Gruppe, TeilnehmerOut } from "../../api/types";
 import "./DienstbuchDiagramm.css";
 
@@ -34,6 +36,7 @@ const AGT_DEFAULT_MINUTEN = 30;
 
 export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCancel }: DienstbuchDiagrammProps) {
   const { barcodeEinscannen } = useAuth();
+  const { config } = useConfig();
   const [barcode, setBarcode] = useState("");
   const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [gruppeId, setGruppeId] = useState<number | null>(null);
@@ -100,7 +103,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
     setQrFehler(null);
     try {
       const { token, ablauf_am } = await dienstbuchReservierungAnlegen(dienstbuch.id);
-      const url = `${window.location.origin}/eintragen-dienstbuch/${token}`;
+      const url = `${oeffentlicheBasisUrl(config)}/eintragen-dienstbuch/${token}`;
       const bildUrl = await QRCode.toDataURL(url, { width: 280, margin: 1 });
       setQrAnsicht({ token, bildUrl, ablaufAm: ablauf_am });
     } catch (err) {

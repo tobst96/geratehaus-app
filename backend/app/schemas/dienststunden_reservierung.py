@@ -17,6 +17,7 @@ class DienststundenReservierungInfo(BaseModel):
 
 class DienststundenReservierungVorschauSetzen(BaseModel):
     person_id: int
+    pin: str | None = None
 
 
 class DienststundenReservierungEinloesen(BaseModel):

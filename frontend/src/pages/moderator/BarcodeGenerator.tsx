@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { barcodeBildUrl, holeAllePersonen, personBarcodeErzeugen } from "../../api/moderator";
 import { ApiError } from "../../api/client";
+import { useConfig } from "../../context/ConfigContext";
+import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import type { Person } from "../../api/types";
 
 interface BarcodeInfo {
@@ -9,6 +11,7 @@ interface BarcodeInfo {
 }
 
 export function BarcodeGenerator() {
+  const { config } = useConfig();
   const [personen, setPersonen] = useState<Person[] | null>(null);
   const [barcodes, setBarcodes] = useState<Map<number, BarcodeInfo>>(new Map());
   const [fehler, setFehler] = useState<string | null>(null);
@@ -70,7 +73,7 @@ export function BarcodeGenerator() {
       html += `
         <div class="card">
           <div class="name">${person.name}</div>
-          <img src="${window.location.origin}${barcodeBildUrl(info.token)}" alt="Barcode" />
+          <img src="${oeffentlicheBasisUrl(config)}${barcodeBildUrl(info.token)}" alt="Barcode" />
           ${info.ablaufAm ? `<div class="ablauf">Gültig bis ${new Date(info.ablaufAm).toLocaleDateString("de-DE")}</div>` : ""}
         </div>
       `;

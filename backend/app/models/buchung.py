@@ -18,7 +18,7 @@ class FahrzeugBuchung(Base, TimestampMixin):
     bis: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     zweck: Mapped[str] = mapped_column(Text, nullable=False)
     verantwortliche_person_id: Mapped[int] = mapped_column(
-        ForeignKey("personen.id"), nullable=False
+        ForeignKey("personen.id", ondelete="CASCADE"), nullable=False
     )
     # "ausstehend", "genehmigt", "abgelehnt", "zurueckgezogen"
     status: Mapped[str] = mapped_column(String(32), default="ausstehend", nullable=False)

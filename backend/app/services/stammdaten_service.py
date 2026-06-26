@@ -1,5 +1,5 @@
 import time
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import HTTPException, UploadFile, status
@@ -7,6 +7,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.security import hash_secret, verify_secret
 from app.models.einsatz_feld import EinsatzFeldDefinition
 from app.models.fahrzeug import Fahrzeug
 from app.models.funktion import FunktionDienststunden, FunktionEinsatz
@@ -30,6 +31,7 @@ from app.schemas.stammdaten import (
     GruppeCreate,
     GruppeUpdate,
 )
+from app.services import notifier_service
 from app.services.config_service import config_service
 
 
@@ -468,6 +470,7 @@ async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[Pers
             gruppe_id=p.gruppe_id,
             funktion_id=p.funktion_id,
             gesamtpunkte=punkte_je_person.get(p.id, 0),
+            pin_gesetzt=p.pin_gesetzt,
         )
         for p in personen
     ]
@@ -475,3 +478,110 @@ async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[Pers
 
 async def person_zu_out(db: AsyncSession, person: Person) -> PersonOut:
     return (await personen_zu_out(db, [person]))[0]
+
+
+# --- Personen-PIN ----------------------------------------------------------
+#
+# Der PIN schützt das Profilbild in den "Barcode vergessen"-Flows: Solange
+# eine Person einen PIN gesetzt hat, wird ihr Bild dort erst nach korrekter
+# PIN-Eingabe sichtbar (siehe reservierung_service.py & Pendants). Personen
+# ohne gesetzten PIN sind von dieser Prüfung unberührt (schrittweiser
+# Rollout, siehe person_pin_korrekt).
+
+
+async def person_pin_setzen(db: AsyncSession, person: Person, pin: str) -> Person:
+    person.pin_hash = hash_secret(pin)
+    person.pin_gesetzt = True
+    await person_ereignis_protokollieren(db, person.id, "pin_gesetzt", "PIN eingerichtet/geändert")
+    await db.commit()
+    await db.refresh(person)
+    return person
+
+
+def person_pin_korrekt(person: Person, pin: str | None) -> bool:
+    """True, wenn kein PIN-Schutz aktiv ist ODER der übergebene PIN passt."""
+    if not person.pin_gesetzt:
+        return True
+    if not pin or person.pin_hash is None:
+        return False
+    return verify_secret(pin, person.pin_hash)
+
+
+# --- Personen-Inaktivität ---------------------------------------------------
+#
+# Täglicher Job (siehe app/jobs/scheduler.py): Personen, die seit
+# `personen_inaktivitaet_tage` Tagen keinen neuen Timeline-Eintrag mehr
+# hatten, werden automatisch gelöscht. 7 Tage vorher wird einmalig gewarnt
+# (kein Spam bei jedem Lauf, solange seit der Warnung keine neue Aktivität
+# stattgefunden hat).
+
+WARNUNG_VORLAUF_TAGE = 7
+
+
+async def _letzte_aktivitaet(db: AsyncSession, person: Person) -> datetime:
+    stmt = (
+        select(PersonEreignis.zeitpunkt)
+        .where(PersonEreignis.person_id == person.id, PersonEreignis.typ != "inaktivitaets_warnung")
+        .order_by(PersonEreignis.zeitpunkt.desc())
+        .limit(1)
+    )
+    result = await db.execute(stmt)
+    letzte = result.scalar_one_or_none()
+    return letzte or person.erstellt_am
+
+
+async def _bereits_gewarnt_seit(db: AsyncSession, person: Person, seit: datetime) -> bool:
+    stmt = (
+        select(PersonEreignis.id)
+        .where(
+            PersonEreignis.person_id == person.id,
+            PersonEreignis.typ == "inaktivitaets_warnung",
+            PersonEreignis.zeitpunkt > seit,
+        )
+        .limit(1)
+    )
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none() is not None
+
+
+async def personen_inaktivitaet_pruefen(db: AsyncSession) -> tuple[int, int]:
+    """Prüft alle Personen auf Inaktivität: warnt einmalig 7 Tage vor Ablauf,
+    löscht Personen, die die volle Inaktivitätsschwelle erreicht haben (inkl.
+    aller zugehörigen Daten via FK-CASCADE). Gibt (Anzahl Warnungen, Anzahl
+    Löschungen) zurück."""
+    schwelle_tage = await config_service.get(db, "personen_inaktivitaet_tage", 90)
+    if not schwelle_tage:
+        return (0, 0)
+    warnschwelle_tage = max(schwelle_tage - WARNUNG_VORLAUF_TAGE, 0)
+
+    jetzt = datetime.now(timezone.utc)
+    personen = await liste_personen(db)
+
+    anzahl_warnungen = 0
+    anzahl_loeschungen = 0
+    for person in personen:
+        letzte_aktivitaet = await _letzte_aktivitaet(db, person)
+        if letzte_aktivitaet.tzinfo is None:
+            letzte_aktivitaet = letzte_aktivitaet.replace(tzinfo=timezone.utc)
+        tage_inaktiv = (jetzt - letzte_aktivitaet).days
+
+        if tage_inaktiv >= schwelle_tage:
+            await person_loeschen(db, person)
+            anzahl_loeschungen += 1
+        elif tage_inaktiv >= warnschwelle_tage and not await _bereits_gewarnt_seit(
+            db, person, letzte_aktivitaet
+        ):
+            await person_ereignis_protokollieren(
+                db,
+                person.id,
+                "inaktivitaets_warnung",
+                f"{tage_inaktiv} Tage ohne Aktivität – wird in 7 Tagen automatisch gelöscht, "
+                "falls keine neue Aktivität erfolgt",
+            )
+            await db.commit()
+            await notifier_service.benachrichtige(
+                db, "benachrichtigung_person_inaktiv", person=person.name, tage_inaktiv=tage_inaktiv
+            )
+            anzahl_warnungen += 1
+
+    return (anzahl_warnungen, anzahl_loeschungen)

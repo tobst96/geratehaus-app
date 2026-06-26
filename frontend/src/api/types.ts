@@ -1,5 +1,6 @@
 export interface OeffentlicheKonfiguration {
   organisation_name: string;
+  oeffentliche_basis_url: string;
   logo_url: string;
   farbe_primaer: string;
   farbe_akzent: string;

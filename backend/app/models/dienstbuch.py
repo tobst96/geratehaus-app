@@ -33,7 +33,7 @@ class DienstbuchPerson(Base, TimestampMixin):
     dienstbuch_id: Mapped[int] = mapped_column(
         ForeignKey("dienstbuecher.id", ondelete="CASCADE"), nullable=False
     )
-    person_id: Mapped[int] = mapped_column(ForeignKey("personen.id"), nullable=False)
+    person_id: Mapped[int] = mapped_column(ForeignKey("personen.id", ondelete="CASCADE"), nullable=False)
     gruppe_id: Mapped[int | None] = mapped_column(ForeignKey("gruppen.id"), nullable=True)
     atemschutzminuten: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 

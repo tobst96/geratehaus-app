@@ -23,6 +23,7 @@ EREIGNIS_BETREFF = {
     "benachrichtigung_neues_dienstbuch": "Neues Dienstbuch",
     "benachrichtigung_buchungsanfrage": "Neue Buchungsanfrage",
     "benachrichtigung_schwellenwert_ueberschreitung": "Dienststunden-Schwellenwert überschritten",
+    "benachrichtigung_person_inaktiv": "Person inaktiv – wird bald gelöscht",
 }
 
 EREIGNIS_VORLAGE = {
@@ -30,6 +31,7 @@ EREIGNIS_VORLAGE = {
     "benachrichtigung_neues_dienstbuch": "benachrichtigung_text_neues_dienstbuch",
     "benachrichtigung_buchungsanfrage": "benachrichtigung_text_buchungsanfrage",
     "benachrichtigung_schwellenwert_ueberschreitung": "benachrichtigung_text_schwellenwert_ueberschreitung",
+    "benachrichtigung_person_inaktiv": "benachrichtigung_text_person_inaktiv",
 }
 
 

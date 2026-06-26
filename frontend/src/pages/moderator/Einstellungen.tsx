@@ -178,6 +178,7 @@ export function Einstellungen() {
   const [gespeichert, setGespeichert] = useState(false);
 
   const [organisationName, setOrganisationName] = useState("");
+  const [oeffentlicheBasisUrl, setOeffentlicheBasisUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [farbePrimaer, setFarbePrimaer] = useState("#FFA633");
   const [farbeAkzent, setFarbeAkzent] = useState("#1A1A1A");
@@ -201,6 +202,7 @@ export function Einstellungen() {
   const [autoabschlussInaktivitaetStunden, setAutoabschlussInaktivitaetStunden] = useState(4);
   const [barcodeGueltigkeitTage, setBarcodeGueltigkeitTage] = useState(730);
   const [personenSortierung, setPersonenSortierung] = useState("nachname");
+  const [personenInaktivitaetTage, setPersonenInaktivitaetTage] = useState(90);
 
   const [diveraAktiv, setDiveraAktiv] = useState(false);
   const [diveraApiKey, setDiveraApiKey] = useState("");
@@ -210,11 +212,13 @@ export function Einstellungen() {
   const [benachrichtigungDienstbuch, setBenachrichtigungDienstbuch] = useState(true);
   const [benachrichtigungBuchung, setBenachrichtigungBuchung] = useState(true);
   const [benachrichtigungSchwellenwert, setBenachrichtigungSchwellenwert] = useState(true);
+  const [benachrichtigungPersonInaktiv, setBenachrichtigungPersonInaktiv] = useState(true);
 
   async function laden() {
     try {
       const w = await holeEinstellungen();
       setOrganisationName(String(w.organisation_name ?? ""));
+      setOeffentlicheBasisUrl(String(w.oeffentliche_basis_url ?? ""));
       setLogoUrl(String(w.logo_url ?? ""));
       setFarbePrimaer(String(w.farbe_primaer ?? "#FFA633"));
       setFarbeAkzent(String(w.farbe_akzent ?? "#1A1A1A"));
@@ -235,6 +239,7 @@ export function Einstellungen() {
       setAutoabschlussInaktivitaetStunden(Number(w.einsatz_autoabschluss_inaktivitaet_stunden ?? 4));
       setBarcodeGueltigkeitTage(Number(w.barcode_gueltigkeit_tage ?? 730));
       setPersonenSortierung(String(w.personen_sortierung ?? "nachname"));
+      setPersonenInaktivitaetTage(Number(w.personen_inaktivitaet_tage ?? 90));
       setDiveraAktiv(Boolean(w.divera_aktiv));
       setDiveraApiKey(String(w.divera_api_key ?? ""));
       setDiveraModus(String(w.divera_modus ?? "polling"));
@@ -242,6 +247,7 @@ export function Einstellungen() {
       setBenachrichtigungDienstbuch(Boolean(w.benachrichtigung_neues_dienstbuch));
       setBenachrichtigungBuchung(Boolean(w.benachrichtigung_buchungsanfrage));
       setBenachrichtigungSchwellenwert(Boolean(w.benachrichtigung_schwellenwert_ueberschreitung));
+      setBenachrichtigungPersonInaktiv(Boolean(w.benachrichtigung_person_inaktiv));
       setGeladen(true);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Einstellungen konnten nicht geladen werden.");
@@ -259,6 +265,7 @@ export function Einstellungen() {
     try {
       await schreibeEinstellungen({
         organisation_name: organisationName,
+        oeffentliche_basis_url: oeffentlicheBasisUrl,
         farbe_primaer: farbePrimaer,
         farbe_akzent: farbeAkzent,
         modul_einsatztagebuch_aktiv: modulEinsatztagebuch,
@@ -278,6 +285,7 @@ export function Einstellungen() {
         einsatz_autoabschluss_inaktivitaet_stunden: autoabschlussInaktivitaetStunden,
         barcode_gueltigkeit_tage: barcodeGueltigkeitTage,
         personen_sortierung: personenSortierung,
+        personen_inaktivitaet_tage: personenInaktivitaetTage,
         divera_aktiv: diveraAktiv,
         divera_api_key: diveraApiKey,
         divera_modus: diveraModus,
@@ -285,6 +293,7 @@ export function Einstellungen() {
         benachrichtigung_neues_dienstbuch: benachrichtigungDienstbuch,
         benachrichtigung_buchungsanfrage: benachrichtigungBuchung,
         benachrichtigung_schwellenwert_ueberschreitung: benachrichtigungSchwellenwert,
+        benachrichtigung_person_inaktiv: benachrichtigungPersonInaktiv,
       });
       neuLaden();
       setGespeichert(true);
@@ -369,6 +378,19 @@ export function Einstellungen() {
           <label htmlFor="e-org">Name der Organisation</label>
           <input id="e-org" value={organisationName} onChange={(e) => setOrganisationName(e.target.value)} />
           <br />
+          <br />
+          <label htmlFor="e-basis-url">Öffentliche Adresse (für QR-Codes)</label>
+          <input
+            id="e-basis-url"
+            value={oeffentlicheBasisUrl}
+            onChange={(e) => setOeffentlicheBasisUrl(e.target.value)}
+            placeholder="https://geraetehausapp.feuerwehr-musterstadt.de"
+          />
+          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            Wird für alle QR-Code-Links genutzt (Barcode vergessen, Profilbild-Upload usw.), statt der
+            aktuellen Browser-Adresse – wichtig, falls das Gerätehaus-Tablet unter einer anderen Adresse
+            erreichbar ist als das Internet.
+          </p>
           <br />
           <label htmlFor="e-logo">Logo</label>
           <br />
@@ -598,6 +620,15 @@ export function Einstellungen() {
             />{" "}
             Schwellenwert-Überschreitung
           </label>
+          <br />
+          <label>
+            <input
+              type="checkbox"
+              checked={benachrichtigungPersonInaktiv}
+              onChange={(e) => setBenachrichtigungPersonInaktiv(e.target.checked)}
+            />{" "}
+            Person inaktiv (wird bald gelöscht)
+          </label>
         </div>
 
         <div className="karte">
@@ -611,6 +642,23 @@ export function Einstellungen() {
             <option value="nachname">Nach Nachname</option>
             <option value="gruppe_nachname">Nach Gruppe, dann Nachname</option>
           </select>
+          <br />
+          <br />
+          <label htmlFor="e-personen-inaktivitaet">
+            Person löschen nach Inaktivität (Tage ohne neuen Timeline-Eintrag)
+          </label>
+          <input
+            id="e-personen-inaktivitaet"
+            type="number"
+            min={0}
+            value={personenInaktivitaetTage}
+            onChange={(e) => setPersonenInaktivitaetTage(Number(e.target.value))}
+          />
+          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            7 Tage vor der automatischen Löschung wird einmalig eine Benachrichtigung verschickt.
+            Erfolgt in dieser Zeit keine neue Aktivität, wird die Person inkl. aller zugehörigen Daten
+            (Dienststunden, Einsätze, Dienstbücher, Barcodes, Buchungen) endgültig gelöscht. 0 = deaktiviert.
+          </p>
         </div>
 
         <div className="karte">

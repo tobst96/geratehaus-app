@@ -8,6 +8,7 @@ class OeffentlicheKonfiguration(BaseModel):
     bleiben bewusst innen."""
 
     organisation_name: str
+    oeffentliche_basis_url: str
     logo_url: str
     farbe_primaer: str
     farbe_akzent: str

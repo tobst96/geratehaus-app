@@ -13,7 +13,7 @@ class Dienststunden(Base, TimestampMixin):
     __tablename__ = "dienststunden"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    person_id: Mapped[int] = mapped_column(ForeignKey("personen.id"), nullable=False)
+    person_id: Mapped[int] = mapped_column(ForeignKey("personen.id", ondelete="CASCADE"), nullable=False)
     funktion_id: Mapped[int] = mapped_column(
         ForeignKey("funktionen_dienststunden.id"), nullable=False
     )

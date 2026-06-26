@@ -12,6 +12,7 @@ async def oeffentliche_konfiguration(db: DbSession) -> OeffentlicheKonfiguration
     werte = await config_service.get_all(db)
     return OeffentlicheKonfiguration(
         organisation_name=werte.get("organisation_name", "Meine Feuerwehr"),
+        oeffentliche_basis_url=werte.get("oeffentliche_basis_url", ""),
         logo_url=werte.get("logo_url", ""),
         farbe_primaer=werte.get("farbe_primaer", "#FFA633"),
         farbe_akzent=werte.get("farbe_akzent", "#1A1A1A"),

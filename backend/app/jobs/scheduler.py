@@ -87,6 +87,21 @@ async def _punkte_ablauf_job() -> None:
             logger.warning("punkte_aufraeumen_fehlgeschlagen", exc_info=True)
 
 
+async def _personen_inaktivitaet_job() -> None:
+    """Läuft täglich um 0 Uhr; warnt inaktive Personen einmalig 7 Tage vor
+    Ablauf und löscht Personen, die die eingestellte Inaktivitätsschwelle
+    erreicht haben (inkl. aller zugehörigen Daten)."""
+    async with AsyncSessionLocal() as db:
+        try:
+            warnungen, loeschungen = await stammdaten_service.personen_inaktivitaet_pruefen(db)
+            if warnungen or loeschungen:
+                logger.info(
+                    "personen_inaktivitaet_geprueft", warnungen=warnungen, loeschungen=loeschungen
+                )
+        except Exception:
+            logger.warning("personen_inaktivitaet_fehlgeschlagen", exc_info=True)
+
+
 async def _dienstbuch_autoschluss_job() -> None:
     """Läuft stündlich; schließt alle noch offenen Dienstbücher in der in
     den Einstellungen konfigurierten Stunde (Standard 4 Uhr)."""
@@ -165,6 +180,16 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("punkte_ablauf_job_registriert", uhrzeit="00:00")
+
+    scheduler.add_job(
+        _personen_inaktivitaet_job,
+        "cron",
+        hour=0,
+        minute=0,
+        id="personen_inaktivitaet",
+        replace_existing=True,
+    )
+    logger.info("personen_inaktivitaet_job_registriert", uhrzeit="00:00")
 
 
 def start() -> None:

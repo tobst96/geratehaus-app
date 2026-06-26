@@ -10,6 +10,8 @@ import { holeFunktionenDienststunden } from "../../api/stammdaten";
 import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import { useConfig } from "../../context/ConfigContext";
+import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import type { DienststundenSummeOut, FunktionDienststunden } from "../../api/types";
 import "./Dienststunden.css";
 
@@ -29,6 +31,7 @@ function initialenAus(name: string): string {
 
 export function Dienststunden() {
   const { barcodeEinscannen } = useAuth();
+  const { config } = useConfig();
   const [funktionen, setFunktionen] = useState<FunktionDienststunden[]>([]);
   const [ladeFehler, setLadeFehler] = useState<string | null>(null);
 
@@ -95,7 +98,7 @@ export function Dienststunden() {
     setQrFehler(null);
     try {
       const { token, ablauf_am } = await dienststundenReservierungAnlegen();
-      const url = `${window.location.origin}/eintragen-dienststunden/${token}`;
+      const url = `${oeffentlicheBasisUrl(config)}/eintragen-dienststunden/${token}`;
       const bildUrl = await QRCode.toDataURL(url, { width: 280, margin: 1 });
       setQrAnsicht({ token, bildUrl, ablaufAm: ablauf_am });
     } catch (err) {

@@ -18,6 +18,7 @@ class DienstbuchReservierungInfo(BaseModel):
 
 class DienstbuchReservierungVorschauSetzen(BaseModel):
     person_id: int
+    pin: str | None = None
 
 
 class DienstbuchReservierungEinloesen(BaseModel):

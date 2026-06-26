@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -27,7 +27,12 @@ class Person(Base, TimestampMixin):
     funktion_id: Mapped[int | None] = mapped_column(
         ForeignKey("funktionen_dienststunden.id"), nullable=True
     )
+    pin_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    pin_gesetzt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    barcode_tokens = relationship("BarcodeToken", back_populates="person")
+    # passive_deletes: überlässt das Entfernen abhängiger Zeilen der
+    # DB-FK-CASCADE (siehe Migration 0023), statt dass SQLAlchemy versucht,
+    # die NOT NULL person_id-Spalte beim Löschen auf NULL zu setzen.
+    barcode_tokens = relationship("BarcodeToken", back_populates="person", passive_deletes=True)
     gruppe: Mapped["Gruppe | None"] = relationship(viewonly=True)
     funktion: Mapped["FunktionDienststunden | None"] = relationship(viewonly=True)
