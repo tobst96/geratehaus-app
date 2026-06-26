@@ -9,6 +9,18 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
+- [ ] [Design] Frontend-Design modernisieren. Bewertung (siehe Konversation): CSS-Variablen/
+      Theming, Buttons, Kachel-Raster sind ok; größte Schwachstellen sind (1) durchgängige
+      `<br /><br />`-Formularabstände statt CSS-Grid/Flex in fast jeder Moderator-Seite
+      (`Einstellungen.tsx`, `PunkteEinstellungen.tsx`, etc. – kein einheitliches Formular-System,
+      keine Feld-Fehlerzustände), (2) reine HTML-`<table>`-Listen ohne Card-Layout für Mobile
+      (relevant, da Mitglieder-Login per Handy genutzt wird), (3) keine Toasts – Erfolg/Fehler
+      sind Inline-`<p>`-Blöcke, die den Layout-Fluss verschieben, (4) kein Skeleton-Loading (nur
+      "Lädt …"-Text), (5) kein Dark Mode, (6) keine responsive Typografie-Skala. Größter Hebel
+      mit wenig Risiko: zuerst eine einheitliche `.formular-feld`-CSS-Klasse einführen und
+      Seite für Seite von `<br />` darauf migrieren, danach Toast-Komponente statt Inline-
+      Fehlertexte, danach Card-Layout für Tabellen auf schmalen Screens. Umfang ist groß (zieht
+      sich durch fast jede Datei) – eigener, separat geplanter Umbau statt Nebenbei-Häppchen.
 - [ ] [Buchungen] Externe Kalender (z. B. den Divera-Kalender) per Einstellungen hinterlegen
       können, damit sie zusätzlich zu den Gerätehaus.app-eigenen Fahrzeugbuchungen im
       Buchungskalender angezeigt werden (Konflikterkennung soll dann auch externe Termine
