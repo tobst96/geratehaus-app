@@ -27,6 +27,7 @@ async def setup_durchfuehren(db: AsyncSession, daten: SetupRequest) -> None:
             "geofence_lat": daten.geofence_lat,
             "geofence_lon": daten.geofence_lon,
             "geofence_radius_meter": daten.geofence_radius_meter,
+            "fehlerberichte_aktiv": daten.fehlerberichte_aktiv,
             "setup_abgeschlossen": True,
         },
     )

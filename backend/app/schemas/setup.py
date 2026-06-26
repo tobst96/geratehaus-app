@@ -13,3 +13,4 @@ class SetupRequest(BaseModel):
     geofence_lon: float
     geofence_radius_meter: float = Field(gt=0)
     admin_passwort: str = Field(min_length=8)
+    fehlerberichte_aktiv: bool = False

@@ -41,6 +41,8 @@ beliebiger Reihenfolge laufen.
 - `test_dienststunden_schwellenwert.py` – Schwellenwert-Überschreitungsliste,
   Stunden-Übernahme reduziert/entfernt den Überschuss, Endpunkte erfordern
   Moderator-Login
+- `test_sentry_setup.py` – Sentry initialisiert nur, wenn sowohl ein DSN
+  (.env) gesetzt ist als auch die Instanz zugestimmt hat (app_config)
 
 Das ist **kein** vollständiger Abdeckungsanspruch über die ganze App,
 sondern bewusst der sicherheitskritische und zuletzt geänderte Teil. Die

@@ -171,6 +171,8 @@ export function Einstellungen() {
   const [diveraApiKey, setDiveraApiKey] = useState("");
   const [diveraModus, setDiveraModus] = useState("polling");
 
+  const [fehlerberichteAktiv, setFehlerberichteAktiv] = useState(false);
+
   const [benachrichtigungEinsatz, setBenachrichtigungEinsatz] = useState(true);
   const [benachrichtigungDienstbuch, setBenachrichtigungDienstbuch] = useState(true);
   const [benachrichtigungBuchung, setBenachrichtigungBuchung] = useState(true);
@@ -209,6 +211,7 @@ export function Einstellungen() {
       setDiveraAktiv(Boolean(w.divera_aktiv));
       setDiveraApiKey(String(w.divera_api_key ?? ""));
       setDiveraModus(String(w.divera_modus ?? "polling"));
+      setFehlerberichteAktiv(Boolean(w.fehlerberichte_aktiv));
       setBenachrichtigungEinsatz(Boolean(w.benachrichtigung_neuer_einsatz));
       setBenachrichtigungDienstbuch(Boolean(w.benachrichtigung_neues_dienstbuch));
       setBenachrichtigungBuchung(Boolean(w.benachrichtigung_buchungsanfrage));
@@ -259,6 +262,7 @@ export function Einstellungen() {
         divera_aktiv: diveraAktiv,
         divera_api_key: diveraApiKey,
         divera_modus: diveraModus,
+        fehlerberichte_aktiv: fehlerberichteAktiv,
         benachrichtigung_neuer_einsatz: benachrichtigungEinsatz,
         benachrichtigung_neues_dienstbuch: benachrichtigungDienstbuch,
         benachrichtigung_buchungsanfrage: benachrichtigungBuchung,
@@ -684,6 +688,23 @@ export function Einstellungen() {
             placeholder="Accesskey aus Divera"
             autoComplete="off"
           />
+        </div>
+
+        <div className="karte">
+          <h2>Fehlerberichte</h2>
+          <label>
+            <input
+              type="checkbox"
+              checked={fehlerberichteAktiv}
+              onChange={(e) => setFehlerberichteAktiv(e.target.checked)}
+            />{" "}
+            Technische Fehlerberichte zur Verbesserung der App senden
+          </label>
+          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            Es werden nur Stacktraces und technische Fehlerdetails übertragen, keine Namen oder
+            sonstigen Inhalte. Wirkt nur, wenn auf dem Server zusätzlich ein Sentry-DSN
+            hinterlegt ist, und erst nach einem Neustart des Backend-Containers.
+          </p>
         </div>
 
         <button type="submit">Speichern</button>

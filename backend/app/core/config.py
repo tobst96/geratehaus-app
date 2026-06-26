@@ -34,6 +34,14 @@ class Settings(BaseSettings):
     cors_origins: str = ""
     upload_dir: str = "/app/uploads"
 
+    # Fehlerberichte (Sentry). DSN ist eine Infrastruktur-/Betreiber-
+    # Entscheidung (an welches Sentry-Projekt gesendet wird) und kommt daher
+    # aus der .env, nicht aus app_config. Ob überhaupt gesendet wird, ist
+    # zusätzlich eine Zustimmungs-Entscheidung pro Instanz (Setup-Wizard /
+    # Einstellungen, app_config-Key "fehlerberichte_aktiv") – beides muss
+    # zutreffen, siehe app/core/sentry_setup.py.
+    sentry_dsn: str = ""
+
     @property
     def sqlalchemy_database_url(self) -> str:
         if self.database_url:

@@ -32,6 +32,7 @@ from app.api.v1 import (
 )
 from app.core.config import settings
 from app.core.security_headers import SecurityHeadersMiddleware
+from app.core.sentry_setup import init_sentry_wenn_aktiviert
 from app.db.session import AsyncSessionLocal
 from app.jobs import scheduler
 from app.services.config_service import config_service
@@ -41,6 +42,7 @@ from app.services.config_service import config_service
 async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as db:
         await config_service.ensure_defaults(db)
+        init_sentry_wenn_aktiviert(await config_service.get(db, "fehlerberichte_aktiv", False))
     scheduler.start()
     yield
     scheduler.shutdown()

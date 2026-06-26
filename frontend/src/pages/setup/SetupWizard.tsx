@@ -4,7 +4,7 @@ import { markiereAlsEingerichtet, setupAusfuehren, setupLogoHochladen } from "..
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 
-const SCHRITTE = ["Organisation", "Logo", "Farben", "Admin-Passwort"] as const;
+const SCHRITTE = ["Organisation", "Logo", "Farben", "Admin-Passwort", "Fehlerberichte"] as const;
 
 export function SetupWizard() {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ export function SetupWizard() {
   const [farbeAkzent, setFarbeAkzent] = useState("#1A1A1A");
   const [adminPasswort, setAdminPasswort] = useState("");
   const [adminPasswortWiederholung, setAdminPasswortWiederholung] = useState("");
+  const [fehlerberichteAktiv, setFehlerberichteAktiv] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [wirdAbgeschlossen, setWirdAbgeschlossen] = useState(false);
 
@@ -54,6 +55,7 @@ export function SetupWizard() {
         farbe_primaer: farbePrimaer,
         farbe_akzent: farbeAkzent,
         admin_passwort: adminPasswort,
+        fehlerberichte_aktiv: fehlerberichteAktiv,
       });
       markiereAlsEingerichtet();
       neuLaden();
@@ -143,6 +145,24 @@ export function SetupWizard() {
             {adminPasswortWiederholung.length > 0 && adminPasswort !== adminPasswortWiederholung && (
               <p className="fehlertext">Die Passwörter stimmen nicht überein.</p>
             )}
+          </>
+        )}
+
+        {schritt === 4 && (
+          <>
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={fehlerberichteAktiv}
+                onChange={(e) => setFehlerberichteAktiv(e.target.checked)}
+                style={{ marginTop: 4 }}
+              />
+              <span>
+                Technische Fehlerberichte zur Verbesserung der App senden. Es werden nur
+                Stacktraces und technische Fehlerdetails übertragen, keine Namen oder sonstigen
+                Inhalte. Jederzeit änderbar unter Moderator → Einstellungen.
+              </span>
+            </label>
           </>
         )}
       </div>
