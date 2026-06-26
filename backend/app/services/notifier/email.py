@@ -60,6 +60,32 @@ class EmailNotifier(Notifier):
         (Einsatzabschluss) den Versand in der Timeline protokollieren kann."""
         await self._versenden(db, betreff, nachricht, anhang=(dateiname, pdf_inhalt, "application", "pdf"))
 
+    async def aktions_mail_versenden(
+        self,
+        db: AsyncSession,
+        betreff: str,
+        nachricht: str,
+        aktionen: list[dict[str, str]],
+    ) -> None:
+        """Wie test_versenden(): an die zentral konfigurierte Empfängerliste
+        (Moderator-Einstellungen > Benachrichtigungen), zusätzlich mit
+        Annehmen/Ablehnen-Buttons in der HTML-Mail. Diese Liste ist – anders
+        als die per-Person-Empfänger in send() – ausschließlich für
+        Moderatoren gedacht, da nur sie zu solchen Aktionen berechtigt sind;
+        die Buttons verlinken auf einmal verwendbare, ablaufende Tokens statt
+        echten Login-geschützten Endpunkten. Best-effort wie send(), da diese
+        Mail nicht der einzige Weg ist, eine Buchung zu entscheiden."""
+        empfaenger_roh = await config_service.get(db, "notifier_email_recipients", "")
+        empfaenger = [e.strip() for e in empfaenger_roh.split(",") if e.strip()]
+        if not empfaenger:
+            return
+        try:
+            await self._versenden(
+                db, betreff, nachricht, empfaenger_liste=empfaenger, aktionen=aktionen
+            )
+        except (aiosmtplib.SMTPException, OSError):
+            logger.warning("email_versand_fehlgeschlagen", exc_info=True)
+
     async def send_an(self, db: AsyncSession, empfaenger: str, betreff: str, nachricht: str) -> None:
         """Wie send(): an eine einzelne, individuelle Adresse statt an die
         global konfigurierte Empfängerliste – z. B. Rückmeldung an die
@@ -98,6 +124,7 @@ class EmailNotifier(Notifier):
         nachricht: str,
         anhang: tuple[str, bytes, str, str] | None = None,
         empfaenger_liste: list[str] | None = None,
+        aktionen: list[dict[str, str]] | None = None,
     ) -> None:
         if empfaenger_liste is not None:
             empfaenger = empfaenger_liste
@@ -114,7 +141,7 @@ class EmailNotifier(Notifier):
         # HTML-Alternative im Design der eingestellten Website (Logo, Farben) –
         # Plaintext-Teil bleibt als Fallback erhalten (manche Clients/Spamfilter
         # bevorzugen ihn weiterhin), wird also ergänzt statt ersetzt.
-        html = await email_template_service.render_html(db, betreff, nachricht)
+        html = await email_template_service.render_html(db, betreff, nachricht, aktionen=aktionen)
         message.add_alternative(html, subtype="html")
         if anhang is not None:
             dateiname, inhalt, maintype, subtype = anhang

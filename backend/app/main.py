@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.v1 import (
     auth,
+    buchung_aktionen,
     buchungen,
     dienstbuch_reservierungen,
     dienstbuecher,
@@ -80,6 +81,7 @@ app.include_router(dienststunden.router, prefix="/api/v1")
 app.include_router(dienststunden_reservierungen.router, prefix="/api/v1")
 app.include_router(fahrzeugbuchung_reservierungen.router, prefix="/api/v1")
 app.include_router(buchungen.router, prefix="/api/v1")
+app.include_router(buchung_aktionen.router, prefix="/api/v1")
 app.include_router(moderator_barcodes.router, prefix="/api/v1")
 app.include_router(moderator_einstellungen.router, prefix="/api/v1")
 app.include_router(moderator_stammdaten.router, prefix="/api/v1")

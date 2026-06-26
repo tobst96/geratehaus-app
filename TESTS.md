@@ -55,6 +55,10 @@ beliebiger Reihenfolge laufen.
   app_config, Autoescaping gegen HTML-Injection über z. B. Organisationsname),
   `EmailNotifier._versenden()` baut multipart mit Text- UND HTML-Alternative
   (SMTP-Versand gemockt, kein echter Netzwerkzugriff)
+- `test_buchung_aktion.py` – Annehmen/Ablehnen-Buttons in der
+  Buchungsanfrage-Mail: Token wird bei Anfrage erzeugt, Aktion ändert den
+  Buchungsstatus, zweite Aktion nach bereits getroffener Entscheidung ändert
+  nichts mehr, abgelaufener/ungültiger Token wird erkannt (404)
 
 Das ist **kein** vollständiger Abdeckungsanspruch über die ganze App,
 sondern bewusst der sicherheitskritische und zuletzt geänderte Teil. Die

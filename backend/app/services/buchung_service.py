@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from app.models.buchung import FahrzeugBuchung
 from app.models.fahrzeug import Fahrzeug
 from app.schemas.buchung import BuchungAnfrage
-from app.services import notifier_service
+from app.services import buchung_aktion_service, notifier_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -91,7 +91,40 @@ async def anfrage_erstellen(
         bis=daten.bis.isoformat(),
         zweck=daten.zweck,
     )
+    await _aktions_mail_versenden(db, buchung, fahrzeug)
     return await _neu_laden(db, buchung.id), konflikt
+
+
+async def _aktions_mail_versenden(
+    db: AsyncSession, buchung: FahrzeugBuchung, fahrzeug: Fahrzeug | None
+) -> None:
+    """Zusätzlich zur regulären Benachrichtigung (an opted-in Personen) eine
+    Mail mit Annehmen/Ablehnen-Buttons an die zentral konfigurierte
+    Moderator-Empfängerliste – nur Moderatoren dürfen über Buchungen
+    entscheiden, daher bewusst nicht über den Person-Benachrichtigungsweg."""
+    basis_url = str(await config_service.get(db, "oeffentliche_basis_url", "")).rstrip("/")
+    if not basis_url:
+        return
+    token = await buchung_aktion_service.token_erstellen(db, buchung.id)
+    nachricht = (
+        f"Neue Buchungsanfrage für {fahrzeug.name if fahrzeug else 'ein Fahrzeug'}\n"
+        f"Von: {buchung.von.strftime('%d.%m.%Y %H:%M')}\n"
+        f"Bis: {buchung.bis.strftime('%d.%m.%Y %H:%M')}\n"
+        f"Zweck: {buchung.zweck}"
+    )
+    aktionen = [
+        {
+            "label": "Annehmen",
+            "url": f"{basis_url}/api/v1/buchungen-aktion/{token.token}/genehmigen",
+            "farbe": "#2e7d32",
+        },
+        {
+            "label": "Ablehnen",
+            "url": f"{basis_url}/api/v1/buchungen-aktion/{token.token}/ablehnen",
+            "farbe": "#c62828",
+        },
+    ]
+    await EmailNotifier().aktions_mail_versenden(db, "Neue Buchungsanfrage", nachricht, aktionen)
 
 
 async def zurueckziehen(db: AsyncSession, buchung: FahrzeugBuchung) -> FahrzeugBuchung:

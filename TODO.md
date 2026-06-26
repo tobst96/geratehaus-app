@@ -9,26 +9,22 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
-- [ ] [Buchungen] Fahrzeugbuchungs-Anfrage-Mail soll direkte "Annehmen"/"Ablehnen"-Buttons
-      enthalten, ohne dass sich der Moderator erst einloggen muss. `genehmigen`/`ablehnen` in
-      `backend/app/api/v1/moderator_buchungen.py` sitzen aktuell hinter `CurrentModerator`
-      (JWT-Login nötig). Naheliegendster Ansatz: dasselbe Reservierungs-Token-Muster wie
-      "Barcode vergessen" (siehe CLAUDE.md, z. B. `fahrzeugbuchung_reservierung_service.py`)
-      auf Moderator-Seite spiegeln – ein kurzlebiger, einmal verwendbarer Token pro
-      Buchungsanfrage, der `/buchungen/{id}/genehmigen-per-token/{token}` bzw.
-      `.../ablehnen-per-token/{token}` ohne Auth freischaltet, in der Benachrichtigungsmail
-      (`benachrichtigung_buchungsanfrage` in `notifier_service.py`/`buchung_service.py`) als
-      zwei Buttons/Links verlinkt. Sicherheitsaspekt nicht vergessen: Token an die konkrete
-      Buchung binden, nach erster Nutzung invalidieren, sinnvolle Ablaufzeit (siehe
-      Rate-Limiting-Policy aus TESTS.md/CLAUDE.md für neue unauthentifizierte Endpunkte).
-      Die HTML-Mail-Infrastruktur dafür existiert bereits: `email_template_service.render_html()`
-      nimmt schon einen optionalen `aktionen`-Parameter (Liste von `{label, url, farbe}`) für
-      genau solche Buttons entgegen, aktuell von noch keinem Aufrufer befüllt.
+(aktuell nichts offen – trag hier Neues ein)
 
 ## In Arbeit
 
 ## Erledigt
 
+- [x] [Buchungen] Fahrzeugbuchungs-Anfrage-Mail hat jetzt direkte "Annehmen"/"Ablehnen"-Buttons,
+      ohne dass sich der Moderator einloggen muss. Neue Tabelle `buchung_aktion_tokens`
+      (Migration 0032) + `buchung_aktion_service.py`: kurzlebiger Token (14 Tage) pro
+      Buchungsanfrage, eingelöst über die neuen öffentlichen, ratenlimitierten Endpunkte
+      `GET /api/v1/buchungen-aktion/{token}/genehmigen` bzw. `.../ablehnen`
+      (`backend/app/api/v1/buchung_aktionen.py`). Mail geht bewusst an die zentrale
+      `notifier_email_recipients`-Liste (Moderator-Einstellungen), NICHT an die per-Person
+      opted-in Empfänger – nur Moderatoren dürfen über Buchungen entscheiden. Zweiter Klick
+      nach bereits getroffener Entscheidung ändert nichts mehr (kein Fehler, nur Hinweis).
+      6 neue Tests in `test_buchung_aktion.py`.
 - [x] [Benachrichtigungen] E-Mails werden als HTML im Design der eingestellten Website versendet
       (Logo, `farbe_primaer`/`farbe_akzent` aus app_config) – neues
       `app/services/email_template_service.py` + `app/templates/email/basis.html` (Jinja2,
