@@ -23,6 +23,7 @@ from app.api.v1 import (
     moderator_einstellungen,
     moderator_listen,
     moderator_stammdaten,
+    moderator_update,
     oeffentlich,
     person_bild_reservierungen,
     push,
@@ -90,6 +91,7 @@ app.include_router(oeffentlich.router, prefix="/api/v1")
 app.include_router(reservierungen.router, prefix="/api/v1")
 app.include_router(mitglied_login_reservierungen.router, prefix="/api/v1")
 app.include_router(manifest.router, prefix="/api/v1")
+app.include_router(moderator_update.router, prefix="/api/v1")
 
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")

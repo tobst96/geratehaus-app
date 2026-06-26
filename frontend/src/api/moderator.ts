@@ -267,6 +267,21 @@ export const personBarcodeErzeugen = (id: number) =>
 export const barcodeBildUrl = (token: string) =>
   `/api/v1/moderator/barcodes/render/${token}`;
 
+// --- Update (Admin) ----------------------------------------------------------
+
+export interface UpdateStatus {
+  kanal: "stable" | "beta";
+  installierte_version: string;
+  verfuegbare_version: string | null;
+  veroeffentlicht_am: string | null;
+  release_url: string | null;
+  update_verfuegbar: boolean;
+  fehler: string | null;
+}
+export const holeUpdateStatus = () => apiGet<UpdateStatus>("/moderator/update");
+export const updateKanalSetzen = (kanal: "stable" | "beta") =>
+  apiPut<UpdateStatus>("/moderator/update/kanal", { kanal });
+
 // --- Kiosk-Geräte (Admin) ---------------------------------------------------
 
 export interface KioskTokenOut {

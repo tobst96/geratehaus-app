@@ -179,6 +179,8 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("divera_aktiv", "false", ConfigTyp.BOOL, "Divera-Anbindung aktiv"),
     ConfigDefault("divera_api_key", "", ConfigTyp.STR, "Divera Accesskey/API-Key"),
     ConfigDefault("divera_modus", "polling", ConfigTyp.STR, "Divera-Modus: polling oder webhook"),
+    # Update-Kanal
+    ConfigDefault("update_kanal", "stable", ConfigTyp.STR, "Update-Kanal: stable oder beta"),
     # Geofence
     ConfigDefault("geofence_lat", "0.0", ConfigTyp.FLOAT, "Breitengrad des Gerätehauses"),
     ConfigDefault("geofence_lon", "0.0", ConfigTyp.FLOAT, "Längengrad des Gerätehauses"),
