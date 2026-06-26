@@ -17,7 +17,10 @@ _TEILNAHME_DETAILS = selectinload(Einsatz.teilnahmen).options(
     selectinload(EinsatzPerson.fahrzeug),
     selectinload(EinsatzPerson.funktion),
 )
-_TEILNEHMER_DETAILS = selectinload(Dienstbuch.teilnehmer).selectinload(DienstbuchPerson.person)
+_TEILNEHMER_DETAILS = selectinload(Dienstbuch.teilnehmer).options(
+    selectinload(DienstbuchPerson.person),
+    selectinload(DienstbuchPerson.gruppe),
+)
 
 
 async def einsaetze_liste(
