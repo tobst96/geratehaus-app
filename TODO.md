@@ -12,6 +12,7 @@ mir einfach sagen "trag X in die TODO ein" / "schau dir die TODO an und mach Y".
 
 ## Erledigt
 
+- [x] Sicherheits-Response-Header (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
 - [x] API-Sicherheitsprüfung: Rate-Limiting auf Login/Barcode/PIN/Reservierungs-Endpunkte (öffentlich erreichbar)
 - [x] QR-Login "Seite nicht gefunden" gefixt (Service-Worker: skipWaiting/clientsClaim)
 - [x] Dienststunden-Schwellenwert-Überschreitungen: Liste mit Stunden-Übernahme (Listen > Dienststunden)
