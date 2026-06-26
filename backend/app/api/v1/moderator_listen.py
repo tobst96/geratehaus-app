@@ -2,7 +2,7 @@ from datetime import date, datetime
 
 from fastapi import APIRouter, Response
 
-from app.api.deps import CurrentModerator, DbSession
+from app.api.deps import CurrentAdmin, CurrentModerator, DbSession
 from app.schemas.buchung import BuchungOut
 from app.schemas.dienstbuch import DienstbuchOut
 from app.schemas.dienststunden import DienststundenEintragOut
@@ -69,7 +69,7 @@ async def buchungen(
 
 @router.get("/namensabweichungen", response_model=list[NamensAbweichungOut])
 async def namensabweichungen(
-    db: DbSession, _moderator: CurrentModerator
+    db: DbSession, _admin: CurrentAdmin
 ) -> list[NamensAbweichungOut]:
     return await auth_service.liste_namensabweichungen(db)
 

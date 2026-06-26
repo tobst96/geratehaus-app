@@ -30,9 +30,6 @@ export const fuehreArchivierungAus = () =>
 
 export const sendeTestmail = () => apiPost<void>("/moderator/einstellungen/email-testen");
 
-export const einstellungenVerifizieren = (passwort: string) =>
-  apiPost<void>("/moderator/einstellungen/verifizieren", { passwort });
-
 export interface ModeratorKonto {
   id: number;
   username: string;

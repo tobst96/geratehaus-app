@@ -16,7 +16,11 @@ export function Layout() {
         <Outlet />
       </main>
       <footer className="fusszeile">
-        Erstellt mit <a href="https://github.com" target="_blank" rel="noreferrer">Gerätehaus.app</a> ·{" "}
+        Erstellt mit{" "}
+        <a href="https://github.com/tobst96/geratehaus-app" target="_blank" rel="noreferrer">
+          Gerätehaus.app
+        </a>{" "}
+        ·{" "}
         <Link to="/datenschutz">Datenschutz</Link> · <Link to="/moderator">Team-Login</Link>
       </footer>
     </>

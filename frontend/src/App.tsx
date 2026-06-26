@@ -17,6 +17,7 @@ import { PunkteEinstellungen } from "./pages/moderator/PunkteEinstellungen";
 import { Stammdaten } from "./pages/moderator/Stammdaten";
 import { KioskGeraete } from "./pages/moderator/KioskGeraete";
 import { EinsatzDetailModerator } from "./pages/moderator/EinsatzDetailModerator";
+import { DienstbuchDetailModerator } from "./pages/moderator/DienstbuchDetailModerator";
 import { Einstellungen } from "./pages/moderator/Einstellungen";
 import { BarcodeGenerator } from "./pages/moderator/BarcodeGenerator";
 import { NotifierEinstellungen } from "./pages/moderator/NotifierEinstellungen";
@@ -56,6 +57,7 @@ export function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="listen" element={<Listen />} />
               <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
+              <Route path="dienstbuecher/:id" element={<DienstbuchDetailModerator />} />
               <Route path="buchungen" element={<Buchungsmanagement />} />
               <Route element={<AdminRoute />}>
                 <Route path="personal" element={<Personal />} />

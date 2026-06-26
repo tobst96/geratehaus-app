@@ -3,22 +3,12 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, UploadFile, status
 
 from app.api.deps import CurrentAdmin, DbSession
-from app.core.security import verify_secret
-from app.schemas.auth import PasswortVerifizieren
 from app.schemas.moderator import ModeratorAnlegen, ModeratorOut, ModeratorPasswortAendern
 from app.services import archive_service, logo_service, moderator_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
 router = APIRouter(prefix="/moderator/einstellungen", tags=["moderator:einstellungen"])
-
-
-@router.post("/verifizieren", status_code=status.HTTP_204_NO_CONTENT)
-async def passwort_verifizieren(_db: DbSession, admin: CurrentAdmin, daten: PasswortVerifizieren) -> None:
-    """Erneute Passwortabfrage, bevor die Einstellungen (inkl. Divera API-Key)
-    angezeigt werden – schützt vor unbeaufsichtigten, eingeloggten Sitzungen."""
-    if not verify_secret(daten.passwort, admin.passwort_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Passwort falsch.")
 
 
 @router.get("")

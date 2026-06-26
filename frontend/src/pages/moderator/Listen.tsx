@@ -8,15 +8,19 @@ import {
   holeNamensabweichungen,
   type NamensAbweichungOut,
 } from "../../api/moderator";
-import { dienstbuchPdfUrl, dienstbuchSchliessen, dienstbuchWiederOeffnen } from "../../api/dienstbuecher";
 import { ApiError } from "../../api/client";
 import type { BuchungOut, DienstbuchOut, EinsatzOut } from "../../api/types";
 import type { DienststundenEintragOut } from "../../api/dienststunden";
+import { useAuth } from "../../context/AuthContext";
 
-const TABS = ["Einsätze", "Dienstbücher", "Dienststunden", "Buchungen", "Namensabweichungen"] as const;
-type Tab = (typeof TABS)[number];
+const TABS_BASIS = ["Einsätze", "Dienstbücher", "Dienststunden", "Buchungen"] as const;
+const TAB_NAMENSABWEICHUNGEN = "Namensabweichungen" as const;
+type Tab = (typeof TABS_BASIS)[number] | typeof TAB_NAMENSABWEICHUNGEN;
 
 export function Listen() {
+  const { moderatorRolle } = useAuth();
+  const istAdmin = moderatorRolle === "admin";
+  const TABS: Tab[] = istAdmin ? [...TABS_BASIS, TAB_NAMENSABWEICHUNGEN] : [...TABS_BASIS];
   const [tab, setTab] = useState<Tab>("Einsätze");
 
   return (
@@ -33,7 +37,7 @@ export function Listen() {
       {tab === "Dienstbücher" && <DienstbuecherTab />}
       {tab === "Dienststunden" && <DienststundenTab />}
       {tab === "Buchungen" && <BuchungenTab />}
-      {tab === "Namensabweichungen" && <NamensabweichungenTab />}
+      {tab === "Namensabweichungen" && istAdmin && <NamensabweichungenTab />}
     </div>
   );
 }
@@ -134,24 +138,6 @@ function DienstbuecherTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function schliessen(id: number) {
-    try {
-      await dienstbuchSchliessen(id);
-      await laden();
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Schließen fehlgeschlagen.");
-    }
-  }
-
-  async function wiederOeffnen(id: number) {
-    try {
-      await dienstbuchWiederOeffnen(id);
-      await laden();
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Wieder öffnen fehlgeschlagen.");
-    }
-  }
-
   const gefiltert = (daten ?? []).filter((d) => {
     if (status === "offen") return !d.geschlossen;
     if (status === "geschlossen") return d.geschlossen;
@@ -181,31 +167,18 @@ function DienstbuecherTab() {
               <th>Status</th>
               <th>Teilnehmer</th>
               <th>Archiviert</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
             {gefiltert.map((d) => (
               <tr key={d.id}>
-                <td>{d.titel}</td>
+                <td>
+                  <Link to={`/moderator/dienstbuecher/${d.id}`}>{d.titel}</Link>
+                </td>
                 <td>{new Date(d.eroeffnet_am).toLocaleString("de-DE")}</td>
                 <td>{d.geschlossen ? "Geschlossen" : "Offen"}</td>
                 <td>{d.teilnehmer.length}</td>
                 <td>{d.archiviert ? "Ja" : ""}</td>
-                <td style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <a href={dienstbuchPdfUrl(d.id)} target="_blank" rel="noreferrer">
-                    PDF
-                  </a>
-                  {d.geschlossen ? (
-                    <button className="sekundaer" onClick={() => wiederOeffnen(d.id)}>
-                      Wieder öffnen
-                    </button>
-                  ) : (
-                    <button className="sekundaer" onClick={() => schliessen(d.id)}>
-                      Schließen
-                    </button>
-                  )}
-                </td>
               </tr>
             ))}
           </tbody>

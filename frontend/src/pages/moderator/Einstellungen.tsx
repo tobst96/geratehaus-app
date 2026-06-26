@@ -4,7 +4,6 @@ import {
   schreibeEinstellungen,
   ladeLogoHoch,
   fuehreArchivierungAus,
-  einstellungenVerifizieren,
   holeModeratoren,
   moderatorAnlegen,
   moderatorPasswortAendern,
@@ -131,59 +130,8 @@ function ModeratorenVerwaltung() {
   );
 }
 
-function EinstellungenPasswortGate({ onEntsperrt }: { onEntsperrt: () => void }) {
-  const [passwort, setPasswort] = useState("");
-  const [fehler, setFehler] = useState<string | null>(null);
-  const [laeuft, setLaeuft] = useState(false);
-
-  async function absenden(e: FormEvent) {
-    e.preventDefault();
-    setLaeuft(true);
-    setFehler(null);
-    try {
-      await einstellungenVerifizieren(passwort);
-      onEntsperrt();
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Passwort falsch.");
-    } finally {
-      setLaeuft(false);
-    }
-  }
-
-  return (
-    <div>
-      <h1>Einstellungen</h1>
-      <div className="karte" style={{ maxWidth: 420 }}>
-        <h2>Admin-Passwort erforderlich</h2>
-        <p style={{ color: "#666", fontSize: "0.9rem" }}>
-          Die Einstellungen enthalten sensible Daten (z. B. den Divera API-Key) und sind daher
-          zusätzlich geschützt. Bitte erneut dein Moderator-Passwort eingeben.
-        </p>
-        <form onSubmit={absenden}>
-          <label htmlFor="e-gate-passwort">Passwort</label>
-          <input
-            id="e-gate-passwort"
-            type="password"
-            value={passwort}
-            onChange={(ev) => setPasswort(ev.target.value)}
-            autoFocus
-            required
-          />
-          <br />
-          <br />
-          {fehler && <p className="fehlertext">{fehler}</p>}
-          <button type="submit" disabled={laeuft || !passwort}>
-            {laeuft ? "Prüfe …" : "Entsperren"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 export function Einstellungen() {
   const { neuLaden } = useConfig();
-  const [entsperrt, setEntsperrt] = useState(false);
   const [geladen, setGeladen] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [gespeichert, setGespeichert] = useState(false);
@@ -275,8 +223,9 @@ export function Einstellungen() {
   }
 
   useEffect(() => {
-    if (entsperrt) laden();
-  }, [entsperrt]);
+    laden();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function speichern(e: FormEvent) {
     e.preventDefault();
@@ -370,10 +319,6 @@ export function Einstellungen() {
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Setup fehlgeschlagen.");
     }
-  }
-
-  if (!entsperrt) {
-    return <EinstellungenPasswortGate onEntsperrt={() => setEntsperrt(true)} />;
   }
 
   if (!geladen && !fehler) return <p>Lädt …</p>;

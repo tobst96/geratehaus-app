@@ -23,7 +23,3 @@ class BarcodeVorschau(BaseModel):
 class ModeratorToken(BaseModel):
     access_token: str
     token_type: str = "bearer"
-
-
-class PasswortVerifizieren(BaseModel):
-    passwort: str = Field(min_length=1)
