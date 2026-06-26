@@ -17,7 +17,7 @@ from app.schemas.auth import (
     ModeratorToken,
     NameEintragen,
 )
-from app.services import auth_service
+from app.services import auth_service, mitglied_login_reservierung_service, stammdaten_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -68,6 +68,42 @@ async def barcode_einscannen(
         )
 
     barcode.last_used_at = datetime.utcnow()
+    await db.commit()
+
+    response.set_cookie(
+        NAME_COOKIE,
+        person.name,
+        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
+        httponly=True,
+        samesite="lax",
+    )
+    return BarcodeIdentitaet(name=person.name)
+
+
+@router.post("/mitglied-login-reservierungen/{token}/einloesen", response_model=BarcodeIdentitaet)
+async def mitglied_login_einloesen(db: DbSession, response: Response, token: str) -> BarcodeIdentitaet:
+    """Wird vom URSPRÜNGLICHEN Gerät aufgerufen (nicht vom Handy!), sobald
+    Polling ergibt, dass die Auswahl auf dem Handy bestätigt wurde – setzt
+    den Namens-Cookie auf diesem Gerät, wie /auth/barcode."""
+    reservierung = await mitglied_login_reservierung_service.get_reservierung_by_token(db, token)
+    if reservierung is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
+    if reservierung.eingeloest:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Diese Reservierung wurde bereits genutzt."
+        )
+    if not reservierung.bestaetigt or reservierung.person_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Noch keine Person auf dem Handy bestätigt."
+        )
+    if mitglied_login_reservierung_service.ist_abgelaufen(reservierung):
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Diese Reservierung ist abgelaufen.")
+
+    person = await stammdaten_service.get_person(db, reservierung.person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+
+    reservierung.eingeloest = True
     await db.commit()
 
     response.set_cookie(

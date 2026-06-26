@@ -22,3 +22,7 @@ class OeffentlicheKonfiguration(BaseModel):
     modul_dienstbuch_startseite: bool
     modul_dienststunden_startseite: bool
     modul_fahrzeugbuchung_startseite: bool
+    modul_einsatztagebuch_aussenzugriff: bool
+    modul_dienstbuch_aussenzugriff: bool
+    modul_dienststunden_aussenzugriff: bool
+    modul_fahrzeugbuchung_aussenzugriff: bool

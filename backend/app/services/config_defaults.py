@@ -60,6 +60,20 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.BOOL,
         "Fahrzeugbuchung auf Startseite anzeigen",
     ),
+    # Außenzugriff: ob Mitglieder dieses Modul auch über den öffentlichen
+    # Mitglieder-Login (außerhalb des Gerätehaus-Kiosks) nutzen dürfen.
+    ConfigDefault(
+        "modul_einsatztagebuch_aussenzugriff", "false", ConfigTyp.BOOL, "Einsatztagebuch für Mitglieder-Login freigeben"
+    ),
+    ConfigDefault(
+        "modul_dienstbuch_aussenzugriff", "false", ConfigTyp.BOOL, "Dienstbuch für Mitglieder-Login freigeben"
+    ),
+    ConfigDefault(
+        "modul_dienststunden_aussenzugriff", "false", ConfigTyp.BOOL, "Dienststunden für Mitglieder-Login freigeben"
+    ),
+    ConfigDefault(
+        "modul_fahrzeugbuchung_aussenzugriff", "false", ConfigTyp.BOOL, "Fahrzeugbuchung für Mitglieder-Login freigeben"
+    ),
     # Einsatztagebuch
     ConfigDefault(
         "einsatz_countdown_minuten",

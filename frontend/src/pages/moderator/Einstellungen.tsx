@@ -20,6 +20,7 @@ function ModeratorenVerwaltung() {
   const [fehler, setFehler] = useState<string | null>(null);
   const [neuerUsername, setNeuerUsername] = useState("");
   const [neuesPasswort, setNeuesPasswort] = useState("");
+  const [neueRolle, setNeueRolle] = useState("gruppenfuehrer");
 
   async function laden() {
     try {
@@ -41,7 +42,7 @@ function ModeratorenVerwaltung() {
       return;
     }
     try {
-      await moderatorAnlegen(neuerUsername.trim(), neuesPasswort);
+      await moderatorAnlegen(neuerUsername.trim(), neuesPasswort, neueRolle);
       setNeuerUsername("");
       setNeuesPasswort("");
       await laden();
@@ -72,7 +73,11 @@ function ModeratorenVerwaltung() {
 
   return (
     <div className="karte">
-      <h2>Moderator-Zugänge</h2>
+      <h2>Admin- &amp; Gruppenführer-Zugänge</h2>
+      <p style={{ fontSize: "0.85rem", color: "#666" }}>
+        Admins sehen Personal, Punkte, Stammdaten und alle Einstellungen. Gruppenführer sehen nur
+        Dashboard, Listen (Einsatzberichte/Dienstbucheinträge) und Buchungen (Fahrzeugreservierungen).
+      </p>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {!liste && <p>Lädt …</p>}
       {liste && (
@@ -80,6 +85,7 @@ function ModeratorenVerwaltung() {
           <thead>
             <tr>
               <th>Benutzername</th>
+              <th>Rolle</th>
               <th></th>
             </tr>
           </thead>
@@ -87,6 +93,7 @@ function ModeratorenVerwaltung() {
             {liste.map((m) => (
               <tr key={m.id}>
                 <td>{m.username}</td>
+                <td>{m.rolle === "admin" ? "Admin" : "Gruppenführer"}</td>
                 <td style={{ display: "flex", gap: 8 }}>
                   <button type="button" className="sekundaer" onClick={() => passwortAendern(m)}>
                     Passwort ändern
@@ -114,6 +121,10 @@ function ModeratorenVerwaltung() {
           onChange={(e) => setNeuesPasswort(e.target.value)}
           autoComplete="off"
         />
+        <select value={neueRolle} onChange={(e) => setNeueRolle(e.target.value)}>
+          <option value="gruppenfuehrer">Gruppenführer</option>
+          <option value="admin">Admin</option>
+        </select>
         <button type="submit">Zugang anlegen</button>
       </form>
     </div>
@@ -193,6 +204,11 @@ export function Einstellungen() {
   const [modulDienststundenStartseite, setModulDienststundenStartseite] = useState(true);
   const [modulFahrzeugbuchungStartseite, setModulFahrzeugbuchungStartseite] = useState(false);
 
+  const [modulEinsatztagebuchAussenzugriff, setModulEinsatztagebuchAussenzugriff] = useState(false);
+  const [modulDienstbuchAussenzugriff, setModulDienstbuchAussenzugriff] = useState(false);
+  const [modulDienststundenAussenzugriff, setModulDienststundenAussenzugriff] = useState(false);
+  const [modulFahrzeugbuchungAussenzugriff, setModulFahrzeugbuchungAussenzugriff] = useState(false);
+
   const [dienstbuchZeitfenster, setDienstbuchZeitfenster] = useState(12);
   const [dienstbuchAutoschlussStunde, setDienstbuchAutoschlussStunde] = useState(4);
   const [archivierungszeitraum, setArchivierungszeitraum] = useState(2);
@@ -230,6 +246,10 @@ export function Einstellungen() {
       setModulDienstbuchStartseite(Boolean(w.modul_dienstbuch_startseite));
       setModulDienststundenStartseite(Boolean(w.modul_dienststunden_startseite));
       setModulFahrzeugbuchungStartseite(Boolean(w.modul_fahrzeugbuchung_startseite));
+      setModulEinsatztagebuchAussenzugriff(Boolean(w.modul_einsatztagebuch_aussenzugriff));
+      setModulDienstbuchAussenzugriff(Boolean(w.modul_dienstbuch_aussenzugriff));
+      setModulDienststundenAussenzugriff(Boolean(w.modul_dienststunden_aussenzugriff));
+      setModulFahrzeugbuchungAussenzugriff(Boolean(w.modul_fahrzeugbuchung_aussenzugriff));
       setDienstbuchZeitfenster(Number(w.dienstbuch_zeitfenster_stunden ?? 12));
       setDienstbuchAutoschlussStunde(Number(w.dienstbuch_autoschluss_stunde ?? 4));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
@@ -276,6 +296,10 @@ export function Einstellungen() {
         modul_dienstbuch_startseite: modulDienstbuchStartseite,
         modul_dienststunden_startseite: modulDienststundenStartseite,
         modul_fahrzeugbuchung_startseite: modulFahrzeugbuchungStartseite,
+        modul_einsatztagebuch_aussenzugriff: modulEinsatztagebuchAussenzugriff,
+        modul_dienstbuch_aussenzugriff: modulDienstbuchAussenzugriff,
+        modul_dienststunden_aussenzugriff: modulDienststundenAussenzugriff,
+        modul_fahrzeugbuchung_aussenzugriff: modulFahrzeugbuchungAussenzugriff,
         dienstbuch_zeitfenster_stunden: dienstbuchZeitfenster,
         dienstbuch_autoschluss_stunde: dienstbuchAutoschlussStunde,
         archivierungszeitraum_jahre: archivierungszeitraum,
@@ -416,7 +440,8 @@ export function Einstellungen() {
           <h2>Module</h2>
           <p style={{ fontSize: "0.85rem", color: "#666" }}>
             "Aktiv" steuert, ob das Modul überhaupt erreichbar ist. "Auf Startseite anzeigen" steuert,
-            ob dafür eine Kachel im Gerätehaus-Kiosk erscheint.
+            ob dafür eine Kachel im Gerätehaus-Kiosk erscheint. "Außenzugriff" steuert, ob Mitglieder das
+            Modul auch über den öffentlichen Mitglieder-Login (außerhalb des Gerätehauses) nutzen dürfen.
           </p>
           <table>
             <thead>
@@ -424,6 +449,7 @@ export function Einstellungen() {
                 <th>Modul</th>
                 <th>Aktiv</th>
                 <th>Auf Startseite anzeigen</th>
+                <th>Außenzugriff</th>
               </tr>
             </thead>
             <tbody>
@@ -443,6 +469,13 @@ export function Einstellungen() {
                     onChange={(e) => setModulEinsatztagebuchStartseite(e.target.checked)}
                   />
                 </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulEinsatztagebuchAussenzugriff}
+                    onChange={(e) => setModulEinsatztagebuchAussenzugriff(e.target.checked)}
+                  />
+                </td>
               </tr>
               <tr>
                 <td>Dienstbuch</td>
@@ -458,6 +491,13 @@ export function Einstellungen() {
                     type="checkbox"
                     checked={modulDienstbuchStartseite}
                     onChange={(e) => setModulDienstbuchStartseite(e.target.checked)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulDienstbuchAussenzugriff}
+                    onChange={(e) => setModulDienstbuchAussenzugriff(e.target.checked)}
                   />
                 </td>
               </tr>
@@ -477,6 +517,13 @@ export function Einstellungen() {
                     onChange={(e) => setModulDienststundenStartseite(e.target.checked)}
                   />
                 </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulDienststundenAussenzugriff}
+                    onChange={(e) => setModulDienststundenAussenzugriff(e.target.checked)}
+                  />
+                </td>
               </tr>
               <tr>
                 <td>Fahrzeugbuchung</td>
@@ -492,6 +539,13 @@ export function Einstellungen() {
                     type="checkbox"
                     checked={modulFahrzeugbuchungStartseite}
                     onChange={(e) => setModulFahrzeugbuchungStartseite(e.target.checked)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={modulFahrzeugbuchungAussenzugriff}
+                    onChange={(e) => setModulFahrzeugbuchungAussenzugriff(e.target.checked)}
                   />
                 </td>
               </tr>

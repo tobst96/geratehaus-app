@@ -42,8 +42,8 @@ export interface ModeratorKonto {
 export const holeModeratoren = () =>
   apiGet<ModeratorKonto[]>("/moderator/einstellungen/moderatoren");
 
-export const moderatorAnlegen = (username: string, passwort: string) =>
-  apiPost<ModeratorKonto>("/moderator/einstellungen/moderatoren", { username, passwort });
+export const moderatorAnlegen = (username: string, passwort: string, rolle: string) =>
+  apiPost<ModeratorKonto>("/moderator/einstellungen/moderatoren", { username, passwort, rolle });
 
 export const moderatorPasswortAendern = (id: number, passwort: string) =>
   apiPut<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}/passwort`, { passwort });
@@ -249,6 +249,20 @@ export const personBarcodeErzeugen = (id: number) =>
 
 export const barcodeBildUrl = (token: string) =>
   `/api/v1/moderator/barcodes/render/${token}`;
+
+// --- Kiosk-Geräte (Admin) ---------------------------------------------------
+
+export interface KioskTokenOut {
+  id: number;
+  bezeichnung: string;
+  token: string;
+}
+
+export const holeKioskTokens = () => apiGet<KioskTokenOut[]>("/moderator/barcodes/kiosk");
+export const kioskTokenAnlegen = (bezeichnung: string) =>
+  apiPost<KioskTokenOut>("/moderator/barcodes/kiosk", { bezeichnung });
+export const kioskTokenLoeschen = (id: number) =>
+  apiDelete<void>(`/moderator/barcodes/kiosk/${id}`);
 
 // --- Buchungsmanagement -----------------------------------------------------
 

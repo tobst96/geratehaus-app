@@ -4,11 +4,26 @@ import { barcodeEinscannen as barcodeEinscannenApi, moderatorLogin } from "../ap
 
 const NAME_SPEICHER_KEY = "angezeigter_name";
 
+/** Liest die "rolle"-Claim aus dem JWT, ohne die Signatur zu prüfen – das
+ * Backend prüft die Berechtigung ohnehin bei jedem Request erneut, hier
+ * dient es nur dazu, die Navigation im Frontend passend einzublenden. */
+function rolleAusToken(token: string | null): string | null {
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    return JSON.parse(json).rolle ?? null;
+  } catch {
+    return null;
+  }
+}
+
 interface AuthContextValue {
   angezeigterName: string | null;
   namenEintragen: (name: string) => Promise<void>;
   barcodeEinscannen: (token: string) => Promise<string>;
   moderatorAngemeldet: boolean;
+  moderatorRolle: string | null;
   moderatorAnmelden: (username: string, passwort: string) => Promise<void>;
   moderatorAbmelden: () => void;
 }
@@ -21,6 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
   const [moderatorAngemeldet, setModeratorAngemeldet] = useState<boolean>(
     getModeratorToken() !== null
+  );
+  const [moderatorRolle, setModeratorRolle] = useState<string | null>(
+    rolleAusToken(getModeratorToken())
   );
 
   async function namenEintragen(name: string): Promise<void> {
@@ -40,11 +58,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = await moderatorLogin(username, passwort);
     setModeratorToken(token.access_token);
     setModeratorAngemeldet(true);
+    setModeratorRolle(rolleAusToken(token.access_token));
   }
 
   function moderatorAbmelden(): void {
     setModeratorToken(null);
     setModeratorAngemeldet(false);
+    setModeratorRolle(null);
   }
 
   return (
@@ -54,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         namenEintragen,
         barcodeEinscannen,
         moderatorAngemeldet,
+        moderatorRolle,
         moderatorAnmelden,
         moderatorAbmelden,
       }}

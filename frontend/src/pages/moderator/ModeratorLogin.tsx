@@ -27,7 +27,7 @@ export function ModeratorLogin() {
 
   return (
     <div>
-      <h1>Moderator-Login</h1>
+      <h1>Anmeldung Gruppenführer / Admin</h1>
       <form onSubmit={absenden} className="karte">
         <label htmlFor="username">Benutzername</label>
         <input

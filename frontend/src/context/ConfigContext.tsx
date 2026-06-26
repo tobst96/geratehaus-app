@@ -24,6 +24,10 @@ const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   modul_dienstbuch_startseite: true,
   modul_dienststunden_startseite: true,
   modul_fahrzeugbuchung_startseite: false,
+  modul_einsatztagebuch_aussenzugriff: false,
+  modul_dienstbuch_aussenzugriff: false,
+  modul_dienststunden_aussenzugriff: false,
+  modul_fahrzeugbuchung_aussenzugriff: false,
 };
 
 const ConfigContext = createContext<ConfigContextValue>({

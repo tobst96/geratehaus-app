@@ -14,6 +14,10 @@ export interface OeffentlicheKonfiguration {
   modul_dienstbuch_startseite: boolean;
   modul_dienststunden_startseite: boolean;
   modul_fahrzeugbuchung_startseite: boolean;
+  modul_einsatztagebuch_aussenzugriff: boolean;
+  modul_dienstbuch_aussenzugriff: boolean;
+  modul_dienststunden_aussenzugriff: boolean;
+  modul_fahrzeugbuchung_aussenzugriff: boolean;
 }
 
 export interface SetupStatus {

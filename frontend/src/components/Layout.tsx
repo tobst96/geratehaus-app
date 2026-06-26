@@ -17,7 +17,7 @@ export function Layout() {
       </main>
       <footer className="fusszeile">
         Erstellt mit <a href="https://github.com" target="_blank" rel="noreferrer">Gerätehaus.app</a> ·{" "}
-        <Link to="/datenschutz">Datenschutz</Link> · <Link to="/moderator">Moderator-Bereich</Link>
+        <Link to="/datenschutz">Datenschutz</Link> · <Link to="/moderator">Team-Login</Link>
       </footer>
     </>
   );

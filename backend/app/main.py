@@ -16,6 +16,7 @@ from app.api.v1 import (
     einsaetze,
     fahrzeugbuchung_reservierungen,
     manifest,
+    mitglied_login_reservierungen,
     moderator_barcodes,
     moderator_buchungen,
     moderator_dashboard,
@@ -44,7 +45,15 @@ async def lifespan(app: FastAPI):
     scheduler.shutdown()
 
 
-app = FastAPI(title="Gerätehaus.app", lifespan=lifespan)
+app = FastAPI(
+    title="Gerätehaus.app",
+    lifespan=lifespan,
+    # Unter /api/v1/..., damit Swagger über die bestehende Nginx-Proxy-Regel
+    # für /api/ erreichbar ist (sonst würde der SPA-Fallback /docs abfangen).
+    docs_url="/api/v1/docs",
+    redoc_url="/api/v1/redoc",
+    openapi_url="/api/v1/openapi.json",
+)
 
 if settings.cors_origins_list:
     app.add_middleware(
@@ -76,6 +85,7 @@ app.include_router(push.router, prefix="/api/v1")
 app.include_router(divera.router, prefix="/api/v1")
 app.include_router(oeffentlich.router, prefix="/api/v1")
 app.include_router(reservierungen.router, prefix="/api/v1")
+app.include_router(mitglied_login_reservierungen.router, prefix="/api/v1")
 app.include_router(manifest.router, prefix="/api/v1")
 
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)

@@ -1,21 +1,27 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
+// "admin: false" = auch für Gruppenführer sichtbar (Einsatzberichte,
+// Dienstbucheinträge, Fahrzeugreservierungen). "admin: true" = nur Admin
+// (Personal, Punkte, Stammdaten, Barcodes, Benachrichtigungen, Einstellungen).
 const NAV_ITEMS = [
-  { pfad: "/moderator/dashboard", titel: "Dashboard" },
-  { pfad: "/moderator/listen", titel: "Listen" },
-  { pfad: "/moderator/buchungen", titel: "Buchungen" },
-  { pfad: "/moderator/personal", titel: "Personal" },
-  { pfad: "/moderator/punkte", titel: "Punkte" },
-  { pfad: "/moderator/stammdaten", titel: "Stammdaten" },
-  { pfad: "/moderator/barcodes", titel: "Barcodes" },
-  { pfad: "/moderator/benachrichtigungen", titel: "Benachrichtigungen" },
-  { pfad: "/moderator/einstellungen", titel: "Einstellungen" },
+  { pfad: "/moderator/dashboard", titel: "Dashboard", admin: false },
+  { pfad: "/moderator/listen", titel: "Listen", admin: false },
+  { pfad: "/moderator/buchungen", titel: "Buchungen", admin: false },
+  { pfad: "/moderator/personal", titel: "Personal", admin: true },
+  { pfad: "/moderator/punkte", titel: "Punkte", admin: true },
+  { pfad: "/moderator/stammdaten", titel: "Stammdaten", admin: true },
+  { pfad: "/moderator/barcodes", titel: "Barcodes", admin: true },
+  { pfad: "/moderator/kiosk-geraete", titel: "Kiosk-Geräte", admin: true },
+  { pfad: "/moderator/benachrichtigungen", titel: "Benachrichtigungen", admin: true },
+  { pfad: "/moderator/einstellungen", titel: "Einstellungen", admin: true },
 ];
 
 export function ModeratorLayout() {
-  const { moderatorAbmelden } = useAuth();
+  const { moderatorAbmelden, moderatorRolle } = useAuth();
   const navigate = useNavigate();
+  const istAdmin = moderatorRolle === "admin";
+  const sichtbareNavItems = NAV_ITEMS.filter((item) => !item.admin || istAdmin);
 
   function abmelden() {
     moderatorAbmelden();
@@ -34,7 +40,7 @@ export function ModeratorLayout() {
           paddingBottom: 12,
         }}
       >
-        {NAV_ITEMS.map((item) => (
+        {sichtbareNavItems.map((item) => (
           <NavLink
             key={item.pfad}
             to={item.pfad}

@@ -1,8 +1,10 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { ModeratorRoute } from "./components/ModeratorRoute";
+import { AdminRoute } from "./components/AdminRoute";
 import { SetupGate } from "./components/SetupGate";
-import { KioskHome } from "./pages/KioskHome";
+import { KioskGate } from "./components/KioskGate";
+import { LandingPage } from "./pages/LandingPage";
 import { Datenschutz } from "./pages/Datenschutz";
 import { NotFound } from "./pages/NotFound";
 import { ModeratorLogin } from "./pages/moderator/ModeratorLogin";
@@ -13,11 +15,15 @@ import { Buchungsmanagement } from "./pages/moderator/Buchungsmanagement";
 import { Personal } from "./pages/moderator/Personal";
 import { PunkteEinstellungen } from "./pages/moderator/PunkteEinstellungen";
 import { Stammdaten } from "./pages/moderator/Stammdaten";
+import { KioskGeraete } from "./pages/moderator/KioskGeraete";
 import { EinsatzDetailModerator } from "./pages/moderator/EinsatzDetailModerator";
 import { Einstellungen } from "./pages/moderator/Einstellungen";
 import { BarcodeGenerator } from "./pages/moderator/BarcodeGenerator";
 import { NotifierEinstellungen } from "./pages/moderator/NotifierEinstellungen";
 import { SetupWizard } from "./pages/setup/SetupWizard";
+import { MitgliedLogin } from "./pages/mitglied/MitgliedLogin";
+import { MitgliedHub } from "./pages/mitglied/MitgliedHub";
+import { MitgliedAnmelden } from "./pages/mitglied/MitgliedAnmelden";
 import { Einsatztagebuch } from "./pages/einsatztagebuch/Einsatztagebuch";
 import { EinsatzDetail } from "./pages/einsatztagebuch/EinsatzDetail";
 import { Dienstbuch } from "./pages/dienstbuch/Dienstbuch";
@@ -36,9 +42,13 @@ export function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/setup" element={<SetupWizard />} />
-          <Route path="/" element={<KioskHome />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/kiosk/:token" element={<KioskGate />} />
           <Route path="/datenschutz" element={<Datenschutz />} />
           <Route path="/moderator/login" element={<ModeratorLogin />} />
+          <Route path="/mitglied/login" element={<MitgliedLogin />} />
+          <Route path="/mitglied" element={<MitgliedHub />} />
+          <Route path="/mitglied-anmelden/:token" element={<MitgliedAnmelden />} />
 
           <Route path="/moderator" element={<ModeratorRoute />}>
             <Route element={<ModeratorLayout />}>
@@ -47,12 +57,15 @@ export function App() {
               <Route path="listen" element={<Listen />} />
               <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
               <Route path="buchungen" element={<Buchungsmanagement />} />
-              <Route path="personal" element={<Personal />} />
-              <Route path="punkte" element={<PunkteEinstellungen />} />
-              <Route path="stammdaten" element={<Stammdaten />} />
-              <Route path="barcodes" element={<BarcodeGenerator />} />
-              <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />
-              <Route path="einstellungen" element={<Einstellungen />} />
+              <Route element={<AdminRoute />}>
+                <Route path="personal" element={<Personal />} />
+                <Route path="punkte" element={<PunkteEinstellungen />} />
+                <Route path="stammdaten" element={<Stammdaten />} />
+                <Route path="barcodes" element={<BarcodeGenerator />} />
+                <Route path="kiosk-geraete" element={<KioskGeraete />} />
+                <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />
+                <Route path="einstellungen" element={<Einstellungen />} />
+              </Route>
             </Route>
           </Route>
 

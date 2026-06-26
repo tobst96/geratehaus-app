@@ -16,6 +16,8 @@ from app.models.fahrzeug import Fahrzeug
 from app.models.fahrzeugbuchung_reservierung import FahrzeugbuchungReservierung
 from app.models.funktion import FunktionDienststunden, FunktionEinsatz
 from app.models.gruppe import Gruppe
+from app.models.kiosk_token import KioskToken
+from app.models.mitglied_login_reservierung import MitgliedLoginReservierung
 from app.models.moderator import Moderator
 from app.models.namens_abweichung import NamensAbweichung
 from app.models.person import Person
@@ -44,6 +46,8 @@ __all__ = [
     "FunktionDienststunden",
     "FunktionEinsatz",
     "Gruppe",
+    "KioskToken",
+    "MitgliedLoginReservierung",
     "Moderator",
     "NamensAbweichung",
     "Person",

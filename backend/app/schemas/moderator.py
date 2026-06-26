@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -12,6 +14,7 @@ class ModeratorOut(BaseModel):
 class ModeratorAnlegen(BaseModel):
     username: str = Field(min_length=1, max_length=255)
     passwort: str = Field(min_length=8)
+    rolle: Literal["admin", "gruppenfuehrer"] = "gruppenfuehrer"
 
 
 class ModeratorPasswortAendern(BaseModel):

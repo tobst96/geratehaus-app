@@ -39,6 +39,21 @@ async def get_current_moderator(
 CurrentModerator = Annotated[Moderator, Depends(get_current_moderator)]
 
 
+async def get_current_admin(moderator: CurrentModerator) -> Moderator:
+    """Wie CurrentModerator, verlangt zusätzlich die Rolle "admin". Personal,
+    Einstellungen, Punkte und Barcodes sind Admin-only; Gruppenführer sehen
+    nur Einsatzberichte/Dienstbuch/Fahrzeugbuchungen (CurrentModerator)."""
+    if moderator.rolle != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Nur für Admins zugänglich.",
+        )
+    return moderator
+
+
+CurrentAdmin = Annotated[Moderator, Depends(get_current_admin)]
+
+
 async def get_current_person(
     db: DbSession, geraetehaus_name: Annotated[str | None, Cookie()] = None
 ) -> Person:

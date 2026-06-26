@@ -20,8 +20,10 @@ async def get_moderator_by_username(db: AsyncSession, username: str) -> Moderato
     return result.scalar_one_or_none()
 
 
-async def moderator_anlegen(db: AsyncSession, username: str, passwort: str) -> Moderator:
-    moderator = Moderator(username=username, passwort_hash=hash_secret(passwort), rolle="admin")
+async def moderator_anlegen(
+    db: AsyncSession, username: str, passwort: str, rolle: str = "admin"
+) -> Moderator:
+    moderator = Moderator(username=username, passwort_hash=hash_secret(passwort), rolle=rolle)
     db.add(moderator)
     await db.commit()
     await db.refresh(moderator)
