@@ -9,20 +9,6 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
-- [ ] [Auth] Bug-Verdacht: "Durch zufälliges Klicken war ich auf einmal eingeloggt." Vermutete
-      Ursache: die Mitglied-Identität (`geraetehaus_name`-Cookie + `angezeigterName` in
-      `AuthContext.tsx`, siehe `frontend/src/components/Layout.tsx` `startseite()`) wird schon
-      durch einen einzelnen Barcode-Scan gesetzt – z. B. versehentliches Klicken auf das
-      Kamera-Icon (`BarcodeEingabe.tsx`) oder ein Testklick in einem Scan-Feld – und fühlt sich
-      dann wie ein "Login" an (Logo führt danach zu `/mitglied` statt zur Startseite), ist aber
-      keine echte Authentifizierung. Zwei Dinge prüfen/beheben: (1) gibt es überhaupt einen Weg,
-      sich aus dieser Mitglied-Identität wieder "abzumelden"? Aktuell existiert nur
-      `moderatorAbmelden()` in `AuthContext.tsx` für den Moderator-JWT – keine entsprechende
-      Funktion, die `angezeigterName`/das Cookie zurücksetzt. (2) Ist es zu leicht, versehentlich
-      eine fremde Identität zu "übernehmen" (z. B. wenn man auf einem gemeinsam genutzten Gerät
-      kurz testet)? Ggf. einen sichtbaren "Abmelden"-Button für die Mitglied-Identität ergänzen
-      (z. B. im Mitglieder-Hub/Layout, analog zum Team-Login-Abmelden-Button).
-
 - [ ] [Design] Frontend-Design modernisieren (Etappe 1 angefangen, siehe Plan unter
       `~/.claude/plans/ich-m-chte-das-personal-linked-eclipse.md`). **Bereits erledigt:**
       `.formular-feld`/`.formular-zeile`/`.banner-erfolg`/`.banner-fehler`-CSS-Klassen +
@@ -68,6 +54,13 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Erledigt
 
+- [x] [Auth] "Durch zufälliges Klicken war ich auf einmal eingeloggt" behoben: neue
+      `POST /auth/abmelden` löscht den httponly `geraetehaus_name`-Cookie serverseitig (geht
+      nicht per JS, da httponly); `AuthContext.tsx` hat jetzt `mitgliedAbmelden()` (löscht
+      zusätzlich `localStorage`/`angezeigterName`); sichtbarer "Nicht {Name}? Abmelden"-Button
+      im Mitglieder-Hub (`MitgliedHub.tsx`), analog zum Moderator-Abmelden-Button. Nach Abmelden
+      führt der Logo-Klick wieder zur Startseite statt zu `/mitglied` (per `angezeigterName`
+      bereits in `Layout.tsx` `startseite()` korrekt verdrahtet). 1 neuer Test.
 - [x] [Punkte] Punkte-Vergabe als manuelle "Belohnung": jeder Moderator (auch Gruppenführer,
       nicht nur Admin) kann auf der Punkte-Seite jetzt Personen direkt Punkte gutschreiben.
       Neuer Endpunkt `POST /moderator/punkte/belohnung` (`moderator_punkte.py`, CurrentModerator)

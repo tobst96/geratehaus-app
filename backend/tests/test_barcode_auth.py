@@ -44,3 +44,16 @@ async def test_barcode_einscannen_wird_rate_limitiert(client, db):
     for _ in range(25):
         letzte_antwort = await client.post("/api/v1/auth/barcode", json={"token": token.token})
     assert letzte_antwort.status_code == 429
+
+
+async def test_abmelden_loescht_namens_cookie(client, db):
+    _, token = await _person_mit_barcode(db)
+    eingeloggt = await client.post("/api/v1/auth/barcode", json={"token": token.token})
+    assert "geraetehaus_name" in eingeloggt.cookies
+
+    response = await client.post("/api/v1/auth/abmelden")
+    assert response.status_code == 204
+    set_cookie = response.headers.get("set-cookie", "")
+    assert "geraetehaus_name=" in set_cookie
+    # Löschen setzt den Wert leer und ein Ablaufdatum in der Vergangenheit.
+    assert "expires=Thu, 01 Jan 1970" in set_cookie or "max-age=0" in set_cookie.lower()

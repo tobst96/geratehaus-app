@@ -13,12 +13,17 @@ const MODULE: { key: KachelModulKey; aktivKey: string; aussenKey: string; route:
 
 export function MitgliedHub() {
   const navigate = useNavigate();
-  const { angezeigterName } = useAuth();
+  const { angezeigterName, mitgliedAbmelden } = useAuth();
   const { config } = useConfig();
 
   const sichtbar = MODULE.filter(
     (m) => (config as Record<string, unknown> | null)?.[m.aktivKey] && (config as Record<string, unknown> | null)?.[m.aussenKey]
   );
+
+  async function abmelden() {
+    await mitgliedAbmelden();
+    navigate("/");
+  }
 
   return (
     <div className="kiosk-container">
@@ -27,6 +32,11 @@ export function MitgliedHub() {
           Willkommen<span className="kiosk-title-accent">{angezeigterName ? `, ${angezeigterName}` : ""}</span>
         </h1>
         <p className="kiosk-subtitle">Was möchtest du machen?</p>
+        {angezeigterName && (
+          <button type="button" className="sekundaer" onClick={abmelden} style={{ marginTop: 8 }}>
+            Nicht {angezeigterName}? Abmelden
+          </button>
+        )}
       </div>
 
       {sichtbar.length === 0 ? (

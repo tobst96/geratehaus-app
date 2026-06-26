@@ -1,6 +1,10 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { apiPost, getModeratorToken, setModeratorToken } from "../api/client";
-import { barcodeEinscannen as barcodeEinscannenApi, moderatorLogin } from "../api/auth";
+import {
+  barcodeEinscannen as barcodeEinscannenApi,
+  mitgliedAbmelden as mitgliedAbmeldenApi,
+  moderatorLogin,
+} from "../api/auth";
 
 const NAME_SPEICHER_KEY = "angezeigter_name";
 
@@ -26,6 +30,7 @@ interface AuthContextValue {
   moderatorRolle: string | null;
   moderatorAnmelden: (username: string, passwort: string) => Promise<void>;
   moderatorAbmelden: () => void;
+  mitgliedAbmelden: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -67,6 +72,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setModeratorRolle(null);
   }
 
+  /** Beendet die Mitglied-Identität (Barcode-Scan/Name-Eintrag) wieder –
+   * anders als beim Moderator-Logout muss der Server aktiv werden, da das
+   * Namens-Cookie httponly ist und nicht per JS gelöscht werden kann. */
+  async function mitgliedAbmelden(): Promise<void> {
+    await mitgliedAbmeldenApi();
+    localStorage.removeItem(NAME_SPEICHER_KEY);
+    setAngezeigterName(null);
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -77,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         moderatorRolle,
         moderatorAnmelden,
         moderatorAbmelden,
+        mitgliedAbmelden,
       }}
     >
       {children}

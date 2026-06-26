@@ -21,6 +21,8 @@ export interface BarcodeVorschau {
 export const barcodeEinscannen = (token: string) =>
   apiPost<BarcodeIdentitaet>("/auth/barcode", { token });
 
+export const mitgliedAbmelden = () => apiPost<void>("/auth/abmelden");
+
 export const barcodeVorschau = (token: string) =>
   apiGet<BarcodeVorschau>(`/auth/barcode-vorschau/${encodeURIComponent(token)}`);
 

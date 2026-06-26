@@ -26,6 +26,15 @@ NAME_COOKIE = "geraetehaus_name"
 NAME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365 * 5  # 5 Jahre
 
 
+@router.post("/abmelden", status_code=status.HTTP_204_NO_CONTENT)
+async def abmelden(response: Response) -> None:
+    """Löscht den Namens-Cookie, mit dem sich Personen ohne echten Login
+    identifizieren (Barcode-Scan, Mitglieder-Login). Anders als beim
+    Moderator-Logout (rein clientseitig, da JWT im localStorage) muss der
+    Server hier aktiv werden, weil das Cookie httponly ist."""
+    response.delete_cookie(NAME_COOKIE)
+
+
 @router.post("/name", status_code=status.HTTP_204_NO_CONTENT)
 async def name_eintragen(
     db: DbSession,

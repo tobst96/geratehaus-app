@@ -37,7 +37,7 @@ beliebiger Reihenfolge laufen.
 - `test_moderator_auth.py` – Login (richtig/falsch/unbekannt), Rate-Limiting
   auf den Login-Endpunkt, Admin- vs. Gruppenführer-Rechte
 - `test_barcode_auth.py` – Barcode-Scan (gültig/unbekannt/abgelaufen),
-  Rate-Limiting auf den Barcode-Endpunkt
+  Rate-Limiting auf den Barcode-Endpunkt, Abmelden löscht den Namens-Cookie
 - `test_dienststunden_schwellenwert.py` – Schwellenwert-Überschreitungsliste,
   Stunden-Übernahme reduziert/entfernt den Überschuss, Endpunkte erfordern
   Moderator-Login
