@@ -9,16 +9,16 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
-- [ ] [Design] Frontend-Design modernisieren (Etappe 1 angefangen, siehe Plan unter
+- [ ] [Design] Frontend-Design modernisieren (Etappe 1 ABGESCHLOSSEN, siehe Plan unter
       `~/.claude/plans/ich-m-chte-das-personal-linked-eclipse.md`). **Bereits erledigt:**
       `.formular-feld`/`.formular-zeile`/`.banner-erfolg`/`.banner-fehler`-CSS-Klassen +
       `Banner.tsx`/`Ladeanzeige.tsx`-Komponenten in `index.css`/`frontend/src/components/`; alle
       3 ad-hoc duplizierten Erfolgs-Banner (`Einstellungen.tsx`, `NotifierEinstellungen.tsx`,
-      `PunkteEinstellungen.tsx`) nutzen jetzt `<Banner>`; `NotifierEinstellungen.tsx` komplett
-      von `<br />` auf `.formular-feld` migriert (alle 29 Vorkommen). **Noch offen (laut Plan):**
-      Etappe 1 Rest – `Einstellungen.tsx` (31 `<br />`-Vorkommen) noch migrieren; Etappe 2 –
-      restliche `<br />`-Dateien (`EinsatzDiagramm.tsx`, `Fahrzeugbuchung.tsx`,
-      `EinsatzDetail.tsx`, `ManuelleEintragung.tsx`, `FahrzeugbuchungManuelleEintragung.tsx`,
+      `PunkteEinstellungen.tsx`) nutzen jetzt `<Banner>`; `NotifierEinstellungen.tsx` UND
+      `Einstellungen.tsx` komplett von `<br />` auf `.formular-feld`/`.formular-zeile` migriert
+      (alle 29 + 31 Vorkommen). **Noch offen (laut Plan):** Etappe 2 – restliche `<br />`-Dateien
+      (`EinsatzDiagramm.tsx`, `Fahrzeugbuchung.tsx`, `EinsatzDetail.tsx`,
+      `ManuelleEintragung.tsx`, `FahrzeugbuchungManuelleEintragung.tsx`,
       `DienstbuchManuelleEintragung.tsx`, `DienststundenManuelleEintragung.tsx`,
       `PunkteEinstellungen.tsx`-Rest); Etappe 3 – Tabellen in `<div className="tabelle-scroll">`
       wrappen (Mobile-Scroll); Etappe 4 – `<Ladeanzeige />` an den 29 `<p>Lädt …</p>`-Stellen
@@ -49,7 +49,16 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
       Fehler pro Zeile sammeln und am Ende als Ergebnis-Liste zurückgeben statt beim ersten
       Fehler abzubrechen). Beispieldatei als statische Datei im Frontend (z. B.
       `public/personen-vorlage.csv`) zum Download neben dem Upload-Button auf der Personal-Seite.
-
+- [ ] [Dienststunden] Schwellenwert-Überschreitungen sollte nach oben und die Liste mit den ganzen einträgen nach unten.
+- [ ] [Dienststunden] In der Liste sollen nicht die Personen ID's angezeigt werden, sondern der richtige Name, das selbige mit der Funktion.
+- [ ] [Dienststunden] Sende die Person eine Mail, wenn die Stunden eingetragen wurden
+- [ ] [Dienststunden] Wenn die Stunden übernommen werden und unter der Schwelle ist, dann sollten auche die Schwellenwert-Überschreitungen auf dem Dashboard aktuallisiert werden
+- [ ] [Dienststunden] Schwellenwert-Überschreitungen auf dem Dashboard klickt, soll man direkt zu den Listen -> Dienststunden hinspringen
+- [ ] [Punkte] Punkte als Belohnung vergeben darf man sich nicht selber Punkte geben. Bei der Empfänger Person von den Punkten soll in der Timeline die Punkte Gültigkeit Grund und wer die Punkte hinzugefügt hat
+- [ ] [Punkte] Im Admin bereich soll man Personen auch Punkte entziehen können. Überleg dir wie du das schön einbaust ohne das alles zu überlagen ist
+- [ ] [Punkte] Punkte in der Moderator übersicht darf unter der Eingabe nicht mehr der Text "Die automatischen Punkte-Regeln (unten) kann nur ein Admin einsehen und ändern." stehen!
+ - [ ] [Buchungen] Wenn bei den Fahrzeugbuchung "Barcode vergessen" geklickt wird, dann soll sobald die Person sich am Handy mit Name und Pin eingeloggt haben, neben den QR Code sofort das Profilbild und Gesicht angezeigt werden.
+ - [ ] [Barcode] Überprüfe überall wenn man auf Barcode Vergessen klickt, das man am Handy sein Name und Pin eingeben muss zum einloggen. Erst dann sollen die Bilder angezeigt werden. Wenn die Person kein Pin hat, dann sperr die Option. Vermerke dies aber in seiner Personen Timeline.
 ## In Arbeit
 
 ## Erledigt

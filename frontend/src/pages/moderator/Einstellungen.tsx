@@ -335,41 +335,46 @@ export function Einstellungen() {
       <form onSubmit={speichern}>
         <div className="karte">
           <h2>Organisation &amp; Branding</h2>
-          <label htmlFor="e-org">Name der Organisation</label>
-          <input id="e-org" value={organisationName} onChange={(e) => setOrganisationName(e.target.value)} />
-          <br />
-          <br />
-          <label htmlFor="e-basis-url">Öffentliche Adresse (für QR-Codes)</label>
-          <input
-            id="e-basis-url"
-            value={oeffentlicheBasisUrl}
-            onChange={(e) => setOeffentlicheBasisUrl(e.target.value)}
-            placeholder="https://geraetehausapp.feuerwehr-musterstadt.de"
-          />
-          <p style={{ fontSize: "0.85rem", color: "#666" }}>
-            Wird für alle QR-Code-Links genutzt (Barcode vergessen, Profilbild-Upload usw.), statt der
-            aktuellen Browser-Adresse – wichtig, falls das Gerätehaus-Tablet unter einer anderen Adresse
-            erreichbar ist als das Internet.
-          </p>
-          <br />
-          <label htmlFor="e-logo">Logo</label>
-          <br />
-          {logoUrl && <img src={logoUrl} alt="Logo" style={{ height: 50, marginBottom: 8 }} />}
-          <br />
-          <input
-            id="e-logo"
-            type="file"
-            accept="image/png,image/svg+xml"
-            onChange={(e) => e.target.files?.[0] && logoHochladen(e.target.files[0])}
-          />
-          <br />
-          <br />
-          <label htmlFor="e-farbe-primaer">Primärfarbe</label>
-          <input id="e-farbe-primaer" type="color" value={farbePrimaer} onChange={(e) => setFarbePrimaer(e.target.value)} />
-          <br />
-          <br />
-          <label htmlFor="e-farbe-akzent">Akzentfarbe</label>
-          <input id="e-farbe-akzent" type="color" value={farbeAkzent} onChange={(e) => setFarbeAkzent(e.target.value)} />
+          <div className="formular-feld">
+            <label htmlFor="e-org">Name der Organisation</label>
+            <input id="e-org" value={organisationName} onChange={(e) => setOrganisationName(e.target.value)} />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-basis-url">Öffentliche Adresse (für QR-Codes)</label>
+            <input
+              id="e-basis-url"
+              value={oeffentlicheBasisUrl}
+              onChange={(e) => setOeffentlicheBasisUrl(e.target.value)}
+              placeholder="https://geraetehausapp.feuerwehr-musterstadt.de"
+            />
+            <p style={{ fontSize: "0.85rem", color: "#666" }}>
+              Wird für alle QR-Code-Links genutzt (Barcode vergessen, Profilbild-Upload usw.), statt der
+              aktuellen Browser-Adresse – wichtig, falls das Gerätehaus-Tablet unter einer anderen Adresse
+              erreichbar ist als das Internet.
+            </p>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-logo">Logo</label>
+            {logoUrl && (
+              <img src={logoUrl} alt="Logo" style={{ height: 50, marginBottom: 8 }} />
+            )}
+            <input
+              id="e-logo"
+              type="file"
+              accept="image/png,image/svg+xml"
+              onChange={(e) => e.target.files?.[0] && logoHochladen(e.target.files[0])}
+            />
+          </div>
+          <div className="formular-zeile">
+            <div className="formular-feld">
+              <label htmlFor="e-farbe-primaer">Primärfarbe</label>
+              <input id="e-farbe-primaer" type="color" value={farbePrimaer} onChange={(e) => setFarbePrimaer(e.target.value)} />
+            </div>
+            <div className="formular-feld">
+              <label htmlFor="e-farbe-akzent">Akzentfarbe</label>
+              <input id="e-farbe-akzent" type="color" value={farbeAkzent} onChange={(e) => setFarbeAkzent(e.target.value)} />
+            </div>
+          </div>
         </div>
 
         <div className="karte">
@@ -491,164 +496,174 @@ export function Einstellungen() {
 
         <div className="karte">
           <h2>Zeitfenster &amp; Schwellenwerte</h2>
-          <label htmlFor="e-zeitfenster">Dienstbuch-Zeitfenster (Stunden)</label>
-          <input
-            id="e-zeitfenster"
-            type="number"
-            min={1}
-            value={dienstbuchZeitfenster}
-            onChange={(e) => setDienstbuchZeitfenster(Number(e.target.value))}
-          />
-          <br />
-          <br />
-          <label htmlFor="e-dienstbuch-autoschluss">
-            Offene Dienstbücher automatisch schließen um (Uhrzeit, Stunde 0–23)
-          </label>
-          <input
-            id="e-dienstbuch-autoschluss"
-            type="number"
-            min={0}
-            max={23}
-            value={dienstbuchAutoschlussStunde}
-            onChange={(e) => setDienstbuchAutoschlussStunde(Number(e.target.value))}
-          />
-          <br />
-          <br />
-          <label htmlFor="e-archiv">Archivierungszeitraum (Jahre)</label>
-          <input
-            id="e-archiv"
-            type="number"
-            min={1}
-            value={archivierungszeitraum}
-            onChange={(e) => setArchivierungszeitraum(Number(e.target.value))}
-          />
-          <br />
-          <br />
-          <label htmlFor="e-countdown">Einsatz-Countdown im Gerätehaus (Minuten)</label>
-          <input
-            id="e-countdown"
-            type="number"
-            min={1}
-            value={einsatzCountdownMinuten}
-            onChange={(e) => setEinsatzCountdownMinuten(Number(e.target.value))}
-          />
-          <br />
-          <br />
-          <label htmlFor="e-alle-eingetragen">
-            Verzögerung nach "Alle eingetragen" bis zum automatischen Abschluss (Minuten)
-          </label>
-          <input
-            id="e-alle-eingetragen"
-            type="number"
-            min={1}
-            value={alleEingetragenMinuten}
-            onChange={(e) => setAlleEingetragenMinuten(Number(e.target.value))}
-          />
-          <br />
-          <br />
-          <label htmlFor="e-autoabschluss-stunde">Automatischer Einsatzabschluss um (Uhrzeit, Stunde 0–23)</label>
-          <input
-            id="e-autoabschluss-stunde"
-            type="number"
-            min={0}
-            max={23}
-            value={autoabschlussStunde}
-            onChange={(e) => setAutoabschlussStunde(Number(e.target.value))}
-          />
-          <br />
-          <br />
-          <label htmlFor="e-autoabschluss-inaktivitaet">
-            … wenn die letzte Bearbeitung länger als (Stunden) zurückliegt
-          </label>
-          <input
-            id="e-autoabschluss-inaktivitaet"
-            type="number"
-            min={1}
-            value={autoabschlussInaktivitaetStunden}
-            onChange={(e) => setAutoabschlussInaktivitaetStunden(Number(e.target.value))}
-          />
-          <p style={{ fontSize: "0.85rem", color: "#666" }}>
-            Offene Einsätze werden täglich zur eingestellten Stunde automatisch abgeschlossen,
-            wenn seit der letzten Bearbeitung mindestens so viele Stunden vergangen sind.
-          </p>
+          <div className="formular-feld">
+            <label htmlFor="e-zeitfenster">Dienstbuch-Zeitfenster (Stunden)</label>
+            <input
+              id="e-zeitfenster"
+              type="number"
+              min={1}
+              value={dienstbuchZeitfenster}
+              onChange={(e) => setDienstbuchZeitfenster(Number(e.target.value))}
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-dienstbuch-autoschluss">
+              Offene Dienstbücher automatisch schließen um (Uhrzeit, Stunde 0–23)
+            </label>
+            <input
+              id="e-dienstbuch-autoschluss"
+              type="number"
+              min={0}
+              max={23}
+              value={dienstbuchAutoschlussStunde}
+              onChange={(e) => setDienstbuchAutoschlussStunde(Number(e.target.value))}
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-archiv">Archivierungszeitraum (Jahre)</label>
+            <input
+              id="e-archiv"
+              type="number"
+              min={1}
+              value={archivierungszeitraum}
+              onChange={(e) => setArchivierungszeitraum(Number(e.target.value))}
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-countdown">Einsatz-Countdown im Gerätehaus (Minuten)</label>
+            <input
+              id="e-countdown"
+              type="number"
+              min={1}
+              value={einsatzCountdownMinuten}
+              onChange={(e) => setEinsatzCountdownMinuten(Number(e.target.value))}
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-alle-eingetragen">
+              Verzögerung nach "Alle eingetragen" bis zum automatischen Abschluss (Minuten)
+            </label>
+            <input
+              id="e-alle-eingetragen"
+              type="number"
+              min={1}
+              value={alleEingetragenMinuten}
+              onChange={(e) => setAlleEingetragenMinuten(Number(e.target.value))}
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-autoabschluss-stunde">Automatischer Einsatzabschluss um (Uhrzeit, Stunde 0–23)</label>
+            <input
+              id="e-autoabschluss-stunde"
+              type="number"
+              min={0}
+              max={23}
+              value={autoabschlussStunde}
+              onChange={(e) => setAutoabschlussStunde(Number(e.target.value))}
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-autoabschluss-inaktivitaet">
+              … wenn die letzte Bearbeitung länger als (Stunden) zurückliegt
+            </label>
+            <input
+              id="e-autoabschluss-inaktivitaet"
+              type="number"
+              min={1}
+              value={autoabschlussInaktivitaetStunden}
+              onChange={(e) => setAutoabschlussInaktivitaetStunden(Number(e.target.value))}
+            />
+            <p style={{ fontSize: "0.85rem", color: "#666" }}>
+              Offene Einsätze werden täglich zur eingestellten Stunde automatisch abgeschlossen,
+              wenn seit der letzten Bearbeitung mindestens so viele Stunden vergangen sind.
+            </p>
+          </div>
         </div>
 
         <div className="karte">
           <h2>Benachrichtigungen</h2>
-          <label>
-            <input
-              type="checkbox"
-              checked={benachrichtigungEinsatz}
-              onChange={(e) => setBenachrichtigungEinsatz(e.target.checked)}
-            />{" "}
-            Einsatz abgeschlossen
-          </label>
-          <br />
-          <label>
-            <input
-              type="checkbox"
-              checked={benachrichtigungDienstbuch}
-              onChange={(e) => setBenachrichtigungDienstbuch(e.target.checked)}
-            />{" "}
-            Neues Dienstbuch
-          </label>
-          <br />
-          <label>
-            <input
-              type="checkbox"
-              checked={benachrichtigungBuchung}
-              onChange={(e) => setBenachrichtigungBuchung(e.target.checked)}
-            />{" "}
-            Neue Buchungsanfrage
-          </label>
-          <br />
-          <label>
-            <input
-              type="checkbox"
-              checked={benachrichtigungSchwellenwert}
-              onChange={(e) => setBenachrichtigungSchwellenwert(e.target.checked)}
-            />{" "}
-            Schwellenwert-Überschreitung
-          </label>
-          <br />
-          <label>
-            <input
-              type="checkbox"
-              checked={benachrichtigungPersonInaktiv}
-              onChange={(e) => setBenachrichtigungPersonInaktiv(e.target.checked)}
-            />{" "}
-            Person inaktiv (wird bald gelöscht)
-          </label>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={benachrichtigungEinsatz}
+                onChange={(e) => setBenachrichtigungEinsatz(e.target.checked)}
+              />{" "}
+              Einsatz abgeschlossen
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={benachrichtigungDienstbuch}
+                onChange={(e) => setBenachrichtigungDienstbuch(e.target.checked)}
+              />{" "}
+              Neues Dienstbuch
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={benachrichtigungBuchung}
+                onChange={(e) => setBenachrichtigungBuchung(e.target.checked)}
+              />{" "}
+              Neue Buchungsanfrage
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={benachrichtigungSchwellenwert}
+                onChange={(e) => setBenachrichtigungSchwellenwert(e.target.checked)}
+              />{" "}
+              Schwellenwert-Überschreitung
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={benachrichtigungPersonInaktiv}
+                onChange={(e) => setBenachrichtigungPersonInaktiv(e.target.checked)}
+              />{" "}
+              Person inaktiv (wird bald gelöscht)
+            </label>
+          </div>
         </div>
 
         <div className="karte">
           <h2>Personen</h2>
-          <label htmlFor="e-personen-sortierung">Sortierung der Personenliste</label>
-          <select
-            id="e-personen-sortierung"
-            value={personenSortierung}
-            onChange={(e) => setPersonenSortierung(e.target.value)}
-          >
-            <option value="nachname">Nach Nachname</option>
-            <option value="gruppe_nachname">Nach Gruppe, dann Nachname</option>
-          </select>
-          <br />
-          <br />
-          <label htmlFor="e-personen-inaktivitaet">
-            Person löschen nach Inaktivität (Tage ohne neuen Timeline-Eintrag)
-          </label>
-          <input
-            id="e-personen-inaktivitaet"
-            type="number"
-            min={0}
-            value={personenInaktivitaetTage}
-            onChange={(e) => setPersonenInaktivitaetTage(Number(e.target.value))}
-          />
-          <p style={{ fontSize: "0.85rem", color: "#666" }}>
-            7 Tage vor der automatischen Löschung wird einmalig eine Benachrichtigung verschickt.
-            Erfolgt in dieser Zeit keine neue Aktivität, wird die Person inkl. aller zugehörigen Daten
-            (Dienststunden, Einsätze, Dienstbücher, Barcodes, Buchungen) endgültig gelöscht. 0 = deaktiviert.
-          </p>
+          <div className="formular-feld">
+            <label htmlFor="e-personen-sortierung">Sortierung der Personenliste</label>
+            <select
+              id="e-personen-sortierung"
+              value={personenSortierung}
+              onChange={(e) => setPersonenSortierung(e.target.value)}
+            >
+              <option value="nachname">Nach Nachname</option>
+              <option value="gruppe_nachname">Nach Gruppe, dann Nachname</option>
+            </select>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-personen-inaktivitaet">
+              Person löschen nach Inaktivität (Tage ohne neuen Timeline-Eintrag)
+            </label>
+            <input
+              id="e-personen-inaktivitaet"
+              type="number"
+              min={0}
+              value={personenInaktivitaetTage}
+              onChange={(e) => setPersonenInaktivitaetTage(Number(e.target.value))}
+            />
+            <p style={{ fontSize: "0.85rem", color: "#666" }}>
+              7 Tage vor der automatischen Löschung wird einmalig eine Benachrichtigung verschickt.
+              Erfolgt in dieser Zeit keine neue Aktivität, wird die Person inkl. aller zugehörigen Daten
+              (Dienststunden, Einsätze, Dienstbücher, Barcodes, Buchungen) endgültig gelöscht. 0 = deaktiviert.
+            </p>
+          </div>
         </div>
 
         <div className="karte">
@@ -656,28 +671,30 @@ export function Einstellungen() {
           <p style={{ fontSize: "0.85rem", color: "#666" }}>
             Ersetzt die frühere .env-Konfiguration – Änderungen wirken ohne Neustart.
           </p>
-          <label>
-            <input type="checkbox" checked={diveraAktiv} onChange={(e) => setDiveraAktiv(e.target.checked)} />{" "}
-            Divera-Anbindung aktiv
-          </label>
-          <br />
-          <br />
-          <label htmlFor="e-divera-modus">Modus</label>
-          <select id="e-divera-modus" value={diveraModus} onChange={(e) => setDiveraModus(e.target.value)}>
-            <option value="polling">Polling (alle 5 Minuten abfragen)</option>
-            <option value="webhook">Webhook (Divera sendet aktiv)</option>
-          </select>
-          <br />
-          <br />
-          <label htmlFor="e-divera-key">API-Key / Accesskey</label>
-          <input
-            id="e-divera-key"
-            type="password"
-            value={diveraApiKey}
-            onChange={(e) => setDiveraApiKey(e.target.value)}
-            placeholder="Accesskey aus Divera"
-            autoComplete="off"
-          />
+          <div className="formular-feld">
+            <label>
+              <input type="checkbox" checked={diveraAktiv} onChange={(e) => setDiveraAktiv(e.target.checked)} />{" "}
+              Divera-Anbindung aktiv
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-divera-modus">Modus</label>
+            <select id="e-divera-modus" value={diveraModus} onChange={(e) => setDiveraModus(e.target.value)}>
+              <option value="polling">Polling (alle 5 Minuten abfragen)</option>
+              <option value="webhook">Webhook (Divera sendet aktiv)</option>
+            </select>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-divera-key">API-Key / Accesskey</label>
+            <input
+              id="e-divera-key"
+              type="password"
+              value={diveraApiKey}
+              onChange={(e) => setDiveraApiKey(e.target.value)}
+              placeholder="Accesskey aus Divera"
+              autoComplete="off"
+            />
+          </div>
         </div>
 
         <div className="karte">
