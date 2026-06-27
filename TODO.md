@@ -73,6 +73,13 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
       Fehler pro Zeile sammeln und am Ende als Ergebnis-Liste zurückgeben statt beim ersten
       Fehler abzubrechen). Beispieldatei als statische Datei im Frontend (z. B.
       `public/personen-vorlage.csv`) zum Download neben dem Upload-Button auf der Personal-Seite.
+- [ ] [Dienststunden] Stunden-Erfassung touch-freundlicher und präziser gestalten: Das aktuelle
+      `<input type="number">`-Feld ist auf dem Handy umständlich. Vorschlag: Schnellauswahl-Chips
+      für häufige Werte (0:30 · 1:00 · 1:30 · 2:00 · 3:00 · 4:00) als tippbare Kacheln-Reihe,
+      darunter ein Feineinstellungs-Stepper (− / Anzeige / +) in 15-Min.-Schritten für
+      Zwischenwerte. Die Anzeige erfolgt im Format "2 Std. 30 Min." statt als Dezimalzahl.
+      Intern weiterhin als Dezimalstunden (float) an die API übergeben. Betrifft
+      `Dienststunden.tsx` (Bereich "Stunden erfassen"), keine Backend-Änderung nötig.
 - [ ] [Dienststunden] Schwellenwert-Überschreitungen sollte nach oben und die Liste mit den ganzen einträgen nach unten.
 - [ ] [Dienststunden] In der Liste sollen nicht die Personen ID's angezeigt werden, sondern der richtige Name, das selbige mit der Funktion.
 - [ ] [Dienststunden] Sende die Person eine Mail, wenn die Stunden eingetragen wurden
