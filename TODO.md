@@ -56,9 +56,27 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       Intern weiterhin als Dezimalstunden (float) an die API übergeben. Betrifft
       `Dienststunden.tsx` (Bereich "Stunden erfassen"), keine Backend-Änderung nötig.
 
-### Etappe D – Mitglieder-Hub Redesign (`MitgliedHub.tsx`, nur Frontend)
+### Etappe D – Moderator-Bereich Mobile-Optimierung
 
-- [ ] (1) **Profil-Zeile** statt großem Begrüßungsblock: kompakter Streifen mit Avatar
+- [ ] [Design] Moderator-Navigation auf Mobilgeräten überarbeiten: Die Navigationsleiste bricht
+      aktuell auf schmalen Screens über 4 Zeilen um und wirkt chaotisch. Lösung: Hamburger-Menü
+      (☰-Icon in der Kopfzeile, öffnet ein Drawer/Overlay mit allen Nav-Links) oder
+      zusammenklappbare Sidebar. Ab einer definierten Breakpoint-Breite (z. B. ≤768 px) greift
+      das mobile Layout, darüber bleibt die horizontale Leiste. Betrifft `ModeratorLayout.tsx`
+      (oder wo die Nav gerendert wird) + `index.css`.
+- [ ] [Design] Moderator-Bereich Layout-Overflow auf Mobile beheben: Auf schmalen Screens ist
+      rechts eine abgeschnittene Karte sichtbar (horizontaler Overflow). Ursache prüfen –
+      vermutlich ein festes `min-width` oder ein flex/grid-Container ohne `overflow: hidden`.
+      Alle Seiten im Moderator-Bereich auf horizontalen Scroll prüfen und beheben.
+- [ ] [Design] Personal-Liste mobile-freundlicher gestalten: Personen-Karten (`Personal.tsx`)
+      sind auf Mobile gut lesbar, aber „+ Person hinzufügen"-Button und Suche könnten als
+      Sticky-Leiste oben fixiert werden, damit man beim Scrollen durch eine lange Liste nicht
+      zurückscrollen muss. Suche ggf. prominenter platzieren (volle Breite, direkt unter dem
+      Seitentitel).
+
+### Etappe E – Mitglieder-Hub Redesign (`MitgliedHub.tsx`, nur Frontend)
+
+- [ ] [Mitgliederbereich] (1) **Profil-Zeile** statt großem Begrüßungsblock: kompakter Streifen mit Avatar
       (Profilbild oder Initialen-Fallback, ~40 px), Name daneben, und "Abmelden" als kleiner
       Textlink rechts – spart erheblich Höhe und wirkt weniger überladen.
 - [ ] (2) **Kacheln 2-spaltig** im CSS-Grid statt Vollbreite-Stack: quadratische Kacheln
