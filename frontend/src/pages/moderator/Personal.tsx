@@ -16,6 +16,7 @@ import {
   barcodeBildUrl,
   holeAlleGruppen,
   holeAlleFunktionenDienststunden,
+  holeDiveraVorschlaege,
 } from "../../api/moderator";
 import { holePersonBildReservierung } from "../../api/personBildReservierungen";
 import { ApiError } from "../../api/client";
@@ -29,6 +30,7 @@ import type {
   PersonEreignis,
 } from "../../api/types";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { DiveraVorschlagModal } from "../../components/DiveraVorschlagModal";
 
 interface BildQr {
   personId: number;
@@ -153,6 +155,9 @@ export function Personal() {
   const [neueStundenDatum, setNeueStundenDatum] = useState(heuteAlsDatum());
   const [dienststundenFehler, setDienststundenFehler] = useState<string | null>(null);
 
+  const [zeigeDiveraModal, setZeigeDiveraModal] = useState(false);
+  const [diveraVorschlaegeAnzahl, setDiveraVorschlaegeAnzahl] = useState(0);
+
   async function laden() {
     try {
       setListe(await holeAllePersonen());
@@ -165,6 +170,9 @@ export function Personal() {
     laden();
     holeAlleGruppen().then(setGruppen).catch(() => setGruppen([]));
     holeAlleFunktionenDienststunden().then(setFunktionen).catch(() => setFunktionen([]));
+    holeDiveraVorschlaege()
+      .then((liste) => setDiveraVorschlaegeAnzahl(liste.length))
+      .catch(() => setDiveraVorschlaegeAnzahl(0));
   }, []);
 
   async function timelineLaden(personId: number) {
@@ -391,10 +399,47 @@ export function Personal() {
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <h1 style={{ margin: 0 }}>Personal</h1>
-        <button type="button" onClick={anlegenModalOeffnen}>
-          + Person hinzufügen
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button type="button" className="sekundaer" onClick={() => setZeigeDiveraModal(true)} style={{ position: "relative" }}>
+            Vorschlag
+            {diveraVorschlaegeAnzahl > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: -6,
+                  right: -6,
+                  background: "var(--farbe-fehler, #c0392b)",
+                  color: "#fff",
+                  borderRadius: "50%",
+                  width: 20,
+                  height: 20,
+                  fontSize: "0.7rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {diveraVorschlaegeAnzahl}
+              </span>
+            )}
+          </button>
+          <button type="button" onClick={anlegenModalOeffnen}>
+            + Person hinzufügen
+          </button>
+        </div>
       </div>
+
+      {zeigeDiveraModal && (
+        <DiveraVorschlagModal
+          onSchliessen={() => {
+            setZeigeDiveraModal(false);
+            holeDiveraVorschlaege()
+              .then((liste) => setDiveraVorschlaegeAnzahl(liste.length))
+              .catch(() => {});
+          }}
+          onUebernommen={laden}
+        />
+      )}
 
       {zeigeAnlegenModal && (
         <div

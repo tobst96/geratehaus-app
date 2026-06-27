@@ -1,6 +1,7 @@
 """Zentraler APScheduler-Prozess für periodische Hintergrund-Jobs
 (Divera-Polling, Archivierung). Wird im FastAPI-Lifespan gestartet/gestoppt."""
 
+import random
 from datetime import datetime
 
 import structlog
@@ -11,6 +12,7 @@ from app.services import (
     archive_service,
     barcode_service,
     dienstbuch_service,
+    divera_personal_service,
     divera_service,
     einsatz_service,
     stammdaten_service,
@@ -23,6 +25,13 @@ DIVERA_POLL_INTERVALL_SEKUNDEN = 300
 
 scheduler = AsyncIOScheduler()
 
+# Einmal pro Prozessstart zufällig gewählte Uhrzeit (Nachtstunden) für den
+# täglichen Divera-Personal-Sync – "zufällig einmal am Tag" statt einer für
+# alle Instanzen identischen festen Uhrzeit, ohne ständig wechselnde
+# Cron-Ausdrücke verwalten zu müssen.
+_DIVERA_PERSONAL_SYNC_STUNDE = random.randint(2, 5)
+_DIVERA_PERSONAL_SYNC_MINUTE = random.randint(0, 59)
+
 
 async def _divera_polling_job() -> None:
     async with AsyncSessionLocal() as db:
@@ -33,6 +42,27 @@ async def _divera_polling_job() -> None:
             await divera_service.synchronisiere(db)
         except Exception:
             logger.warning("divera_polling_fehlgeschlagen", exc_info=True)
+
+
+async def _divera_personal_sync_job() -> None:
+    """Läuft täglich zu einer beim Prozessstart zufällig gewählten Uhrzeit;
+    holt Divera-Personal-Vorschläge (neue Personen, E-Mail-Abweichungen) und
+    räumt Vorschläge auf, die älter als 1 Jahr sind."""
+    async with AsyncSessionLocal() as db:
+        try:
+            divera_aktiv = await config_service.get(db, "divera_aktiv", False)
+            if not divera_aktiv:
+                return
+            anzahl_neu = await divera_personal_service.synchronisiere_personal(db)
+            anzahl_aufgeraeumt = await divera_personal_service.raeume_alte_vorschlaege_auf(db)
+            if anzahl_neu or anzahl_aufgeraeumt:
+                logger.info(
+                    "divera_personal_sync_job_abgeschlossen",
+                    anzahl_neu=anzahl_neu,
+                    anzahl_aufgeraeumt=anzahl_aufgeraeumt,
+                )
+        except Exception:
+            logger.warning("divera_personal_sync_fehlgeschlagen", exc_info=True)
 
 
 async def _archivierung_job() -> None:
@@ -220,6 +250,19 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("barcode_erneuerung_job_registriert", uhrzeit="03:30")
+
+    scheduler.add_job(
+        _divera_personal_sync_job,
+        "cron",
+        hour=_DIVERA_PERSONAL_SYNC_STUNDE,
+        minute=_DIVERA_PERSONAL_SYNC_MINUTE,
+        id="divera_personal_sync",
+        replace_existing=True,
+    )
+    logger.info(
+        "divera_personal_sync_job_registriert",
+        uhrzeit=f"{_DIVERA_PERSONAL_SYNC_STUNDE:02d}:{_DIVERA_PERSONAL_SYNC_MINUTE:02d}",
+    )
 
 
 def start() -> None:

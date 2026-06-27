@@ -11,6 +11,7 @@ from app.models.dienstbuch_reservierung import DienstbuchReservierung
 from app.models.dienststunden import Dienststunden
 from app.models.dienststunden_reservierung import DienststundenReservierung
 from app.models.dienststunden_uebernahme import DienststundenUebernahme
+from app.models.divera_vorschlag import DiveraVorschlag
 from app.models.einsatz import Einsatz, EinsatzPerson
 from app.models.einsatz_ereignis import EinsatzEreignis
 from app.models.einsatz_feld import EinsatzFeldDefinition
@@ -39,6 +40,7 @@ __all__ = [
     "Dienststunden",
     "DienststundenReservierung",
     "DienststundenUebernahme",
+    "DiveraVorschlag",
     "Einsatz",
     "EinsatzEreignis",
     "EinsatzFeldDefinition",

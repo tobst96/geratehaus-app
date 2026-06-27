@@ -267,6 +267,29 @@ export const personBarcodeErzeugen = (id: number) =>
 export const alleBarcodesErneuernUndSenden = () =>
   apiPost<{ gesendet: number; fehler: number }>("/moderator/barcodes/alle-erneuern-und-senden");
 
+// --- Divera-Personal-Abgleich ------------------------------------------------
+
+export interface DiveraVorschlagOut {
+  id: number;
+  divera_user_id: string;
+  art: "neu" | "email_update";
+  vorschlag_daten: Record<string, unknown>;
+  bestehende_person_id: number | null;
+  status: "offen" | "uebernommen" | "ignoriert";
+  erstellt_am: string;
+}
+
+export const holeDiveraVorschlaege = () =>
+  apiGet<DiveraVorschlagOut[]>("/moderator/stammdaten/personen/divera-vorschlaege");
+
+export const diveraVorschlaegeSynchronisieren = () =>
+  apiPost<DiveraVorschlagOut[]>("/moderator/stammdaten/personen/divera-vorschlaege/synchronisieren");
+
+export const diveraVorschlagEntscheiden = (id: number, aktion: "uebernehmen" | "ignorieren") =>
+  apiPost<DiveraVorschlagOut>(`/moderator/stammdaten/personen/divera-vorschlaege/${id}/entscheiden`, {
+    aktion,
+  });
+
 export const barcodeBildUrl = (token: string) =>
   `/api/v1/moderator/barcodes/render/${token}`;
 
