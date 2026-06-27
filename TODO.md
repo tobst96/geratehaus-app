@@ -7,7 +7,14 @@ mir einfach sagen "trag X in die TODO ein" / "schau dir die TODO an und mach Y".
 Einträge sind mit Modul-Tags versehen (z. B. `[Setup]`, `[Sicherheit]`), damit man sich bei
 Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen.
 
-## Offen
+Die offenen Punkte sind zusätzlich in **Etappen** gruppiert: verwandte/zusammenhängende
+Änderungen landen in einem Arbeitsgang statt einzeln nacheinander angegangen zu werden.
+Reihenfolge unten ist ein Vorschlag (kleine/mechanische Etappen zuerst), kein Zwang – sag
+einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorziehen willst.
+
+## Etappen
+
+### Etappe A – Quick Fixes (mehrere Module, klein/mechanisch)
 
 - [ ] [Design] Abstand unter Aktions-Buttons vor dem nächsten Inhaltsbereich: Im Einsatztagebuch
       fehlt unter dem „Neuer Einsatz"-Button der visuelle Abstand bevor die Einsatzliste beginnt.
@@ -16,65 +23,82 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
       Lösung: einheitlicher `margin-bottom` auf den jeweiligen Button-Bereich bzw. einen
       Trenner-Abstand als CSS-Klasse (z. B. `.abschnitt-trenner`), damit überall dieselbe
       optische Trennung zwischen Eingabe-/Aktionsbereich und Listenbereich entsteht.
-- [ ] [Mitgliederbereich] Hub-Seite (`MitgliedHub.tsx`) designmäßig überarbeiten:
-      (1) **Profil-Zeile** statt großem Begrüßungsblock: kompakter Streifen mit Avatar
-      (Profilbild oder Initialen-Fallback, ~40 px), Name daneben, und "Abmelden" als kleiner
-      Textlink rechts – spart erheblich Höhe und wirkt weniger überladen.
-      (2) **Kacheln 2-spaltig** im CSS-Grid statt Vollbreite-Stack: quadratische Kacheln
-      (Icon oben, Label unten), analog zum Kiosk-Design, auf schmalen Screens 2 Spalten.
-      (3) **Einheitliche Kachel-Styles**: Keinen selektiven orangen Rand (sieht aktuell aus
-      wie ein hängengebliebener Aktiv-State). Aktiv/Hover-Zustand nur bei echtem Touch/Klick.
-      (4) **"Abmelden"-Button** nicht mehr als große outlined Schaltfläche prominent platzieren
-      – in die Profil-Zeile integrieren (siehe 1). Betrifft ausschließlich `MitgliedHub.tsx`
-      und `index.css` (ggf. neues `.mitglied-hub-*`-CSS), kein Backend.
 - [ ] [Dienstbuch] Bug: Im Mitglieder-Bereich ist beim Dienstbuch die Gruppe der eingeloggten
       Person nicht vorgewählt. Beim Laden der Seite sollte die Gruppe aus dem Personenprofil
       (`CurrentPerson`) automatisch als Standardwert im Gruppen-Dropdown gesetzt werden.
       Betrifft die Dienstbuch-Seite im Mitglieder-Bereich (`pages/dienstbuch/` o. ä.).
-- [ ] [Design] Frontend-Design modernisieren (Etappe 1 ABGESCHLOSSEN, siehe Plan unter
-      `~/.claude/plans/ich-m-chte-das-personal-linked-eclipse.md`). **Bereits erledigt:**
-      `.formular-feld`/`.formular-zeile`/`.banner-erfolg`/`.banner-fehler`-CSS-Klassen +
-      `Banner.tsx`/`Ladeanzeige.tsx`-Komponenten in `index.css`/`frontend/src/components/`; alle
-      3 ad-hoc duplizierten Erfolgs-Banner (`Einstellungen.tsx`, `NotifierEinstellungen.tsx`,
-      `PunkteEinstellungen.tsx`) nutzen jetzt `<Banner>`; `NotifierEinstellungen.tsx` UND
-      `Einstellungen.tsx` komplett von `<br />` auf `.formular-feld`/`.formular-zeile` migriert
-      (alle 29 + 31 Vorkommen). **Noch offen (laut Plan):** Etappe 2 – restliche `<br />`-Dateien
-      (`EinsatzDiagramm.tsx`, `Fahrzeugbuchung.tsx`, `EinsatzDetail.tsx`,
-      `ManuelleEintragung.tsx`, `FahrzeugbuchungManuelleEintragung.tsx`,
-      `DienstbuchManuelleEintragung.tsx`, `DienststundenManuelleEintragung.tsx`,
-      `PunkteEinstellungen.tsx`-Rest); Etappe 3 – Tabellen in `<div className="tabelle-scroll">`
-      wrappen (Mobile-Scroll); Etappe 4 – `<Ladeanzeige />` an den 29 `<p>Lädt …</p>`-Stellen
-      ausrollen. Dark Mode/responsive Typografie bewusst zurückgestellt (siehe Plan).
-- [ ] [Buchungen] Externe Kalender (z. B. den Divera-Kalender) per Einstellungen hinterlegen
-      können, damit sie zusätzlich zu den Gerätehaus.app-eigenen Fahrzeugbuchungen im
-      Buchungskalender angezeigt werden (Konflikterkennung soll dann auch externe Termine
-      berücksichtigen, nicht nur eigene Buchungen). Betrifft `BuchungsKalender.tsx`
-      (react-big-calendar) und `buchung_service.hat_konflikt()`. Naheliegendster Ansatz: pro
-      Fahrzeug oder global eine iCal-/webcal-URL in app_config hinterlegen (Divera bietet i.d.R.
-      einen iCal-Export), serverseitig periodisch abrufen/parsen (z. B. mit `icalendar`-Paket)
-      und als zusätzliche, nicht buchbare "Fremdtermine" im Kalender überlagern. Divera-API-Key
-      ist schon vorhanden (`divera_service.py`/`divera_client.py`) – ggf. erst prüfen, ob Divera
-      Termine auch direkt über die bestehende API statt iCal liefert.
-- [ ] [Benachrichtigungen] Mail-Versand: evtl. eine "Ausdrucken statt/zusätzlich zu E-Mail"-
-      Alternative anbieten – z. B. für Moderatoren ohne hinterlegte E-Mail, oder als
-      Backup-Kanal, wenn der SMTP-Versand fehlschlägt. Genauer Bedarf/Umfang noch unklar (reine
-      Druckansicht im Browser? PDF-Download der Benachrichtigung? Automatisch bei
-      SMTP-Fehlschlag?) – beim Aufgreifen erst klären, was genau gewünscht ist, bevor
-      implementiert wird. Die HTML-Mail-Infrastruktur (`email_template_service.render_html()`)
-      liefert bereits druckfähiges, gestyltes HTML, das sich als Basis eignen sollte.
-- [ ] [Moderatoren] E-Mail-Adresse pro Moderatoren-Zugang (`moderatoren`-Tabelle, neues Feld
-      `email`): Migration + Endpunkte `moderator_anlegen`/`moderator_aktualisieren` erweitern,
-      Formular in `Einstellungen.tsx` (Bereich "Admin- & Gruppenführer-Zugänge") um E-Mail-Feld
-      ergänzen. Wird als Voraussetzung für die per-Zugang-Benachrichtigungen (siehe unten) benötigt.
-- [ ] [Benachrichtigungen] Benachrichtigungen pro Moderatoren-Zugang statt global: Die aktuellen
-      globalen Schalter (`benachrichtigung_neuer_einsatz`, `benachrichtigung_neues_dienstbuch`,
-      `benachrichtigung_buchungsanfrage`, `benachrichtigung_schwellenwert_ueberschreitung`,
-      `benachrichtigung_person_inaktiv`) aus `app_config` und die Sektion "Benachrichtigungen" aus
-      `Einstellungen.tsx` entfernen. Stattdessen: neue Tabelle `moderatoren_benachrichtigungen`
-      (moderator_id FK, ereignis_schluessel, aktiv bool; Default aktiv=False) oder gleichnamige
-      Felder direkt auf `moderatoren`. `EmailNotifier` statt der bisherigen `notifier_email_recipients`-
-      Liste die hinterlegten E-Mail-Adressen der Moderatoren abfragen, die das jeweilige Ereignis
-      aktiviert haben. Migration nötig (Alembic). Setzt E-Mail-Adressen pro Zugang voraus.
+- [ ] [Dienststunden] In der Liste sollen nicht die Personen-IDs angezeigt werden, sondern der
+      richtige Name, dasselbe mit der Funktion.
+- [ ] [Punkte] Punkte in der Moderator-Übersicht: unter der Eingabe darf nicht mehr der Text
+      "Die automatischen Punkte-Regeln (unten) kann nur ein Admin einsehen und ändern." stehen!
+
+### Etappe B – Dienststunden-Politur (Dashboard/Liste-Verknüpfung)
+
+- [ ] Schwellenwert-Überschreitungen sollten nach oben und die Liste mit den ganzen Einträgen
+      nach unten.
+- [ ] Wenn die Stunden übernommen werden und unter der Schwelle ist, dann sollten auch die
+      Schwellenwert-Überschreitungen auf dem Dashboard aktualisiert werden.
+- [ ] Wenn man auf Schwellenwert-Überschreitungen auf dem Dashboard klickt, soll man direkt zu
+      den Listen → Dienststunden springen.
+- [ ] Sende der Person eine Mail, wenn die Stunden eingetragen wurden.
+
+### Etappe C – Dienststunden-Erfassung touch-freundlich (größeres UI-Rework)
+
+- [ ] Stunden-Erfassung touch-freundlicher und präziser gestalten: Das aktuelle
+      `<input type="number">`-Feld ist auf dem Handy umständlich. Vorschlag: Schnellauswahl-Chips
+      für häufige Werte (0:30 · 1:00 · 1:30 · 2:00 · 3:00 · 4:00) als tippbare Kacheln-Reihe,
+      darunter ein Feineinstellungs-Stepper (− / Anzeige / +) in 15-Min.-Schritten für
+      Zwischenwerte. Die Anzeige erfolgt im Format "2 Std. 30 Min." statt als Dezimalzahl.
+      Intern weiterhin als Dezimalstunden (float) an die API übergeben. Betrifft
+      `Dienststunden.tsx` (Bereich "Stunden erfassen"), keine Backend-Änderung nötig.
+
+### Etappe D – Mitglieder-Hub Redesign (`MitgliedHub.tsx`, nur Frontend)
+
+- [ ] (1) **Profil-Zeile** statt großem Begrüßungsblock: kompakter Streifen mit Avatar
+      (Profilbild oder Initialen-Fallback, ~40 px), Name daneben, und "Abmelden" als kleiner
+      Textlink rechts – spart erheblich Höhe und wirkt weniger überladen.
+- [ ] (2) **Kacheln 2-spaltig** im CSS-Grid statt Vollbreite-Stack: quadratische Kacheln
+      (Icon oben, Label unten), analog zum Kiosk-Design, auf schmalen Screens 2 Spalten.
+- [ ] (3) **Einheitliche Kachel-Styles**: Keinen selektiven orangen Rand (sieht aktuell aus
+      wie ein hängengebliebener Aktiv-State). Aktiv/Hover-Zustand nur bei echtem Touch/Klick.
+- [ ] (4) **"Abmelden"-Button** nicht mehr als große outlined Schaltfläche prominent platzieren
+      – in die Profil-Zeile integrieren (siehe 1). Betrifft ausschließlich `MitgliedHub.tsx`
+      und `index.css` (ggf. neues `.mitglied-hub-*`-CSS), kein Backend.
+
+### Etappe E – Punkte- & Barcode-Sicherheit
+
+- [ ] [Punkte] Punkte als Belohnung vergeben: darf man sich nicht selber Punkte geben. Bei der
+      Empfänger-Person soll in der Timeline die Punkte, Gültigkeit, Grund und wer die Punkte
+      hinzugefügt hat stehen.
+- [ ] [Punkte] Im Admin-Bereich soll man Personen auch Punkte entziehen können. Überlegen, wie
+      sich das schön einbauen lässt, ohne die Oberfläche zu überladen.
+- [ ] [Buchungen] Wenn bei der Fahrzeugbuchung "Barcode vergessen" geklickt wird, dann soll –
+      sobald die Person sich am Handy mit Name und PIN eingeloggt hat – neben dem QR-Code sofort
+      das Profilbild und der Name angezeigt werden.
+- [ ] [Barcode] Überprüfe überall, wo man auf "Barcode vergessen" klickt, dass man am Handy
+      seinen Namen und PIN eingeben muss zum Einloggen. Erst dann sollen die Bilder angezeigt
+      werden. Wenn die Person keinen PIN hat, dann sperre die Option. Vermerke dies aber in ihrer
+      Personen-Timeline.
+
+### Etappe F – Per-Zugang-Benachrichtigungen (zwei Schritte, sequenziell)
+
+1. [ ] [Moderatoren] E-Mail-Adresse pro Moderatoren-Zugang (`moderatoren`-Tabelle, neues Feld
+       `email`): Migration + Endpunkte `moderator_anlegen`/`moderator_aktualisieren` erweitern,
+       Formular in `Einstellungen.tsx` (Bereich "Admin- & Gruppenführer-Zugänge") um E-Mail-Feld
+       ergänzen. Voraussetzung für Schritt 2.
+2. [ ] [Benachrichtigungen] Benachrichtigungen pro Moderatoren-Zugang statt global: Die aktuellen
+       globalen Schalter (`benachrichtigung_neuer_einsatz`, `benachrichtigung_neues_dienstbuch`,
+       `benachrichtigung_buchungsanfrage`, `benachrichtigung_schwellenwert_ueberschreitung`,
+       `benachrichtigung_person_inaktiv`) aus `app_config` und die Sektion "Benachrichtigungen"
+       aus `Einstellungen.tsx` entfernen. Stattdessen: neue Tabelle
+       `moderatoren_benachrichtigungen` (moderator_id FK, ereignis_schluessel, aktiv bool;
+       Default aktiv=False) oder gleichnamige Felder direkt auf `moderatoren`. `EmailNotifier`
+       statt der bisherigen `notifier_email_recipients`-Liste die hinterlegten E-Mail-Adressen
+       der Moderatoren abfragen, die das jeweilige Ereignis aktiviert haben. Migration nötig
+       (Alembic).
+
+### Etappe G – Personen-Auswertung & Timeline-Details
+
 - [ ] [Personal] Personen-Auswertungsseite: Detailansicht pro Person im Moderator-Bereich mit
       zwei Bereichen: (1) **Timeline** – alle `PersonEreignis`-Einträge der Person chronologisch
       lesbar dargestellt (Datum, Ereignistyp als lesbares Label, Detailtext), filterbar nach
@@ -86,27 +110,6 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
       aggregierte Punkteverlauf-Zeitreihe (z. B. monatliche Schnappschüsse aus
       `person_punkte`-Einträgen). Frontend: neue Route `/moderator/personal/:id` von der
       bestehenden Personal-Liste verlinkbar (Klick auf Person oder neuer "Auswertung"-Button).
-- [ ] [Personal] CSV-Import für Personen, inkl. Beispieldatei zum Download (Spalten-Vorlage:
-      vorname, zwischenname, nachname, email, gruppe, funktion o. ä.). Betrifft
-      `Personal.tsx`/`stammdaten_service.person_anlegen()`. Sinnvoller Ansatz: neuer Endpunkt
-      POST `/moderator/stammdaten/personen/csv-import`, der eine hochgeladene CSV zeilenweise
-      gegen `person_anlegen()` durchläuft (inkl. der bestehenden Punkte-Vergabe/Timeline-Logik
-      pro Anlage), Gruppen/Funktionen per Name auflöst (anlegen, falls nicht vorhanden, oder
-      Fehler pro Zeile sammeln und am Ende als Ergebnis-Liste zurückgeben statt beim ersten
-      Fehler abzubrechen). Beispieldatei als statische Datei im Frontend (z. B.
-      `public/personen-vorlage.csv`) zum Download neben dem Upload-Button auf der Personal-Seite.
-- [ ] [Dienststunden] Stunden-Erfassung touch-freundlicher und präziser gestalten: Das aktuelle
-      `<input type="number">`-Feld ist auf dem Handy umständlich. Vorschlag: Schnellauswahl-Chips
-      für häufige Werte (0:30 · 1:00 · 1:30 · 2:00 · 3:00 · 4:00) als tippbare Kacheln-Reihe,
-      darunter ein Feineinstellungs-Stepper (− / Anzeige / +) in 15-Min.-Schritten für
-      Zwischenwerte. Die Anzeige erfolgt im Format "2 Std. 30 Min." statt als Dezimalzahl.
-      Intern weiterhin als Dezimalstunden (float) an die API übergeben. Betrifft
-      `Dienststunden.tsx` (Bereich "Stunden erfassen"), keine Backend-Änderung nötig.
-- [ ] [Dienststunden] Schwellenwert-Überschreitungen sollte nach oben und die Liste mit den ganzen einträgen nach unten.
-- [ ] [Dienststunden] In der Liste sollen nicht die Personen ID's angezeigt werden, sondern der richtige Name, das selbige mit der Funktion.
-- [ ] [Dienststunden] Sende die Person eine Mail, wenn die Stunden eingetragen wurden
-- [ ] [Dienststunden] Wenn die Stunden übernommen werden und unter der Schwelle ist, dann sollten auche die Schwellenwert-Überschreitungen auf dem Dashboard aktuallisiert werden
-- [ ] [Dienststunden] Schwellenwert-Überschreitungen auf dem Dashboard klickt, soll man direkt zu den Listen -> Dienststunden hinspringen
 - [ ] [Personal] Timeline-Einträge im Admin-Bereich (Personen-Auswertungsseite, siehe oben)
       detaillierter gestalten: Aktuell steht z. B. nur "Punkte erhalten" ohne weiteren Kontext.
       Jeder `PersonEreignis`-Eintrag soll im Admin-Bereich mehr Informationen anzeigen – bei
@@ -116,15 +119,53 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
       der Ereignisse (z. B. in `einsatz_service`, `stammdaten_service`) um weitere Angaben
       angereichert werden muss. Für Mitglieder soll die Timeline-Darstellung separat und anders
       gestaltet werden (eigener Punkt, noch offen).
-- [ ] [Punkte] Punkte als Belohnung vergeben darf man sich nicht selber Punkte geben. Bei der Empfänger Person von den Punkten soll in der Timeline die Punkte Gültigkeit Grund und wer die Punkte hinzugefügt hat
-- [ ] [Punkte] Im Admin bereich soll man Personen auch Punkte entziehen können. Überleg dir wie du das schön einbaust ohne das alles zu überlagen ist
-- [ ] [Punkte] Punkte in der Moderator übersicht darf unter der Eingabe nicht mehr der Text "Die automatischen Punkte-Regeln (unten) kann nur ein Admin einsehen und ändern." stehen!
- - [ ] [Buchungen] Wenn bei den Fahrzeugbuchung "Barcode vergessen" geklickt wird, dann soll sobald die Person sich am Handy mit Name und Pin eingeloggt haben, neben den QR Code sofort das Profilbild und Gesicht angezeigt werden.
- - [ ] [Barcode] Überprüfe überall wenn man auf Barcode Vergessen klickt, das man am Handy sein Name und Pin eingeben muss zum einloggen. Erst dann sollen die Bilder angezeigt werden. Wenn die Person kein Pin hat, dann sperr die Option. Vermerke dies aber in seiner Personen Timeline.
+
+### Etappe H – Externe Kalender im Buchungskalender
+
+- [ ] [Buchungen] Externe Kalender (z. B. den Divera-Kalender) per Einstellungen hinterlegen
+      können, damit sie zusätzlich zu den Gerätehaus.app-eigenen Fahrzeugbuchungen im
+      Buchungskalender angezeigt werden (Konflikterkennung soll dann auch externe Termine
+      berücksichtigen, nicht nur eigene Buchungen). Betrifft `BuchungsKalender.tsx`
+      (react-big-calendar) und `buchung_service.hat_konflikt()`. Naheliegendster Ansatz: pro
+      Fahrzeug oder global eine iCal-/webcal-URL in app_config hinterlegen (Divera bietet i.d.R.
+      einen iCal-Export), serverseitig periodisch abrufen/parsen (z. B. mit `icalendar`-Paket)
+      und als zusätzliche, nicht buchbare "Fremdtermine" im Kalender überlagern. Divera-API-Key
+      ist schon vorhanden (`divera_service.py`/`divera_client.py`) – ggf. erst prüfen, ob Divera
+      Termine auch direkt über die bestehende API statt iCal liefert.
+
+### Etappe I – Personen-CSV-Import
+
+- [ ] [Personal] CSV-Import für Personen, inkl. Beispieldatei zum Download (Spalten-Vorlage:
+      vorname, zwischenname, nachname, email, gruppe, funktion o. ä.). Betrifft
+      `Personal.tsx`/`stammdaten_service.person_anlegen()`. Sinnvoller Ansatz: neuer Endpunkt
+      POST `/moderator/stammdaten/personen/csv-import`, der eine hochgeladene CSV zeilenweise
+      gegen `person_anlegen()` durchläuft (inkl. der bestehenden Punkte-Vergabe/Timeline-Logik
+      pro Anlage), Gruppen/Funktionen per Name auflöst (anlegen, falls nicht vorhanden, oder
+      Fehler pro Zeile sammeln und am Ende als Ergebnis-Liste zurückgeben statt beim ersten
+      Fehler abzubrechen). Beispieldatei als statische Datei im Frontend (z. B.
+      `public/personen-vorlage.csv`) zum Download neben dem Upload-Button auf der Personal-Seite.
+
+### Noch zu klären (kein Etappen-Zuschnitt möglich)
+
+- [ ] [Benachrichtigungen] Mail-Versand: evtl. eine "Ausdrucken statt/zusätzlich zu E-Mail"-
+      Alternative anbieten – z. B. für Moderatoren ohne hinterlegte E-Mail, oder als
+      Backup-Kanal, wenn der SMTP-Versand fehlschlägt. Genauer Bedarf/Umfang noch unklar (reine
+      Druckansicht im Browser? PDF-Download der Benachrichtigung? Automatisch bei
+      SMTP-Fehlschlag?) – beim Aufgreifen erst klären, was genau gewünscht ist, bevor
+      implementiert wird. Die HTML-Mail-Infrastruktur (`email_template_service.render_html()`)
+      liefert bereits druckfähiges, gestyltes HTML, das sich als Basis eignen sollte.
+
 ## In Arbeit
 
 ## Erledigt
 
+- [x] [Design] Frontend-Design-Modernisierung komplett abgeschlossen: Etappe 1–4 (geteilte
+      Bausteine `Banner`/`Ladeanzeige`/`.formular-feld`/`.formular-zeile`, alle `<br />`-Ketten
+      entfernt, Tabellen mobil scrollbar via `.tabelle-scroll`, `<Ladeanzeige />` überall
+      ausgerollt) + zusätzlich Dark Mode (manueller Schalter in der Kopfzeile + System-Präferenz
+      als Default, neue CSS-Variablen `--farbe-oberflaeche`/`--farbe-rand`/`--farbe-text-mute`
+      etc., inkl. Nachzieh-Sweep aller inline `style={{color:"#666"/"#999"}}`-Stellen) und fluide
+      Typografie (`h1`–`h3` via `clamp()`).
 - [x] [Auth] "Durch zufälliges Klicken war ich auf einmal eingeloggt" behoben: neue
       `POST /auth/abmelden` löscht den httponly `geraetehaus_name`-Cookie serverseitig (geht
       nicht per JS, da httponly); `AuthContext.tsx` hat jetzt `mitgliedAbmelden()` (löscht
