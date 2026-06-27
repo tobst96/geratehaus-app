@@ -66,6 +66,18 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
 - [ ] [Dienststunden] Bei der Stunden-Erfassung fehlt ein Schnellauswahl-Button für 15 Minuten
       (0:15) – bisher gibt es nur 0:30 als kleinsten Chip. Betrifft `Dienststunden.tsx` (Bereich
       "Stunden erfassen", Schnellauswahl-Chips aus dem Eintrag oben).
+- [ ] [Dienststunden] Nach dem Buchen eine klare Bestätigung/Liste der eigenen letzten Einträge
+      zeigen statt nur die kumulierten Summen – aktuell sieht man nicht auf einen Blick, welche
+      Buchung gerade erfasst wurde. Betrifft `Dienststunden.tsx` (zeigt nur Summen-Tabelle) und
+      `DienststundenManuelleEintragung.tsx` (zeigt nur statisches "Eingetragen!" ohne Details).
+- [ ] [Dienststunden] Schutz vor Doppelbuchung: Aktuell wird nicht geprüft, ob für
+      Person+Datum+Funktion bereits ein Eintrag existiert – Mehrfachbuchung (inkl. mehrfacher
+      Punktevergabe) ist möglich. Warnung oder Block einbauen in
+      `dienststunden_service.erfassen()` (backend/app/services/dienststunden_service.py).
+- [ ] [Dienststunden] Dienststunden-Buchungen werden nicht als eigenes Ereignis in der
+      Person-Timeline protokolliert – aktuell wird dort nur ein Funktionswechsel festgehalten
+      (`_funktion_in_stammdaten_abgleichen()`), nicht die Buchung selbst. Eigenes PersonEreignis
+      (z. B. `"dienststunden_erfasst"`) beim Buchen ergänzen.
 
 ### Etappe D – Moderator-Bereich Mobile-Optimierung
 
