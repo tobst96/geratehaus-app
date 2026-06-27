@@ -95,6 +95,34 @@ class EmailNotifier(Notifier):
         except (aiosmtplib.SMTPException, OSError):
             logger.warning("email_versand_fehlgeschlagen", exc_info=True)
 
+    async def barcode_mail_versenden(
+        self,
+        db: AsyncSession,
+        empfaenger: str,
+        betreff: str,
+        plaintext: str,
+        html: str,
+        png: bytes,
+        person_id: int,
+    ) -> None:
+        """Barcode-Mail mit vorgefertigtem HTML und PNG als Anhang (Fallback für
+        Mail-Clients, die data:-URIs blockieren, z. B. Gmail)."""
+        message = EmailMessage()
+        message["From"] = await config_service.get(db, "notifier_email_from", "geratehaus@example.org")
+        message["To"] = empfaenger
+        message["Subject"] = betreff
+        message.set_content(plaintext)
+        message.add_alternative(html, subtype="html")
+        message.add_attachment(png, maintype="image", subtype="png", filename=f"barcode-{person_id}.png")
+        await aiosmtplib.send(
+            message,
+            hostname=await config_service.get(db, "notifier_email_smtp_host", ""),
+            port=await config_service.get(db, "notifier_email_smtp_port", 587),
+            username=await config_service.get(db, "notifier_email_smtp_user", "") or None,
+            password=await config_service.get(db, "notifier_email_smtp_password", "") or None,
+            start_tls=await config_service.get(db, "notifier_email_smtp_use_tls", True),
+        )
+
     async def send_an_mit_anhang(
         self,
         db: AsyncSession,

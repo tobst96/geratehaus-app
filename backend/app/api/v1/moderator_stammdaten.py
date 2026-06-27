@@ -23,7 +23,7 @@ from app.schemas.stammdaten import (
     GruppeOut,
     GruppeUpdate,
 )
-from app.services import barcode_service, dienststunden_service, person_bild_reservierung_service, stammdaten_service
+from app.services import barcode_service, dienststunden_service, email_template_service, person_bild_reservierung_service, stammdaten_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -300,22 +300,24 @@ async def person_barcode_per_mail(
 
     token = await barcode_service.token_fuer_person(db, person_id)
     png = barcode_service.render_png(token.token)
-    vorlage = await config_service.get(db, "benachrichtigung_text_barcode_mail", "")
-    try:
-        nachricht = vorlage.format(person=person.name)
-    except (KeyError, IndexError):
-        nachricht = vorlage
+    ablauf_datum = token.ablauf_am.strftime("%d.%m.%Y") if token.ablauf_am else None
+    html = await email_template_service.render_barcode_html(
+        db,
+        person_name=person.name,
+        png_bytes=png,
+        ablauf_datum=ablauf_datum,
+        intro_text="Hier ist dein persönlicher Barcode für Gerätehaus.app. Scanne ihn an der Kiosk-Station oder drucke ihn aus.",
+    )
 
     try:
-        await EmailNotifier().send_an_mit_anhang(
+        await EmailNotifier().barcode_mail_versenden(
             db,
-            person.email,
-            "Dein Barcode für Gerätehaus.app",
-            nachricht,
-            f"barcode-{person.id}.png",
-            png,
-            "image",
-            "png",
+            empfaenger=person.email,
+            betreff="Dein Barcode für Gerätehaus.app",
+            plaintext=f"Hallo {person.name},\n\ndein persönlicher Barcode ist im Anhang dieser Mail.\n\nGültig bis: {ablauf_datum or '–'}",
+            html=html,
+            png=png,
+            person_id=person.id,
         )
     except Exception as exc:
         raise HTTPException(

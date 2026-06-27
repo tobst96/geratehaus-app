@@ -66,26 +66,29 @@ async def erneuerung_mail_senden(db: AsyncSession, person: Person) -> None:
     """Erstellt einen neuen Barcode für die Person und sendet ihn per E-Mail.
     Setzt email_aktiv in app_config voraus – wenn nicht aktiv, wird nichts versendet."""
     from app.services.notifier.email import EmailNotifier  # lokaler Import vermeidet Zirkel
+    from app.services import email_template_service
 
     email_aktiv = await config_service.get(db, "notifier_email_aktiv", False)
     if not email_aktiv:
         return
     neuer = await barcode_erneuern(db, person.id)
     png = render_png(neuer.token)
-    vorlage = await config_service.get(db, "benachrichtigung_text_barcode_mail", "")
-    try:
-        nachricht = vorlage.format(person=person.name)
-    except (KeyError, IndexError):
-        nachricht = vorlage
-    await EmailNotifier().send_an_mit_anhang(
+    ablauf_datum = neuer.ablauf_am.strftime("%d.%m.%Y") if neuer.ablauf_am else None
+    html = await email_template_service.render_barcode_html(
         db,
-        person.email,
-        "Dein neuer Barcode für Gerätehaus.app",
-        nachricht,
-        f"barcode-{person.id}.png",
-        png,
-        "image",
-        "png",
+        person_name=person.name,
+        png_bytes=png,
+        ablauf_datum=ablauf_datum,
+        intro_text="Dein bisheriger Barcode ist abgelaufen. Hier ist dein neuer Barcode – scanne ihn an der Kiosk-Station oder drucke ihn aus.",
+    )
+    await EmailNotifier().barcode_mail_versenden(
+        db,
+        empfaenger=person.email,
+        betreff="Dein neuer Barcode für Gerätehaus.app",
+        plaintext=f"Hallo {person.name},\n\ndein bisheriger Barcode ist abgelaufen. Deinen neuen Barcode findest du im Anhang dieser Mail.\n\nGültig bis: {ablauf_datum or '–'}",
+        html=html,
+        png=png,
+        person_id=person.id,
     )
     logger.info("barcode_erneuerungsmail_gesendet", person_id=person.id)
 
