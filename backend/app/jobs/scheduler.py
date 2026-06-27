@@ -9,6 +9,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.db.session import AsyncSessionLocal
 from app.services import (
     archive_service,
+    barcode_service,
     dienstbuch_service,
     divera_service,
     einsatz_service,
@@ -102,6 +103,25 @@ async def _personen_inaktivitaet_job() -> None:
             logger.warning("personen_inaktivitaet_fehlgeschlagen", exc_info=True)
 
 
+async def _barcode_erneuerung_job() -> None:
+    """Läuft täglich um 3:30 Uhr; erneuert abgelaufene Barcodes und versendet
+    die neuen per E-Mail an Personen mit aktivierten Benachrichtigungen."""
+    async with AsyncSessionLocal() as db:
+        try:
+            paare = await barcode_service.abgelaufene_personen_fuer_erneuerung(db)
+            gesendet = 0
+            for _token, person in paare:
+                try:
+                    await barcode_service.erneuerung_mail_senden(db, person)
+                    gesendet += 1
+                except Exception:
+                    logger.warning("barcode_erneuerungsmail_fehlgeschlagen", person_id=person.id, exc_info=True)
+            if gesendet:
+                logger.info("barcodes_erneuert", anzahl=gesendet)
+        except Exception:
+            logger.warning("barcode_erneuerung_job_fehlgeschlagen", exc_info=True)
+
+
 async def _dienstbuch_autoschluss_job() -> None:
     """Läuft stündlich; schließt alle noch offenen Dienstbücher in der in
     den Einstellungen konfigurierten Stunde (Standard 4 Uhr)."""
@@ -190,6 +210,16 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("personen_inaktivitaet_job_registriert", uhrzeit="00:00")
+
+    scheduler.add_job(
+        _barcode_erneuerung_job,
+        "cron",
+        hour=3,
+        minute=30,
+        id="barcode_erneuerung",
+        replace_existing=True,
+    )
+    logger.info("barcode_erneuerung_job_registriert", uhrzeit="03:30")
 
 
 def start() -> None:

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 
@@ -19,7 +19,8 @@ from app.schemas.auth import (
     ModeratorToken,
     NameEintragen,
 )
-from app.services import auth_service, mitglied_login_reservierung_service, stammdaten_service
+from app.db.session import AsyncSessionLocal
+from app.services import auth_service, barcode_service, mitglied_login_reservierung_service, stammdaten_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -65,7 +66,7 @@ async def name_eintragen(
     "/barcode", response_model=BarcodeIdentitaet, dependencies=[Depends(rate_limit(20, 60))]
 )
 async def barcode_einscannen(
-    db: DbSession, response: Response, daten: BarcodeEinscannen
+    db: DbSession, response: Response, daten: BarcodeEinscannen, background_tasks: BackgroundTasks
 ) -> BarcodeIdentitaet:
     """Löst einen gescannten Personen-Barcode zur Identität auf und trägt sie
     wie /auth/name im Namens-Cookie ein – so identifiziert sich die Person für
@@ -81,6 +82,18 @@ async def barcode_einscannen(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
 
     if barcode.ablauf_am is not None and barcode.ablauf_am < datetime.utcnow():
+        if person.email and person.benachrichtigungen_aktiv:
+            person_id_snapshot = person.id
+
+            async def _erneuerung_im_hintergrund() -> None:
+                async with AsyncSessionLocal() as bg_db:
+                    try:
+                        p = (await bg_db.execute(select(Person).where(Person.id == person_id_snapshot))).scalar_one()
+                        await barcode_service.erneuerung_mail_senden(bg_db, p)
+                    except Exception:
+                        pass
+
+            background_tasks.add_task(_erneuerung_im_hintergrund)
         raise HTTPException(
             status_code=status.HTTP_410_GONE, detail=f"Barcode von {person.name} ist abgelaufen."
         )
