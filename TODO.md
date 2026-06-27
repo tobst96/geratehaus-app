@@ -16,6 +16,14 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
 
 ### Etappe A – Quick Fixes (mehrere Module, klein/mechanisch)
 
+- [ ] [Update] Bug: Installierte Version (`0.3.0b1`, PEP-440-Format aus `pyproject.toml`) und
+      verfügbare Version (`0.3.0-beta.1`, Semver aus GitHub-Releases-API) bezeichnen dieselbe
+      Version, werden aber unterschiedlich formatiert – dadurch zeigt die Seite fälschlicherweise
+      „neue Version verfügbar" an. Fix: beim Vergleich beide Formate auf einen gemeinsamen
+      Nenner normalisieren (z. B. `0.3.0b1` → `0.3.0-beta.1` oder umgekehrt) bevor verglichen
+      wird. Alternativ `pyproject.toml`-Version von vornherein in Semver-Format pflegen.
+      Betrifft `app/api/v1/update.py` oder wo der Versionsvergleich stattfindet.
+
 - [ ] [Design] Abstand unter Aktions-Buttons vor dem nächsten Inhaltsbereich: Im Einsatztagebuch
       fehlt unter dem „Neuer Einsatz"-Button der visuelle Abstand bevor die Einsatzliste beginnt.
       Dasselbe Muster in allen anderen Modulen prüfen und vereinheitlichen (Dienstbuch: „Neuer
