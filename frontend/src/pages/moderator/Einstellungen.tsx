@@ -80,7 +80,7 @@ function ModeratorenVerwaltung() {
         Dashboard, Listen (Einsatzberichte/Dienstbucheinträge) und Buchungen (Fahrzeugreservierungen).
       </p>
       {fehler && <p className="fehlertext">{fehler}</p>}
-      {!liste && <p>Lädt …</p>}
+      {!liste && <Ladeanzeige />}
       {liste && (
         <div className="tabelle-scroll">
         <table>

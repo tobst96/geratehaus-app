@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { holeEinsaetze } from "../../api/einsaetze";
 import { ApiError } from "../../api/client";
 import type { EinsatzOut } from "../../api/types";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 export function FahrzeugView() {
   const { token } = useParams<{ token: string }>();
@@ -28,7 +29,7 @@ export function FahrzeugView() {
 
   if (!token) return <p>Invalid token</p>;
   if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
-  if (!einsaetze) return <p>Lädt…</p>;
+  if (!einsaetze) return <Ladeanzeige />;
 
   return (
     <div style={{ padding: "1rem" }}>

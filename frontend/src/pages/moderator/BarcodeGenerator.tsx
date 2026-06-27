@@ -10,6 +10,7 @@ import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import type { Person } from "../../api/types";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 interface BarcodeInfo {
   token: string;
@@ -113,7 +114,7 @@ export function BarcodeGenerator() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!personen) return <p>Lädt …</p>;
+  if (!personen) return <Ladeanzeige />;
 
   return (
     <div>

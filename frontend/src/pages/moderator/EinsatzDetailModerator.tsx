@@ -12,6 +12,7 @@ import { holeFahrzeuge } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import type { EinsatzEreignis, EinsatzFeldDefinition, EinsatzOut, Fahrzeug } from "../../api/types";
 import "./EinsatzDetailModerator.css";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 const EREIGNIS_ICON: Record<string, string> = {
   angelegt: "🚨",
@@ -85,7 +86,7 @@ export function EinsatzDetailModerator() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!einsatz) return <p>Lädt …</p>;
+  if (!einsatz) return <Ladeanzeige />;
 
   function sitzplatzBezeichnung(fahrzeugId: number | null, sitzplatzId: string | null): string {
     if (fahrzeugId == null || sitzplatzId == null) return "";

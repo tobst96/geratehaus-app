@@ -28,6 +28,7 @@ import type {
   Person,
   PersonEreignis,
 } from "../../api/types";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 interface BildQr {
   personId: number;
@@ -379,7 +380,7 @@ export function Personal() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   const gefiltert = !suche.trim()
     ? liste
@@ -722,7 +723,7 @@ export function Personal() {
 
               <h3>Dienststunden</h3>
               {!dienststundenSummen ? (
-                <p>Lädt …</p>
+                <Ladeanzeige />
               ) : (
                 <>
                   <div className="tabelle-scroll">
@@ -796,7 +797,7 @@ export function Personal() {
 
               <h3>Timeline</h3>
               {!timeline ? (
-                <p>Lädt …</p>
+                <Ladeanzeige />
               ) : timeline.length === 0 ? (
                 <p style={{ color: "#666" }}>Noch keine Ereignisse.</p>
               ) : (

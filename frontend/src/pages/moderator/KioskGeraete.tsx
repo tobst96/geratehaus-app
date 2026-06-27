@@ -3,6 +3,7 @@ import { holeKioskTokens, kioskTokenAnlegen, kioskTokenLoeschen, type KioskToken
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 export function KioskGeraete() {
   const { config } = useConfig();
@@ -57,7 +58,7 @@ export function KioskGeraete() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!geraete) return <p>Lädt …</p>;
+  if (!geraete) return <Ladeanzeige />;
 
   return (
     <div>

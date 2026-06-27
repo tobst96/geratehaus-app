@@ -8,6 +8,7 @@ import {
 } from "../../api/dienstbuecher";
 import { ApiError } from "../../api/client";
 import type { DienstbuchOut } from "../../api/types";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 export function DienstbuchDetailModerator() {
   const { id } = useParams<{ id: string }>();
@@ -58,7 +59,7 @@ export function DienstbuchDetailModerator() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!dienstbuch) return <p>Lädt …</p>;
+  if (!dienstbuch) return <Ladeanzeige />;
 
   return (
     <div>

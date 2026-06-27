@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { holeDashboard, type DashboardOut } from "../../api/moderator";
 import { ApiError } from "../../api/client";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ export function Dashboard() {
   }, []);
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!daten) return <p>Lädt …</p>;
+  if (!daten) return <Ladeanzeige />;
 
   const maxAnzahl = Math.max(1, ...daten.einsaetze_pro_monat.map((m) => m.anzahl));
 

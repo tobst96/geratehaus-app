@@ -15,6 +15,7 @@ import { ApiError } from "../../api/client";
 import type { BuchungOut, DienstbuchOut, EinsatzOut } from "../../api/types";
 import type { DienststundenEintragOut } from "../../api/dienststunden";
 import { useAuth } from "../../context/AuthContext";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 const TABS_BASIS = ["Einsätze", "Dienstbücher", "Dienststunden", "Buchungen"] as const;
 const TAB_NAMENSABWEICHUNGEN = "Namensabweichungen" as const;
@@ -438,7 +439,7 @@ function NamensabweichungenTab() {
   }, []);
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!daten) return <p>Lädt …</p>;
+  if (!daten) return <Ladeanzeige />;
 
   return (
     <div className="tabelle-scroll">

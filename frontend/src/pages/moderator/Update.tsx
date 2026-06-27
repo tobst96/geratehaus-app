@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { holeUpdateStatus, updateKanalSetzen, type UpdateStatus } from "../../api/moderator";
 import { ApiError } from "../../api/client";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 export function Update() {
   const [status, setStatus] = useState<UpdateStatus | null>(null);
@@ -33,7 +34,7 @@ export function Update() {
   }
 
   if (fehler && !status) return <p className="fehlertext">{fehler}</p>;
-  if (!status) return <p>Lädt …</p>;
+  if (!status) return <Ladeanzeige />;
 
   return (
     <div>

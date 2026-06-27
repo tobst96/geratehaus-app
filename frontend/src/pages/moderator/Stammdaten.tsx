@@ -30,6 +30,7 @@ import type {
   Gruppe,
 } from "../../api/types";
 import { SitzplatzEditor } from "./SitzplatzEditor";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 const TABS = [
   "Gruppen",
@@ -101,7 +102,7 @@ function FahrzeugeTab() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   return (
     <div>
@@ -204,7 +205,7 @@ function FunktionenEinsatzTab() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   return (
     <div>
@@ -282,7 +283,7 @@ function GruppenTab() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   return (
     <div>
@@ -374,7 +375,7 @@ function EinsatzFelderTab() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   return (
     <div>
@@ -486,7 +487,7 @@ function FunktionenDienststundenTab() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   return (
     <div>
