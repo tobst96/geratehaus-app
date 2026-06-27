@@ -11,6 +11,7 @@ from app.models.buchung import FahrzeugBuchung
 from app.models.dienstbuch import Dienstbuch, DienstbuchPerson
 from app.models.dienststunden import Dienststunden
 from app.models.einsatz import Einsatz, EinsatzPerson
+from app.schemas.dienststunden import DienststundenEintragOut
 
 _TEILNAHME_DETAILS = selectinload(Einsatz.teilnahmen).options(
     selectinload(EinsatzPerson.person),
@@ -78,7 +79,7 @@ async def dienststunden_liste(
     bis: date | None = None,
     person_id: int | None = None,
     funktion_id: int | None = None,
-) -> list[Dienststunden]:
+) -> list[DienststundenEintragOut]:
     stmt = select(Dienststunden).options(
         selectinload(Dienststunden.person), selectinload(Dienststunden.funktion)
     )
@@ -92,7 +93,19 @@ async def dienststunden_liste(
         stmt = stmt.where(Dienststunden.funktion_id == funktion_id)
     stmt = stmt.order_by(Dienststunden.datum.desc())
     result = await db.execute(stmt)
-    return list(result.scalars().all())
+    rows = result.scalars().all()
+    return [
+        DienststundenEintragOut(
+            id=r.id,
+            person_id=r.person_id,
+            person_name=r.person.name,
+            funktion_id=r.funktion_id,
+            funktion_name=r.funktion.name,
+            stunden=r.stunden,
+            datum=r.datum,
+        )
+        for r in rows
+    ]
 
 
 async def buchungen_liste(

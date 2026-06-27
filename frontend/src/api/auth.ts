@@ -18,8 +18,15 @@ export interface BarcodeVorschau {
   funktion_id: number | null;
 }
 
+export interface MeinProfil {
+  gruppe_id: number | null;
+  funktion_id: number | null;
+}
+
 export const barcodeEinscannen = (token: string) =>
   apiPost<BarcodeIdentitaet>("/auth/barcode", { token });
+
+export const holeMeinProfil = () => apiGet<MeinProfil>("/auth/mein-profil");
 
 export const mitgliedAbmelden = () => apiPost<void>("/auth/abmelden");
 

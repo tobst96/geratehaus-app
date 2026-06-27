@@ -5,7 +5,7 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 
-from app.api.deps import DbSession
+from app.api.deps import CurrentPerson, DbSession
 from app.core.rate_limit import rate_limit
 from app.core.security import create_access_token, verify_secret
 from app.models.barcode_token import BarcodeToken
@@ -15,6 +15,7 @@ from app.schemas.auth import (
     BarcodeEinscannen,
     BarcodeIdentitaet,
     BarcodeVorschau,
+    MeinProfil,
     ModeratorToken,
     NameEintragen,
 )
@@ -33,6 +34,11 @@ async def abmelden(response: Response) -> None:
     Moderator-Logout (rein clientseitig, da JWT im localStorage) muss der
     Server hier aktiv werden, weil das Cookie httponly ist."""
     response.delete_cookie(NAME_COOKIE)
+
+
+@router.get("/mein-profil", response_model=MeinProfil)
+async def mein_profil(person: CurrentPerson) -> MeinProfil:
+    return MeinProfil(gruppe_id=person.gruppe_id, funktion_id=person.funktion_id)
 
 
 @router.post("/name", status_code=status.HTTP_204_NO_CONTENT)

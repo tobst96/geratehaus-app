@@ -181,8 +181,8 @@ async def dienststunden_pdf(
     ]
     zeilen = [
         {
-            "person": d.person.name,
-            "funktion": d.funktion.name,
+            "person": d.person_name,
+            "funktion": d.funktion_name,
             "stunden": d.stunden,
             "datum": d.datum.strftime("%d.%m.%Y"),
         }

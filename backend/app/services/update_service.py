@@ -3,6 +3,7 @@ löst kein automatisches Update aus. Der Backend-Container hat bewusst
 keinen Zugriff auf Docker/Git des Hosts, ein tatsächliches Update bleibt
 Sache des Admins (z. B. per SSH: git pull + docker compose up --build)."""
 
+import re
 import time
 from importlib.metadata import PackageNotFoundError, version
 
@@ -41,6 +42,14 @@ async def _releases_laden() -> list[dict]:
 
     _cache["releases"] = (jetzt, releases)
     return releases
+
+
+def _zu_pep440(v: str) -> str:
+    """Wandelt gängige Semver-Pre-Release-Suffixe in PEP-440 um (0.3.0-beta.2 → 0.3.0b2)."""
+    v = re.sub(r"-alpha\.?(\d*)", lambda m: f"a{m.group(1)}", v)
+    v = re.sub(r"-beta\.?(\d*)", lambda m: f"b{m.group(1)}", v)
+    v = re.sub(r"-rc\.?(\d*)", lambda m: f"rc{m.group(1)}", v)
+    return v
 
 
 def _passende_release(releases: list[dict], kanal: str) -> dict | None:
@@ -90,7 +99,7 @@ async def update_status(db: AsyncSession) -> dict:
         "verfuegbare_version": verfuegbare_version,
         "veroeffentlicht_am": release.get("published_at"),
         "release_url": release.get("html_url"),
-        "update_verfuegbar": verfuegbare_version not in ("", aktuelle_version),
+        "update_verfuegbar": bool(verfuegbare_version) and _zu_pep440(verfuegbare_version) != _zu_pep440(aktuelle_version),
         "fehler": None,
     }
 

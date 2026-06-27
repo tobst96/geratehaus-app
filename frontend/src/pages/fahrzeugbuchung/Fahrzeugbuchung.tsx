@@ -210,7 +210,7 @@ export function Fahrzeugbuchung() {
     <div>
       <h1>Fahrzeugbuchung</h1>
 
-      {!formularOffen && <button onClick={() => setFormularOffen(true)}>Neue Anfrage</button>}
+      {!formularOffen && <button style={{ marginBottom: 16 }} onClick={() => setFormularOffen(true)}>Neue Anfrage</button>}
       {hinweis && <p className="karte">{hinweis}</p>}
       {formularOffen && qrAnsicht && (
         <div className="karte dienststunden-qr-ansicht">

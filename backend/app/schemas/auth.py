@@ -23,3 +23,8 @@ class BarcodeVorschau(BaseModel):
 class ModeratorToken(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class MeinProfil(BaseModel):
+    gruppe_id: int | None
+    funktion_id: int | None

@@ -4,7 +4,9 @@ import type { DienststundenSummeOut } from "./types";
 export interface DienststundenEintragOut {
   id: number;
   person_id: number;
+  person_name: string;
   funktion_id: number;
+  funktion_name: string;
   stunden: number;
   datum: string;
 }

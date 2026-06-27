@@ -6,7 +6,7 @@ import {
   teilnehmerEintragen,
 } from "../../api/dienstbuecher";
 import { holeDienstbuchReservierung } from "../../api/dienstbuchReservierungen";
-import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
+import { barcodeVorschau, holeMeinProfil, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
@@ -60,6 +60,15 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
   const qrSchliessenGeplant = useRef(false);
 
   const letzteVorschauName = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (mitgliedModus.aktiv) {
+      holeMeinProfil().then((profil) => {
+        if (profil.gruppe_id !== null) setGruppeId(profil.gruppe_id);
+      }).catch(() => undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mitgliedModus.aktiv]);
 
   // Live-Vorschau (Name + Bild) während des Scannens, debounced, damit nicht
   // bei jedem Tastendruck ein Request raus geht.

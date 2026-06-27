@@ -182,7 +182,7 @@ export function Dienststunden() {
     <div>
       <h1>Dienststunden</h1>
 
-      <div className="karte">
+      <div className="karte" style={{ marginBottom: 16 }}>
         <h2>Stunden erfassen</h2>
 
         {qrAnsicht ? (

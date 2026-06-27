@@ -240,12 +240,6 @@ export function PunkteEinstellungen() {
         </form>
       </div>
 
-      {!istAdmin && (
-        <p style={{ color: "var(--farbe-text-mute)" }}>
-          Die automatischen Punkte-Regeln (unten) kann nur ein Admin einsehen und ändern.
-        </p>
-      )}
-
       {istAdmin && (
       <>
       <p style={{ color: "var(--farbe-text-mute)" }}>

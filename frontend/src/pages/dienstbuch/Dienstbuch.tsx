@@ -75,9 +75,9 @@ export function Dienstbuch() {
         Zeigt die zuletzt eröffneten Dienstbücher im konfigurierten Zeitfenster.
       </p>
 
-      {!formularOffen && <button onClick={() => setFormularOffen(true)}>Neues Dienstbuch</button>}
+      {!formularOffen && <button style={{ marginBottom: 16 }} onClick={() => setFormularOffen(true)}>Neues Dienstbuch</button>}
       {formularOffen && (
-        <form onSubmit={anlegen} className="karte">
+        <form onSubmit={anlegen} className="karte" style={{ marginBottom: 16 }}>
           <div className="formular-feld">
             <label htmlFor="db-titel">Titel</label>
             <input id="db-titel" value={titel} onChange={(e) => setTitel(e.target.value)} required />

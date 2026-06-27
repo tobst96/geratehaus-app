@@ -231,8 +231,8 @@ function DienststundenTab() {
         <table>
           <thead>
             <tr>
-              <th>Person-ID</th>
-              <th>Funktion-ID</th>
+              <th>Person</th>
+              <th>Funktion</th>
               <th>Stunden</th>
               <th>Datum</th>
             </tr>
@@ -240,8 +240,8 @@ function DienststundenTab() {
           <tbody>
             {daten.map((d) => (
               <tr key={d.id}>
-                <td>{d.person_id}</td>
-                <td>{d.funktion_id}</td>
+                <td>{d.person_name}</td>
+                <td>{d.funktion_name}</td>
                 <td>{d.stunden}</td>
                 <td>{d.datum}</td>
               </tr>

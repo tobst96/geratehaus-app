@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
 class DienststundenErfassen(BaseModel):
@@ -10,11 +10,11 @@ class DienststundenErfassen(BaseModel):
 
 
 class DienststundenEintragOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int
     person_id: int
+    person_name: str
     funktion_id: int
+    funktion_name: str
     stunden: float
     datum: date
 
