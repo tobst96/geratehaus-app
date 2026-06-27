@@ -97,6 +97,15 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
 
 ### Etappe E – Punkte- & Barcode-Sicherheit
 
+- [ ] [Punkte] Punkte-Einstellungen nach Modulen gruppieren (`PunkteEinstellungen.tsx`):
+      Aktuell werden alle Punkteregeln in einer flachen Liste angezeigt. Neu: zuerst ein
+      Abschnitt **„Allgemein"** für modulunabhängige Regeln (z. B. Belohnungen, manuelle
+      Vergabe), dann je ein Abschnitt pro Modul (Einsatztagebuch, Dienstbuch, Dienststunden,
+      Fahrzeugbuchung) – aber nur angezeigt, wenn das jeweilige Modul in den Einstellungen
+      aktiv ist (`modul_*_aktiv` aus `app_config`/`ConfigContext`). Inaktive Module werden
+      komplett ausgeblendet, damit keine verwaisten Regeln sichtbar sind. Reihenfolge der
+      Abschnitte: Allgemein → Einsatztagebuch → Dienstbuch → Dienststunden → Fahrzeugbuchung.
+      Kein Backend-Änderung nötig, nur Frontend-Umstrukturierung.
 - [ ] [Punkte] Punkte als Belohnung vergeben: darf man sich nicht selber Punkte geben. Bei der
       Empfänger-Person soll in der Timeline die Punkte, Gültigkeit, Grund und wer die Punkte
       hinzugefügt hat stehen.
