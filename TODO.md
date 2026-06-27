@@ -106,6 +106,12 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       komplett ausgeblendet, damit keine verwaisten Regeln sichtbar sind. Reihenfolge der
       Abschnitte: Allgemein → Einsatztagebuch → Dienstbuch → Dienststunden → Fahrzeugbuchung.
       Kein Backend-Änderung nötig, nur Frontend-Umstrukturierung.
+- [ ] [Punkte] Personen-Auswahl bei Punkte-Vergabe als Namenssuche statt Dropdown: Aktuell
+      ist die Empfänger-Auswahl ein `<select>`-Dropdown, das bei vielen Personen unhandlich
+      wird. Ersetzen durch eine Echtzeit-Namenssuche (Textfeld + gefilterter Listenvorschlag
+      darunter) analog zur Personenauswahl auf der „Barcode vergessen"-Seite. Betrifft
+      `PunkteEinstellungen.tsx` o. ä., kein Backend-Änderung nötig (Personenliste wird
+      bereits geladen).
 - [ ] [Punkte] Punkte als Belohnung vergeben: darf man sich nicht selber Punkte geben. Bei der
       Empfänger-Person soll in der Timeline die Punkte, Gültigkeit, Grund und wer die Punkte
       hinzugefügt hat stehen.
