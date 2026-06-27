@@ -145,15 +145,41 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       Fehler abzubrechen). Beispieldatei als statische Datei im Frontend (z. B.
       `public/personen-vorlage.csv`) zum Download neben dem Upload-Button auf der Personal-Seite.
 
-### Noch zu klären (kein Etappen-Zuschnitt möglich)
+### Etappe J – Druck-Fallback für Einsatz-/Dienstbuch-PDF (Netzwerkdrucker per IPP)
 
-- [ ] [Benachrichtigungen] Mail-Versand: evtl. eine "Ausdrucken statt/zusätzlich zu E-Mail"-
-      Alternative anbieten – z. B. für Moderatoren ohne hinterlegte E-Mail, oder als
-      Backup-Kanal, wenn der SMTP-Versand fehlschlägt. Genauer Bedarf/Umfang noch unklar (reine
-      Druckansicht im Browser? PDF-Download der Benachrichtigung? Automatisch bei
-      SMTP-Fehlschlag?) – beim Aufgreifen erst klären, was genau gewünscht ist, bevor
-      implementiert wird. Die HTML-Mail-Infrastruktur (`email_template_service.render_html()`)
-      liefert bereits druckfähiges, gestyltes HTML, das sich als Basis eignen sollte.
+Geklärter Scope (per Rückfrage): **nur** für die beiden Benachrichtigungen, die ohnehin schon
+ein PDF anhängen (Einsatz-/Dienstbuch-Abschluss) – nicht für Buchungsanfragen, Schwellenwerte
+o. ä. Standardmäßig nur als Fallback, wenn der SMTP-Versand fehlschlägt (dann wird exakt das
+bereits erzeugte Anhang-PDF gedruckt, kein separates Rendering nötig); zusätzlich soll der Admin
+pro Modul (Einsatz/Dienstbuch) optional "immer ausdrucken" statt nur bei Fehlschlag aktivieren
+können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selben LAN.
+
+- [ ] Neue `app_config`-Schlüssel: `drucker_aktiv` (bool), `drucker_ipp_url` (str, z. B.
+      `ipp://drucker.lan:631/printers/Drucker1`), `drucker_immer_einsatz` (bool, Default False),
+      `drucker_immer_dienstbuch` (bool, Default False).
+- [ ] Neuer `backend/app/services/druck_service.py`: Funktion `drucke_pdf(ipp_url, pdf_bytes)`,
+      die das PDF per IPP an den konfigurierten Drucker schickt (z. B. mit `pyipp` oder einem
+      schlanken eigenen IPP-Request über `httpx`/`requests`, je nachdem was sich ohne System-
+      Abhängigkeiten wie `cups`/`pycups` im Docker-Image am einfachsten einbinden lässt – prüfen,
+      welche Variante am wenigsten zusätzliche Container-Pakete braucht).
+- [ ] Einhängen an den beiden bestehenden Versandstellen für Einsatz-/Dienstbuch-Abschluss-PDF
+      (dort, wo `notifier_email_pdf_bei_abschluss`/`notifier_email_pdf_bei_dienstbuch_abschluss`
+      ausgewertet werden): bei SMTP-Fehler (Exception beim Mailversand) und `drucker_aktiv` das
+      bereits erzeugte PDF zusätzlich/stattdessen per `druck_service.drucke_pdf()` ausgeben;
+      zusätzlich unabhängig vom Mailerfolg drucken, wenn `drucker_immer_einsatz` bzw.
+      `drucker_immer_dienstbuch` aktiv ist. Druckfehler dürfen den Mailversand-Erfolg nicht
+      verschlucken (analog zum bestehenden Best-Effort-Muster für Nebenwirkungen in diesem
+      Projekt) – nur loggen, keine Exception nach außen werfen.
+- [ ] Neuer ratenlimitierter Endpunkt `POST /moderator/einstellungen/testdruck` (analog zu
+      `sendeTestmail`/`/moderator/einstellungen/testmail`) für einen Testdruck mit den aktuell im
+      Formular stehenden Werten, bevor gespeichert wird.
+- [ ] Neue Sektion in `Einstellungen.tsx` (oder eigene Unterseite, je nachdem wie groß das wird):
+      "Drucker aktivieren"-Schalter, IPP-URL-Feld, je ein "Immer ausdrucken bei Einsatz-/
+      Dienstbuch-Abschluss"-Checkbox, "Testdruck"-Button mit Ergebnis-Anzeige (1:1 nach dem
+      Muster des bestehenden Testmail-Buttons in `NotifierEinstellungen.tsx`).
+- [ ] Tests: mind. ein Test, der `druck_service.drucke_pdf()` mockt und prüft, dass bei
+      simuliertem SMTP-Fehlschlag + `drucker_aktiv=True` der Druckpfad aufgerufen wird, und einer
+      für den `drucker_immer_*`-Pfad unabhängig vom Mailerfolg.
 
 ## In Arbeit
 
