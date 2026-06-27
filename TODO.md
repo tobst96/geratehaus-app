@@ -16,7 +16,7 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
 
 ### Etappe A – Quick Fixes (mehrere Module, klein/mechanisch)
 
-- [ ] [Update] Bug: Installierte Version (`0.3.0b1`, PEP-440-Format aus `pyproject.toml`) und
+- [x] [Update] Bug: Installierte Version (`0.3.0b1`, PEP-440-Format aus `pyproject.toml`) und
       verfügbare Version (`0.3.0-beta.1`, Semver aus GitHub-Releases-API) bezeichnen dieselbe
       Version, werden aber unterschiedlich formatiert – dadurch zeigt die Seite fälschlicherweise
       „neue Version verfügbar" an. Fix: beim Vergleich beide Formate auf einen gemeinsamen
@@ -24,20 +24,20 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       wird. Alternativ `pyproject.toml`-Version von vornherein in Semver-Format pflegen.
       Betrifft `app/api/v1/update.py` oder wo der Versionsvergleich stattfindet.
 
-- [ ] [Design] Abstand unter Aktions-Buttons vor dem nächsten Inhaltsbereich: Im Einsatztagebuch
+- [x] [Design] Abstand unter Aktions-Buttons vor dem nächsten Inhaltsbereich: Im Einsatztagebuch
       fehlt unter dem „Neuer Einsatz"-Button der visuelle Abstand bevor die Einsatzliste beginnt.
       Dasselbe Muster in allen anderen Modulen prüfen und vereinheitlichen (Dienstbuch: „Neuer
       Dienst", Dienststunden: „Stunden erfassen", Fahrzeugbuchung: „Neue Buchung" o. ä.).
       Lösung: einheitlicher `margin-bottom` auf den jeweiligen Button-Bereich bzw. einen
       Trenner-Abstand als CSS-Klasse (z. B. `.abschnitt-trenner`), damit überall dieselbe
       optische Trennung zwischen Eingabe-/Aktionsbereich und Listenbereich entsteht.
-- [ ] [Dienstbuch] Bug: Im Mitglieder-Bereich ist beim Dienstbuch die Gruppe der eingeloggten
+- [x] [Dienstbuch] Bug: Im Mitglieder-Bereich ist beim Dienstbuch die Gruppe der eingeloggten
       Person nicht vorgewählt. Beim Laden der Seite sollte die Gruppe aus dem Personenprofil
       (`CurrentPerson`) automatisch als Standardwert im Gruppen-Dropdown gesetzt werden.
       Betrifft die Dienstbuch-Seite im Mitglieder-Bereich (`pages/dienstbuch/` o. ä.).
-- [ ] [Dienststunden] In der Liste sollen nicht die Personen-IDs angezeigt werden, sondern der
+- [x] [Dienststunden] In der Liste sollen nicht die Personen-IDs angezeigt werden, sondern der
       richtige Name, dasselbe mit der Funktion.
-- [ ] [Punkte] Punkte in der Moderator-Übersicht: unter der Eingabe darf nicht mehr der Text
+- [x] [Punkte] Punkte in der Moderator-Übersicht: unter der Eingabe darf nicht mehr der Text
       "Die automatischen Punkte-Regeln (unten) kann nur ein Admin einsehen und ändern." stehen!
 
 ### Etappe B – Dienststunden-Politur (Dashboard/Liste-Verknüpfung)

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   holeEinsaetzeListe,
   holeDienstbuecherListe,
@@ -23,9 +23,14 @@ type Tab = (typeof TABS_BASIS)[number] | typeof TAB_NAMENSABWEICHUNGEN;
 
 export function Listen() {
   const { moderatorRolle } = useAuth();
+  const [searchParams] = useSearchParams();
   const istAdmin = moderatorRolle === "admin";
   const TABS: Tab[] = istAdmin ? [...TABS_BASIS, TAB_NAMENSABWEICHUNGEN] : [...TABS_BASIS];
-  const [tab, setTab] = useState<Tab>("Einsätze");
+  const [tab, setTab] = useState<Tab>(() => {
+    const urlTab = searchParams.get("tab");
+    if (urlTab && ([...TABS_BASIS] as string[]).includes(urlTab)) return urlTab as Tab;
+    return "Einsätze";
+  });
 
   return (
     <div>
@@ -220,6 +225,9 @@ function DienststundenTab() {
 
   return (
     <div>
+      <SchwellenwertUeberschreitungenTab />
+
+      <h2 style={{ marginTop: "2rem" }}>Alle Einträge</h2>
       <FilterZeile>
         <DatumFeld label="Von" value={von} onChange={setVon} />
         <DatumFeld label="Bis" value={bis} onChange={setBis} />
@@ -250,8 +258,6 @@ function DienststundenTab() {
         </table>
         </div>
       )}
-
-      <SchwellenwertUeberschreitungenTab />
     </div>
   );
 }

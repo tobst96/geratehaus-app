@@ -13,6 +13,13 @@ export function Dashboard() {
     holeDashboard()
       .then(setDaten)
       .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : "Dashboard konnte nicht geladen werden."));
+
+    const timer = setInterval(() => {
+      holeDashboard()
+        .then(setDaten)
+        .catch(() => {});
+    }, 60_000);
+    return () => clearInterval(timer);
   }, []);
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
@@ -34,7 +41,12 @@ export function Dashboard() {
           <div style={{ fontSize: "2rem", fontWeight: 700 }}>{daten.offene_buchungen_anzahl}</div>
           <div>Offene Buchungen</div>
         </div>
-        <div className="karte">
+        <div
+          className="karte"
+          onClick={() => navigate("/moderator/listen?tab=Dienststunden")}
+          style={{ cursor: "pointer" }}
+          title="Zu Listen → Dienststunden"
+        >
           <div style={{ fontSize: "2rem", fontWeight: 700 }}>
             {daten.schwellenwert_ueberschreitungen.length}
           </div>

@@ -1,3 +1,4 @@
+import structlog
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +12,8 @@ from app.schemas.dienststunden import (
     SchwellenwertEintragOut,
 )
 from app.services import notifier_service, stammdaten_service
+
+logger = structlog.get_logger(__name__)
 
 
 async def funktion_existiert_und_aktiv(db: AsyncSession, funktion_id: int) -> bool:
@@ -38,7 +41,42 @@ async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfasse
     # also auch auf die Minute genau berücksichtigt).
     await stammdaten_service.punkte_regel_anwenden(db, person_id, "dienststunden", faktor=eintrag.stunden)
     await db.commit()
+    await _stunden_mail_senden(db, person_id, daten.funktion_id, eintrag.stunden, str(daten.datum))
     return eintrag
+
+
+async def _stunden_mail_senden(
+    db: AsyncSession, person_id: int, funktion_id: int, stunden: float, datum: str
+) -> None:
+    from app.services.notifier.email import EmailNotifier
+    from app.services.config_service import config_service
+
+    if not await config_service.get(db, "notifier_email_aktiv", False):
+        return
+    person_result = await db.execute(select(Person).where(Person.id == person_id))
+    person = person_result.scalar_one_or_none()
+    if person is None or not person.email or not person.benachrichtigungen_aktiv:
+        return
+    funktion_result = await db.execute(
+        select(FunktionDienststunden).where(FunktionDienststunden.id == funktion_id)
+    )
+    funktion = funktion_result.scalar_one_or_none()
+    funktion_name = funktion.name if funktion else "?"
+    stunden_str = str(int(stunden)) if stunden == int(stunden) else f"{stunden:.1f}"
+    try:
+        await EmailNotifier().send_an(
+            db,
+            empfaenger=person.email,
+            betreff="Dienststunden eingetragen",
+            nachricht=(
+                f"Hallo {person.name},\n\n"
+                f"deine Dienststunden wurden eingetragen: {stunden_str} Stunden"
+                f" als {funktion_name} am {datum}.\n\n"
+                f"Schöne Grüße"
+            ),
+        )
+    except Exception:
+        logger.warning("dienststunden_mail_fehlgeschlagen", person_id=person_id, exc_info=True)
 
 
 async def _funktion_in_stammdaten_abgleichen(
