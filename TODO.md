@@ -9,6 +9,10 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
+- [ ] [Dienstbuch] Bug: Im Mitglieder-Bereich ist beim Dienstbuch die Gruppe der eingeloggten
+      Person nicht vorgewählt. Beim Laden der Seite sollte die Gruppe aus dem Personenprofil
+      (`CurrentPerson`) automatisch als Standardwert im Gruppen-Dropdown gesetzt werden.
+      Betrifft die Dienstbuch-Seite im Mitglieder-Bereich (`pages/dienstbuch/` o. ä.).
 - [ ] [Design] Frontend-Design modernisieren (Etappe 1 ABGESCHLOSSEN, siehe Plan unter
       `~/.claude/plans/ich-m-chte-das-personal-linked-eclipse.md`). **Bereits erledigt:**
       `.formular-feld`/`.formular-zeile`/`.banner-erfolg`/`.banner-fehler`-CSS-Klassen +
