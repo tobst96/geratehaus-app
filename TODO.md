@@ -9,6 +9,13 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
+- [ ] [Design] Abstand unter Aktions-Buttons vor dem nächsten Inhaltsbereich: Im Einsatztagebuch
+      fehlt unter dem „Neuer Einsatz"-Button der visuelle Abstand bevor die Einsatzliste beginnt.
+      Dasselbe Muster in allen anderen Modulen prüfen und vereinheitlichen (Dienstbuch: „Neuer
+      Dienst", Dienststunden: „Stunden erfassen", Fahrzeugbuchung: „Neue Buchung" o. ä.).
+      Lösung: einheitlicher `margin-bottom` auf den jeweiligen Button-Bereich bzw. einen
+      Trenner-Abstand als CSS-Klasse (z. B. `.abschnitt-trenner`), damit überall dieselbe
+      optische Trennung zwischen Eingabe-/Aktionsbereich und Listenbereich entsteht.
 - [ ] [Mitgliederbereich] Hub-Seite (`MitgliedHub.tsx`) designmäßig überarbeiten:
       (1) **Profil-Zeile** statt großem Begrüßungsblock: kompakter Streifen mit Avatar
       (Profilbild oder Initialen-Fallback, ~40 px), Name daneben, und "Abmelden" als kleiner
