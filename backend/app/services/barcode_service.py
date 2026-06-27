@@ -21,10 +21,15 @@ _FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
 async def token_fuer_person(db: AsyncSession, person_id: int) -> BarcodeToken:
     """Liefert den bestehenden Barcode-Token einer Person oder erzeugt einen
-    neuen mit der konfigurierten Gültigkeitsdauer (Einstellungen > Barcodes)."""
+    neuen mit der konfigurierten Gültigkeitsdauer (Einstellungen > Barcodes).
+    Tokens ohne ablauf_am (Altdaten) werden beim ersten Abruf nachträglich gesetzt."""
     result = await db.execute(select(BarcodeToken).where(BarcodeToken.person_id == person_id))
     bestehender = result.scalar_one_or_none()
     if bestehender is not None:
+        if bestehender.ablauf_am is None:
+            gueltigkeit_tage = await config_service.get(db, "barcode_gueltigkeit_tage", 730)
+            bestehender.ablauf_am = datetime.utcnow() + timedelta(days=gueltigkeit_tage)
+            await db.commit()
         return bestehender
 
     token = secrets.token_hex(8)
@@ -184,13 +189,12 @@ async def render_karte_png(
     name_y = bc_y + bc_h + PADDING - 4
     draw.text(((W - name_w) // 2, name_y), person_name, fill=(20, 20, 20), font=font_name)
 
-    # Ablaufdatum
-    if ablauf_am:
-        ablauf_str = f"Gültig bis {ablauf_am.strftime('%d.%m.%Y')}"
-        date_bbox = draw.textbbox((0, 0), ablauf_str, font=font_date)
-        date_w = date_bbox[2] - date_bbox[0]
-        date_y = name_y + NAME_AREA
-        draw.text(((W - date_w) // 2, date_y), ablauf_str, fill=(130, 130, 130), font=font_date)
+    # Ablaufdatum (immer anzeigen)
+    ablauf_str = f"Gültig bis {ablauf_am.strftime('%d.%m.%Y')}" if ablauf_am else "Unbegrenzt gültig"
+    date_bbox = draw.textbbox((0, 0), ablauf_str, font=font_date)
+    date_w = date_bbox[2] - date_bbox[0]
+    date_y = name_y + NAME_AREA
+    draw.text(((W - date_w) // 2, date_y), ablauf_str, fill=(130, 130, 130), font=font_date)
 
     # Gerundete Ecken
     radius = 18
