@@ -5,6 +5,7 @@ import {
   personBarcodeErzeugen,
   holeEinstellungen,
   schreibeEinstellungen,
+  alleBarcodesErneuernUndSenden,
 } from "../../api/moderator";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
@@ -24,6 +25,8 @@ export function BarcodeGenerator() {
   const [fehler, setFehler] = useState<string | null>(null);
   const [gueltigkeitTage, setGueltigkeitTage] = useState(730);
   const [speichertGueltigkeit, setSpeichertGueltigkeit] = useState(false);
+  const [sendetAlle, setSendetAlle] = useState(false);
+  const [alleVersandErgebnis, setAlleVersandErgebnis] = useState<{ gesendet: number; fehler: number } | null>(null);
 
   useEffect(() => {
     holeAllePersonen()
@@ -42,6 +45,19 @@ export function BarcodeGenerator() {
       setFehler(err instanceof ApiError ? String(err.detail) : "Speichern fehlgeschlagen.");
     } finally {
       setSpeichertGueltigkeit(false);
+    }
+  }
+
+  async function alleBarcodesVersenden() {
+    setSendetAlle(true);
+    setAlleVersandErgebnis(null);
+    try {
+      const ergebnis = await alleBarcodesErneuernUndSenden();
+      setAlleVersandErgebnis(ergebnis);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Massenversand fehlgeschlagen.");
+    } finally {
+      setSendetAlle(false);
     }
   }
 
@@ -124,23 +140,38 @@ export function BarcodeGenerator() {
         codiert und 2 Jahre gültig ist. Personen werden unter Stammdaten → Personen verwaltet.
       </p>
 
-      <div className="karte" style={{ marginBottom: "2rem", maxWidth: 400 }}>
+      <div className="karte" style={{ marginBottom: "2rem", maxWidth: 480 }}>
         <label htmlFor="barcode-gueltigkeit">Gültigkeitsdauer neuer Barcodes (Tage)</label>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
           <input
             id="barcode-gueltigkeit"
             type="number"
             min={1}
             value={gueltigkeitTage}
             onChange={(e) => setGueltigkeitTage(Number(e.target.value))}
+            style={{ width: 100 }}
           />
           <button onClick={gueltigkeitSpeichern} disabled={speichertGueltigkeit}>
             {speichertGueltigkeit ? "Speichert …" : "Speichern"}
           </button>
+          <button
+            onClick={alleBarcodesVersenden}
+            disabled={sendetAlle}
+            style={{ whiteSpace: "nowrap" }}
+          >
+            {sendetAlle ? "Wird gesendet …" : "Alle neu generieren & senden"}
+          </button>
         </div>
-        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)", marginBottom: 0 }}>
+        {alleVersandErgebnis && (
+          <p style={{ fontSize: "0.85rem", color: "var(--farbe-erfolg, green)", marginTop: 8, marginBottom: 0 }}>
+            {alleVersandErgebnis.gesendet} Mail{alleVersandErgebnis.gesendet !== 1 ? "s" : ""} versendet
+            {alleVersandErgebnis.fehler > 0 ? `, ${alleVersandErgebnis.fehler} fehlgeschlagen` : ""}.
+          </p>
+        )}
+        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)", marginBottom: 0, marginTop: alleVersandErgebnis ? 4 : 8 }}>
           Gilt nur für neu erzeugte Barcodes. Bereits ausgegebene Barcodes behalten ihr
-          ursprüngliches Ablaufdatum.
+          ursprüngliches Ablaufdatum. „Alle neu generieren & senden" erneuert alle Barcodes und
+          schickt sie per Mail an Personen mit aktivierten Benachrichtigungen.
         </p>
       </div>
 

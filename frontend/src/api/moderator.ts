@@ -264,6 +264,9 @@ export const personBildHochladen = (id: number, datei: File) =>
 export const personBarcodeErzeugen = (id: number) =>
   apiPost<{ token: string; ablauf_am: string | null }>(`/moderator/barcodes/person/${id}`);
 
+export const alleBarcodesErneuernUndSenden = () =>
+  apiPost<{ gesendet: number; fehler: number }>("/moderator/barcodes/alle-erneuern-und-senden");
+
 export const barcodeBildUrl = (token: string) =>
   `/api/v1/moderator/barcodes/render/${token}`;
 

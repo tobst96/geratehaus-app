@@ -1,4 +1,5 @@
 import secrets
+import structlog
 
 from fastapi import APIRouter, HTTPException, Response, status
 from sqlalchemy import select
@@ -9,7 +10,33 @@ from app.models.person import Person
 from app.schemas.kiosk_token import KioskTokenAnlegen, KioskTokenOut
 from app.services import barcode_service, kiosk_token_service, stammdaten_service
 
+logger = structlog.get_logger(__name__)
+
 router = APIRouter(prefix="/moderator/barcodes", tags=["moderator:barcodes"])
+
+
+@router.post("/alle-erneuern-und-senden")
+async def alle_barcodes_erneuern_und_senden(
+    db: DbSession, _admin: CurrentAdmin
+) -> dict[str, int]:
+    """Erneuert alle Barcodes und sendet sie per Mail an alle Personen mit
+    aktivierten Benachrichtigungen und hinterlegter E-Mail-Adresse."""
+    result = await db.execute(
+        select(Person)
+        .where(Person.email.isnot(None))
+        .where(Person.benachrichtigungen_aktiv.is_(True))
+    )
+    personen = list(result.scalars().all())
+    gesendet = 0
+    fehler = 0
+    for person in personen:
+        try:
+            await barcode_service.erneuerung_mail_senden(db, person)
+            gesendet += 1
+        except Exception:
+            logger.warning("barcode_massenversand_fehler", person_id=person.id, exc_info=True)
+            fehler += 1
+    return {"gesendet": gesendet, "fehler": fehler}
 
 
 @router.post("/person/{person_id}")
