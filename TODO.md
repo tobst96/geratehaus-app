@@ -36,6 +36,10 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
 
 - [ ] Schwellenwert-Überschreitungen sollten nach oben und die Liste mit den ganzen Einträgen
       nach unten.
+- [ ] Bug: Die Schwellenwert-Überschreitungs-Anzeige auf dem Dashboard verschwindet nicht,
+      nachdem Stunden erfasst wurden – sie bleibt stehen, auch wenn die Person danach unter
+      dem Schwellenwert liegt. Dashboard-Daten nach dem Stunden-Eintrag neu laden bzw. den
+      Schwellenwert-Status serverseitig korrekt neu berechnen.
 - [ ] Wenn die Stunden übernommen werden und unter der Schwelle ist, dann sollten auch die
       Schwellenwert-Überschreitungen auf dem Dashboard aktualisiert werden.
 - [ ] Wenn man auf Schwellenwert-Überschreitungen auf dem Dashboard klickt, soll man direkt zu
