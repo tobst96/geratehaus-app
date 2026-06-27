@@ -2,6 +2,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from app.api.deps import CurrentAdmin, CurrentModerator, DbSession
 from app.schemas.dienststunden import DienststundenEintragOut, DienststundenErfassen, DienststundenSummeOut
+from app.schemas.divera_vorschlag import DiveraVorschlagEntscheidung, DiveraVorschlagOut
 from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionCreate,
     EinsatzFeldDefinitionOut,
@@ -23,7 +24,7 @@ from app.schemas.stammdaten import (
     GruppeOut,
     GruppeUpdate,
 )
-from app.services import barcode_service, dienststunden_service, email_template_service, person_bild_reservierung_service, stammdaten_service
+from app.services import barcode_service, dienststunden_service, divera_personal_service, email_template_service, person_bild_reservierung_service, stammdaten_service
 from app.services.stammdaten_service import platzierung_nach_punkten
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
@@ -363,3 +364,31 @@ async def person_dienststunden_erfassen(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Funktion nicht gefunden oder inaktiv."
         )
     return await dienststunden_service.erfassen(db, person_id, daten)
+
+
+# --- Divera-Personal-Abgleich ---------------------------------------------------
+
+
+@router.get("/personen/divera-vorschlaege", response_model=list[DiveraVorschlagOut])
+async def divera_vorschlaege_liste(db: DbSession, _admin: CurrentAdmin) -> list[DiveraVorschlagOut]:
+    return await divera_personal_service.liste_offene_vorschlaege(db)
+
+
+@router.post("/personen/divera-vorschlaege/synchronisieren", response_model=list[DiveraVorschlagOut])
+async def divera_vorschlaege_synchronisieren(
+    db: DbSession, _admin: CurrentAdmin
+) -> list[DiveraVorschlagOut]:
+    await divera_personal_service.synchronisiere_personal(db)
+    return await divera_personal_service.liste_offene_vorschlaege(db)
+
+
+@router.post("/personen/divera-vorschlaege/{vorschlag_id}/entscheiden", response_model=DiveraVorschlagOut)
+async def divera_vorschlag_entscheiden(
+    db: DbSession, _admin: CurrentAdmin, vorschlag_id: int, daten: DiveraVorschlagEntscheidung
+) -> DiveraVorschlagOut:
+    vorschlag = await divera_personal_service.get_vorschlag(db, vorschlag_id)
+    if vorschlag is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vorschlag nicht gefunden.")
+    if vorschlag.status != "offen":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Vorschlag bereits entschieden.")
+    return await divera_personal_service.entscheide_vorschlag(db, vorschlag, daten.aktion)

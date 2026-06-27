@@ -340,3 +340,8 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
 - [x] [Mitgliederbereich] Kachel-Design wie der Kiosk
 - [x] [Allgemein] Logo-Klick führt zum richtigen Bereich (Mitglieder/Moderator/Admin) statt
       immer zur Startseite
+- [x] [Personal] Divera-Personal-Abgleich: Button "Vorschlag" auf der Personal-Seite zeigt neue
+      Divera-Personen (Übernehmen/Ignorieren) und E-Mail-Aktualisierungsvorschläge für bestehende
+      Personen. Matching per neuem Feld `divera_user_id` (Fallback: Name). Täglicher
+      Hintergrund-Sync zu zufälliger Nachtstunde plus Sync bei Button-Klick. Ignorierte/
+      übernommene Vorschläge bleiben dauerhaft ausgeblendet und werden nach 1 Jahr aufgeräumt.

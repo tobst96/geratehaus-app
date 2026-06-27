@@ -24,6 +24,7 @@ class Person(Base, TimestampMixin):
     nachname: Mapped[str | None] = mapped_column(String(128), nullable=True)
     bild_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    divera_user_id: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
     gruppe_id: Mapped[int | None] = mapped_column(ForeignKey("gruppen.id"), nullable=True)
     funktion_id: Mapped[int | None] = mapped_column(
         ForeignKey("funktionen_dienststunden.id"), nullable=True
