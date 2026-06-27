@@ -56,7 +56,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       onClick={onClose}
     >
       <div
-        style={{ background: "#fff", borderRadius: 16, padding: "1rem", maxWidth: 480, width: "100%" }}
+        style={{ background: "var(--farbe-oberflaeche)", borderRadius: 16, padding: "1rem", maxWidth: 480, width: "100%" }}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 style={{ marginTop: 0 }}>Barcode scannen</h3>

@@ -127,7 +127,7 @@ export function MitgliedLogin() {
 
         {qrAnsicht ? (
           <div style={{ textAlign: "center" }}>
-            <p style={{ color: "#666" }}>
+            <p style={{ color: "var(--farbe-text-mute)" }}>
               Mit dem Handy scannen und dich dort auswählen – dieses Gerät meldet sich danach automatisch an.
             </p>
             <img src={qrAnsicht.bildUrl} alt="QR-Code für Login ohne Barcode" style={{ width: 220, height: 220 }} />
@@ -160,7 +160,7 @@ export function MitgliedLogin() {
                 <div style={{ fontWeight: 700, marginTop: 4 }}>{qrVorschauPerson.name}</div>
               </div>
             )}
-            <p style={{ fontSize: "0.8rem", color: "#999" }}>
+            <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
               Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
             </p>
             <button type="button" className="sekundaer" onClick={() => setQrAnsicht(null)}>
@@ -198,17 +198,17 @@ export function MitgliedLogin() {
               </div>
             )}
 
-            <label htmlFor="ml-barcode">Barcode einscannen</label>
-            <BarcodeEingabe
-              id="ml-barcode"
-              value={barcode}
-              onChange={setBarcode}
-              placeholder="Barcode scannen oder eingeben"
-              autoFocus
-              required
-            />
-            <br />
-            <br />
+            <div className="formular-feld">
+              <label htmlFor="ml-barcode">Barcode einscannen</label>
+              <BarcodeEingabe
+                id="ml-barcode"
+                value={barcode}
+                onChange={setBarcode}
+                placeholder="Barcode scannen oder eingeben"
+                autoFocus
+                required
+              />
+            </div>
 
             {fehler && <p className="fehlertext">{fehler}</p>}
             {qrFehler && <p className="fehlertext">{qrFehler}</p>}

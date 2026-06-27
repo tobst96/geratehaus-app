@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { holeEinsatz, teilnahmeEintragen } from "../../api/einsaetze";
 import { holeFahrzeuge, holeFunktionenEinsatz } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 import type { EinsatzOut, Fahrzeug, FunktionEinsatz } from "../../api/types";
 
 export function EinsatzDetail() {
@@ -60,7 +61,7 @@ export function EinsatzDetail() {
   }
 
   if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
-  if (!einsatz) return <p>Lädt …</p>;
+  if (!einsatz) return <Ladeanzeige />;
 
   return (
     <div>
@@ -75,58 +76,59 @@ export function EinsatzDetail() {
       <div className="karte">
         <h2>Teilnahme eintragen</h2>
         <form onSubmit={teilnahmeAbsenden}>
-          <label htmlFor="fahrzeug">Fahrzeug</label>
-          <select id="fahrzeug" value={fahrzeugId} onChange={(e) => setFahrzeugId(e.target.value)}>
-            <option value="">–</option>
-            {fahrzeuge.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-          <br />
-          <br />
-          <label htmlFor="funktion">Funktion</label>
-          <select id="funktion" value={funktionId} onChange={(e) => setFunktionId(e.target.value)}>
-            <option value="">–</option>
-            {funktionen.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-          <br />
-          <br />
-          <label>
-            <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
-          </label>
-          <br />
-          <br />
-          <label htmlFor="atemschutz">Atemschutzminuten</label>
-          <input
-            id="atemschutz"
-            type="number"
-            min={0}
-            value={atemschutzminuten}
-            onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
-          />
-          <br />
-          <br />
-          <label>
+          <div className="formular-feld">
+            <label htmlFor="fahrzeug">Fahrzeug</label>
+            <select id="fahrzeug" value={fahrzeugId} onChange={(e) => setFahrzeugId(e.target.value)}>
+              <option value="">–</option>
+              {fahrzeuge.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="funktion">Funktion</label>
+            <select id="funktion" value={funktionId} onChange={(e) => setFunktionId(e.target.value)}>
+              <option value="">–</option>
+              {funktionen.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="atemschutz">Atemschutzminuten</label>
             <input
-              type="checkbox"
-              checked={nurGeraetehaus}
-              onChange={(e) => setNurGeraetehaus(e.target.checked)}
-            />{" "}
-            Nur Gerätehaus
-          </label>
-          <br />
-          <br />
+              id="atemschutz"
+              type="number"
+              min={0}
+              value={atemschutzminuten}
+              onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
+            />
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={nurGeraetehaus}
+                onChange={(e) => setNurGeraetehaus(e.target.checked)}
+              />{" "}
+              Nur Gerätehaus
+            </label>
+          </div>
           <button type="submit">Speichern</button>
         </form>
       </div>
 
       <h2>Teilnehmer ({einsatz.teilnahmen.length})</h2>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -157,6 +159,7 @@ export function EinsatzDetail() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import {
   type PersonBildReservierungInfo,
 } from "../api/personBildReservierungen";
 import { ApiError } from "../api/client";
+import { Ladeanzeige } from "../components/Ladeanzeige";
 
 export function PersonBildHochladen() {
   const { token } = useParams<{ token: string }>();
@@ -52,7 +53,7 @@ export function PersonBildHochladen() {
   if (!info) {
     return (
       <div className="seite">
-        <p>Lädt …</p>
+        <Ladeanzeige />
       </div>
     );
   }

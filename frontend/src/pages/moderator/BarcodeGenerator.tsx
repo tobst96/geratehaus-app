@@ -10,6 +10,7 @@ import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import type { Person } from "../../api/types";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 interface BarcodeInfo {
   token: string;
@@ -113,7 +114,7 @@ export function BarcodeGenerator() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!personen) return <p>Lädt …</p>;
+  if (!personen) return <Ladeanzeige />;
 
   return (
     <div>
@@ -137,7 +138,7 @@ export function BarcodeGenerator() {
             {speichertGueltigkeit ? "Speichert …" : "Speichern"}
           </button>
         </div>
-        <p style={{ fontSize: "0.85rem", color: "#666", marginBottom: 0 }}>
+        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)", marginBottom: 0 }}>
           Gilt nur für neu erzeugte Barcodes. Bereits ausgegebene Barcodes behalten ihr
           ursprüngliches Ablaufdatum.
         </p>
@@ -160,7 +161,7 @@ export function BarcodeGenerator() {
                 <div
                   id={`barcode-${person.id}`}
                   style={{
-                    border: "2px dashed #ccc",
+                    border: "2px dashed var(--farbe-rand)",
                     padding: "1rem",
                     textAlign: "center",
                     marginBottom: "1rem",
@@ -170,7 +171,7 @@ export function BarcodeGenerator() {
                   <div style={{ fontWeight: 700, marginBottom: 8 }}>{person.name}</div>
                   <img src={barcodeBildUrl(info.token)} alt="Barcode" style={{ maxWidth: "100%" }} />
                   {info.ablaufAm && (
-                    <div style={{ fontSize: "0.75rem", color: "#666", marginTop: 4 }}>
+                    <div style={{ fontSize: "0.75rem", color: "var(--farbe-text-mute)", marginTop: 4 }}>
                       Gültig bis {new Date(info.ablaufAm).toLocaleDateString("de-DE")}
                     </div>
                   )}

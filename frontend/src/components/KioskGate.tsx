@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiGet } from "../api/client";
 import { KioskHome } from "../pages/KioskHome";
+import { Ladeanzeige } from "./Ladeanzeige";
 
 export function KioskGate() {
   const { token } = useParams<{ token: string }>();
@@ -17,7 +18,7 @@ export function KioskGate() {
       .catch(() => setGueltig(false));
   }, [token]);
 
-  if (gueltig === null) return <p>Lädt …</p>;
+  if (gueltig === null) return <Ladeanzeige />;
 
   if (!gueltig) {
     return (

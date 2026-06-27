@@ -8,6 +8,7 @@ import {
 } from "../../api/dienstbuecher";
 import { ApiError } from "../../api/client";
 import type { DienstbuchOut } from "../../api/types";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 export function DienstbuchDetailModerator() {
   const { id } = useParams<{ id: string }>();
@@ -58,7 +59,7 @@ export function DienstbuchDetailModerator() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!dienstbuch) return <p>Lädt …</p>;
+  if (!dienstbuch) return <Ladeanzeige />;
 
   return (
     <div>
@@ -67,7 +68,7 @@ export function DienstbuchDetailModerator() {
       </p>
       <h1>{dienstbuch.titel}</h1>
       <div className="einsatz-status-zeile">
-        <p style={{ color: "#666", margin: 0 }}>
+        <p style={{ color: "var(--farbe-text-mute)", margin: 0 }}>
           {new Date(dienstbuch.eroeffnet_am).toLocaleString("de-DE")}
         </p>
         <span className="einsatz-status-badge">{dienstbuch.geschlossen ? "geschlossen" : "offen"}</span>
@@ -98,6 +99,7 @@ export function DienstbuchDetailModerator() {
       )}
 
       <h2>Teilnehmer ({dienstbuch.teilnehmer.length})</h2>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -109,7 +111,7 @@ export function DienstbuchDetailModerator() {
         <tbody>
           {dienstbuch.teilnehmer.length === 0 && (
             <tr>
-              <td colSpan={3} style={{ color: "#999" }}>
+              <td colSpan={3} style={{ color: "var(--farbe-text-mute)" }}>
                 Keine Teilnehmer eingetragen.
               </td>
             </tr>
@@ -123,6 +125,7 @@ export function DienstbuchDetailModerator() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

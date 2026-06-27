@@ -205,7 +205,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
 
             {qrAnsicht ? (
               <div className="dienstbuch-qr-ansicht">
-                <p style={{ color: "#666" }}>
+                <p style={{ color: "var(--farbe-text-mute)" }}>
                   Mit dem Handy scannen – die Person trägt sich dort selbst ein (ohne Barcode).
                 </p>
                 <div
@@ -237,7 +237,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
                     </div>
                   )}
                 </div>
-                <p style={{ fontSize: "0.8rem", color: "#999" }}>
+                <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
                   Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
@@ -260,42 +260,42 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
                 )}
 
                 <div className="dienstbuch-scan-felder">
-                  {mitgliedModus.aktiv ? (
-                    <p style={{ color: "#666" }}>
-                      Eingeloggt als <strong>{mitgliedModus.name}</strong>
-                    </p>
-                  ) : (
-                    <>
-                      <label htmlFor="db-barcode">Barcode einscannen</label>
-                      <BarcodeEingabe
-                        id="db-barcode"
-                        type="text"
-                        value={barcode}
-                        onChange={setBarcode}
-                        placeholder="Barcode scannen oder eingeben"
-                        autoFocus
-                        required
-                      />
-                      <br />
-                      <br />
-                    </>
-                  )}
+                  <div className="formular-feld">
+                    {mitgliedModus.aktiv ? (
+                      <p style={{ color: "var(--farbe-text-mute)" }}>
+                        Eingeloggt als <strong>{mitgliedModus.name}</strong>
+                      </p>
+                    ) : (
+                      <>
+                        <label htmlFor="db-barcode">Barcode einscannen</label>
+                        <BarcodeEingabe
+                          id="db-barcode"
+                          type="text"
+                          value={barcode}
+                          onChange={setBarcode}
+                          placeholder="Barcode scannen oder eingeben"
+                          autoFocus
+                          required
+                        />
+                      </>
+                    )}
+                  </div>
 
-                  <label htmlFor="db-gruppe">Gruppe</label>
-                  <select
-                    id="db-gruppe"
-                    value={gruppeId ?? ""}
-                    onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
-                  >
-                    <option value="">– keine –</option>
-                    {gruppen.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {g.name}
-                      </option>
-                    ))}
-                  </select>
-                  <br />
-                  <br />
+                  <div className="formular-feld">
+                    <label htmlFor="db-gruppe">Gruppe</label>
+                    <select
+                      id="db-gruppe"
+                      value={gruppeId ?? ""}
+                      onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
+                    >
+                      <option value="">– keine –</option>
+                      {gruppen.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
                   {fehler && <p className="fehlertext">{fehler}</p>}
                   {qrFehler && <p className="fehlertext">{qrFehler}</p>}
@@ -322,7 +322,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
 
           <div className="karte">
             <h3 style={{ marginTop: 0 }}>Teilnehmer ({dienstbuch.teilnehmer.length})</h3>
-            {dienstbuch.teilnehmer.length === 0 && <p style={{ color: "#999" }}>Noch niemand eingetragen.</p>}
+            {dienstbuch.teilnehmer.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Noch niemand eingetragen.</p>}
             <ul className="dienstbuch-teilnehmer-liste">
               {dienstbuch.teilnehmer.map((t) => (
                 <TeilnehmerZeile

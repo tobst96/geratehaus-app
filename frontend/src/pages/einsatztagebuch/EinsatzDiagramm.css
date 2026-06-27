@@ -12,7 +12,7 @@
   font-weight: 700;
   padding: 0.3rem 0.8rem;
   border-radius: var(--radius);
-  background: #eef1f4;
+  background: var(--farbe-oberflaeche-hover);
   color: var(--farbe-text);
   white-space: nowrap;
 }
@@ -74,7 +74,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 1.5rem 1rem;
-  background: #fff;
+  background: var(--farbe-oberflaeche);
   color: var(--farbe-text);
   border: 2px solid var(--farbe-primaer);
   min-height: auto;
@@ -100,9 +100,9 @@
 }
 
 .fahrzeug-kasten {
-  border: 2px solid #ddd;
+  border: 2px solid var(--farbe-rand);
   border-radius: var(--radius);
-  background: #fafafa;
+  background: var(--farbe-oberflaeche-hover);
   padding: 0.75rem;
 }
 
@@ -116,8 +116,8 @@
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 10;
-  background: #eef1f4;
-  border: 1px dashed #bbb;
+  background: var(--farbe-oberflaeche-hover);
+  border: 1px dashed var(--farbe-rand);
   border-radius: 8px;
 }
 
@@ -145,7 +145,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #888;
+  color: var(--farbe-text-mute);
   font-size: 0.85rem;
   text-align: center;
   padding: 0.5rem;
@@ -169,7 +169,7 @@
 }
 
 .sitzplatz-frei {
-  background: #fff;
+  background: var(--farbe-oberflaeche);
   border: 2px solid var(--farbe-primaer);
   color: var(--farbe-text);
   cursor: pointer;
@@ -276,5 +276,5 @@
   width: 220px;
   height: 220px;
   border-radius: 12px;
-  border: 1px solid #ececec;
+  border: 1px solid var(--farbe-rand);
 }

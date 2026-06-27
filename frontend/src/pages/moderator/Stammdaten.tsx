@@ -30,6 +30,7 @@ import type {
   Gruppe,
 } from "../../api/types";
 import { SitzplatzEditor } from "./SitzplatzEditor";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 const TABS = [
   "Gruppen",
@@ -101,7 +102,7 @@ function FahrzeugeTab() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   return (
     <div>
@@ -113,6 +114,7 @@ function FahrzeugeTab() {
         />
         <button type="submit">Anlegen</button>
       </form>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -150,6 +152,7 @@ function FahrzeugeTab() {
           ))}
         </tbody>
       </table>
+      </div>
 
       {editorFahrzeug && (
         <SitzplatzEditor
@@ -202,7 +205,7 @@ function FunktionenEinsatzTab() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   return (
     <div>
@@ -214,6 +217,7 @@ function FunktionenEinsatzTab() {
         />
         <button type="submit">Anlegen</button>
       </form>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -238,6 +242,7 @@ function FunktionenEinsatzTab() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
@@ -278,7 +283,7 @@ function GruppenTab() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   return (
     <div>
@@ -290,6 +295,7 @@ function GruppenTab() {
         />
         <button type="submit">Anlegen</button>
       </form>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -314,6 +320,7 @@ function GruppenTab() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
@@ -368,11 +375,11 @@ function EinsatzFelderTab() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   return (
     <div>
-      <p style={{ fontSize: "0.85rem", color: "#666" }}>
+      <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
         Frei konfigurierbare Zusatzfelder für den Einsatzbericht (z. B. Einsatzleiter, Erste Lage,
         Tätigkeit). Werden im Einsatztagebuch unterhalb der Garage angezeigt und im PDF-Export
         ausgegeben.
@@ -392,6 +399,7 @@ function EinsatzFelderTab() {
         </select>
         <button type="submit">Anlegen</button>
       </form>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -427,6 +435,7 @@ function EinsatzFelderTab() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
@@ -478,7 +487,7 @@ function FunktionenDienststundenTab() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   return (
     <div>
@@ -498,6 +507,7 @@ function FunktionenDienststundenTab() {
         />
         <button type="submit">Anlegen</button>
       </form>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -532,6 +542,7 @@ function FunktionenDienststundenTab() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

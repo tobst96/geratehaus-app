@@ -15,6 +15,7 @@ import { ApiError } from "../../api/client";
 import type { BuchungOut, DienstbuchOut, EinsatzOut } from "../../api/types";
 import type { DienststundenEintragOut } from "../../api/dienststunden";
 import { useAuth } from "../../context/AuthContext";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 const TABS_BASIS = ["Einsätze", "Dienstbücher", "Dienststunden", "Buchungen"] as const;
 const TAB_NAMENSABWEICHUNGEN = "Namensabweichungen" as const;
@@ -82,6 +83,7 @@ function EinsaetzeTab() {
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -108,6 +110,7 @@ function EinsaetzeTab() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
@@ -162,6 +165,7 @@ function DienstbuecherTab() {
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -186,6 +190,7 @@ function DienstbuecherTab() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
@@ -222,6 +227,7 @@ function DienststundenTab() {
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -242,6 +248,7 @@ function DienststundenTab() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       <SchwellenwertUeberschreitungenTab />
@@ -290,14 +297,15 @@ function SchwellenwertUeberschreitungenTab() {
   return (
     <div style={{ marginTop: "2rem" }}>
       <h2>Schwellenwert-Überschreitungen</h2>
-      <p style={{ color: "#666" }}>
+      <p style={{ color: "var(--farbe-text-mute)" }}>
         Personen, die den Schwellenwert ihrer Funktion auch nach Abzug bereits übernommener Stunden
         noch überschreiten. Übernommene Stunden werden vom Überschuss abgezogen, ohne die
         Dienststunden-Einträge selbst zu verändern.
       </p>
       {fehler && <p className="fehlertext">{fehler}</p>}
-      {daten && daten.length === 0 && <p style={{ color: "#666" }}>Aktuell keine Überschreitungen.</p>}
+      {daten && daten.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Aktuell keine Überschreitungen.</p>}
       {daten && daten.length > 0 && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -344,6 +352,7 @@ function SchwellenwertUeberschreitungenTab() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
@@ -388,6 +397,7 @@ function BuchungenTab() {
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -412,6 +422,7 @@ function BuchungenTab() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
@@ -428,9 +439,10 @@ function NamensabweichungenTab() {
   }, []);
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!daten) return <p>Lädt …</p>;
+  if (!daten) return <Ladeanzeige />;
 
   return (
+    <div className="tabelle-scroll">
     <table>
       <thead>
         <tr>
@@ -449,6 +461,7 @@ function NamensabweichungenTab() {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 

@@ -8,6 +8,7 @@ import {
 } from "../api/reservierungen";
 import { ApiError } from "../api/client";
 import { eintragungGesperrtMinuten, eintragungVermerken } from "../utils/eintragungssperre";
+import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { Person, ReservierungInfo } from "../api/types";
 
 const AGT_MAX_MINUTEN = 35;
@@ -114,7 +115,7 @@ export function ManuelleEintragung() {
   if (!info) {
     return (
       <div className="seite">
-        <p>Lädt …</p>
+        <Ladeanzeige />
       </div>
     );
   }
@@ -159,12 +160,13 @@ export function ManuelleEintragung() {
     <div className="seite">
       <div className="karte">
         <h1>Ohne Barcode eintragen</h1>
-        <p style={{ color: "#666" }}>
+        <p style={{ color: "var(--farbe-text-mute)" }}>
           {info.bezeichnung} · Einsatz „{info.einsatz_titel}“
           {info.fahrzeug_name ? ` · ${info.fahrzeug_name}` : ""}
         </p>
 
         <form onSubmit={absenden}>
+          <div className="formular-feld">
           <label htmlFor="me-person">Wer bist du?</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
@@ -222,40 +224,39 @@ export function ManuelleEintragung() {
                 </ul>
               )}
               {suche.trim().length > 0 && trefferliste.length === 0 && (
-                <p style={{ color: "#999", fontSize: "0.85rem" }}>
+                <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
                   Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
                 </p>
               )}
             </>
           )}
-          <br />
-          <br />
+          </div>
 
           {!info.nur_geraetehaus && !info.auf_anfahrt && (
             <>
-              <label>
-                <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
-              </label>
-              <br />
-              <br />
+              <div className="formular-feld">
+                <label>
+                  <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
+                </label>
+              </div>
 
-              <label>
-                <input
-                  type="checkbox"
-                  checked={atemschutzAktiv}
-                  onChange={(e) => {
-                    setAtemschutzAktiv(e.target.checked);
-                    if (!e.target.checked) setAtemschutzminuten(0);
-                    else if (atemschutzminuten === 0) setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
-                  }}
-                />{" "}
-                Atemschutz
-              </label>
-              <br />
-              <br />
+              <div className="formular-feld">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={atemschutzAktiv}
+                    onChange={(e) => {
+                      setAtemschutzAktiv(e.target.checked);
+                      if (!e.target.checked) setAtemschutzminuten(0);
+                      else if (atemschutzminuten === 0) setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
+                    }}
+                  />{" "}
+                  Atemschutz
+                </label>
+              </div>
 
               {atemschutzAktiv && (
-                <>
+                <div className="formular-feld">
                   <label htmlFor="me-atemschutz">
                     Atemschutzminuten: <strong>{atemschutzminuten}</strong>
                   </label>
@@ -269,23 +270,21 @@ export function ManuelleEintragung() {
                     onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
                     style={{ width: "100%" }}
                   />
-                  <br />
-                  <br />
-                </>
+                </div>
               )}
             </>
           )}
 
-          <label htmlFor="me-bemerkung">Bemerkung (optional)</label>
-          <textarea
-            id="me-bemerkung"
-            rows={2}
-            value={bemerkung}
-            onChange={(e) => setBemerkung(e.target.value)}
-            placeholder="Notizen…"
-          />
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="me-bemerkung">Bemerkung (optional)</label>
+            <textarea
+              id="me-bemerkung"
+              rows={2}
+              value={bemerkung}
+              onChange={(e) => setBemerkung(e.target.value)}
+              placeholder="Notizen…"
+            />
+          </div>
 
           {fehler && <p className="fehlertext">{fehler}</p>}
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { holeUpdateStatus, updateKanalSetzen, type UpdateStatus } from "../../api/moderator";
 import { ApiError } from "../../api/client";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 export function Update() {
   const [status, setStatus] = useState<UpdateStatus | null>(null);
@@ -33,7 +34,7 @@ export function Update() {
   }
 
   if (fehler && !status) return <p className="fehlertext">{fehler}</p>;
-  if (!status) return <p>Lädt …</p>;
+  if (!status) return <Ladeanzeige />;
 
   return (
     <div>
@@ -41,7 +42,7 @@ export function Update() {
 
       <div className="karte" style={{ maxWidth: 560 }}>
         <h2>Update-Kanal</h2>
-        <p style={{ color: "#666" }}>
+        <p style={{ color: "var(--farbe-text-mute)" }}>
           "Stable" zeigt nur fertige Veröffentlichungen an, "Beta" auch Vorabversionen. Diese App
           aktualisiert sich nicht selbst – ein Update muss weiterhin manuell auf dem Server
           eingespielt werden (<code>git pull</code> + <code>docker compose up -d --build</code>).
@@ -75,6 +76,7 @@ export function Update() {
         <h2>Versionsstatus</h2>
         {fehler && <p className="fehlertext">{fehler}</p>}
         {status.fehler && <p className="fehlertext">{status.fehler}</p>}
+        <div className="tabelle-scroll">
         <table>
           <tbody>
             <tr>
@@ -99,6 +101,7 @@ export function Update() {
             )}
           </tbody>
         </table>
+        </div>
 
         {status.update_verfuegbar ? (
           <p style={{ marginTop: "1rem" }}>
@@ -110,7 +113,7 @@ export function Update() {
             )}
           </p>
         ) : (
-          !status.fehler && <p style={{ marginTop: "1rem", color: "#666" }}>Du bist auf dem neuesten Stand.</p>
+          !status.fehler && <p style={{ marginTop: "1rem", color: "var(--farbe-text-mute)" }}>Du bist auf dem neuesten Stand.</p>
         )}
 
         <button className="sekundaer" onClick={laden} style={{ marginTop: "1rem" }}>

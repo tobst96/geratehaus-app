@@ -187,7 +187,7 @@ export function Dienststunden() {
 
         {qrAnsicht ? (
           <div className="dienststunden-qr-ansicht">
-            <p style={{ color: "#666" }}>
+            <p style={{ color: "var(--farbe-text-mute)" }}>
               Mit dem Handy scannen – die Person trägt sich dort selbst ein (ohne Barcode).
             </p>
             <div
@@ -221,7 +221,7 @@ export function Dienststunden() {
                 </div>
               )}
             </div>
-            <p style={{ fontSize: "0.8rem", color: "#999" }}>
+            <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
               Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
             </p>
             <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
@@ -243,64 +243,64 @@ export function Dienststunden() {
               )}
 
               <div className="dienststunden-scan-felder">
-                {mitgliedModus.aktiv ? (
-                  <p style={{ color: "#666" }}>
-                    Eingeloggt als <strong>{mitgliedModus.name}</strong>
-                  </p>
-                ) : (
-                  <>
-                    <label htmlFor="ds-barcode">Barcode einscannen</label>
-                    <BarcodeEingabe
-                      id="ds-barcode"
-                      type="text"
-                      value={barcode}
-                      onChange={setBarcode}
-                      placeholder="Barcode scannen oder eingeben"
-                      autoFocus
-                      required
-                    />
-                    <br />
-                    <br />
-                  </>
-                )}
+                <div className="formular-feld">
+                  {mitgliedModus.aktiv ? (
+                    <p style={{ color: "var(--farbe-text-mute)" }}>
+                      Eingeloggt als <strong>{mitgliedModus.name}</strong>
+                    </p>
+                  ) : (
+                    <>
+                      <label htmlFor="ds-barcode">Barcode einscannen</label>
+                      <BarcodeEingabe
+                        id="ds-barcode"
+                        type="text"
+                        value={barcode}
+                        onChange={setBarcode}
+                        placeholder="Barcode scannen oder eingeben"
+                        autoFocus
+                        required
+                      />
+                    </>
+                  )}
+                </div>
 
-                <label htmlFor="ds-funktion">Funktion</label>
-                <select
-                  id="ds-funktion"
-                  value={funktionId}
-                  onChange={(e) => setFunktionId(e.target.value)}
-                  required
-                >
-                  {funktionen.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.name}
-                    </option>
-                  ))}
-                </select>
-                <br />
-                <br />
-                <label htmlFor="ds-stunden">Stunden</label>
-                <input
-                  id="ds-stunden"
-                  type="number"
-                  min={0.5}
-                  step={0.5}
-                  value={stunden}
-                  onChange={(e) => setStunden(Number(e.target.value))}
-                  required
-                />
-                <br />
-                <br />
-                <label htmlFor="ds-datum">Datum</label>
-                <input
-                  id="ds-datum"
-                  type="date"
-                  value={datum}
-                  onChange={(e) => setDatum(e.target.value)}
-                  required
-                />
-                <br />
-                <br />
+                <div className="formular-feld">
+                  <label htmlFor="ds-funktion">Funktion</label>
+                  <select
+                    id="ds-funktion"
+                    value={funktionId}
+                    onChange={(e) => setFunktionId(e.target.value)}
+                    required
+                  >
+                    {funktionen.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="formular-feld">
+                  <label htmlFor="ds-stunden">Stunden</label>
+                  <input
+                    id="ds-stunden"
+                    type="number"
+                    min={0.5}
+                    step={0.5}
+                    value={stunden}
+                    onChange={(e) => setStunden(Number(e.target.value))}
+                    required
+                  />
+                </div>
+                <div className="formular-feld">
+                  <label htmlFor="ds-datum">Datum</label>
+                  <input
+                    id="ds-datum"
+                    type="date"
+                    value={datum}
+                    onChange={(e) => setDatum(e.target.value)}
+                    required
+                  />
+                </div>
 
                 {fehler && <p className="fehlertext">{fehler}</p>}
                 {qrFehler && <p className="fehlertext">{qrFehler}</p>}
@@ -329,6 +329,7 @@ export function Dienststunden() {
       {letzteSummen && (
         <>
           <h2>Kumulierte Stunden{letztePerson ? ` – ${letztePerson}` : ""}</h2>
+          <div className="tabelle-scroll">
           <table>
             <thead>
               <tr>
@@ -354,6 +355,7 @@ export function Dienststunden() {
               ))}
             </tbody>
           </table>
+          </div>
         </>
       )}
     </div>

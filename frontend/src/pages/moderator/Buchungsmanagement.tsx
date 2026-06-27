@@ -7,6 +7,7 @@ import {
 } from "../../api/moderator";
 import { ApiError } from "../../api/client";
 import type { BuchungOut } from "../../api/types";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 export function Buchungsmanagement() {
   const [buchungen, setBuchungen] = useState<BuchungOut[] | null>(null);
@@ -53,7 +54,7 @@ export function Buchungsmanagement() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!buchungen) return <p>Lädt …</p>;
+  if (!buchungen) return <Ladeanzeige />;
 
   return (
     <div>

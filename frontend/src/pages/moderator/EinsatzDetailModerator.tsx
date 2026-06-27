@@ -12,6 +12,7 @@ import { holeFahrzeuge } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import type { EinsatzEreignis, EinsatzFeldDefinition, EinsatzOut, Fahrzeug } from "../../api/types";
 import "./EinsatzDetailModerator.css";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 const EREIGNIS_ICON: Record<string, string> = {
   angelegt: "🚨",
@@ -85,7 +86,7 @@ export function EinsatzDetailModerator() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!einsatz) return <p>Lädt …</p>;
+  if (!einsatz) return <Ladeanzeige />;
 
   function sitzplatzBezeichnung(fahrzeugId: number | null, sitzplatzId: string | null): string {
     if (fahrzeugId == null || sitzplatzId == null) return "";
@@ -101,7 +102,7 @@ export function EinsatzDetailModerator() {
       </p>
       <h1>{einsatz.titel}</h1>
       <div className="einsatz-status-zeile">
-        <p style={{ color: "#666", margin: 0 }}>
+        <p style={{ color: "var(--farbe-text-mute)", margin: 0 }}>
           {new Date(einsatz.zeitpunkt).toLocaleString("de-DE")} · {einsatz.quelle}
         </p>
         <span
@@ -131,6 +132,7 @@ export function EinsatzDetailModerator() {
       {felder.length > 0 && (
         <div className="karte">
           <h2>Einsatzdetails</h2>
+          <div className="tabelle-scroll">
           <table>
             <tbody>
               {felder.map((f) => {
@@ -141,7 +143,7 @@ export function EinsatzDetailModerator() {
                       <td>
                         <strong>{f.label}</strong>
                       </td>
-                      <td style={{ color: "#999" }}>–</td>
+                      <td style={{ color: "var(--farbe-text-mute)" }}>–</td>
                     </tr>
                   );
                 }
@@ -156,10 +158,12 @@ export function EinsatzDetailModerator() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
       <h2>Teilnehmer ({einsatz.teilnahmen.length})</h2>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -179,7 +183,7 @@ export function EinsatzDetailModerator() {
         <tbody>
           {einsatz.teilnahmen.length === 0 && (
             <tr>
-              <td colSpan={11} style={{ color: "#999" }}>
+              <td colSpan={11} style={{ color: "var(--farbe-text-mute)" }}>
                 Keine Teilnehmer eingetragen.
               </td>
             </tr>
@@ -195,7 +199,7 @@ export function EinsatzDetailModerator() {
               <td>{t.nur_geraetehaus ? "Ja" : ""}</td>
               <td>{t.auf_anfahrt ? "Ja" : ""}</td>
               <td>{t.ohne_barcode ? "Ja" : ""}</td>
-              <td title={t.eintragung_user_agent ?? ""} style={{ fontSize: "0.8rem", color: "#666" }}>
+              <td title={t.eintragung_user_agent ?? ""} style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
                 {t.eintragung_ip ?? ""}
               </td>
               <td>{t.bemerkung ?? ""}</td>
@@ -203,9 +207,10 @@ export function EinsatzDetailModerator() {
           ))}
         </tbody>
       </table>
+      </div>
 
       <h2>Timeline</h2>
-      {timeline.length === 0 && <p style={{ color: "#999" }}>Noch keine Ereignisse protokolliert.</p>}
+      {timeline.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Ereignisse protokolliert.</p>}
       {timeline.length > 0 && (
         <div className="timeline">
           {timeline.map((ereignis) => (

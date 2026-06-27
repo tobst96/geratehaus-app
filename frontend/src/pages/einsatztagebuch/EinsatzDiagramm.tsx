@@ -459,7 +459,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
             )}
 
             <div className="einsatz-uebersicht-spalte">
-              <p style={{ color: "#666", fontSize: "0.9rem", marginTop: 0 }}>
+              <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.9rem", marginTop: 0 }}>
                 Fahrzeug auswählen, um Sitzplätze zu belegen.
               </p>
               <div className="fahrzeug-buttons">
@@ -558,7 +558,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
 
             {qrAnsicht ? (
               <div className="sitzplatz-qr-ansicht">
-                <p style={{ color: "#666" }}>
+                <p style={{ color: "var(--farbe-text-mute)" }}>
                   Mit dem Handy scannen – die Person trägt sich dort selbst für genau diesen Platz ein
                   (ohne Barcode, wird im Bericht entsprechend vermerkt).
                 </p>
@@ -583,7 +583,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                     </div>
                   )}
                 </div>
-                <p style={{ fontSize: "0.8rem", color: "#999" }}>
+                <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
                   Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
@@ -609,68 +609,68 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                 )}
 
                 <div className="sitzplatz-scan-felder">
-                  {mitgliedModus.aktiv ? (
-                    <p style={{ color: "#666" }}>
-                      Eingeloggt als <strong>{mitgliedModus.name}</strong>
-                    </p>
-                  ) : (
-                    <>
-                      <label htmlFor="ed-barcode">Barcode einscannen</label>
-                      <BarcodeEingabe
-                        id="ed-barcode"
-                        type="text"
-                        value={barcode}
-                        onChange={setBarcode}
-                        placeholder="Barcode scannen oder eingeben"
-                        autoFocus
-                        required
-                      />
-                    </>
-                  )}
-                  <br />
-                  <br />
+                  <div className="formular-feld">
+                    {mitgliedModus.aktiv ? (
+                      <p style={{ color: "var(--farbe-text-mute)" }}>
+                        Eingeloggt als <strong>{mitgliedModus.name}</strong>
+                      </p>
+                    ) : (
+                      <>
+                        <label htmlFor="ed-barcode">Barcode einscannen</label>
+                        <BarcodeEingabe
+                          id="ed-barcode"
+                          type="text"
+                          value={barcode}
+                          onChange={setBarcode}
+                          placeholder="Barcode scannen oder eingeben"
+                          autoFocus
+                          required
+                        />
+                      </>
+                    )}
+                  </div>
 
                   {!ausgewaehlteAktion.nurGeraetehaus && !ausgewaehlteAktion.aufAnfahrt && (
                     <>
-                      <label htmlFor="ed-funktion">Funktion</label>
-                      <select
-                        id="ed-funktion"
-                        value={funktionId ?? ""}
-                        onChange={(e) => setFunktionId(e.target.value ? Number(e.target.value) : null)}
-                      >
-                        <option value="">– keine –</option>
-                        {funktionen.map((f) => (
-                          <option key={f.id} value={f.id}>
-                            {f.name}
-                          </option>
-                        ))}
-                      </select>
-                      <br />
-                      <br />
+                      <div className="formular-feld">
+                        <label htmlFor="ed-funktion">Funktion</label>
+                        <select
+                          id="ed-funktion"
+                          value={funktionId ?? ""}
+                          onChange={(e) => setFunktionId(e.target.value ? Number(e.target.value) : null)}
+                        >
+                          <option value="">– keine –</option>
+                          {funktionen.map((f) => (
+                            <option key={f.id} value={f.id}>
+                              {f.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                      <label>
-                        <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
-                      </label>
-                      <br />
-                      <br />
+                      <div className="formular-feld">
+                        <label>
+                          <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
+                        </label>
+                      </div>
 
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={atemschutzAktiv}
-                          onChange={(e) => {
-                            setAtemschutzAktiv(e.target.checked);
-                            if (!e.target.checked) setAtemschutzminuten(0);
-                            else if (atemschutzminuten === 0) setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
-                          }}
-                        />{" "}
-                        Atemschutz
-                      </label>
-                      <br />
-                      <br />
+                      <div className="formular-feld">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={atemschutzAktiv}
+                            onChange={(e) => {
+                              setAtemschutzAktiv(e.target.checked);
+                              if (!e.target.checked) setAtemschutzminuten(0);
+                              else if (atemschutzminuten === 0) setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
+                            }}
+                          />{" "}
+                          Atemschutz
+                        </label>
+                      </div>
 
                       {atemschutzAktiv && (
-                        <>
+                        <div className="formular-feld">
                           <label htmlFor="ed-atemschutz">
                             Atemschutzminuten: <strong>{atemschutzminuten}</strong>
                           </label>
@@ -684,23 +684,21 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                             onChange={(e) => setAtemschutzminuten(Number(e.target.value))}
                             style={{ width: "100%" }}
                           />
-                          <br />
-                        </>
+                        </div>
                       )}
-                      <br />
                     </>
                   )}
 
-                  <label htmlFor="ed-bemerkung">Bemerkung (optional)</label>
-                  <textarea
-                    id="ed-bemerkung"
-                    rows={2}
-                    value={bemerkung}
-                    onChange={(e) => setBemerkung(e.target.value)}
-                    placeholder="Notizen…"
-                  />
-                  <br />
-                  <br />
+                  <div className="formular-feld">
+                    <label htmlFor="ed-bemerkung">Bemerkung (optional)</label>
+                    <textarea
+                      id="ed-bemerkung"
+                      rows={2}
+                      value={bemerkung}
+                      onChange={(e) => setBemerkung(e.target.value)}
+                      placeholder="Notizen…"
+                    />
+                  </div>
 
                   {fehler && <p className="fehlertext">{fehler}</p>}
                   {qrFehler && <p className="fehlertext">{qrFehler}</p>}

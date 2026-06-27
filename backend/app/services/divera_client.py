@@ -11,12 +11,12 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-BASIS_URL = "https://app.divera247.com/api"
+BASIS_URL = "https://app.divera247.com/api/v2"
 
 
 async def hole_alarme(api_key: str) -> list[dict]:
     """Holt aktuelle/letzte Alarme (Einsätze) für den Polling-Modus."""
-    url = f"{BASIS_URL}/alarms"
+    url = f"{BASIS_URL}/pull/all"
     async with httpx.AsyncClient(timeout=15) as client:
         try:
             response = await client.get(url, params={"accesskey": api_key})
@@ -26,7 +26,7 @@ async def hole_alarme(api_key: str) -> list[dict]:
             return []
 
     daten = response.json()
-    alarme = daten.get("data", {}).get("alarms", daten.get("alarms", {}))
+    alarme = daten.get("data", {}).get("alarm", {}).get("items", {})
     if isinstance(alarme, dict):
         alarme = list(alarme.values())
     return alarme or []

@@ -19,7 +19,11 @@ def konfiguriere_logging() -> None:
             structlog.stdlib.PositionalArgumentsFormatter(),
             structlog.processors.TimeStamper(fmt="iso"),
             structlog.processors.StackInfoRenderer(),
-            structlog.processors.format_exc_info,
+            # format_exc_info hier NICHT – es würde exc_info in einen String
+            # umwandeln bevor der stdlib-LogRecord entsteht, sodass Sentry's
+            # LoggingIntegration nur Text statt ein echtes Exception-Tupel sieht
+            # und Exceptions nicht korrekt gruppieren kann. Der ConsoleRenderer
+            # im ProcessorFormatter unten rendert exc_info selbst.
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],
         logger_factory=structlog.stdlib.LoggerFactory(),

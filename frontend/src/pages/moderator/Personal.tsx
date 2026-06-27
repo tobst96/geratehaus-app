@@ -28,6 +28,7 @@ import type {
   Person,
   PersonEreignis,
 } from "../../api/types";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 interface BildQr {
   personId: number;
@@ -379,7 +380,7 @@ export function Personal() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!liste) return <p>Lädt …</p>;
+  if (!liste) return <Ladeanzeige />;
 
   const gefiltert = !suche.trim()
     ? liste
@@ -459,11 +460,11 @@ export function Personal() {
             ) : (
               <>
                 <h2>{neuePerson.name} angelegt</h2>
-                <p style={{ color: "#666" }}>
+                <p style={{ color: "var(--farbe-text-mute)" }}>
                   Mit dem Handy scannen, um direkt ein Profilfoto aufzunehmen oder hochzuladen.
                 </p>
                 <img src={bildQr.bildUrl} alt="QR-Code für Foto-Upload" style={{ width: 220, height: 220 }} />
-                <p style={{ fontSize: "0.8rem", color: "#999" }}>
+                <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
                   Gültig bis {new Date(bildQr.ablaufAm).toLocaleTimeString("de-DE")}
                 </p>
                 <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
@@ -510,12 +511,12 @@ export function Personal() {
             ) : (
               <>
                 <h2>Bild per QR-Code hochladen</h2>
-                <p style={{ color: "#666" }}>
+                <p style={{ color: "var(--farbe-text-mute)" }}>
                   Mit dem Handy scannen, um ein Profilfoto für <strong>{ausgewaehltePerson.name}</strong>{" "}
                   aufzunehmen oder hochzuladen.
                 </p>
                 <img src={bildQrStandalone.bildUrl} alt="QR-Code für Foto-Upload" style={{ width: 220, height: 220 }} />
-                <p style={{ fontSize: "0.8rem", color: "#999" }}>
+                <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
                   Gültig bis {new Date(bildQrStandalone.ablaufAm).toLocaleTimeString("de-DE")}
                 </p>
                 <button type="button" className="sekundaer" onClick={bildQrStandaloneSchliessen}>
@@ -558,13 +559,13 @@ export function Personal() {
                 </button>
               </li>
             ))}
-            {gefiltert.length === 0 && <p style={{ color: "#666" }}>Keine Personen gefunden.</p>}
+            {gefiltert.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Keine Personen gefunden.</p>}
           </ul>
         </div>
 
         <div style={{ flex: 1 }}>
           {!ausgewaehltePerson ? (
-            <p style={{ color: "#666" }}>Bitte links eine Person auswählen.</p>
+            <p style={{ color: "var(--farbe-text-mute)" }}>Bitte links eine Person auswählen.</p>
           ) : (
             <div className="karte" key={ausgewaehltePerson.id}>
               <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
@@ -681,7 +682,7 @@ export function Personal() {
                 <button className="sekundaer" onClick={() => pinSetzen(ausgewaehltePerson)}>
                   PIN setzen
                 </button>
-                <span style={{ fontSize: "0.8rem", color: "#666" }}>
+                <span style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
                   {ausgewaehltePerson.pin_gesetzt ? "🔒 PIN gesetzt" : "Kein PIN gesetzt"}
                 </span>
 
@@ -713,7 +714,7 @@ export function Personal() {
                     </button>
                   </div>
                   {barcode.ablaufAm && (
-                    <div style={{ fontSize: "0.7rem", color: "#666" }}>
+                    <div style={{ fontSize: "0.7rem", color: "var(--farbe-text-mute)" }}>
                       Gültig bis {new Date(barcode.ablaufAm).toLocaleDateString("de-DE")}
                     </div>
                   )}
@@ -722,9 +723,10 @@ export function Personal() {
 
               <h3>Dienststunden</h3>
               {!dienststundenSummen ? (
-                <p>Lädt …</p>
+                <Ladeanzeige />
               ) : (
                 <>
+                  <div className="tabelle-scroll">
                   <table style={{ marginBottom: 12 }}>
                     <thead>
                       <tr>
@@ -749,13 +751,14 @@ export function Personal() {
                         ))}
                       {dienststundenSummen.filter((s) => s.summe_stunden > 0).length === 0 && (
                         <tr>
-                          <td colSpan={3} style={{ color: "#666" }}>
+                          <td colSpan={3} style={{ color: "var(--farbe-text-mute)" }}>
                             Noch keine Dienststunden erfasst.
                           </td>
                         </tr>
                       )}
                     </tbody>
                   </table>
+                  </div>
 
                   <form
                     onSubmit={(e) => stundenEintragen(ausgewaehltePerson, e)}
@@ -794,9 +797,9 @@ export function Personal() {
 
               <h3>Timeline</h3>
               {!timeline ? (
-                <p>Lädt …</p>
+                <Ladeanzeige />
               ) : timeline.length === 0 ? (
-                <p style={{ color: "#666" }}>Noch keine Ereignisse.</p>
+                <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Ereignisse.</p>
               ) : (
                 <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                   {timeline
@@ -808,7 +811,7 @@ export function Personal() {
                         style={{ display: "flex", gap: 8, alignItems: "baseline", padding: "4px 0" }}
                       >
                         <span>{PERSON_EREIGNIS_ICON[ereignis.typ] ?? "•"}</span>
-                        <span style={{ fontSize: "0.8rem", color: "#666", minWidth: 130 }}>
+                        <span style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)", minWidth: 130 }}>
                           {new Date(ereignis.zeitpunkt).toLocaleString("de-DE")}
                         </span>
                         <span>{ereignis.beschreibung}</span>

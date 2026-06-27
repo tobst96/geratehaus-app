@@ -97,7 +97,7 @@
 
 .dienstbuch-teilnehmer-liste li {
   padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--farbe-rand);
 }
 
 .dienstbuch-teilnehmer-liste li:last-child {
@@ -116,5 +116,5 @@
   width: 220px;
   height: 220px;
   border-radius: 12px;
-  border: 1px solid #ececec;
+  border: 1px solid var(--farbe-rand);
 }

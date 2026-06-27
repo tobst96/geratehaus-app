@@ -30,7 +30,7 @@ export function NameForm({ onFertig }: NameFormProps) {
   return (
     <div className="karte">
       <h2>Wie heißt du?</h2>
-      <p style={{ fontSize: "0.9rem", color: "#666" }}>
+      <p style={{ fontSize: "0.9rem", color: "var(--farbe-text-mute)" }}>
         Dein Name wird in einem Cookie auf diesem Gerät gespeichert, damit er beim nächsten Besuch
         vorausgefüllt ist. Mehr dazu in den{" "}
         <a href="/datenschutz" target="_blank" rel="noreferrer">

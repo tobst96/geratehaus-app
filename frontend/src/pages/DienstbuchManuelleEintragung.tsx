@@ -9,6 +9,7 @@ import {
 import { holeGruppen } from "../api/stammdaten";
 import { ApiError } from "../api/client";
 import { eintragungGesperrtMinuten, eintragungVermerken } from "../utils/eintragungssperre";
+import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { DienstbuchReservierungInfo, Gruppe, Person } from "../api/types";
 
 function initialenAus(name: string): string {
@@ -114,7 +115,7 @@ export function DienstbuchManuelleEintragung() {
   if (!info) {
     return (
       <div className="seite">
-        <p>Lädt …</p>
+        <Ladeanzeige />
       </div>
     );
   }
@@ -159,9 +160,10 @@ export function DienstbuchManuelleEintragung() {
     <div className="seite">
       <div className="karte">
         <h1>Ohne Barcode eintragen</h1>
-        <p style={{ color: "#666" }}>Dienstbuch „{info.dienstbuch_titel}“</p>
+        <p style={{ color: "var(--farbe-text-mute)" }}>Dienstbuch „{info.dienstbuch_titel}“</p>
 
         <form onSubmit={absenden}>
+          <div className="formular-feld">
           <label htmlFor="dbme-person">Wer bist du?</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
@@ -219,30 +221,29 @@ export function DienstbuchManuelleEintragung() {
                 </ul>
               )}
               {suche.trim().length > 0 && trefferliste.length === 0 && (
-                <p style={{ color: "#999", fontSize: "0.85rem" }}>
+                <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
                   Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
                 </p>
               )}
             </>
           )}
-          <br />
-          <br />
+          </div>
 
-          <label htmlFor="dbme-gruppe">Gruppe</label>
-          <select
-            id="dbme-gruppe"
-            value={gruppeId ?? ""}
-            onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
-          >
-            <option value="">– keine –</option>
-            {gruppen.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name}
-              </option>
-            ))}
-          </select>
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="dbme-gruppe">Gruppe</label>
+            <select
+              id="dbme-gruppe"
+              value={gruppeId ?? ""}
+              onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
+            >
+              <option value="">– keine –</option>
+              {gruppen.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {fehler && <p className="fehlertext">{fehler}</p>}
 

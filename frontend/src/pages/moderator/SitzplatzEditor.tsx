@@ -159,7 +159,7 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
         onClick={(e) => e.stopPropagation()}
       >
         <h2>Sitzplätze: {fahrzeug.name}</h2>
-        <p style={{ fontSize: "0.85rem", color: "#666" }}>
+        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
           Vorlage wählen, dann Sitzplätze per Ziehen positionieren. Klick auf freie Fläche fügt einen
           neuen Sitzplatz hinzu, Klick auf einen Sitzplatz erlaubt Umbenennen/Löschen.
         </p>
@@ -181,8 +181,8 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
             position: "relative",
             width: "100%",
             aspectRatio: "16 / 10",
-            background: "#f0f0f0",
-            border: "2px solid #ccc",
+            background: "var(--farbe-oberflaeche-hover)",
+            border: "2px solid var(--farbe-rand)",
             borderRadius: "var(--radius)",
             cursor: "copy",
             touchAction: "none",

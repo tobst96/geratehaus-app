@@ -3,8 +3,28 @@
   --farbe-akzent: #1a1a1a;
   --farbe-hintergrund: #f6f6f6;
   --farbe-text: #1a1a1a;
+  --farbe-oberflaeche: #ffffff;
+  --farbe-oberflaeche-hover: #f5f5f5;
+  --farbe-rand: #e0e0e0;
+  --farbe-text-mute: #777777;
+  --schatten-karte: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --schatten-karte-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
   --abstand: 16px;
   --radius: 10px;
+}
+
+/* Dark Mode: per Hand umschaltbar (Schalter in der Kopfzeile, in
+   localStorage gespeichert) mit System-Präferenz als Vorgabe, solange
+   noch keine manuelle Wahl getroffen wurde – siehe hooks/useTheme.ts. */
+:root[data-theme="dark"] {
+  --farbe-hintergrund: #15151a;
+  --farbe-text: #ededed;
+  --farbe-oberflaeche: #1f1f24;
+  --farbe-oberflaeche-hover: #2a2a30;
+  --farbe-rand: #383840;
+  --farbe-text-mute: #9a9aa3;
+  --schatten-karte: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --schatten-karte-hover: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -63,14 +83,14 @@ button:disabled {
 }
 
 button.sekundaer {
-  background: #fff;
+  background: var(--farbe-oberflaeche);
   color: var(--farbe-primaer);
   border: 2px solid var(--farbe-primaer);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 button.sekundaer:hover:not(:disabled) {
-  background: #f5f5f5;
+  background: var(--farbe-oberflaeche-hover);
 }
 
 input,
@@ -78,7 +98,9 @@ select,
 textarea {
   padding: 12px 14px;
   border-radius: var(--radius);
-  border: 1px solid #ccc;
+  border: 1px solid var(--farbe-rand);
+  background: var(--farbe-oberflaeche);
+  color: var(--farbe-text);
   min-height: 48px;
   width: 100%;
 }
@@ -119,10 +141,33 @@ a {
 .kopfzeile {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   padding: var(--abstand);
-  background: #fff;
+  background: var(--farbe-oberflaeche);
   border-bottom: 4px solid var(--farbe-primaer);
+}
+
+.theme-umschalter {
+  background: transparent;
+  color: var(--farbe-text);
+  border: 1px solid var(--farbe-rand);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  min-height: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+
+.theme-umschalter:hover:not(:disabled) {
+  background: var(--farbe-oberflaeche-hover);
+  transform: none;
+  box-shadow: none;
 }
 
 .kopfzeile img {
@@ -142,11 +187,11 @@ a {
   text-align: center;
   padding: var(--abstand);
   font-size: 0.8rem;
-  color: #777;
+  color: var(--farbe-text-mute);
 }
 
 .fusszeile a {
-  color: #777;
+  color: var(--farbe-text-mute);
 }
 
 .kachel-raster {
@@ -161,12 +206,12 @@ a {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #fff;
+  background: var(--farbe-oberflaeche);
   border-radius: var(--radius);
   padding: 24px 12px;
   text-decoration: none;
   color: var(--farbe-text);
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--farbe-rand);
   min-height: 100px;
   text-align: center;
   font-weight: 600;
@@ -206,6 +251,12 @@ a {
   min-width: 160px;
 }
 
+/* Wrapper um <table>, damit breite Tabellen auf schmalen Screens (z. B.
+   Mitglieder-Login auf dem Handy) horizontal scrollen statt zu brechen. */
+.tabelle-scroll {
+  overflow-x: auto;
+}
+
 /* Banner für Erfolgs-/Fehlermeldungen, die den Layout-Fluss nicht
    verschieben sollen wie ein loser <p>-Block. */
 .banner {
@@ -226,17 +277,17 @@ a {
 }
 
 .karte {
-  background: #fff;
+  background: var(--farbe-oberflaeche);
   border-radius: var(--radius);
-  border: 1px solid #e8e8e8;
+  border: 1px solid var(--farbe-rand);
   padding: var(--abstand);
   margin-bottom: var(--abstand);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--schatten-karte);
   transition: all 0.3s ease;
 }
 
 .karte:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--schatten-karte-hover);
 }
 
 h1, h2, h3 {
@@ -246,19 +297,21 @@ h1, h2, h3 {
   font-weight: 400;
 }
 
+/* Fluid Typografie: schrumpft auf schmalen Screens (Kiosk-Tablet im
+   Hochformat, Handy), bleibt auf Desktop bei der bisherigen Größe. */
 h1 {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem);
   margin-bottom: 1rem;
 }
 
 h2 {
-  font-size: 1.5rem;
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.5rem);
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
 
 h3 {
-  font-size: 1.2rem;
+  font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.2rem);
 }
 
 table {
@@ -272,12 +325,12 @@ table th {
   padding: 12px;
   text-align: left;
   font-weight: 600;
-  border-bottom: 2px solid #ddd;
+  border-bottom: 2px solid var(--farbe-rand);
 }
 
 table td {
   padding: 12px;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid var(--farbe-rand);
 }
 
 table tr:hover {

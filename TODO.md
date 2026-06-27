@@ -7,22 +7,166 @@ mir einfach sagen "trag X in die TODO ein" / "schau dir die TODO an und mach Y".
 Einträge sind mit Modul-Tags versehen (z. B. `[Setup]`, `[Sicherheit]`), damit man sich bei
 Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen.
 
-## Offen
+Die offenen Punkte sind zusätzlich in **Etappen** gruppiert: verwandte/zusammenhängende
+Änderungen landen in einem Arbeitsgang statt einzeln nacheinander angegangen zu werden.
+Reihenfolge unten ist ein Vorschlag (kleine/mechanische Etappen zuerst), kein Zwang – sag
+einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorziehen willst.
 
-- [ ] [Design] Frontend-Design modernisieren (Etappe 1 angefangen, siehe Plan unter
-      `~/.claude/plans/ich-m-chte-das-personal-linked-eclipse.md`). **Bereits erledigt:**
-      `.formular-feld`/`.formular-zeile`/`.banner-erfolg`/`.banner-fehler`-CSS-Klassen +
-      `Banner.tsx`/`Ladeanzeige.tsx`-Komponenten in `index.css`/`frontend/src/components/`; alle
-      3 ad-hoc duplizierten Erfolgs-Banner (`Einstellungen.tsx`, `NotifierEinstellungen.tsx`,
-      `PunkteEinstellungen.tsx`) nutzen jetzt `<Banner>`; `NotifierEinstellungen.tsx` komplett
-      von `<br />` auf `.formular-feld` migriert (alle 29 Vorkommen). **Noch offen (laut Plan):**
-      Etappe 1 Rest – `Einstellungen.tsx` (31 `<br />`-Vorkommen) noch migrieren; Etappe 2 –
-      restliche `<br />`-Dateien (`EinsatzDiagramm.tsx`, `Fahrzeugbuchung.tsx`,
-      `EinsatzDetail.tsx`, `ManuelleEintragung.tsx`, `FahrzeugbuchungManuelleEintragung.tsx`,
-      `DienstbuchManuelleEintragung.tsx`, `DienststundenManuelleEintragung.tsx`,
-      `PunkteEinstellungen.tsx`-Rest); Etappe 3 – Tabellen in `<div className="tabelle-scroll">`
-      wrappen (Mobile-Scroll); Etappe 4 – `<Ladeanzeige />` an den 29 `<p>Lädt …</p>`-Stellen
-      ausrollen. Dark Mode/responsive Typografie bewusst zurückgestellt (siehe Plan).
+## Etappen
+
+### Etappe A – Quick Fixes (mehrere Module, klein/mechanisch)
+
+- [ ] [Update] Bug: Installierte Version (`0.3.0b1`, PEP-440-Format aus `pyproject.toml`) und
+      verfügbare Version (`0.3.0-beta.1`, Semver aus GitHub-Releases-API) bezeichnen dieselbe
+      Version, werden aber unterschiedlich formatiert – dadurch zeigt die Seite fälschlicherweise
+      „neue Version verfügbar" an. Fix: beim Vergleich beide Formate auf einen gemeinsamen
+      Nenner normalisieren (z. B. `0.3.0b1` → `0.3.0-beta.1` oder umgekehrt) bevor verglichen
+      wird. Alternativ `pyproject.toml`-Version von vornherein in Semver-Format pflegen.
+      Betrifft `app/api/v1/update.py` oder wo der Versionsvergleich stattfindet.
+
+- [ ] [Design] Abstand unter Aktions-Buttons vor dem nächsten Inhaltsbereich: Im Einsatztagebuch
+      fehlt unter dem „Neuer Einsatz"-Button der visuelle Abstand bevor die Einsatzliste beginnt.
+      Dasselbe Muster in allen anderen Modulen prüfen und vereinheitlichen (Dienstbuch: „Neuer
+      Dienst", Dienststunden: „Stunden erfassen", Fahrzeugbuchung: „Neue Buchung" o. ä.).
+      Lösung: einheitlicher `margin-bottom` auf den jeweiligen Button-Bereich bzw. einen
+      Trenner-Abstand als CSS-Klasse (z. B. `.abschnitt-trenner`), damit überall dieselbe
+      optische Trennung zwischen Eingabe-/Aktionsbereich und Listenbereich entsteht.
+- [ ] [Dienstbuch] Bug: Im Mitglieder-Bereich ist beim Dienstbuch die Gruppe der eingeloggten
+      Person nicht vorgewählt. Beim Laden der Seite sollte die Gruppe aus dem Personenprofil
+      (`CurrentPerson`) automatisch als Standardwert im Gruppen-Dropdown gesetzt werden.
+      Betrifft die Dienstbuch-Seite im Mitglieder-Bereich (`pages/dienstbuch/` o. ä.).
+- [ ] [Dienststunden] In der Liste sollen nicht die Personen-IDs angezeigt werden, sondern der
+      richtige Name, dasselbe mit der Funktion.
+- [ ] [Punkte] Punkte in der Moderator-Übersicht: unter der Eingabe darf nicht mehr der Text
+      "Die automatischen Punkte-Regeln (unten) kann nur ein Admin einsehen und ändern." stehen!
+
+### Etappe B – Dienststunden-Politur (Dashboard/Liste-Verknüpfung)
+
+- [ ] Schwellenwert-Überschreitungen sollten nach oben und die Liste mit den ganzen Einträgen
+      nach unten.
+- [ ] Bug: Die Schwellenwert-Überschreitungs-Anzeige auf dem Dashboard verschwindet nicht,
+      nachdem Stunden erfasst wurden – sie bleibt stehen, auch wenn die Person danach unter
+      dem Schwellenwert liegt. Dashboard-Daten nach dem Stunden-Eintrag neu laden bzw. den
+      Schwellenwert-Status serverseitig korrekt neu berechnen.
+- [ ] Wenn die Stunden übernommen werden und unter der Schwelle ist, dann sollten auch die
+      Schwellenwert-Überschreitungen auf dem Dashboard aktualisiert werden.
+- [ ] Wenn man auf Schwellenwert-Überschreitungen auf dem Dashboard klickt, soll man direkt zu
+      den Listen → Dienststunden springen.
+- [ ] Sende der Person eine Mail, wenn die Stunden eingetragen wurden.
+
+### Etappe C – Dienststunden-Erfassung touch-freundlich (größeres UI-Rework)
+
+- [ ] Stunden-Erfassung touch-freundlicher und präziser gestalten: Das aktuelle
+      `<input type="number">`-Feld ist auf dem Handy umständlich. Vorschlag: Schnellauswahl-Chips
+      für häufige Werte (0:30 · 1:00 · 1:30 · 2:00 · 3:00 · 4:00) als tippbare Kacheln-Reihe,
+      darunter ein Feineinstellungs-Stepper (− / Anzeige / +) in 15-Min.-Schritten für
+      Zwischenwerte. Die Anzeige erfolgt im Format "2 Std. 30 Min." statt als Dezimalzahl.
+      Intern weiterhin als Dezimalstunden (float) an die API übergeben. Betrifft
+      `Dienststunden.tsx` (Bereich "Stunden erfassen"), keine Backend-Änderung nötig.
+
+### Etappe D – Moderator-Bereich Mobile-Optimierung
+
+- [ ] [Design] Moderator-Navigation auf Mobilgeräten überarbeiten: Die Navigationsleiste bricht
+      aktuell auf schmalen Screens über 4 Zeilen um und wirkt chaotisch. Lösung: Hamburger-Menü
+      (☰-Icon in der Kopfzeile, öffnet ein Drawer/Overlay mit allen Nav-Links) oder
+      zusammenklappbare Sidebar. Ab einer definierten Breakpoint-Breite (z. B. ≤768 px) greift
+      das mobile Layout, darüber bleibt die horizontale Leiste. Betrifft `ModeratorLayout.tsx`
+      (oder wo die Nav gerendert wird) + `index.css`.
+- [ ] [Design] Moderator-Bereich Layout-Overflow auf Mobile beheben: Auf schmalen Screens ist
+      rechts eine abgeschnittene Karte sichtbar (horizontaler Overflow). Ursache prüfen –
+      vermutlich ein festes `min-width` oder ein flex/grid-Container ohne `overflow: hidden`.
+      Alle Seiten im Moderator-Bereich auf horizontalen Scroll prüfen und beheben.
+- [ ] [Design] Personal-Liste mobile-freundlicher gestalten: Personen-Karten (`Personal.tsx`)
+      sind auf Mobile gut lesbar, aber „+ Person hinzufügen"-Button und Suche könnten als
+      Sticky-Leiste oben fixiert werden, damit man beim Scrollen durch eine lange Liste nicht
+      zurückscrollen muss. Suche ggf. prominenter platzieren (volle Breite, direkt unter dem
+      Seitentitel).
+
+### Etappe E – Mitglieder-Hub Redesign (`MitgliedHub.tsx`, nur Frontend)
+
+- [ ] [Mitgliederbereich] (1) **Profil-Zeile** statt großem Begrüßungsblock: kompakter Streifen mit Avatar
+      (Profilbild oder Initialen-Fallback, ~40 px), Name daneben, und "Abmelden" als kleiner
+      Textlink rechts – spart erheblich Höhe und wirkt weniger überladen.
+- [ ] (2) **Kacheln 2-spaltig** im CSS-Grid statt Vollbreite-Stack: quadratische Kacheln
+      (Icon oben, Label unten), analog zum Kiosk-Design, auf schmalen Screens 2 Spalten.
+- [ ] (3) **Einheitliche Kachel-Styles**: Keinen selektiven orangen Rand (sieht aktuell aus
+      wie ein hängengebliebener Aktiv-State). Aktiv/Hover-Zustand nur bei echtem Touch/Klick.
+- [ ] (4) **"Abmelden"-Button** nicht mehr als große outlined Schaltfläche prominent platzieren
+      – in die Profil-Zeile integrieren (siehe 1). Betrifft ausschließlich `MitgliedHub.tsx`
+      und `index.css` (ggf. neues `.mitglied-hub-*`-CSS), kein Backend.
+
+### Etappe E – Punkte- & Barcode-Sicherheit
+
+- [ ] [Punkte] Punkte-Einstellungen nach Modulen gruppieren (`PunkteEinstellungen.tsx`):
+      Aktuell werden alle Punkteregeln in einer flachen Liste angezeigt. Neu: zuerst ein
+      Abschnitt **„Allgemein"** für modulunabhängige Regeln (z. B. Belohnungen, manuelle
+      Vergabe), dann je ein Abschnitt pro Modul (Einsatztagebuch, Dienstbuch, Dienststunden,
+      Fahrzeugbuchung) – aber nur angezeigt, wenn das jeweilige Modul in den Einstellungen
+      aktiv ist (`modul_*_aktiv` aus `app_config`/`ConfigContext`). Inaktive Module werden
+      komplett ausgeblendet, damit keine verwaisten Regeln sichtbar sind. Reihenfolge der
+      Abschnitte: Allgemein → Einsatztagebuch → Dienstbuch → Dienststunden → Fahrzeugbuchung.
+      Kein Backend-Änderung nötig, nur Frontend-Umstrukturierung.
+- [ ] [Punkte] Personen-Auswahl bei Punkte-Vergabe als Namenssuche statt Dropdown: Aktuell
+      ist die Empfänger-Auswahl ein `<select>`-Dropdown, das bei vielen Personen unhandlich
+      wird. Ersetzen durch eine Echtzeit-Namenssuche (Textfeld + gefilterter Listenvorschlag
+      darunter) analog zur Personenauswahl auf der „Barcode vergessen"-Seite. Betrifft
+      `PunkteEinstellungen.tsx` o. ä., kein Backend-Änderung nötig (Personenliste wird
+      bereits geladen).
+- [ ] [Punkte] Punkte als Belohnung vergeben: darf man sich nicht selber Punkte geben. Bei der
+      Empfänger-Person soll in der Timeline die Punkte, Gültigkeit, Grund und wer die Punkte
+      hinzugefügt hat stehen.
+- [ ] [Punkte] Im Admin-Bereich soll man Personen auch Punkte entziehen können. Überlegen, wie
+      sich das schön einbauen lässt, ohne die Oberfläche zu überladen.
+- [ ] [Buchungen] Wenn bei der Fahrzeugbuchung "Barcode vergessen" geklickt wird, dann soll –
+      sobald die Person sich am Handy mit Name und PIN eingeloggt hat – neben dem QR-Code sofort
+      das Profilbild und der Name angezeigt werden.
+- [ ] [Barcode] Überprüfe überall, wo man auf "Barcode vergessen" klickt, dass man am Handy
+      seinen Namen und PIN eingeben muss zum Einloggen. Erst dann sollen die Bilder angezeigt
+      werden. Wenn die Person keinen PIN hat, dann sperre die Option. Vermerke dies aber in ihrer
+      Personen-Timeline.
+
+### Etappe F – Per-Zugang-Benachrichtigungen (zwei Schritte, sequenziell)
+
+1. [ ] [Moderatoren] E-Mail-Adresse pro Moderatoren-Zugang (`moderatoren`-Tabelle, neues Feld
+       `email`): Migration + Endpunkte `moderator_anlegen`/`moderator_aktualisieren` erweitern,
+       Formular in `Einstellungen.tsx` (Bereich "Admin- & Gruppenführer-Zugänge") um E-Mail-Feld
+       ergänzen. Voraussetzung für Schritt 2.
+2. [ ] [Benachrichtigungen] Benachrichtigungen pro Moderatoren-Zugang statt global: Die aktuellen
+       globalen Schalter (`benachrichtigung_neuer_einsatz`, `benachrichtigung_neues_dienstbuch`,
+       `benachrichtigung_buchungsanfrage`, `benachrichtigung_schwellenwert_ueberschreitung`,
+       `benachrichtigung_person_inaktiv`) aus `app_config` und die Sektion "Benachrichtigungen"
+       aus `Einstellungen.tsx` entfernen. Stattdessen: neue Tabelle
+       `moderatoren_benachrichtigungen` (moderator_id FK, ereignis_schluessel, aktiv bool;
+       Default aktiv=False) oder gleichnamige Felder direkt auf `moderatoren`. `EmailNotifier`
+       statt der bisherigen `notifier_email_recipients`-Liste die hinterlegten E-Mail-Adressen
+       der Moderatoren abfragen, die das jeweilige Ereignis aktiviert haben. Migration nötig
+       (Alembic).
+
+### Etappe G – Personen-Auswertung & Timeline-Details
+
+- [ ] [Personal] Personen-Auswertungsseite: Detailansicht pro Person im Moderator-Bereich mit
+      zwei Bereichen: (1) **Timeline** – alle `PersonEreignis`-Einträge der Person chronologisch
+      lesbar dargestellt (Datum, Ereignistyp als lesbares Label, Detailtext), filterbar nach
+      Zeitraum oder Ereigniskategorie (Einsatz/Dienstbuch/Punkte/Stammdaten). (2)
+      **Punkteverlauf** – Linien- oder Flächendiagramm (z. B. `recharts` oder `chart.js`, bereits
+      im Projekt vorhanden prüfen) das den kumulierten Punktestand über die gesamte Laufzeit
+      zeigt; X-Achse Datum, Y-Achse Gesamtpunkte. Naheliegender Ansatz: neuer Endpunkt
+      `GET /moderator/stammdaten/personen/{id}/auswertung` liefert Timeline-Einträge + eine
+      aggregierte Punkteverlauf-Zeitreihe (z. B. monatliche Schnappschüsse aus
+      `person_punkte`-Einträgen). Frontend: neue Route `/moderator/personal/:id` von der
+      bestehenden Personal-Liste verlinkbar (Klick auf Person oder neuer "Auswertung"-Button).
+- [ ] [Personal] Timeline-Einträge im Admin-Bereich (Personen-Auswertungsseite, siehe oben)
+      detaillierter gestalten: Aktuell steht z. B. nur "Punkte erhalten" ohne weiteren Kontext.
+      Jeder `PersonEreignis`-Eintrag soll im Admin-Bereich mehr Informationen anzeigen – bei
+      Punkten z. B. Anzahl, Grund und wer sie vergeben hat; bei Einsätzen den Einsatztitel und
+      die eigene Funktion/Fahrzeug; bei Dienstbüchern den Dienst-Typ. Prüfen ob das `detail`-Feld
+      auf `PersonEreignis` bereits alle nötigen Infos enthält oder ob der Inhalt beim Schreiben
+      der Ereignisse (z. B. in `einsatz_service`, `stammdaten_service`) um weitere Angaben
+      angereichert werden muss. Für Mitglieder soll die Timeline-Darstellung separat und anders
+      gestaltet werden (eigener Punkt, noch offen).
+
+### Etappe H – Externe Kalender im Buchungskalender
+
 - [ ] [Buchungen] Externe Kalender (z. B. den Divera-Kalender) per Einstellungen hinterlegen
       können, damit sie zusätzlich zu den Gerätehaus.app-eigenen Fahrzeugbuchungen im
       Buchungskalender angezeigt werden (Konflikterkennung soll dann auch externe Termine
@@ -33,13 +177,9 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
       und als zusätzliche, nicht buchbare "Fremdtermine" im Kalender überlagern. Divera-API-Key
       ist schon vorhanden (`divera_service.py`/`divera_client.py`) – ggf. erst prüfen, ob Divera
       Termine auch direkt über die bestehende API statt iCal liefert.
-- [ ] [Benachrichtigungen] Mail-Versand: evtl. eine "Ausdrucken statt/zusätzlich zu E-Mail"-
-      Alternative anbieten – z. B. für Moderatoren ohne hinterlegte E-Mail, oder als
-      Backup-Kanal, wenn der SMTP-Versand fehlschlägt. Genauer Bedarf/Umfang noch unklar (reine
-      Druckansicht im Browser? PDF-Download der Benachrichtigung? Automatisch bei
-      SMTP-Fehlschlag?) – beim Aufgreifen erst klären, was genau gewünscht ist, bevor
-      implementiert wird. Die HTML-Mail-Infrastruktur (`email_template_service.render_html()`)
-      liefert bereits druckfähiges, gestyltes HTML, das sich als Basis eignen sollte.
+
+### Etappe I – Personen-CSV-Import
+
 - [ ] [Personal] CSV-Import für Personen, inkl. Beispieldatei zum Download (Spalten-Vorlage:
       vorname, zwischenname, nachname, email, gruppe, funktion o. ä.). Betrifft
       `Personal.tsx`/`stammdaten_service.person_anlegen()`. Sinnvoller Ansatz: neuer Endpunkt
@@ -50,10 +190,53 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
       Fehler abzubrechen). Beispieldatei als statische Datei im Frontend (z. B.
       `public/personen-vorlage.csv`) zum Download neben dem Upload-Button auf der Personal-Seite.
 
+### Etappe J – Druck-Fallback für Einsatz-/Dienstbuch-PDF (Netzwerkdrucker per IPP)
+
+Geklärter Scope (per Rückfrage): **nur** für die beiden Benachrichtigungen, die ohnehin schon
+ein PDF anhängen (Einsatz-/Dienstbuch-Abschluss) – nicht für Buchungsanfragen, Schwellenwerte
+o. ä. Standardmäßig nur als Fallback, wenn der SMTP-Versand fehlschlägt (dann wird exakt das
+bereits erzeugte Anhang-PDF gedruckt, kein separates Rendering nötig); zusätzlich soll der Admin
+pro Modul (Einsatz/Dienstbuch) optional "immer ausdrucken" statt nur bei Fehlschlag aktivieren
+können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selben LAN.
+
+- [ ] Neue `app_config`-Schlüssel: `drucker_aktiv` (bool), `drucker_ipp_url` (str, z. B.
+      `ipp://drucker.lan:631/printers/Drucker1`), `drucker_immer_einsatz` (bool, Default False),
+      `drucker_immer_dienstbuch` (bool, Default False).
+- [ ] Neuer `backend/app/services/druck_service.py`: Funktion `drucke_pdf(ipp_url, pdf_bytes)`,
+      die das PDF per IPP an den konfigurierten Drucker schickt (z. B. mit `pyipp` oder einem
+      schlanken eigenen IPP-Request über `httpx`/`requests`, je nachdem was sich ohne System-
+      Abhängigkeiten wie `cups`/`pycups` im Docker-Image am einfachsten einbinden lässt – prüfen,
+      welche Variante am wenigsten zusätzliche Container-Pakete braucht).
+- [ ] Einhängen an den beiden bestehenden Versandstellen für Einsatz-/Dienstbuch-Abschluss-PDF
+      (dort, wo `notifier_email_pdf_bei_abschluss`/`notifier_email_pdf_bei_dienstbuch_abschluss`
+      ausgewertet werden): bei SMTP-Fehler (Exception beim Mailversand) und `drucker_aktiv` das
+      bereits erzeugte PDF zusätzlich/stattdessen per `druck_service.drucke_pdf()` ausgeben;
+      zusätzlich unabhängig vom Mailerfolg drucken, wenn `drucker_immer_einsatz` bzw.
+      `drucker_immer_dienstbuch` aktiv ist. Druckfehler dürfen den Mailversand-Erfolg nicht
+      verschlucken (analog zum bestehenden Best-Effort-Muster für Nebenwirkungen in diesem
+      Projekt) – nur loggen, keine Exception nach außen werfen.
+- [ ] Neuer ratenlimitierter Endpunkt `POST /moderator/einstellungen/testdruck` (analog zu
+      `sendeTestmail`/`/moderator/einstellungen/testmail`) für einen Testdruck mit den aktuell im
+      Formular stehenden Werten, bevor gespeichert wird.
+- [ ] Neue Sektion in `Einstellungen.tsx` (oder eigene Unterseite, je nachdem wie groß das wird):
+      "Drucker aktivieren"-Schalter, IPP-URL-Feld, je ein "Immer ausdrucken bei Einsatz-/
+      Dienstbuch-Abschluss"-Checkbox, "Testdruck"-Button mit Ergebnis-Anzeige (1:1 nach dem
+      Muster des bestehenden Testmail-Buttons in `NotifierEinstellungen.tsx`).
+- [ ] Tests: mind. ein Test, der `druck_service.drucke_pdf()` mockt und prüft, dass bei
+      simuliertem SMTP-Fehlschlag + `drucker_aktiv=True` der Druckpfad aufgerufen wird, und einer
+      für den `drucker_immer_*`-Pfad unabhängig vom Mailerfolg.
+
 ## In Arbeit
 
 ## Erledigt
 
+- [x] [Design] Frontend-Design-Modernisierung komplett abgeschlossen: Etappe 1–4 (geteilte
+      Bausteine `Banner`/`Ladeanzeige`/`.formular-feld`/`.formular-zeile`, alle `<br />`-Ketten
+      entfernt, Tabellen mobil scrollbar via `.tabelle-scroll`, `<Ladeanzeige />` überall
+      ausgerollt) + zusätzlich Dark Mode (manueller Schalter in der Kopfzeile + System-Präferenz
+      als Default, neue CSS-Variablen `--farbe-oberflaeche`/`--farbe-rand`/`--farbe-text-mute`
+      etc., inkl. Nachzieh-Sweep aller inline `style={{color:"#666"/"#999"}}`-Stellen) und fluide
+      Typografie (`h1`–`h3` via `clamp()`).
 - [x] [Auth] "Durch zufälliges Klicken war ich auf einmal eingeloggt" behoben: neue
       `POST /auth/abmelden` löscht den httponly `geraetehaus_name`-Cookie serverseitig (geht
       nicht per JS, da httponly); `AuthContext.tsx` hat jetzt `mitgliedAbmelden()` (löscht

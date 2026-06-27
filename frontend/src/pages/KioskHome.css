@@ -6,7 +6,7 @@
   height: 100vh;
   width: 100%;
   padding: clamp(1rem, 3vh, 2.5rem) clamp(1rem, 3vw, 3rem);
-  background: #f6f6f6;
+  background: var(--farbe-hintergrund);
   font-family: "Noto Sans", "Segoe UI", Roboto, sans-serif;
   box-sizing: border-box;
   overflow: hidden;
@@ -27,7 +27,7 @@
   font-weight: 400;
   margin: 0 0 0.4rem 0;
   text-align: center;
-  color: #1a1a1a;
+  color: var(--farbe-text);
   letter-spacing: -0.5px;
 }
 
@@ -37,7 +37,7 @@
 
 .kiosk-subtitle {
   font-size: clamp(1.1rem, 2vw, 1.5rem);
-  color: #6b6b6b;
+  color: var(--farbe-text-mute);
   text-align: center;
   font-weight: 400;
 }
@@ -81,7 +81,7 @@
   min-width: 0;
   justify-self: center;
   align-self: center;
-  border: 1px solid #ececec;
+  border: 1px solid var(--farbe-rand);
   border-radius: clamp(12px, 1.6vw, 26px);
   cursor: pointer;
   display: flex;
@@ -89,8 +89,8 @@
   justify-content: center;
   align-items: center;
   gap: clamp(0.4rem, 2vh, 1.4rem);
-  background: #ffffff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  background: var(--farbe-oberflaeche);
+  box-shadow: var(--schatten-karte);
   transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.25s ease, border-color 0.25s ease;
   padding: clamp(0.5rem, 2vh, 1rem);
   overflow: hidden;
@@ -99,7 +99,7 @@
 .kiosk-tile:hover,
 .kiosk-tile:focus-visible {
   transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--schatten-karte-hover);
   border-color: var(--farbe-primaer, #ffa633);
 }
 
@@ -130,7 +130,7 @@
   font-weight: 400;
   text-align: center;
   letter-spacing: 0.2px;
-  color: #1a1a1a;
+  color: var(--farbe-text);
 }
 
 /* Decorative wave at bottom, echoing the fire-department site's hero wave */
@@ -158,9 +158,9 @@
 .kiosk-module-back {
   padding: 0.7rem 1.4rem;
   font-size: 1rem;
-  background: #ffffff;
-  color: #1a1a1a;
-  border: 1px solid #ececec;
+  background: var(--farbe-oberflaeche);
+  color: var(--farbe-text);
+  border: 1px solid var(--farbe-rand);
   border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
@@ -175,6 +175,6 @@
 .kiosk-module-title {
   font-family: "Alata", "Noto Sans", sans-serif;
   font-size: clamp(1.5rem, 3vw, 2.2rem);
-  color: #1a1a1a;
+  color: var(--farbe-text);
   font-weight: 400;
 }

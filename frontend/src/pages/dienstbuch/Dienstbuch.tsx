@@ -3,6 +3,7 @@ import { holeLetzteDienstbuecher, dienstbuchAnlegen } from "../../api/dienstbuec
 import { holeGruppen } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import { DienstbuchDiagramm } from "./DienstbuchDiagramm";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 import type { DienstbuchOut, Gruppe } from "../../api/types";
 
 function jetztAlsDatetimeLocal(): string {
@@ -38,7 +39,7 @@ export function Dienstbuch() {
   }, []);
 
   if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
-  if (!dienstbuecher) return <p>Lädt …</p>;
+  if (!dienstbuecher) return <Ladeanzeige />;
 
   const ausgewaehltesDienstbuch = dienstbuecher.find((d) => d.id === selectedDienstbuchId) ?? null;
   if (ausgewaehltesDienstbuch) {
@@ -70,31 +71,31 @@ export function Dienstbuch() {
   return (
     <div>
       <h1>Dienstbuch</h1>
-      <p style={{ fontSize: "0.85rem", color: "#666" }}>
+      <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
         Zeigt die zuletzt eröffneten Dienstbücher im konfigurierten Zeitfenster.
       </p>
 
       {!formularOffen && <button onClick={() => setFormularOffen(true)}>Neues Dienstbuch</button>}
       {formularOffen && (
         <form onSubmit={anlegen} className="karte">
-          <label htmlFor="db-titel">Titel</label>
-          <input id="db-titel" value={titel} onChange={(e) => setTitel(e.target.value)} required />
-          <br />
-          <br />
-          <label htmlFor="db-zeitpunkt">Eröffnet am</label>
-          <input
-            id="db-zeitpunkt"
-            type="datetime-local"
-            value={eroeffnetAm}
-            onChange={(e) => setEroeffnetAm(e.target.value)}
-            required
-          />
-          <br />
-          <br />
-          <label htmlFor="db-notizen">Notizen (optional)</label>
-          <textarea id="db-notizen" value={notizen} onChange={(e) => setNotizen(e.target.value)} rows={3} />
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="db-titel">Titel</label>
+            <input id="db-titel" value={titel} onChange={(e) => setTitel(e.target.value)} required />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="db-zeitpunkt">Eröffnet am</label>
+            <input
+              id="db-zeitpunkt"
+              type="datetime-local"
+              value={eroeffnetAm}
+              onChange={(e) => setEroeffnetAm(e.target.value)}
+              required
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="db-notizen">Notizen (optional)</label>
+            <textarea id="db-notizen" value={notizen} onChange={(e) => setNotizen(e.target.value)} rows={3} />
+          </div>
           <button type="submit">Anlegen</button>{" "}
           <button type="button" className="sekundaer" onClick={() => setFormularOffen(false)}>
             Abbrechen
@@ -108,7 +109,7 @@ export function Dienstbuch() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <strong>{d.titel}</strong>
-              <div style={{ fontSize: "0.85rem", color: "#666" }}>
+              <div style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
                 {new Date(d.eroeffnet_am).toLocaleString("de-DE")} · {d.teilnehmer.length} Teilnehmer
               </div>
               {d.notizen && <p style={{ margin: "0.25rem 0 0" }}>{d.notizen}</p>}

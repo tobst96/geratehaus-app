@@ -75,13 +75,14 @@ function ModeratorenVerwaltung() {
   return (
     <div className="karte">
       <h2>Admin- &amp; Gruppenführer-Zugänge</h2>
-      <p style={{ fontSize: "0.85rem", color: "#666" }}>
+      <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
         Admins sehen Personal, Punkte, Stammdaten und alle Einstellungen. Gruppenführer sehen nur
         Dashboard, Listen (Einsatzberichte/Dienstbucheinträge) und Buchungen (Fahrzeugreservierungen).
       </p>
       {fehler && <p className="fehlertext">{fehler}</p>}
-      {!liste && <p>Lädt …</p>}
+      {!liste && <Ladeanzeige />}
       {liste && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -107,6 +108,7 @@ function ModeratorenVerwaltung() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       <form onSubmit={anlegen} style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -347,7 +349,7 @@ export function Einstellungen() {
               onChange={(e) => setOeffentlicheBasisUrl(e.target.value)}
               placeholder="https://geraetehausapp.feuerwehr-musterstadt.de"
             />
-            <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
               Wird für alle QR-Code-Links genutzt (Barcode vergessen, Profilbild-Upload usw.), statt der
               aktuellen Browser-Adresse – wichtig, falls das Gerätehaus-Tablet unter einer anderen Adresse
               erreichbar ist als das Internet.
@@ -355,7 +357,9 @@ export function Einstellungen() {
           </div>
           <div className="formular-feld">
             <label htmlFor="e-logo">Logo</label>
-            {logoUrl && <img src={logoUrl} alt="Logo" style={{ height: 50 }} />}
+            {logoUrl && (
+              <img src={logoUrl} alt="Logo" style={{ height: 50, marginBottom: 8 }} />
+            )}
             <input
               id="e-logo"
               type="file"
@@ -363,23 +367,26 @@ export function Einstellungen() {
               onChange={(e) => e.target.files?.[0] && logoHochladen(e.target.files[0])}
             />
           </div>
-          <div className="formular-feld">
-            <label htmlFor="e-farbe-primaer">Primärfarbe</label>
-            <input id="e-farbe-primaer" type="color" value={farbePrimaer} onChange={(e) => setFarbePrimaer(e.target.value)} />
-          </div>
-          <div className="formular-feld">
-            <label htmlFor="e-farbe-akzent">Akzentfarbe</label>
-            <input id="e-farbe-akzent" type="color" value={farbeAkzent} onChange={(e) => setFarbeAkzent(e.target.value)} />
+          <div className="formular-zeile">
+            <div className="formular-feld">
+              <label htmlFor="e-farbe-primaer">Primärfarbe</label>
+              <input id="e-farbe-primaer" type="color" value={farbePrimaer} onChange={(e) => setFarbePrimaer(e.target.value)} />
+            </div>
+            <div className="formular-feld">
+              <label htmlFor="e-farbe-akzent">Akzentfarbe</label>
+              <input id="e-farbe-akzent" type="color" value={farbeAkzent} onChange={(e) => setFarbeAkzent(e.target.value)} />
+            </div>
           </div>
         </div>
 
         <div className="karte">
           <h2>Module</h2>
-          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+          <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
             "Aktiv" steuert, ob das Modul überhaupt erreichbar ist. "Auf Startseite anzeigen" steuert,
             ob dafür eine Kachel im Gerätehaus-Kiosk erscheint. "Außenzugriff" steuert, ob Mitglieder das
             Modul auch über den öffentlichen Mitglieder-Login (außerhalb des Gerätehauses) nutzen dürfen.
           </p>
+          <div className="tabelle-scroll">
           <table>
             <thead>
               <tr>
@@ -488,6 +495,7 @@ export function Einstellungen() {
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
 
         <div className="karte">
@@ -569,7 +577,7 @@ export function Einstellungen() {
               value={autoabschlussInaktivitaetStunden}
               onChange={(e) => setAutoabschlussInaktivitaetStunden(Number(e.target.value))}
             />
-            <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
               Offene Einsätze werden täglich zur eingestellten Stunde automatisch abgeschlossen,
               wenn seit der letzten Bearbeitung mindestens so viele Stunden vergangen sind.
             </p>
@@ -654,7 +662,7 @@ export function Einstellungen() {
               value={personenInaktivitaetTage}
               onChange={(e) => setPersonenInaktivitaetTage(Number(e.target.value))}
             />
-            <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
               7 Tage vor der automatischen Löschung wird einmalig eine Benachrichtigung verschickt.
               Erfolgt in dieser Zeit keine neue Aktivität, wird die Person inkl. aller zugehörigen Daten
               (Dienststunden, Einsätze, Dienstbücher, Barcodes, Buchungen) endgültig gelöscht. 0 = deaktiviert.
@@ -664,7 +672,7 @@ export function Einstellungen() {
 
         <div className="karte">
           <h2>Divera 24/7</h2>
-          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+          <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
             Ersetzt die frühere .env-Konfiguration – Änderungen wirken ohne Neustart.
           </p>
           <div className="formular-feld">
@@ -703,7 +711,7 @@ export function Einstellungen() {
             />{" "}
             Technische Fehlerberichte an den Entwickler senden
           </label>
-          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+          <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
             Hilft, Bugs über alle Installationen von Gerätehaus.app hinweg schneller zu finden und
             zu beheben. Es werden nur Stacktraces und technische Fehlerdetails übertragen, keine
             Namen oder sonstigen Inhalte. Wirkt erst nach einem Neustart des Backend-Containers.

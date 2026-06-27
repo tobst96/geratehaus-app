@@ -3,6 +3,7 @@ import { holeKioskTokens, kioskTokenAnlegen, kioskTokenLoeschen, type KioskToken
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 export function KioskGeraete() {
   const { config } = useConfig();
@@ -57,12 +58,12 @@ export function KioskGeraete() {
   }
 
   if (fehler) return <p className="fehlertext">{fehler}</p>;
-  if (!geraete) return <p>Lädt …</p>;
+  if (!geraete) return <Ladeanzeige />;
 
   return (
     <div>
       <h1>Kiosk-Geräte</h1>
-      <p style={{ color: "#666" }}>
+      <p style={{ color: "var(--farbe-text-mute)" }}>
         Jedes Tablet im Gerätehaus braucht einen eigenen Link. Diesen Link einmalig als Lesezeichen /
         Startbildschirm-Symbol auf dem jeweiligen Tablet hinterlegen.
       </p>

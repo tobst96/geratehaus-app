@@ -11,7 +11,7 @@
   top: 6px;
   bottom: 6px;
   width: 2px;
-  background: #e0e0e0;
+  background: var(--farbe-rand);
 }
 
 .timeline-eintrag {
@@ -36,7 +36,7 @@
   font-size: 0.85rem;
   color: #fff;
   background: var(--farbe-primaer, #ffa633);
-  box-shadow: 0 0 0 3px #fff;
+  box-shadow: 0 0 0 3px var(--farbe-oberflaeche);
 }
 
 .timeline-punkt-abgeschlossen {
@@ -49,7 +49,7 @@
 
 .timeline-zeit {
   font-size: 0.75rem;
-  color: #999;
+  color: var(--farbe-text-mute);
 }
 
 .timeline-text {
@@ -73,8 +73,8 @@
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 700;
-  background: #eef1f4;
-  color: #555;
+  background: var(--farbe-oberflaeche-hover);
+  color: var(--farbe-text-mute);
 }
 
 .einsatz-status-badge-offen {
