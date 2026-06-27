@@ -40,6 +40,30 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
       SMTP-Fehlschlag?) – beim Aufgreifen erst klären, was genau gewünscht ist, bevor
       implementiert wird. Die HTML-Mail-Infrastruktur (`email_template_service.render_html()`)
       liefert bereits druckfähiges, gestyltes HTML, das sich als Basis eignen sollte.
+- [ ] [Moderatoren] E-Mail-Adresse pro Moderatoren-Zugang (`moderatoren`-Tabelle, neues Feld
+      `email`): Migration + Endpunkte `moderator_anlegen`/`moderator_aktualisieren` erweitern,
+      Formular in `Einstellungen.tsx` (Bereich "Admin- & Gruppenführer-Zugänge") um E-Mail-Feld
+      ergänzen. Wird als Voraussetzung für die per-Zugang-Benachrichtigungen (siehe unten) benötigt.
+- [ ] [Benachrichtigungen] Benachrichtigungen pro Moderatoren-Zugang statt global: Die aktuellen
+      globalen Schalter (`benachrichtigung_neuer_einsatz`, `benachrichtigung_neues_dienstbuch`,
+      `benachrichtigung_buchungsanfrage`, `benachrichtigung_schwellenwert_ueberschreitung`,
+      `benachrichtigung_person_inaktiv`) aus `app_config` und die Sektion "Benachrichtigungen" aus
+      `Einstellungen.tsx` entfernen. Stattdessen: neue Tabelle `moderatoren_benachrichtigungen`
+      (moderator_id FK, ereignis_schluessel, aktiv bool; Default aktiv=False) oder gleichnamige
+      Felder direkt auf `moderatoren`. `EmailNotifier` statt der bisherigen `notifier_email_recipients`-
+      Liste die hinterlegten E-Mail-Adressen der Moderatoren abfragen, die das jeweilige Ereignis
+      aktiviert haben. Migration nötig (Alembic). Setzt E-Mail-Adressen pro Zugang voraus.
+- [ ] [Personal] Personen-Auswertungsseite: Detailansicht pro Person im Moderator-Bereich mit
+      zwei Bereichen: (1) **Timeline** – alle `PersonEreignis`-Einträge der Person chronologisch
+      lesbar dargestellt (Datum, Ereignistyp als lesbares Label, Detailtext), filterbar nach
+      Zeitraum oder Ereigniskategorie (Einsatz/Dienstbuch/Punkte/Stammdaten). (2)
+      **Punkteverlauf** – Linien- oder Flächendiagramm (z. B. `recharts` oder `chart.js`, bereits
+      im Projekt vorhanden prüfen) das den kumulierten Punktestand über die gesamte Laufzeit
+      zeigt; X-Achse Datum, Y-Achse Gesamtpunkte. Naheliegender Ansatz: neuer Endpunkt
+      `GET /moderator/stammdaten/personen/{id}/auswertung` liefert Timeline-Einträge + eine
+      aggregierte Punkteverlauf-Zeitreihe (z. B. monatliche Schnappschüsse aus
+      `person_punkte`-Einträgen). Frontend: neue Route `/moderator/personal/:id` von der
+      bestehenden Personal-Liste verlinkbar (Klick auf Person oder neuer "Auswertung"-Button).
 - [ ] [Personal] CSV-Import für Personen, inkl. Beispieldatei zum Download (Spalten-Vorlage:
       vorname, zwischenname, nachname, email, gruppe, funktion o. ä.). Betrifft
       `Personal.tsx`/`stammdaten_service.person_anlegen()`. Sinnvoller Ansatz: neuer Endpunkt
@@ -54,6 +78,15 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 - [ ] [Dienststunden] Sende die Person eine Mail, wenn die Stunden eingetragen wurden
 - [ ] [Dienststunden] Wenn die Stunden übernommen werden und unter der Schwelle ist, dann sollten auche die Schwellenwert-Überschreitungen auf dem Dashboard aktuallisiert werden
 - [ ] [Dienststunden] Schwellenwert-Überschreitungen auf dem Dashboard klickt, soll man direkt zu den Listen -> Dienststunden hinspringen
+- [ ] [Personal] Timeline-Einträge im Admin-Bereich (Personen-Auswertungsseite, siehe oben)
+      detaillierter gestalten: Aktuell steht z. B. nur "Punkte erhalten" ohne weiteren Kontext.
+      Jeder `PersonEreignis`-Eintrag soll im Admin-Bereich mehr Informationen anzeigen – bei
+      Punkten z. B. Anzahl, Grund und wer sie vergeben hat; bei Einsätzen den Einsatztitel und
+      die eigene Funktion/Fahrzeug; bei Dienstbüchern den Dienst-Typ. Prüfen ob das `detail`-Feld
+      auf `PersonEreignis` bereits alle nötigen Infos enthält oder ob der Inhalt beim Schreiben
+      der Ereignisse (z. B. in `einsatz_service`, `stammdaten_service`) um weitere Angaben
+      angereichert werden muss. Für Mitglieder soll die Timeline-Darstellung separat und anders
+      gestaltet werden (eigener Punkt, noch offen).
 - [ ] [Punkte] Punkte als Belohnung vergeben darf man sich nicht selber Punkte geben. Bei der Empfänger Person von den Punkten soll in der Timeline die Punkte Gültigkeit Grund und wer die Punkte hinzugefügt hat
 - [ ] [Punkte] Im Admin bereich soll man Personen auch Punkte entziehen können. Überleg dir wie du das schön einbaust ohne das alles zu überlagen ist
 - [ ] [Punkte] Punkte in der Moderator übersicht darf unter der Eingabe nicht mehr der Text "Die automatischen Punkte-Regeln (unten) kann nur ein Admin einsehen und ändern." stehen!
