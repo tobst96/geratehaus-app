@@ -7,6 +7,7 @@ import {
   type MitgliedLoginReservierungInfo,
 } from "../../api/mitgliedLoginReservierungen";
 import { ApiError } from "../../api/client";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 import type { Person } from "../../api/types";
 
 function initialenAus(name: string): string {
@@ -78,7 +79,7 @@ export function MitgliedAnmelden() {
   if (!info) {
     return (
       <div className="seite">
-        <p>Lädt …</p>
+        <Ladeanzeige />
       </div>
     );
   }
@@ -154,7 +155,7 @@ export function MitgliedAnmelden() {
             </div>
 
             {ausgewaehltePerson.pin_gesetzt && (
-              <>
+              <div className="formular-feld">
                 <label htmlFor="ma-pin">PIN</label>
                 <input
                   id="ma-pin"
@@ -165,9 +166,7 @@ export function MitgliedAnmelden() {
                   placeholder="4-6-stelliger PIN"
                   autoFocus
                 />
-                <br />
-                <br />
-              </>
+              </div>
             )}
 
             {fehler && <p className="fehlertext">{fehler}</p>}

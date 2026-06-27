@@ -9,6 +9,7 @@ import {
 import { holeGruppen } from "../api/stammdaten";
 import { ApiError } from "../api/client";
 import { eintragungGesperrtMinuten, eintragungVermerken } from "../utils/eintragungssperre";
+import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { DienstbuchReservierungInfo, Gruppe, Person } from "../api/types";
 
 function initialenAus(name: string): string {
@@ -114,7 +115,7 @@ export function DienstbuchManuelleEintragung() {
   if (!info) {
     return (
       <div className="seite">
-        <p>Lädt …</p>
+        <Ladeanzeige />
       </div>
     );
   }
@@ -162,6 +163,7 @@ export function DienstbuchManuelleEintragung() {
         <p style={{ color: "#666" }}>Dienstbuch „{info.dienstbuch_titel}“</p>
 
         <form onSubmit={absenden}>
+          <div className="formular-feld">
           <label htmlFor="dbme-person">Wer bist du?</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
@@ -225,24 +227,23 @@ export function DienstbuchManuelleEintragung() {
               )}
             </>
           )}
-          <br />
-          <br />
+          </div>
 
-          <label htmlFor="dbme-gruppe">Gruppe</label>
-          <select
-            id="dbme-gruppe"
-            value={gruppeId ?? ""}
-            onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
-          >
-            <option value="">– keine –</option>
-            {gruppen.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name}
-              </option>
-            ))}
-          </select>
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="dbme-gruppe">Gruppe</label>
+            <select
+              id="dbme-gruppe"
+              value={gruppeId ?? ""}
+              onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
+            >
+              <option value="">– keine –</option>
+              {gruppen.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {fehler && <p className="fehlertext">{fehler}</p>}
 

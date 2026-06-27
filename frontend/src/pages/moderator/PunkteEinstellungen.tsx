@@ -8,6 +8,7 @@ import {
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { Banner } from "../../components/Banner";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 import type { Person } from "../../api/types";
 
 interface PunkteRegelState {
@@ -167,7 +168,7 @@ export function PunkteEinstellungen() {
     }
   }
 
-  if (!geladen && !fehler) return <p>Lädt …</p>;
+  if (!geladen && !fehler) return <Ladeanzeige />;
 
   return (
     <div>
@@ -271,8 +272,9 @@ export function PunkteEinstellungen() {
                 return (
                   <tr key={schluessel}>
                     <td>
-                      <strong>{titel}</strong>
-                      <br />
+                      <div>
+                        <strong>{titel}</strong>
+                      </div>
                       <span style={{ fontSize: "0.8rem", color: "#666" }}>{beschreibung}</span>
                     </td>
                     <td>

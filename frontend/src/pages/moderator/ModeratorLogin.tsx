@@ -29,27 +29,27 @@ export function ModeratorLogin() {
     <div>
       <h1>Anmeldung Gruppenführer / Admin</h1>
       <form onSubmit={absenden} className="karte">
-        <label htmlFor="username">Benutzername</label>
-        <input
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          autoComplete="username"
-          required
-        />
-        <br />
-        <br />
-        <label htmlFor="passwort">Passwort</label>
-        <input
-          id="passwort"
-          type="password"
-          value={passwort}
-          onChange={(e) => setPasswort(e.target.value)}
-          autoComplete="current-password"
-          required
-        />
-        <br />
-        <br />
+        <div className="formular-feld">
+          <label htmlFor="username">Benutzername</label>
+          <input
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
+            required
+          />
+        </div>
+        <div className="formular-feld">
+          <label htmlFor="passwort">Passwort</label>
+          <input
+            id="passwort"
+            type="password"
+            value={passwort}
+            onChange={(e) => setPasswort(e.target.value)}
+            autoComplete="current-password"
+            required
+          />
+        </div>
         {fehler && <p className="fehlertext">{fehler}</p>}
         <button type="submit" disabled={ladevorgang}>
           {ladevorgang ? "Anmelden …" : "Anmelden"}

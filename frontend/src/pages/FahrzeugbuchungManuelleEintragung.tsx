@@ -8,6 +8,7 @@ import {
 } from "../api/fahrzeugbuchungReservierungen";
 import { holeFahrzeuge } from "../api/stammdaten";
 import { ApiError } from "../api/client";
+import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { Fahrzeug, FahrzeugbuchungReservierungInfo, Person } from "../api/types";
 
 function initialenAus(name: string): string {
@@ -109,7 +110,7 @@ export function FahrzeugbuchungManuelleEintragung() {
   if (!info) {
     return (
       <div className="seite">
-        <p>Lädt …</p>
+        <Ladeanzeige />
       </div>
     );
   }
@@ -153,6 +154,7 @@ export function FahrzeugbuchungManuelleEintragung() {
         <h1>Fahrzeugbuchung ohne Barcode anfragen</h1>
 
         <form onSubmit={absenden}>
+          <div className="formular-feld">
           <label htmlFor="fbme-person">Wer bist du?</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
@@ -216,51 +218,50 @@ export function FahrzeugbuchungManuelleEintragung() {
               )}
             </>
           )}
-          <br />
-          <br />
+          </div>
 
-          <label htmlFor="fbme-fahrzeug">Fahrzeug</label>
-          <select
-            id="fbme-fahrzeug"
-            value={fahrzeugId}
-            onChange={(e) => setFahrzeugId(e.target.value)}
-            required
-          >
-            {fahrzeuge.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="fbme-fahrzeug">Fahrzeug</label>
+            <select
+              id="fbme-fahrzeug"
+              value={fahrzeugId}
+              onChange={(e) => setFahrzeugId(e.target.value)}
+              required
+            >
+              {fahrzeuge.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <label htmlFor="fbme-von">Von</label>
-          <input
-            id="fbme-von"
-            type="datetime-local"
-            value={von}
-            onChange={(e) => setVon(e.target.value)}
-            required
-          />
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="fbme-von">Von</label>
+            <input
+              id="fbme-von"
+              type="datetime-local"
+              value={von}
+              onChange={(e) => setVon(e.target.value)}
+              required
+            />
+          </div>
 
-          <label htmlFor="fbme-bis">Bis</label>
-          <input
-            id="fbme-bis"
-            type="datetime-local"
-            value={bis}
-            onChange={(e) => setBis(e.target.value)}
-            required
-          />
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="fbme-bis">Bis</label>
+            <input
+              id="fbme-bis"
+              type="datetime-local"
+              value={bis}
+              onChange={(e) => setBis(e.target.value)}
+              required
+            />
+          </div>
 
-          <label htmlFor="fbme-zweck">Zweck</label>
-          <input id="fbme-zweck" value={zweck} onChange={(e) => setZweck(e.target.value)} required />
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="fbme-zweck">Zweck</label>
+            <input id="fbme-zweck" value={zweck} onChange={(e) => setZweck(e.target.value)} required />
+          </div>
 
           {fehler && <p className="fehlertext">{fehler}</p>}
 

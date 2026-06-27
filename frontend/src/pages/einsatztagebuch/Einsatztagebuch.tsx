@@ -3,6 +3,7 @@ import { einsatzAnlegen, holeEinsaetze } from "../../api/einsaetze";
 import { holeFahrzeuge, holeFunktionenEinsatz } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import { EinsatzDiagramm } from "./EinsatzDiagramm";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 import type { EinsatzOut, Fahrzeug, FunktionEinsatz } from "../../api/types";
 
 const POLL_INTERVALL_MS = 15_000;
@@ -65,7 +66,7 @@ export function Einsatztagebuch() {
   }, []);
 
   if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
-  if (!einsaetze) return <p>Lädt …</p>;
+  if (!einsaetze) return <Ladeanzeige />;
 
   // Im Gerätehaus-Kiosk sollen nur offene Einsätze erscheinen – abgeschlossene
   // sind hier nicht mehr relevant.
@@ -107,26 +108,26 @@ export function Einsatztagebuch() {
       )}
       {formularOffen && (
         <form onSubmit={einsatzManuellAnlegen} className="karte" style={{ marginBottom: 16 }}>
-          <label htmlFor="e-titel">Titel</label>
-          <input
-            id="e-titel"
-            value={neuerTitel}
-            onChange={(e) => setNeuerTitel(e.target.value)}
-            placeholder="z. B. Verkehrsunfall B 401"
-            required
-          />
-          <br />
-          <br />
-          <label htmlFor="e-zeitpunkt">Zeitpunkt</label>
-          <input
-            id="e-zeitpunkt"
-            type="datetime-local"
-            value={neuerZeitpunkt}
-            onChange={(e) => setNeuerZeitpunkt(e.target.value)}
-            required
-          />
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="e-titel">Titel</label>
+            <input
+              id="e-titel"
+              value={neuerTitel}
+              onChange={(e) => setNeuerTitel(e.target.value)}
+              placeholder="z. B. Verkehrsunfall B 401"
+              required
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-zeitpunkt">Zeitpunkt</label>
+            <input
+              id="e-zeitpunkt"
+              type="datetime-local"
+              value={neuerZeitpunkt}
+              onChange={(e) => setNeuerZeitpunkt(e.target.value)}
+              required
+            />
+          </div>
           <button type="submit">Anlegen</button>{" "}
           <button type="button" className="sekundaer" onClick={() => setFormularOffen(false)}>
             Abbrechen

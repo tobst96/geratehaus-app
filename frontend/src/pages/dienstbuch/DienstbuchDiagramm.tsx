@@ -260,42 +260,42 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
                 )}
 
                 <div className="dienstbuch-scan-felder">
-                  {mitgliedModus.aktiv ? (
-                    <p style={{ color: "#666" }}>
-                      Eingeloggt als <strong>{mitgliedModus.name}</strong>
-                    </p>
-                  ) : (
-                    <>
-                      <label htmlFor="db-barcode">Barcode einscannen</label>
-                      <BarcodeEingabe
-                        id="db-barcode"
-                        type="text"
-                        value={barcode}
-                        onChange={setBarcode}
-                        placeholder="Barcode scannen oder eingeben"
-                        autoFocus
-                        required
-                      />
-                      <br />
-                      <br />
-                    </>
-                  )}
+                  <div className="formular-feld">
+                    {mitgliedModus.aktiv ? (
+                      <p style={{ color: "#666" }}>
+                        Eingeloggt als <strong>{mitgliedModus.name}</strong>
+                      </p>
+                    ) : (
+                      <>
+                        <label htmlFor="db-barcode">Barcode einscannen</label>
+                        <BarcodeEingabe
+                          id="db-barcode"
+                          type="text"
+                          value={barcode}
+                          onChange={setBarcode}
+                          placeholder="Barcode scannen oder eingeben"
+                          autoFocus
+                          required
+                        />
+                      </>
+                    )}
+                  </div>
 
-                  <label htmlFor="db-gruppe">Gruppe</label>
-                  <select
-                    id="db-gruppe"
-                    value={gruppeId ?? ""}
-                    onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
-                  >
-                    <option value="">– keine –</option>
-                    {gruppen.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {g.name}
-                      </option>
-                    ))}
-                  </select>
-                  <br />
-                  <br />
+                  <div className="formular-feld">
+                    <label htmlFor="db-gruppe">Gruppe</label>
+                    <select
+                      id="db-gruppe"
+                      value={gruppeId ?? ""}
+                      onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
+                    >
+                      <option value="">– keine –</option>
+                      {gruppen.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
                   {fehler && <p className="fehlertext">{fehler}</p>}
                   {qrFehler && <p className="fehlertext">{qrFehler}</p>}

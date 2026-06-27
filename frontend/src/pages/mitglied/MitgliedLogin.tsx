@@ -198,17 +198,17 @@ export function MitgliedLogin() {
               </div>
             )}
 
-            <label htmlFor="ml-barcode">Barcode einscannen</label>
-            <BarcodeEingabe
-              id="ml-barcode"
-              value={barcode}
-              onChange={setBarcode}
-              placeholder="Barcode scannen oder eingeben"
-              autoFocus
-              required
-            />
-            <br />
-            <br />
+            <div className="formular-feld">
+              <label htmlFor="ml-barcode">Barcode einscannen</label>
+              <BarcodeEingabe
+                id="ml-barcode"
+                value={barcode}
+                onChange={setBarcode}
+                placeholder="Barcode scannen oder eingeben"
+                autoFocus
+                required
+              />
+            </div>
 
             {fehler && <p className="fehlertext">{fehler}</p>}
             {qrFehler && <p className="fehlertext">{qrFehler}</p>}

@@ -103,48 +103,52 @@ export function SetupWizard() {
 
         {schritt === 2 && (
           <>
-            <label htmlFor="farbe-primaer">Primärfarbe</label>
-            <input
-              id="farbe-primaer"
-              type="color"
-              value={farbePrimaer}
-              onChange={(e) => setFarbePrimaer(e.target.value)}
-            />
-            <br />
-            <br />
-            <label htmlFor="farbe-akzent">Akzentfarbe</label>
-            <input
-              id="farbe-akzent"
-              type="color"
-              value={farbeAkzent}
-              onChange={(e) => setFarbeAkzent(e.target.value)}
-            />
+            <div className="formular-feld">
+              <label htmlFor="farbe-primaer">Primärfarbe</label>
+              <input
+                id="farbe-primaer"
+                type="color"
+                value={farbePrimaer}
+                onChange={(e) => setFarbePrimaer(e.target.value)}
+              />
+            </div>
+            <div className="formular-feld">
+              <label htmlFor="farbe-akzent">Akzentfarbe</label>
+              <input
+                id="farbe-akzent"
+                type="color"
+                value={farbeAkzent}
+                onChange={(e) => setFarbeAkzent(e.target.value)}
+              />
+            </div>
           </>
         )}
 
         {schritt === 3 && (
           <>
-            <label htmlFor="admin-passwort">Admin-Passwort (mind. 8 Zeichen)</label>
-            <input
-              id="admin-passwort"
-              type="password"
-              value={adminPasswort}
-              onChange={(e) => setAdminPasswort(e.target.value)}
-              autoComplete="new-password"
-            />
-            <br />
-            <br />
-            <label htmlFor="admin-passwort-wiederholung">Passwort wiederholen</label>
-            <input
-              id="admin-passwort-wiederholung"
-              type="password"
-              value={adminPasswortWiederholung}
-              onChange={(e) => setAdminPasswortWiederholung(e.target.value)}
-              autoComplete="new-password"
-            />
-            {adminPasswortWiederholung.length > 0 && adminPasswort !== adminPasswortWiederholung && (
-              <p className="fehlertext">Die Passwörter stimmen nicht überein.</p>
-            )}
+            <div className="formular-feld">
+              <label htmlFor="admin-passwort">Admin-Passwort (mind. 8 Zeichen)</label>
+              <input
+                id="admin-passwort"
+                type="password"
+                value={adminPasswort}
+                onChange={(e) => setAdminPasswort(e.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
+            <div className="formular-feld">
+              <label htmlFor="admin-passwort-wiederholung">Passwort wiederholen</label>
+              <input
+                id="admin-passwort-wiederholung"
+                type="password"
+                value={adminPasswortWiederholung}
+                onChange={(e) => setAdminPasswortWiederholung(e.target.value)}
+                autoComplete="new-password"
+              />
+              {adminPasswortWiederholung.length > 0 && adminPasswort !== adminPasswortWiederholung && (
+                <p className="fehlertext">Die Passwörter stimmen nicht überein.</p>
+              )}
+            </div>
           </>
         )}
 

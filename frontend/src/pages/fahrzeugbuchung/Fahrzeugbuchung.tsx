@@ -17,6 +17,7 @@ import { BuchungsKalender } from "../../components/BuchungsKalender";
 import { BarcodeEingabe } from "../../components/BarcodeEingabe";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import { useBarcodeSound } from "../../hooks/useBarcodeSound";
+import { Ladeanzeige } from "../../components/Ladeanzeige";
 import type { BuchungOut, Fahrzeug } from "../../api/types";
 import "../dienststunden/Dienststunden.css";
 
@@ -199,7 +200,7 @@ export function Fahrzeugbuchung() {
   }
 
   if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
-  if (!buchungen) return <p>Lädt …</p>;
+  if (!buchungen) return <Ladeanzeige />;
 
   const eigeneAusstehende = buchungen.filter(
     (b) => b.status === "ausstehend" && b.verantwortliche_person_name === angezeigterName
@@ -255,34 +256,34 @@ export function Fahrzeugbuchung() {
       )}
       {formularOffen && !qrAnsicht && (
         <form onSubmit={absenden} className="karte">
-          <label htmlFor="fb-fahrzeug">Fahrzeug</label>
-          <select id="fb-fahrzeug" value={fahrzeugId} onChange={(e) => setFahrzeugId(e.target.value)} required>
-            {fahrzeuge.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-          <br />
-          <br />
-          <label htmlFor="fb-von">Von</label>
-          <input id="fb-von" type="datetime-local" value={von} onChange={(e) => setVon(e.target.value)} required />
-          <br />
-          <br />
-          <label htmlFor="fb-bis">Bis</label>
-          <input id="fb-bis" type="datetime-local" value={bis} onChange={(e) => setBis(e.target.value)} required />
-          <br />
-          <br />
-          <label htmlFor="fb-zweck">Zweck</label>
-          <input id="fb-zweck" value={zweck} onChange={(e) => setZweck(e.target.value)} required />
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="fb-fahrzeug">Fahrzeug</label>
+            <select id="fb-fahrzeug" value={fahrzeugId} onChange={(e) => setFahrzeugId(e.target.value)} required>
+              {fahrzeuge.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="fb-von">Von</label>
+            <input id="fb-von" type="datetime-local" value={von} onChange={(e) => setVon(e.target.value)} required />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="fb-bis">Bis</label>
+            <input id="fb-bis" type="datetime-local" value={bis} onChange={(e) => setBis(e.target.value)} required />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="fb-zweck">Zweck</label>
+            <input id="fb-zweck" value={zweck} onChange={(e) => setZweck(e.target.value)} required />
+          </div>
           {mitgliedModus.aktiv ? (
             <p style={{ color: "#666" }}>
               Eingeloggt als <strong>{mitgliedModus.name}</strong>
             </p>
           ) : (
-            <>
+            <div className="formular-feld">
               <label htmlFor="fb-barcode">Barcode scannen (wer bist du?)</label>
               <BarcodeEingabe
                 id="fb-barcode"
@@ -304,9 +305,7 @@ export function Fahrzeugbuchung() {
                   <strong>{vorschau.name}</strong>
                 </div>
               )}
-              <br />
-              <br />
-            </>
+            </div>
           )}
           {qrFehler && <p className="fehlertext">{qrFehler}</p>}
           <button type="submit" disabled={laeuft}>

@@ -9,6 +9,7 @@ import {
 import { holeFunktionenDienststunden } from "../api/stammdaten";
 import { ApiError } from "../api/client";
 import { eintragungGesperrtMinuten, eintragungVermerken } from "../utils/eintragungssperre";
+import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { DienststundenReservierungInfo, FunktionDienststunden, Person } from "../api/types";
 
 function initialenAus(name: string): string {
@@ -123,7 +124,7 @@ export function DienststundenManuelleEintragung() {
   if (!info) {
     return (
       <div className="seite">
-        <p>Lädt …</p>
+        <Ladeanzeige />
       </div>
     );
   }
@@ -167,6 +168,7 @@ export function DienststundenManuelleEintragung() {
         <h1>Dienststunden ohne Barcode eintragen</h1>
 
         <form onSubmit={absenden}>
+          <div className="formular-feld">
           <label htmlFor="dsme-person">Wer bist du?</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
@@ -230,48 +232,47 @@ export function DienststundenManuelleEintragung() {
               )}
             </>
           )}
-          <br />
-          <br />
+          </div>
 
-          <label htmlFor="dsme-funktion">Funktion</label>
-          <select
-            id="dsme-funktion"
-            value={funktionId}
-            onChange={(e) => setFunktionId(e.target.value)}
-            required
-          >
-            {funktionen.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="dsme-funktion">Funktion</label>
+            <select
+              id="dsme-funktion"
+              value={funktionId}
+              onChange={(e) => setFunktionId(e.target.value)}
+              required
+            >
+              {funktionen.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <label htmlFor="dsme-stunden">Stunden</label>
-          <input
-            id="dsme-stunden"
-            type="number"
-            min={0.5}
-            step={0.5}
-            value={stunden}
-            onChange={(e) => setStunden(Number(e.target.value))}
-            required
-          />
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="dsme-stunden">Stunden</label>
+            <input
+              id="dsme-stunden"
+              type="number"
+              min={0.5}
+              step={0.5}
+              value={stunden}
+              onChange={(e) => setStunden(Number(e.target.value))}
+              required
+            />
+          </div>
 
-          <label htmlFor="dsme-datum">Datum</label>
-          <input
-            id="dsme-datum"
-            type="date"
-            value={datum}
-            onChange={(e) => setDatum(e.target.value)}
-            required
-          />
-          <br />
-          <br />
+          <div className="formular-feld">
+            <label htmlFor="dsme-datum">Datum</label>
+            <input
+              id="dsme-datum"
+              type="date"
+              value={datum}
+              onChange={(e) => setDatum(e.target.value)}
+              required
+            />
+          </div>
 
           {fehler && <p className="fehlertext">{fehler}</p>}
 
