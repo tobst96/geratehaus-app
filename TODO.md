@@ -63,6 +63,9 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       Zwischenwerte. Die Anzeige erfolgt im Format "2 Std. 30 Min." statt als Dezimalzahl.
       Intern weiterhin als Dezimalstunden (float) an die API übergeben. Betrifft
       `Dienststunden.tsx` (Bereich "Stunden erfassen"), keine Backend-Änderung nötig.
+- [ ] [Dienststunden] Bei der Stunden-Erfassung fehlt ein Schnellauswahl-Button für 15 Minuten
+      (0:15) – bisher gibt es nur 0:30 als kleinsten Chip. Betrifft `Dienststunden.tsx` (Bereich
+      "Stunden erfassen", Schnellauswahl-Chips aus dem Eintrag oben).
 
 ### Etappe D – Moderator-Bereich Mobile-Optimierung
 
