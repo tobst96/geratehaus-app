@@ -78,6 +78,23 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       Person-Timeline protokolliert – aktuell wird dort nur ein Funktionswechsel festgehalten
       (`_funktion_in_stammdaten_abgleichen()`), nicht die Buchung selbst. Eigenes PersonEreignis
       (z. B. `"dienststunden_erfasst"`) beim Buchen ergänzen.
+- [ ] [Dienstbuch] Dienstbuch-Felder analog zu den bestehenden Einsatz-Feldern (Stammdaten)
+      einführen: konfigurierbare Zusatzfelder für Dienstbücher mit denselben Grundtypen
+      (Text, Mehrzeilig, Checkbox) PLUS neuer Feldtyp "Auswahl" (Dropdown mit konfigurierbaren
+      Optionen). Architektur kann sich eng an `EinsatzFeldDefinition`
+      (`backend/app/models/einsatz_feld.py`) + `Einsatz.zusatzfelder`-JSONB-Muster anlehnen,
+      analog für `Dienstbuch` (neues Modell `DienstbuchFeldDefinition` + JSONB-Spalte auf
+      `Dienstbuch`). Der neue Typ "Auswahl" braucht zusätzlich eine Liste konfigurierbarer
+      Optionen pro Felddefinition (z. B. neue Spalte `optionen: list[str]` als JSON) und muss
+      an allen Stellen ergänzt werden, die bisher zwischen text/mehrzeilig/checkbox
+      unterscheiden: `ERLAUBTE_TYPEN` (`backend/app/schemas/einsatz_feld.py:5`, bzw. das neue
+      `dienstbuch_feld.py`-Äquivalent), `TYP_LABEL` in `Stammdaten.tsx:328-332` (bzw. neuer
+      Dienstbuch-Felder-Tab), Typ-Union in `frontend/src/api/types.ts:141`, und die
+      Rendering-Switches (analog `EinsatzDiagramm.tsx:405-437` /
+      `EinsatzDetailModerator.tsx:132-162`, für Dienstbuch entsprechend
+      `Dienstbuch.tsx`/Detail-Ansicht). Da "Auswahl" als neuer Typ auch für Einsatz-Felder
+      sinnvoll wäre, ggf. gleich generisch für beide Module einführen statt nur für Dienstbuch.
+      Größerer Umbau – eigener Feature-Branch + PR laut Projektkonvention für neue Module.
 
 ### Etappe D – Moderator-Bereich Mobile-Optimierung
 
