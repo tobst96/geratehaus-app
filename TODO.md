@@ -12,6 +12,23 @@ Die offenen Punkte sind zusätzlich in **Etappen** gruppiert: verwandte/zusammen
 Reihenfolge unten ist ein Vorschlag (kleine/mechanische Etappen zuerst), kein Zwang – sag
 einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorziehen willst.
 
+
+## Noch in Ettapen einplanen - Wenn diese ToDo eingelesen wird, bearbeite die Folgende Punkten in den Vorhanden Ettapen ein oder erzeuge eine neue Ettape
+
+- In Dienstbuch kann ein Gruppenführer oder Admin den als "Relevant" markieren. Für Relevante gibt es extra Punkte. Zudem soll für ein zukünftiges Modul die Anzahl von Relevanten Diensten mit angezeigt werden. Damit kann dann eine mindest Dienstbeteilung überprüft werden.
+- Überprüfen ob Namensabweichung noch funktionert, wenn nicht fragen ob es wieder umgesetzt werden soll oder entfernt werden soll
+- Benachtichtigungen bei Personal soll nicht generell ein und ausgeschaltet werden. Sondern für jedes Modul und zukünftige Module einzeln.
+  Alle Mails gehen zu der Mail die als Testmail eingerichtet ist. Das ist natürlich nicht richtig. Gehört zu den Punkt darüber.
+- Fahrzeuge sollen in den Stammdaten das Feld "ISSI" bekommen, das sind Zahlen. Damit zukünftig ggf. Fahrzeugstatus mit angezeigt werden kann
+- Überprüfe wie einfach zukünftig es ist, weitere Module zu erweiter. Such dir da bereits alle Informationen und schreibe dir diese sinnig auf. Macht es Sinn davon ein Skill zu erstellen?
+- Die möglichkeit geben das für den Dark-Mode ein anderes Logo verwendet werden kann.
+- Personal nach A-Z Sortieren. Gerne auch eine erweitere suche (Wer hat keine Mail eingetragen, hat die erlaubnis oder nicht für das Modul benachrichtigungen zu bekommen, kein Profilbild). 
+- Dashboard die Schwellwerte aktuallisieren nicht richtig
+- Schwellenwert-Überschreitungen in /moderator/dashboard einmal kontrollieren ob da der richtige Wert genommen wird
+- "Punkte als Belohnung vergeben" für Moderatoren begrenzen. Die Begrenzung soll im Adminbereich einstellbar sein.
+- Baue "Punkte" als Modul auf. Das soll eine App in der App quasi sein. Es soll im Admin bereich seine eigene Einstellungsbereich bekommen, bei den Personal können dafür extra die Benachrichtigungen ein und ausgeschaltet werden. Alles was mit dem Thema "Punkte" zu tun hat, dieses Modul zu orden. Darunter zählt auch die Rang Liste, was wofür wie viele Punkte zu bekommen hat.
+- Bau bitte die Regel ein, dass jedes Modul immer drei Bereiche braucht. Mitglieder/Kiosk, Moderator/Gruppenfrüher und Admin. Das soll dafür sein, dass immer alle Module gleich angelegt werden. Das in den Admin bereich alle Einstellungen kommen, wenn das Modul aktiviert wird. Dann kann man da Auswählen ob der Moderator etwas damit machen darf. Auch ob ein Mitglied von außerhalb drauf zugreifen darf oder nur im Kiosk oder persönlichen Login darin läuft. Aktuell gibt es Folgende Module: Einsatzbericht, Dienstbuch, Dienststunden, Fahrzeugbuchung, Punkte
+
 ## Etappen
 
 ### Etappe A – Quick Fixes (mehrere Module, klein/mechanisch)
