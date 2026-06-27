@@ -98,6 +98,7 @@ export function DienstbuchDetailModerator() {
       )}
 
       <h2>Teilnehmer ({dienstbuch.teilnehmer.length})</h2>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -123,6 +124,7 @@ export function DienstbuchDetailModerator() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

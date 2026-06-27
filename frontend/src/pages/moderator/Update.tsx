@@ -75,6 +75,7 @@ export function Update() {
         <h2>Versionsstatus</h2>
         {fehler && <p className="fehlertext">{fehler}</p>}
         {status.fehler && <p className="fehlertext">{status.fehler}</p>}
+        <div className="tabelle-scroll">
         <table>
           <tbody>
             <tr>
@@ -99,6 +100,7 @@ export function Update() {
             )}
           </tbody>
         </table>
+        </div>
 
         {status.update_verfuegbar ? (
           <p style={{ marginTop: "1rem" }}>

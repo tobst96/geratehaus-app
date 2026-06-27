@@ -329,6 +329,7 @@ export function Dienststunden() {
       {letzteSummen && (
         <>
           <h2>Kumulierte Stunden{letztePerson ? ` – ${letztePerson}` : ""}</h2>
+          <div className="tabelle-scroll">
           <table>
             <thead>
               <tr>
@@ -354,6 +355,7 @@ export function Dienststunden() {
               ))}
             </tbody>
           </table>
+          </div>
         </>
       )}
     </div>

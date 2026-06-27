@@ -206,6 +206,12 @@ a {
   min-width: 160px;
 }
 
+/* Wrapper um <table>, damit breite Tabellen auf schmalen Screens (z. B.
+   Mitglieder-Login auf dem Handy) horizontal scrollen statt zu brechen. */
+.tabelle-scroll {
+  overflow-x: auto;
+}
+
 /* Banner für Erfolgs-/Fehlermeldungen, die den Layout-Fluss nicht
    verschieben sollen wie ein loser <p>-Block. */
 .banner {

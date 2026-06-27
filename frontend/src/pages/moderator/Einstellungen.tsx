@@ -82,6 +82,7 @@ function ModeratorenVerwaltung() {
       {fehler && <p className="fehlertext">{fehler}</p>}
       {!liste && <p>Lädt …</p>}
       {liste && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -107,6 +108,7 @@ function ModeratorenVerwaltung() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       <form onSubmit={anlegen} style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -384,6 +386,7 @@ export function Einstellungen() {
             ob dafür eine Kachel im Gerätehaus-Kiosk erscheint. "Außenzugriff" steuert, ob Mitglieder das
             Modul auch über den öffentlichen Mitglieder-Login (außerhalb des Gerätehauses) nutzen dürfen.
           </p>
+          <div className="tabelle-scroll">
           <table>
             <thead>
               <tr>
@@ -492,6 +495,7 @@ export function Einstellungen() {
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
 
         <div className="karte">

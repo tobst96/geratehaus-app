@@ -131,6 +131,7 @@ export function EinsatzDetailModerator() {
       {felder.length > 0 && (
         <div className="karte">
           <h2>Einsatzdetails</h2>
+          <div className="tabelle-scroll">
           <table>
             <tbody>
               {felder.map((f) => {
@@ -156,10 +157,12 @@ export function EinsatzDetailModerator() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
       <h2>Teilnehmer ({einsatz.teilnahmen.length})</h2>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -203,6 +206,7 @@ export function EinsatzDetailModerator() {
           ))}
         </tbody>
       </table>
+      </div>
 
       <h2>Timeline</h2>
       {timeline.length === 0 && <p style={{ color: "#999" }}>Noch keine Ereignisse protokolliert.</p>}

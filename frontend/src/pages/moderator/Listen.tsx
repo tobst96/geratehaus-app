@@ -82,6 +82,7 @@ function EinsaetzeTab() {
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -108,6 +109,7 @@ function EinsaetzeTab() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
@@ -162,6 +164,7 @@ function DienstbuecherTab() {
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -186,6 +189,7 @@ function DienstbuecherTab() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
@@ -222,6 +226,7 @@ function DienststundenTab() {
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -242,6 +247,7 @@ function DienststundenTab() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       <SchwellenwertUeberschreitungenTab />
@@ -298,6 +304,7 @@ function SchwellenwertUeberschreitungenTab() {
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && daten.length === 0 && <p style={{ color: "#666" }}>Aktuell keine Überschreitungen.</p>}
       {daten && daten.length > 0 && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -344,6 +351,7 @@ function SchwellenwertUeberschreitungenTab() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
@@ -388,6 +396,7 @@ function BuchungenTab() {
       </FilterZeile>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {daten && (
+        <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
@@ -412,6 +421,7 @@ function BuchungenTab() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
@@ -431,6 +441,7 @@ function NamensabweichungenTab() {
   if (!daten) return <p>Lädt …</p>;
 
   return (
+    <div className="tabelle-scroll">
     <table>
       <thead>
         <tr>
@@ -449,6 +460,7 @@ function NamensabweichungenTab() {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 

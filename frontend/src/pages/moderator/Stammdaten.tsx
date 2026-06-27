@@ -113,6 +113,7 @@ function FahrzeugeTab() {
         />
         <button type="submit">Anlegen</button>
       </form>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -150,6 +151,7 @@ function FahrzeugeTab() {
           ))}
         </tbody>
       </table>
+      </div>
 
       {editorFahrzeug && (
         <SitzplatzEditor
@@ -214,6 +216,7 @@ function FunktionenEinsatzTab() {
         />
         <button type="submit">Anlegen</button>
       </form>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -238,6 +241,7 @@ function FunktionenEinsatzTab() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
@@ -290,6 +294,7 @@ function GruppenTab() {
         />
         <button type="submit">Anlegen</button>
       </form>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -314,6 +319,7 @@ function GruppenTab() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
@@ -392,6 +398,7 @@ function EinsatzFelderTab() {
         </select>
         <button type="submit">Anlegen</button>
       </form>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -427,6 +434,7 @@ function EinsatzFelderTab() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
@@ -498,6 +506,7 @@ function FunktionenDienststundenTab() {
         />
         <button type="submit">Anlegen</button>
       </form>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -532,6 +541,7 @@ function FunktionenDienststundenTab() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

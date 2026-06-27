@@ -257,6 +257,7 @@ export function PunkteEinstellungen() {
 
       <form onSubmit={speichern}>
         <div className="karte">
+          <div className="tabelle-scroll">
           <table>
             <thead>
               <tr>
@@ -316,6 +317,7 @@ export function PunkteEinstellungen() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
         <button type="submit">Speichern</button>
       </form>

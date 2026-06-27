@@ -62,6 +62,7 @@ export function Dashboard() {
       </div>
 
       <h2>Rangliste nach Punkten</h2>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -78,8 +79,10 @@ export function Dashboard() {
           ))}
         </tbody>
       </table>
+      </div>
 
       <h2>Schwellenwert-Überschreitungen</h2>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -100,6 +103,7 @@ export function Dashboard() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

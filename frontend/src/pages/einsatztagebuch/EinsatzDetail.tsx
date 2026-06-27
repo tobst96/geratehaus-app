@@ -128,6 +128,7 @@ export function EinsatzDetail() {
       </div>
 
       <h2>Teilnehmer ({einsatz.teilnahmen.length})</h2>
+      <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
@@ -158,6 +159,7 @@ export function EinsatzDetail() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

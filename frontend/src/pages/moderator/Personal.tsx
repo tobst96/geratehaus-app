@@ -725,6 +725,7 @@ export function Personal() {
                 <p>Lädt …</p>
               ) : (
                 <>
+                  <div className="tabelle-scroll">
                   <table style={{ marginBottom: 12 }}>
                     <thead>
                       <tr>
@@ -756,6 +757,7 @@ export function Personal() {
                       )}
                     </tbody>
                   </table>
+                  </div>
 
                   <form
                     onSubmit={(e) => stundenEintragen(ausgewaehltePerson, e)}
