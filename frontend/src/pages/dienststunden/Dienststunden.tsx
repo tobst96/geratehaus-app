@@ -18,6 +18,20 @@ import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 import type { DienststundenSummeOut, FunktionDienststunden } from "../../api/types";
 import "./Dienststunden.css";
 
+const SCHNELLAUSWAHL_STUNDEN = [0.5, 1, 1.5, 2, 3, 4];
+const STEPPER_SCHRITT = 0.25;
+const STEPPER_MIN = 0.25;
+const STEPPER_MAX = 12;
+
+function stundenAnzeige(stunden: number): string {
+  const gesamtMinuten = Math.round(stunden * 60);
+  const std = Math.floor(gesamtMinuten / 60);
+  const min = gesamtMinuten % 60;
+  if (std === 0) return `${min} Min.`;
+  if (min === 0) return `${std} Std.`;
+  return `${std} Std. ${min} Min.`;
+}
+
 function heuteAlsDatum(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -280,16 +294,38 @@ export function Dienststunden() {
                   </select>
                 </div>
                 <div className="formular-feld">
-                  <label htmlFor="ds-stunden">Stunden</label>
-                  <input
-                    id="ds-stunden"
-                    type="number"
-                    min={0.5}
-                    step={0.5}
-                    value={stunden}
-                    onChange={(e) => setStunden(Number(e.target.value))}
-                    required
-                  />
+                  <label>Stunden</label>
+                  <div className="stunden-chips">
+                    {SCHNELLAUSWAHL_STUNDEN.map((w) => (
+                      <button
+                        key={w}
+                        type="button"
+                        className={`stunden-chip${stunden === w ? " aktiv" : ""}`}
+                        onClick={() => setStunden(w)}
+                      >
+                        {stundenAnzeige(w)}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="stunden-stepper">
+                    <button
+                      type="button"
+                      className="stunden-stepper-btn"
+                      onClick={() => setStunden((v) => Math.max(STEPPER_MIN, Math.round((v - STEPPER_SCHRITT) * 4) / 4))}
+                      disabled={stunden <= STEPPER_MIN}
+                    >
+                      −
+                    </button>
+                    <span className="stunden-anzeige">{stundenAnzeige(stunden)}</span>
+                    <button
+                      type="button"
+                      className="stunden-stepper-btn"
+                      onClick={() => setStunden((v) => Math.min(STEPPER_MAX, Math.round((v + STEPPER_SCHRITT) * 4) / 4))}
+                      disabled={stunden >= STEPPER_MAX}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
                 <div className="formular-feld">
                   <label htmlFor="ds-datum">Datum</label>

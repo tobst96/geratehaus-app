@@ -56,7 +56,7 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
 
 ### Etappe C – Dienststunden-Erfassung touch-freundlich (größeres UI-Rework)
 
-- [ ] Stunden-Erfassung touch-freundlicher und präziser gestalten: Das aktuelle
+- [x] Stunden-Erfassung touch-freundlicher und präziser gestalten: Das aktuelle
       `<input type="number">`-Feld ist auf dem Handy umständlich. Vorschlag: Schnellauswahl-Chips
       für häufige Werte (0:30 · 1:00 · 1:30 · 2:00 · 3:00 · 4:00) als tippbare Kacheln-Reihe,
       darunter ein Feineinstellungs-Stepper (− / Anzeige / +) in 15-Min.-Schritten für
