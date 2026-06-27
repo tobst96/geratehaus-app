@@ -160,7 +160,7 @@ export function DienstbuchManuelleEintragung() {
     <div className="seite">
       <div className="karte">
         <h1>Ohne Barcode eintragen</h1>
-        <p style={{ color: "#666" }}>Dienstbuch „{info.dienstbuch_titel}“</p>
+        <p style={{ color: "var(--farbe-text-mute)" }}>Dienstbuch „{info.dienstbuch_titel}“</p>
 
         <form onSubmit={absenden}>
           <div className="formular-feld">
@@ -221,7 +221,7 @@ export function DienstbuchManuelleEintragung() {
                 </ul>
               )}
               {suche.trim().length > 0 && trefferliste.length === 0 && (
-                <p style={{ color: "#999", fontSize: "0.85rem" }}>
+                <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
                   Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
                 </p>
               )}

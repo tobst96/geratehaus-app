@@ -459,7 +459,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
             )}
 
             <div className="einsatz-uebersicht-spalte">
-              <p style={{ color: "#666", fontSize: "0.9rem", marginTop: 0 }}>
+              <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.9rem", marginTop: 0 }}>
                 Fahrzeug auswählen, um Sitzplätze zu belegen.
               </p>
               <div className="fahrzeug-buttons">
@@ -558,7 +558,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
 
             {qrAnsicht ? (
               <div className="sitzplatz-qr-ansicht">
-                <p style={{ color: "#666" }}>
+                <p style={{ color: "var(--farbe-text-mute)" }}>
                   Mit dem Handy scannen – die Person trägt sich dort selbst für genau diesen Platz ein
                   (ohne Barcode, wird im Bericht entsprechend vermerkt).
                 </p>
@@ -583,7 +583,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                     </div>
                   )}
                 </div>
-                <p style={{ fontSize: "0.8rem", color: "#999" }}>
+                <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
                   Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
@@ -611,7 +611,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                 <div className="sitzplatz-scan-felder">
                   <div className="formular-feld">
                     {mitgliedModus.aktiv ? (
-                      <p style={{ color: "#666" }}>
+                      <p style={{ color: "var(--farbe-text-mute)" }}>
                         Eingeloggt als <strong>{mitgliedModus.name}</strong>
                       </p>
                     ) : (

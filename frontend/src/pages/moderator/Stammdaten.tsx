@@ -379,7 +379,7 @@ function EinsatzFelderTab() {
 
   return (
     <div>
-      <p style={{ fontSize: "0.85rem", color: "#666" }}>
+      <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
         Frei konfigurierbare Zusatzfelder für den Einsatzbericht (z. B. Einsatzleiter, Erste Lage,
         Tätigkeit). Werden im Einsatztagebuch unterhalb der Garage angezeigt und im PDF-Export
         ausgegeben.

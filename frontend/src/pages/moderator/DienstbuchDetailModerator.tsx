@@ -68,7 +68,7 @@ export function DienstbuchDetailModerator() {
       </p>
       <h1>{dienstbuch.titel}</h1>
       <div className="einsatz-status-zeile">
-        <p style={{ color: "#666", margin: 0 }}>
+        <p style={{ color: "var(--farbe-text-mute)", margin: 0 }}>
           {new Date(dienstbuch.eroeffnet_am).toLocaleString("de-DE")}
         </p>
         <span className="einsatz-status-badge">{dienstbuch.geschlossen ? "geschlossen" : "offen"}</span>
@@ -111,7 +111,7 @@ export function DienstbuchDetailModerator() {
         <tbody>
           {dienstbuch.teilnehmer.length === 0 && (
             <tr>
-              <td colSpan={3} style={{ color: "#999" }}>
+              <td colSpan={3} style={{ color: "var(--farbe-text-mute)" }}>
                 Keine Teilnehmer eingetragen.
               </td>
             </tr>

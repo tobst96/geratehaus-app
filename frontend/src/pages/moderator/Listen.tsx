@@ -297,13 +297,13 @@ function SchwellenwertUeberschreitungenTab() {
   return (
     <div style={{ marginTop: "2rem" }}>
       <h2>Schwellenwert-Überschreitungen</h2>
-      <p style={{ color: "#666" }}>
+      <p style={{ color: "var(--farbe-text-mute)" }}>
         Personen, die den Schwellenwert ihrer Funktion auch nach Abzug bereits übernommener Stunden
         noch überschreiten. Übernommene Stunden werden vom Überschuss abgezogen, ohne die
         Dienststunden-Einträge selbst zu verändern.
       </p>
       {fehler && <p className="fehlertext">{fehler}</p>}
-      {daten && daten.length === 0 && <p style={{ color: "#666" }}>Aktuell keine Überschreitungen.</p>}
+      {daten && daten.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Aktuell keine Überschreitungen.</p>}
       {daten && daten.length > 0 && (
         <div className="tabelle-scroll">
         <table>

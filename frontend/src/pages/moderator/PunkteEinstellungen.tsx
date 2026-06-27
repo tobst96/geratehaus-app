@@ -177,7 +177,7 @@ export function PunkteEinstellungen() {
 
       <div className="karte">
         <h2>Punkte als Belohnung vergeben</h2>
-        <p style={{ color: "#666" }}>
+        <p style={{ color: "var(--farbe-text-mute)" }}>
           Zusätzlich zu den automatischen Regeln kannst du einer Person hier jederzeit Punkte als
           Belohnung gutschreiben, z. B. für besonderes Engagement.
         </p>
@@ -241,14 +241,14 @@ export function PunkteEinstellungen() {
       </div>
 
       {!istAdmin && (
-        <p style={{ color: "#666" }}>
+        <p style={{ color: "var(--farbe-text-mute)" }}>
           Die automatischen Punkte-Regeln (unten) kann nur ein Admin einsehen und ändern.
         </p>
       )}
 
       {istAdmin && (
       <>
-      <p style={{ color: "#666" }}>
+      <p style={{ color: "var(--farbe-text-mute)" }}>
         Hier legst du fest, wie viele Punkte Personen für bestimmte Ereignisse automatisch erhalten,
         wie lange diese gültig sind, und ob sie bis zum Ende voll erhalten bleiben ("Halten bis Ende")
         oder linear bis auf 0 abgebaut werden ("Abziehend bis Ende").
@@ -276,7 +276,7 @@ export function PunkteEinstellungen() {
                       <div>
                         <strong>{titel}</strong>
                       </div>
-                      <span style={{ fontSize: "0.8rem", color: "#666" }}>{beschreibung}</span>
+                      <span style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>{beschreibung}</span>
                     </td>
                     <td>
                       <input
@@ -287,7 +287,7 @@ export function PunkteEinstellungen() {
                         onChange={(e) => regelAendern(schluessel, { ...regel, punkte: Number(e.target.value) })}
                         style={{ width: 70 }}
                       />
-                      <div style={{ fontSize: "0.75rem", color: "#666" }}>{einheit}</div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--farbe-text-mute)" }}>{einheit}</div>
                     </td>
                     <td>
                       <input
@@ -307,7 +307,7 @@ export function PunkteEinstellungen() {
                         <option value="abziehend">Abziehend bis Ende</option>
                       </select>
                       {regel.modus === "abziehend" && regel.tage > 0 && (
-                        <div style={{ fontSize: "0.75rem", color: "#666", marginTop: 4 }}>
+                        <div style={{ fontSize: "0.75rem", color: "var(--farbe-text-mute)", marginTop: 4 }}>
                           ≈ {(regel.punkte / regel.tage).toFixed(2)} Punkte/Tag
                         </div>
                       )}

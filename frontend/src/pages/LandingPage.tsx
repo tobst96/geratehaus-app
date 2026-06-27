@@ -8,7 +8,7 @@ export function LandingPage() {
     <div className="seite">
       <div className="karte" style={{ textAlign: "center" }}>
         <h1>{config?.organisation_name ?? "Gerätehaus.app"}</h1>
-        <p style={{ color: "#666", maxWidth: 560, margin: "0 auto" }}>
+        <p style={{ color: "var(--farbe-text-mute)", maxWidth: 560, margin: "0 auto" }}>
           Die digitale Einsatzverwaltung für Feuerwehren und ähnliche Organisationen: Einsatzberichte,
           Dienstbücher, Dienststunden und Fahrzeugbuchungen – papierlos, am Gerätehaus-Tablet und von
           überall per Login.
@@ -18,7 +18,7 @@ export function LandingPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
         <div className="karte">
           <h2>Mitglied</h2>
-          <p style={{ color: "#666" }}>
+          <p style={{ color: "var(--farbe-text-mute)" }}>
             Per Barcode anmelden und – falls freigegeben – eigene Einsätze, Dienstbuch, Dienststunden
             oder Fahrzeugbuchungen verwalten.
           </p>
@@ -29,7 +29,7 @@ export function LandingPage() {
 
         <div className="karte">
           <h2>Gruppenführer</h2>
-          <p style={{ color: "#666" }}>
+          <p style={{ color: "var(--farbe-text-mute)" }}>
             Einsatzberichte, Dienstbucheinträge und Fahrzeugreservierungen einsehen und bearbeiten.
           </p>
           <Link to="/moderator/login">
@@ -39,7 +39,7 @@ export function LandingPage() {
 
         <div className="karte">
           <h2>Admin</h2>
-          <p style={{ color: "#666" }}>Personal, Punkte und alle Einstellungen verwalten.</p>
+          <p style={{ color: "var(--farbe-text-mute)" }}>Personal, Punkte und alle Einstellungen verwalten.</p>
           <Link to="/moderator/login">
             <button type="button">Admin-Login</button>
           </Link>

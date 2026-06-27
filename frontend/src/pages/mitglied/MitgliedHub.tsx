@@ -40,7 +40,7 @@ export function MitgliedHub() {
       </div>
 
       {sichtbar.length === 0 ? (
-        <p style={{ color: "#666", zIndex: 2 }}>
+        <p style={{ color: "var(--farbe-text-mute)", zIndex: 2 }}>
           Aktuell sind keine Module für den Mitglieder-Login freigegeben. Bitte den Admin ansprechen.
         </p>
       ) : (

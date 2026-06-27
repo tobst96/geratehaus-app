@@ -141,7 +141,7 @@ export function Einsatztagebuch() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <strong>{e.titel}</strong>
-              <div style={{ fontSize: "0.85rem", color: "#666" }}>
+              <div style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
                 {new Date(e.zeitpunkt).toLocaleString("de-DE")} · {e.quelle} · {e.teilnahmen.length} Teilnehmer
               </div>
             </div>

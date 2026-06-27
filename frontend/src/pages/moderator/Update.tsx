@@ -42,7 +42,7 @@ export function Update() {
 
       <div className="karte" style={{ maxWidth: 560 }}>
         <h2>Update-Kanal</h2>
-        <p style={{ color: "#666" }}>
+        <p style={{ color: "var(--farbe-text-mute)" }}>
           "Stable" zeigt nur fertige Veröffentlichungen an, "Beta" auch Vorabversionen. Diese App
           aktualisiert sich nicht selbst – ein Update muss weiterhin manuell auf dem Server
           eingespielt werden (<code>git pull</code> + <code>docker compose up -d --build</code>).
@@ -113,7 +113,7 @@ export function Update() {
             )}
           </p>
         ) : (
-          !status.fehler && <p style={{ marginTop: "1rem", color: "#666" }}>Du bist auf dem neuesten Stand.</p>
+          !status.fehler && <p style={{ marginTop: "1rem", color: "var(--farbe-text-mute)" }}>Du bist auf dem neuesten Stand.</p>
         )}
 
         <button className="sekundaer" onClick={laden} style={{ marginTop: "1rem" }}>

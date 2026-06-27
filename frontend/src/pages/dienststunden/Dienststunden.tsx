@@ -187,7 +187,7 @@ export function Dienststunden() {
 
         {qrAnsicht ? (
           <div className="dienststunden-qr-ansicht">
-            <p style={{ color: "#666" }}>
+            <p style={{ color: "var(--farbe-text-mute)" }}>
               Mit dem Handy scannen – die Person trägt sich dort selbst ein (ohne Barcode).
             </p>
             <div
@@ -221,7 +221,7 @@ export function Dienststunden() {
                 </div>
               )}
             </div>
-            <p style={{ fontSize: "0.8rem", color: "#999" }}>
+            <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
               Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
             </p>
             <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
@@ -245,7 +245,7 @@ export function Dienststunden() {
               <div className="dienststunden-scan-felder">
                 <div className="formular-feld">
                   {mitgliedModus.aktiv ? (
-                    <p style={{ color: "#666" }}>
+                    <p style={{ color: "var(--farbe-text-mute)" }}>
                       Eingeloggt als <strong>{mitgliedModus.name}</strong>
                     </p>
                   ) : (

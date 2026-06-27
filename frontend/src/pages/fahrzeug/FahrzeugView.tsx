@@ -41,19 +41,19 @@ export function FahrzeugView() {
       {einsaetze.map((e) => (
         <div key={e.id} className="karte" style={{ marginBottom: "1rem" }}>
           <h3>{e.titel}</h3>
-          <p style={{ fontSize: "0.9rem", color: "#666" }}>
+          <p style={{ fontSize: "0.9rem", color: "var(--farbe-text-mute)" }}>
             {new Date(e.zeitpunkt).toLocaleString("de-DE")} · {e.quelle}
           </p>
           <p>
             <strong>{e.teilnahmen.length}</strong> Teilnehmer
           </p>
-          <div style={{ fontSize: "0.85rem", color: "#999", marginTop: "0.5rem" }}>
+          <div style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)", marginTop: "0.5rem" }}>
             Quelle: Gruppenführer vom {fahrzeugName}
           </div>
         </div>
       ))}
 
-      <p style={{ fontSize: "0.8rem", color: "#999", marginTop: "2rem" }}>
+      <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)", marginTop: "2rem" }}>
         Token: {token}
       </p>
     </div>

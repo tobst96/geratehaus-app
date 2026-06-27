@@ -71,7 +71,7 @@ export function Dienstbuch() {
   return (
     <div>
       <h1>Dienstbuch</h1>
-      <p style={{ fontSize: "0.85rem", color: "#666" }}>
+      <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
         Zeigt die zuletzt eröffneten Dienstbücher im konfigurierten Zeitfenster.
       </p>
 
@@ -109,7 +109,7 @@ export function Dienstbuch() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <strong>{d.titel}</strong>
-              <div style={{ fontSize: "0.85rem", color: "#666" }}>
+              <div style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
                 {new Date(d.eroeffnet_am).toLocaleString("de-DE")} · {d.teilnehmer.length} Teilnehmer
               </div>
               {d.notizen && <p style={{ margin: "0.25rem 0 0" }}>{d.notizen}</p>}
