@@ -17,18 +17,23 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   useEffect(() => {
     const hints = new Map();
     hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128]);
+    hints.set(DecodeHintType.TRY_HARDER, true);
     const reader = new BrowserMultiFormatReader(hints);
     let abgebrochen = false;
     let controls: { stop: () => void } | undefined;
 
     reader
-      .decodeFromVideoDevice(undefined, videoRef.current!, (ergebnis) => {
-        if (ergebnis && !abgebrochen) {
-          abgebrochen = true;
-          controls?.stop();
-          onScan(ergebnis.getText());
+      .decodeFromConstraints(
+        { video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } },
+        videoRef.current!,
+        (ergebnis) => {
+          if (ergebnis && !abgebrochen) {
+            abgebrochen = true;
+            controls?.stop();
+            onScan(ergebnis.getText());
+          }
         }
-      })
+      )
       .then((c) => {
         controls = c;
       })
@@ -64,7 +69,28 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       >
         <h3 style={{ marginTop: 0 }}>Barcode scannen</h3>
         {fehler && <p className="fehlertext">{fehler}</p>}
-        <video ref={videoRef} style={{ width: "100%", borderRadius: 8, background: "#000" }} muted />
+        <div style={{ position: "relative" }}>
+          <video ref={videoRef} style={{ width: "100%", borderRadius: 8, background: "#000", display: "block" }} muted />
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            pointerEvents: "none",
+          }}>
+            <div style={{
+              width: "80%",
+              height: 64,
+              border: "3px solid rgba(255,255,255,0.8)",
+              borderRadius: 8,
+              boxShadow: "0 0 0 9999px rgba(0,0,0,0.35)",
+            }} />
+          </div>
+        </div>
+        <p style={{ fontSize: "0.82rem", color: "var(--farbe-text-mute)", margin: "0.5rem 0 0" }}>
+          Barcode in den Rahmen halten
+        </p>
         <button type="button" className="sekundaer" style={{ marginTop: "1rem" }} onClick={onClose}>
           Abbrechen
         </button>
