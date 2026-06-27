@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
+import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 
 interface BarcodeScannerProps {
   onScan: (wert: string) => void;
@@ -14,7 +15,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [fehler, setFehler] = useState<string | null>(null);
 
   useEffect(() => {
-    const reader = new BrowserMultiFormatReader();
+    const hints = new Map();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128]);
+    const reader = new BrowserMultiFormatReader(hints);
     let abgebrochen = false;
     let controls: { stop: () => void } | undefined;
 
