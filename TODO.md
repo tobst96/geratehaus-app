@@ -9,6 +9,17 @@ Bedarf auf ein Modul konzentrieren kann, ohne mehrere Dateien pflegen zu müssen
 
 ## Offen
 
+- [ ] [Mitgliederbereich] Hub-Seite (`MitgliedHub.tsx`) designmäßig überarbeiten:
+      (1) **Profil-Zeile** statt großem Begrüßungsblock: kompakter Streifen mit Avatar
+      (Profilbild oder Initialen-Fallback, ~40 px), Name daneben, und "Abmelden" als kleiner
+      Textlink rechts – spart erheblich Höhe und wirkt weniger überladen.
+      (2) **Kacheln 2-spaltig** im CSS-Grid statt Vollbreite-Stack: quadratische Kacheln
+      (Icon oben, Label unten), analog zum Kiosk-Design, auf schmalen Screens 2 Spalten.
+      (3) **Einheitliche Kachel-Styles**: Keinen selektiven orangen Rand (sieht aktuell aus
+      wie ein hängengebliebener Aktiv-State). Aktiv/Hover-Zustand nur bei echtem Touch/Klick.
+      (4) **"Abmelden"-Button** nicht mehr als große outlined Schaltfläche prominent platzieren
+      – in die Profil-Zeile integrieren (siehe 1). Betrifft ausschließlich `MitgliedHub.tsx`
+      und `index.css` (ggf. neues `.mitglied-hub-*`-CSS), kein Backend.
 - [ ] [Dienstbuch] Bug: Im Mitglieder-Bereich ist beim Dienstbuch die Gruppe der eingeloggten
       Person nicht vorgewählt. Beim Laden der Seite sollte die Gruppe aus dem Personenprofil
       (`CurrentPerson`) automatisch als Standardwert im Gruppen-Dropdown gesetzt werden.
