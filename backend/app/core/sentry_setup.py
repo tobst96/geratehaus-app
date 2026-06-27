@@ -81,6 +81,9 @@ def init_sentry_wenn_aktiviert(fehlerberichte_aktiv: bool) -> bool:
         # nur technische Fehlerdetails (Stacktrace, Request-Pfad/-Methode).
         send_default_pii=False,
         traces_sample_rate=0.0,
+        # Aktiviert die Sentry Logs API (sichtbar unter "Logs" in der Sentry-UI)
+        # zusätzlich zu den klassischen Issues.
+        enable_logs=True,
         integrations=[
             # INFO-Log-Zeilen werden als Breadcrumbs an Fehlerereignisse
             # angehängt (Kontext), WARNING+ wird zusätzlich als eigenes
