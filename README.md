@@ -6,7 +6,9 @@ Fahrzeugbuchungen. Die App läuft als **Kiosk** auf einem Tablet/Bildschirm im
 Gerätehaus: Mitglieder scannen ihren persönlichen Barcode, identifizieren sich
 damit eindeutig und tragen sich für Einsätze, Dienste oder Dienststunden ein –
 ganz ohne Tippen oder Login. Ein Moderator-Bereich erlaubt die Verwaltung aller
-Stammdaten, Personen und Einstellungen.
+Stammdaten, Personen und Einstellungen. Zusätzlich gibt es einen **öffentlichen
+Mitglieder-Login**, über den Mitglieder freigeschaltete Module auch von außerhalb
+des Gerätehauses – z. B. vom eigenen Smartphone – nutzen können.
 
 **Open-Source-Prinzip:** Kein einziger feuerwehr-spezifischer Wert steht hart im
 Code. Alles, was von Organisation zu Organisation unterschiedlich ist –
@@ -16,12 +18,19 @@ danach jederzeit über den Moderator-Bereich änderbar.
 
 ## Funktionen
 
+### Kiosk & Mitglieder-Login
+
 - **Kiosk-Startseite** – große, dynamisch skalierende Kacheln (nie Scrollen
-  nötig), pro Modul einzeln ein- und ausblendbar
+  nötig), pro Modul einzeln ein- und ausblendbar; Kiosk-Gerät wird per
+  Geräte-Token autorisiert (kein Login nötig)
+- **Öffentlicher Mitglieder-Login** – Mitglieder können sich auf dem eigenen
+  Smartphone per Name oder Barcode identifizieren und alle für Außenzugriff
+  freigeschalteten Module nutzen; Abmelden jederzeit möglich
 - **Personen & Barcodes** – Vorname/Zwischenname/Nachname, Profilbild (Fallback:
   Initialen-Avatar), echter Code128-Strichcode pro Person mit konfigurierbarer
   Gültigkeitsdauer; beim Scannen wird das Profilbild groß zur Bestätigung
-  angezeigt, der Rohtext ist zum Testen zusätzlich als kopierbares Feld sichtbar
+  angezeigt; **Scan-Töne** (Erfolgston/Fehlerton) geben sofortiges akustisches
+  Feedback
 - **"Barcode vergessen"** – im Scan-Dialog erzeugt ein Button einen QR-Code für
   genau diesen Sitzplatz/diese Aktion in diesem Einsatz; die Person scannt ihn
   mit dem eigenen Handy, wählt sich aus den Personen-Stammdaten aus und trägt
@@ -29,6 +38,9 @@ danach jederzeit über den Moderator-Bereich änderbar.
   Der Scan-Dialog schließt sich automatisch, sobald die Eintragung erfolgt ist;
   solche Eintragungen sind in Listen und PDF als "ohne Barcode" markiert,
   IP/Browser werden zur Nachverfolgung in den Listen (nicht im PDF) vermerkt
+
+### Module
+
 - **Einsatztagebuch ("Garage")** – Einsätze manuell oder per Divera-24/7-Import,
   öffnen sich automatisch zum Eintragen; Fahrzeuge als eigene Kästen mit
   konfigurierbaren Sitzplätzen (Trupp/Staffel/Gruppe-Vorlagen nach DIN 14502
@@ -56,22 +68,44 @@ danach jederzeit über den Moderator-Bereich änderbar.
 - **Dienststunden** – Erfassung pro Person/Funktion, kumulierte Übersicht mit
   konfigurierbaren Schwellenwerten
 - **Fahrzeugbuchung** – Kalenderansicht (genehmigt/ausstehend/abgelehnt/vergangen),
-  automatische Konflikterkennung, Moderator-Freigabe
-- **Moderator-Bereich** – per Admin-Passwort zusätzlich abgesichert; Dashboard,
-  gefilterte Listen, Stammdatenverwaltung (Fahrzeuge, Sitzplätze, Funktionen,
-  Einsatz-Zusatzfelder, Personen), Moderator-Zugänge selbst verwalten
-- **Benachrichtigungen** – eigener Bereich (getrennt von den Einstellungen) für
-  Telegram, E-Mail (SMTP, inkl. Testmail-Button) und Web Push, vollständig über
-  den Moderator-Bereich konfigurierbar (keine `.env`-Bearbeitung nötig). Die
-  Einsatz-Benachrichtigung wird erst beim Abschluss ausgelöst (nicht bei
-  Anlage); optional verschickt sie dabei den PDF-Bericht und den
-  Timeline-Verlauf direkt als Anhang/Text in einer einzigen Mail
-- **Divera 24/7** – Anbindung (Polling oder Webhook) ebenfalls komplett über den
-  Moderator-Bereich konfigurierbar
-- **PWA** – installierbar, Service Worker, Icon und Name aus der Konfiguration
+  automatische Konflikterkennung, Moderator-Freigabe; Anfrage-Mails enthalten
+  direkte **Annehmen/Ablehnen-Buttons** ohne Login
 
-Jedes Modul ist einzeln aktivierbar/deaktivierbar und unabhängig davon einzeln
-auf der Kiosk-Startseite ein-/ausblendbar.
+Jedes Modul ist einzeln aktivierbar/deaktivierbar, unabhängig davon einzeln
+auf der Kiosk-Startseite ein-/ausblendbar und separat für den Außenzugriff
+(Mitglieder-Login) freischaltbar.
+
+### Moderator-Bereich
+
+- **Rollen:** Admin und Gruppenführer – Admins sehen alles (Personal, Punkte,
+  Stammdaten, Einstellungen); Gruppenführer sehen Dashboard, Listen und
+  Buchungen; beide können Punkte vergeben
+- **Dashboard** mit konfigurierbaren Schwellenwert-Anzeigen für Dienststunden
+- **Gefilterte Listen** aller Einsätze, Dienstbücher, Dienststunden und Buchungen
+- **Stammdatenverwaltung** – Fahrzeuge/Sitzplätze, Funktionen, Einsatz-Zusatzfelder,
+  Personen (inkl. Barcodes), Kiosk-Geräte
+- **Punkte-System** – Punkte pro Einsatz/Dienststunde/Dienstbuch vergeben, Punkte
+  manuell als Belohnung durch Moderatoren; Ablauf konfigurierbar
+- **Benachrichtigungen** – eigener Bereich für Telegram, E-Mail (SMTP, inkl.
+  Testmail-Button) und Web Push, vollständig über den Moderator-Bereich
+  konfigurierbar (keine `.env`-Bearbeitung nötig). Mails werden im **HTML-Design
+  der eingestellten Website** versendet. Die Einsatz-Benachrichtigung kann
+  optional den PDF-Bericht und den Timeline-Verlauf direkt enthalten; welche
+  Personen E-Mails erhalten, ist pro Person konfigurierbar
+- **Divera 24/7** – Anbindung (Polling oder Webhook) komplett über den
+  Moderator-Bereich konfigurierbar; Änderungen wirken ohne Neustart
+
+### Fehlerberichte & Monitoring
+
+- Optionale anonyme Fehlerberichte an den Entwickler über Sentry – aktivierbar
+  in den Einstellungen, deaktiviert per Standard. Sendet nur Stacktraces und
+  technische Fehlerdetails, keine Personen- oder Inhaltsdaten.
+
+### Design
+
+- **Dark Mode** – automatisch anhand des Systemthemas
+- **Fluide Typografie** – Schriftgröße passt sich der Bildschirmgröße an
+- **PWA** – installierbar, Service Worker, Icon und Name aus der Konfiguration
 
 ## Tech-Stack
 
@@ -116,7 +150,7 @@ sed -i.bak "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$DB_PASSWORD/" .env
 docker compose up -d
 ```
 
-**Hinweis für Windows (PowerShell):** Verwende statt `sed` folgende Befehle:
+**Hinweis für Windows (PowerShell):**
 ```powershell
 $env:JWT_SECRET = (openssl rand -hex 32)
 $env:COOKIE_SECRET = (openssl rand -hex 32)
@@ -176,10 +210,6 @@ Alle Variablen in `.env.example` sind kommentiert. Fachliche Werte gehören
 **nicht** in die `.env` – sie werden ausschließlich über den Setup-Wizard bzw.
 den Moderator-Bereich gepflegt und landen in der `app_config`-Tabelle.
 
-Der Moderator-Bereich unter **Einstellungen** ist zusätzlich durch eine erneute
-Passwortabfrage geschützt, da dort sensible Zugangsdaten (Divera-API-Key)
-hinterlegt werden.
-
 ### Benachrichtigungen aktivieren
 
 Telegram, E-Mail (SMTP) und Web Push lassen sich vollständig im Moderator-Bereich
@@ -188,18 +218,15 @@ VAPID-Schlüssel werden in der Datenbank gespeichert, keine `.env`-Bearbeitung
 nötig. Ein "Testmail senden"-Button prüft die SMTP-Konfiguration direkt vor Ort.
 Welche Ereignisse (Einsatz abgeschlossen, neues Dienstbuch, neue
 Buchungsanfrage, Schwellenwert-Überschreitung) Benachrichtigungen auslösen und
-mit welchem Text, lässt sich unter **Einstellungen** steuern. Für Einsätze kann
-zusätzlich aktiviert werden, dass die Mail beim Abschluss den PDF-Bericht und
-den Timeline-Verlauf direkt enthält.
+mit welchem Text, lässt sich unter **Einstellungen** steuern.
 
 ### Divera-24/7-Integration
 
-Ebenfalls vollständig im Moderator-Bereich unter **Einstellungen → Divera 24/7**
+Vollständig im Moderator-Bereich unter **Einstellungen → Divera 24/7**
 konfigurierbar: Anbindung aktivieren, API-Key/Accesskey hinterlegen und Modus
-wählen (Polling, alle 5 Minuten, oder Webhook). Für den Webhook-Modus die URL
+wählen (Polling alle 5 Minuten oder Webhook). Für den Webhook-Modus die URL
 `https://<deine-instanz>/api/v1/divera/webhook?accesskey=<dein-Accesskey>` bei
-Divera hinterlegen. Welcher Modus zur Verfügung steht, hängt vom gebuchten
-Divera-Tarif ab. Änderungen wirken ohne Neustart.
+Divera hinterlegen. Änderungen wirken ohne Neustart.
 
 ## Lokale Entwicklung (ohne Docker)
 
@@ -233,8 +260,7 @@ uvicorn app.main:app --reload
 ```
 
 **Backend ist danach unter `http://localhost:8000` erreichbar**
-- API-Dokumentation: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+- API-Dokumentation: `http://localhost:8000/api/v1/docs`
 
 ### Frontend Setup
 
@@ -250,7 +276,7 @@ npm run dev
 
 **Frontend ist danach unter `http://localhost:5173` erreichbar**
 
-Der Vite-Dev-Server proxyt `/api` und `/uploads` automatisch auf `http://localhost:8000` (konfiguriert in `vite.config.ts`).
+Der Vite-Dev-Server proxyt `/api` und `/uploads` automatisch auf `http://localhost:8000`.
 
 ## Projektstruktur
 
@@ -272,6 +298,6 @@ Hinweis auf das Projekt, wenn du es einsetzt oder weiterentwickelst.
 ## Mitwirken
 
 Issues und Pull Requests sind willkommen. Da Gerätehaus.app von beliebigen
-Feuerwehren selbst gehostet wird, achte bei Beiträgen besonders darauf, keine
-organisationsspezifischen Werte hart im Code zu verankern – siehe die
-Designregel oben.
+Organisationen selbst gehostet wird, achte bei Beiträgen besonders darauf, keine
+organisationsspezifischen Werte hart im Code zu verankern – alle fachlichen
+Konfigurationswerte gehören in die `app_config`-Tabelle, nicht in die `.env`.
