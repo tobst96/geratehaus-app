@@ -541,6 +541,17 @@ async def gesamtpunkte_batch(db: AsyncSession, person_ids: list[int]) -> dict[in
     return {person_id: round(wert) for person_id, wert in summen.items()}
 
 
+async def platzierung_nach_punkten(db: AsyncSession, person_id: int) -> int | None:
+    """Gibt den Rang der Person in der Punkte-Rangliste zurück (1 = meiste Punkte).
+    None wenn die Person 0 Punkte hat."""
+    alle = await liste_personen(db)
+    punkte_map = await gesamtpunkte_batch(db, [p.id for p in alle])
+    eigene = punkte_map.get(person_id, 0)
+    if eigene == 0:
+        return None
+    return sum(1 for pk in punkte_map.values() if pk > eigene) + 1
+
+
 async def punkte_aufraeumen(db: AsyncSession) -> int:
     heute = date.today()
     result = await db.execute(delete(PersonPunkt).where(PersonPunkt.gueltig_bis < heute))

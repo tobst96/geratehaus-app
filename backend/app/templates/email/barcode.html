@@ -31,42 +31,19 @@
 
           <!-- Intro -->
           <tr>
-            <td style="padding:28px 28px 0;">
+            <td style="padding:28px 28px 20px;">
               <h1 style="margin:0 0 8px; font-size:18px; color:{{ farbe_akzent }};">Dein persönlicher Barcode</h1>
               <p style="margin:0 0 6px; font-size:14px; line-height:1.5; color:#1a1a1a;">Hallo <strong>{{ person_name }}</strong>,</p>
-              <p style="margin:0 0 24px; font-size:14px; line-height:1.5; color:#1a1a1a;">{{ intro_text }}</p>
+              <p style="margin:0; font-size:14px; line-height:1.5; color:#1a1a1a;">{{ intro_text }}</p>
             </td>
           </tr>
 
-          <!-- Barcode-Karte -->
+          <!-- Barcode-Karte (speicherbar) -->
           <tr>
-            <td style="padding:0 28px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-                     style="background-color:#f9f9f9; border:1px solid #e0e0e0; border-radius:8px;">
-                <tr>
-                  <td align="center" style="padding:24px 16px 16px;">
-                    <img src="{{ barcode_data_uri }}"
-                         alt="Dein persönlicher Barcode"
-                         style="display:block; max-width:320px; width:100%; height:auto;">
-                  </td>
-                </tr>
-                {% if ablauf_datum %}
-                <tr>
-                  <td align="center" style="padding:0 16px 20px;">
-                    <span style="font-size:12px; color:#666666;">Gültig bis <strong>{{ ablauf_datum }}</strong></span>
-                  </td>
-                </tr>
-                {% endif %}
-              </table>
-            </td>
-          </tr>
-
-          <!-- Hinweis -->
-          <tr>
-            <td style="padding:20px 28px 28px;">
-              <p style="margin:0; font-size:13px; line-height:1.5; color:#555555;">
-                Zeig diesen Barcode an der Kiosk-Station oder drucke ihn aus. Der Barcode ist auch als Anhang in dieser Mail enthalten.
-              </p>
+            <td style="padding:0 28px 28px;">
+              <img src="{{ barcode_data_uri }}"
+                   alt="Barcode für {{ person_name }}"
+                   style="display:block; width:100%; height:auto; border-radius:8px;">
             </td>
           </tr>
 
