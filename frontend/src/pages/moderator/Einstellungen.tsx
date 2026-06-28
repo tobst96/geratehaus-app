@@ -8,6 +8,7 @@ import {
   moderatorAnlegen,
   moderatorPasswortAendern,
   moderatorLoeschen,
+  diveraEinsaetzeNachholen,
   type ModeratorKonto,
 } from "../../api/moderator";
 import { setupErneutAusfuehren } from "../../api/setup";
@@ -176,6 +177,8 @@ export function Einstellungen() {
   const [diveraModus, setDiveraModus] = useState("polling");
   const [diveraLetzterSync, setDiveraLetzterSync] = useState("");
   const [diveraLetzterSyncAnzahl, setDiveraLetzterSyncAnzahl] = useState(0);
+  const [diveraHolenLaeuft, setDiveraHolenLaeuft] = useState(false);
+  const [diveraHolenErgebnis, setDiveraHolenErgebnis] = useState<string | null>(null);
 
   const [fehlerberichteAktiv, setFehlerberichteAktiv] = useState(false);
 
@@ -295,6 +298,23 @@ export function Einstellungen() {
       neuLaden();
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Logo-Upload fehlgeschlagen.");
+    }
+  }
+
+  async function diveraEinsaetzeHolen() {
+    setDiveraHolenLaeuft(true);
+    setDiveraHolenErgebnis(null);
+    try {
+      const { anzahl_gefunden, anzahl_neu } = await diveraEinsaetzeNachholen();
+      setDiveraHolenErgebnis(
+        anzahl_gefunden === 0
+          ? "Keine Alarme in den letzten 24 Stunden gefunden."
+          : `${anzahl_gefunden} Alarm${anzahl_gefunden !== 1 ? "e" : ""} gefunden, ${anzahl_neu} neu importiert.`
+      );
+    } catch (err) {
+      setDiveraHolenErgebnis(err instanceof ApiError ? String(err.detail) : "Abruf fehlgeschlagen.");
+    } finally {
+      setDiveraHolenLaeuft(false);
     }
   }
 
@@ -728,6 +748,22 @@ export function Einstellungen() {
                 Noch kein Polling-Abruf seit dem letzten Start.
               </p>
             )
+          )}
+          {diveraAktiv && (
+            <div style={{ marginTop: "1rem" }}>
+              <button
+                type="button"
+                onClick={diveraEinsaetzeHolen}
+                disabled={diveraHolenLaeuft}
+              >
+                {diveraHolenLaeuft ? "Wird abgerufen…" : "Einsätze letzte 24 Stunden holen"}
+              </button>
+              {diveraHolenErgebnis && (
+                <p style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+                  {diveraHolenErgebnis}
+                </p>
+              )}
+            </div>
           )}
         </div>
 

@@ -293,6 +293,11 @@ export const diveraVorschlagEntscheiden = (id: number, aktion: "uebernehmen" | "
 export const barcodeBildUrl = (token: string) =>
   `/api/v1/moderator/barcodes/render/${token}`;
 
+// --- Divera ---------------------------------------------------------------
+
+export const diveraEinsaetzeNachholen = () =>
+  apiPost<{ anzahl_gefunden: number; anzahl_neu: number }>("/divera/einsaetze-nachholen");
+
 // --- Update (Admin) ----------------------------------------------------------
 
 export interface UpdateStatus {

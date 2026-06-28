@@ -1,9 +1,10 @@
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, status
 
 from app.api.deps import CurrentModerator, DbSession
-from app.services import divera_service
+from app.services import divera_client, divera_service
 from app.services.config_service import config_service
 
 router = APIRouter(prefix="/divera", tags=["divera"])
@@ -35,3 +36,25 @@ async def manuell_synchronisieren(db: DbSession, _moderator: CurrentModerator) -
     Testen der Konfiguration), unabhängig vom Scheduler-Intervall."""
     anzahl_neu = await divera_service.synchronisiere(db)
     return {"anzahl_neu": anzahl_neu}
+
+
+@router.post("/einsaetze-nachholen")
+async def einsaetze_nachholen(db: DbSession, _moderator: CurrentModerator) -> dict[str, int]:
+    """Holt alle Divera-Alarme der letzten 24 Stunden und importiert fehlende
+    Einsätze. Nützlich um Alarme nachzuholen, die beim normalen Polling
+    verpasst wurden (z. B. weil sie schnell quittiert wurden)."""
+    divera_aktiv = await config_service.get(db, "divera_aktiv", False)
+    api_key = await config_service.get(db, "divera_api_key", "")
+    if not divera_aktiv or not api_key:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Divera ist nicht aktiv oder kein API-Key konfiguriert.")
+
+    ts_24h_ago = int((datetime.now(timezone.utc) - timedelta(hours=24)).timestamp())
+    alarme, _ = await divera_client.hole_alarme(api_key, last_ts=ts_24h_ago)
+
+    anzahl_neu = 0
+    for roh in alarme:
+        einsatz = await divera_service.importiere_alarm(db, roh)
+        if einsatz is not None:
+            anzahl_neu += 1
+
+    return {"anzahl_gefunden": len(alarme), "anzahl_neu": anzahl_neu}
