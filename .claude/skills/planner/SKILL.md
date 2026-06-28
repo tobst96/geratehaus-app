@@ -1,21 +1,26 @@
+---
+name: planner
+description: Analysiert Aufgaben und erstellt vor der Implementierung einen Plan.
+---
+
 # Planner
 
-Nutze diesen Skill bei jeder Aufgabe, die mehr als eine Datei betrifft.
+Vor jeder größeren Änderung:
 
-## Phase 1 – Analyse
+## Analyse
 
-- Analysiere den bestehenden Code.
-- Suche nach ähnlichen Implementierungen.
-- Liste alle betroffenen Dateien auf.
-- Beschreibe die aktuelle Architektur.
+- Code lesen
+- ähnliche Funktionen suchen
+- betroffene Dateien finden
+- Risiken erkennen
 
-Keine Änderungen.
+Keine Änderungen durchführen.
 
-## Phase 2 – Planung
+---
 
-Erstelle einen konkreten Umsetzungsplan.
+## Planung
 
-Teile die Arbeit in kleine Schritte auf.
+Teile große Aufgaben in kleine Teilaufgaben.
 
 Backend
 
@@ -23,8 +28,21 @@ Frontend
 
 Migration
 
+API
+
 Tests
 
-Dokumentation
+Review
 
-Warte auf Bestätigung.
+---
+
+## Ausgabe
+
+Beschreibe:
+
+- Reihenfolge
+- Aufwand
+- Risiken
+- betroffene Dateien
+
+Erst danach implementieren.
