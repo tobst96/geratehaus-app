@@ -1,35 +1,35 @@
 # EXAMPLES.md
 
-Dieses Dokument enthält reale Beispiele aus dem Projekt.
+Dieses Dokument enthält wiederverwendbare Implementierungsmuster aus Gerätehaus.app.
 
-Ziel ist es, wiederkehrende Patterns anhand konkreter Implementierungen zu dokumentieren.
+## Ziel
 
-## Regeln
+Dokumentiere hier ausschließlich allgemeingültige Patterns.
 
-Wenn du bei einer Aufgabe ein neues oder besonders gutes Pattern findest, das auch für zukünftige Implementierungen hilfreich ist:
+Nicht dokumentieren:
 
-- ergänze dieses Dokument selbstständig.
-- beschreibe das Pattern kurz.
-- verlinke die wichtigsten Dateien.
-- erkläre, warum dieses Pattern verwendet wird.
-- füge keine projektspezifischen Einzelfälle hinzu.
-- entferne keine bestehenden Beispiele ohne ausdrückliche Anweisung.
+- Einmalige Bugs
+- Workarounds
+- Projektphasen
+- TODOs
 
-Nutze folgendes Format:
+## Format
 
 ---
 
 ## Pattern
 
-Kurzbeschreibung
+### Beschreibung
+
+...
 
 ### Backend
 
-- app/...
+-
 
 ### Frontend
 
-- frontend/src/...
+-
 
 ### Warum dieses Pattern?
 
@@ -38,5 +38,3 @@ Kurzbeschreibung
 ### Wann wiederverwenden?
 
 ...
-
----
