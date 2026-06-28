@@ -14,19 +14,32 @@ logger = structlog.get_logger(__name__)
 BASIS_URL = "https://app.divera247.com/api/v2"
 
 
-async def hole_alarme(api_key: str) -> list[dict]:
-    """Holt aktuelle/letzte Alarme (Einsätze) für den Polling-Modus."""
+async def hole_alarme(api_key: str, last_ts: int | None = None) -> tuple[list[dict], int | None]:
+    """Holt Alarme (Einsätze) für den Polling-Modus.
+
+    Mit last_ts (Unix-Timestamp aus dem vorherigen Pull) übergibt der Client
+    ?lastUpdate=<ts> an Divera und erhält ein Delta aller Änderungen seit diesem
+    Zeitpunkt — das schließt Alarme ein, die zwischen zwei Polls erstellt UND
+    wieder geschlossen wurden (Timing-Lücke).
+
+    Gibt (alarme, neuer_ts) zurück. neuer_ts ist data.ts aus der Antwort und
+    sollte für den nächsten Aufruf gespeichert werden.
+    """
     url = f"{BASIS_URL}/pull/all"
+    params: dict[str, str | int] = {"accesskey": api_key}
+    if last_ts is not None:
+        params["lastUpdate"] = last_ts
     async with httpx.AsyncClient(timeout=15) as client:
         try:
-            response = await client.get(url, params={"accesskey": api_key})
+            response = await client.get(url, params=params)
             response.raise_for_status()
         except httpx.HTTPError:
             logger.warning("divera_abruf_fehlgeschlagen", exc_info=True)
-            return []
+            return [], None
 
     daten = response.json()
     daten_block = daten.get("data", {})
+    neuer_ts: int | None = daten_block.get("ts") or None
     alarm_block = daten_block.get("alarm", {})
     alarme = alarm_block.get("items", {})
     if isinstance(alarme, dict):
@@ -38,8 +51,8 @@ async def hole_alarme(api_key: str) -> list[dict]:
             data_keys=list(daten_block.keys()),
         )
     else:
-        logger.debug("divera_alarme_geladen", anzahl=len(alarme))
-    return alarme
+        logger.debug("divera_alarme_geladen", anzahl=len(alarme), last_ts=last_ts, neuer_ts=neuer_ts)
+    return alarme, neuer_ts
 
 
 async def hole_personal(api_key: str) -> list[dict]:

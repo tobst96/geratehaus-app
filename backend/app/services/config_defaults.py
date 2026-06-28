@@ -181,6 +181,7 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("divera_modus", "polling", ConfigTyp.STR, "Divera-Modus: polling oder webhook"),
     ConfigDefault("divera_letzter_sync", "", ConfigTyp.STR, "Zeitpunkt des letzten Divera-Polling-Abrufs (ISO 8601)"),
     ConfigDefault("divera_letzter_sync_anzahl", "0", ConfigTyp.INT, "Anzahl der beim letzten Sync gefundenen Alarme"),
+    ConfigDefault("divera_last_ts", "0", ConfigTyp.INT, "Divera data.ts aus dem letzten Pull (für lastUpdate-Parameter)"),
     # Update-Kanal
     ConfigDefault("update_kanal", "stable", ConfigTyp.STR, "Update-Kanal: stable oder beta"),
     # Fehlerberichte (Sentry) – Zustimmung pro Instanz, Default aus. Sendet an

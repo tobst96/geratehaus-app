@@ -71,7 +71,10 @@ async def synchronisiere(db: AsyncSession) -> int:
     api_key = await config_service.get(db, "divera_api_key", "")
     if not divera_aktiv or not api_key:
         return 0
-    alarme = await divera_client.hole_alarme(api_key)
+    last_ts = await config_service.get(db, "divera_last_ts", 0) or None
+    if last_ts == 0:
+        last_ts = None
+    alarme, neuer_ts = await divera_client.hole_alarme(api_key, last_ts=last_ts)
     anzahl_neu = 0
     for roh in alarme:
         einsatz = await importiere_alarm(db, roh)
@@ -79,5 +82,7 @@ async def synchronisiere(db: AsyncSession) -> int:
             anzahl_neu += 1
     await config_service.set(db, "divera_letzter_sync", datetime.now(timezone.utc).isoformat())
     await config_service.set(db, "divera_letzter_sync_anzahl", len(alarme))
-    logger.info("divera_synchronisation_abgeschlossen", anzahl_neu=anzahl_neu, anzahl_gesamt=len(alarme))
+    if neuer_ts is not None:
+        await config_service.set(db, "divera_last_ts", neuer_ts)
+    logger.info("divera_synchronisation_abgeschlossen", anzahl_neu=anzahl_neu, anzahl_gesamt=len(alarme), last_ts=last_ts, neuer_ts=neuer_ts)
     return anzahl_neu
