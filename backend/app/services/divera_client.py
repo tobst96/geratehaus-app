@@ -26,10 +26,20 @@ async def hole_alarme(api_key: str) -> list[dict]:
             return []
 
     daten = response.json()
-    alarme = daten.get("data", {}).get("alarm", {}).get("items", {})
+    daten_block = daten.get("data", {})
+    alarm_block = daten_block.get("alarm", {})
+    alarme = alarm_block.get("items", {})
     if isinstance(alarme, dict):
         alarme = list(alarme.values())
-    return alarme or []
+    alarme = alarme or []
+    if "alarm" not in daten_block:
+        logger.warning(
+            "divera_unerwartete_antwortstruktur",
+            data_keys=list(daten_block.keys()),
+        )
+    else:
+        logger.debug("divera_alarme_geladen", anzahl=len(alarme))
+    return alarme
 
 
 async def hole_personal(api_key: str) -> list[dict]:

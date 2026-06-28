@@ -174,10 +174,13 @@ export function Einstellungen() {
   const [diveraAktiv, setDiveraAktiv] = useState(false);
   const [diveraApiKey, setDiveraApiKey] = useState("");
   const [diveraModus, setDiveraModus] = useState("polling");
+  const [diveraLetzterSync, setDiveraLetzterSync] = useState("");
+  const [diveraLetzterSyncAnzahl, setDiveraLetzterSyncAnzahl] = useState(0);
 
   const [fehlerberichteAktiv, setFehlerberichteAktiv] = useState(false);
 
   const [benachrichtigungEinsatz, setBenachrichtigungEinsatz] = useState(true);
+  const [benachrichtigungDiveraAlarm, setBenachrichtigungDiveraAlarm] = useState(true);
   const [benachrichtigungDienstbuch, setBenachrichtigungDienstbuch] = useState(true);
   const [benachrichtigungBuchung, setBenachrichtigungBuchung] = useState(true);
   const [benachrichtigungSchwellenwert, setBenachrichtigungSchwellenwert] = useState(true);
@@ -215,8 +218,11 @@ export function Einstellungen() {
       setDiveraAktiv(Boolean(w.divera_aktiv));
       setDiveraApiKey(String(w.divera_api_key ?? ""));
       setDiveraModus(String(w.divera_modus ?? "polling"));
+      setDiveraLetzterSync(String(w.divera_letzter_sync ?? ""));
+      setDiveraLetzterSyncAnzahl(Number(w.divera_letzter_sync_anzahl ?? 0));
       setFehlerberichteAktiv(Boolean(w.fehlerberichte_aktiv));
       setBenachrichtigungEinsatz(Boolean(w.benachrichtigung_neuer_einsatz));
+      setBenachrichtigungDiveraAlarm(Boolean(w.benachrichtigung_divera_alarm ?? true));
       setBenachrichtigungDienstbuch(Boolean(w.benachrichtigung_neues_dienstbuch));
       setBenachrichtigungBuchung(Boolean(w.benachrichtigung_buchungsanfrage));
       setBenachrichtigungSchwellenwert(Boolean(w.benachrichtigung_schwellenwert_ueberschreitung));
@@ -268,6 +274,7 @@ export function Einstellungen() {
         divera_modus: diveraModus,
         fehlerberichte_aktiv: fehlerberichteAktiv,
         benachrichtigung_neuer_einsatz: benachrichtigungEinsatz,
+        benachrichtigung_divera_alarm: benachrichtigungDiveraAlarm,
         benachrichtigung_neues_dienstbuch: benachrichtigungDienstbuch,
         benachrichtigung_buchungsanfrage: benachrichtigungBuchung,
         benachrichtigung_schwellenwert_ueberschreitung: benachrichtigungSchwellenwert,
@@ -600,6 +607,16 @@ export function Einstellungen() {
             <label>
               <input
                 type="checkbox"
+                checked={benachrichtigungDiveraAlarm}
+                onChange={(e) => setBenachrichtigungDiveraAlarm(e.target.checked)}
+              />{" "}
+              Neuer Einsatz via Divera angelegt
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
                 checked={benachrichtigungDienstbuch}
                 onChange={(e) => setBenachrichtigungDienstbuch(e.target.checked)}
               />{" "}
@@ -699,6 +716,19 @@ export function Einstellungen() {
               autoComplete="off"
             />
           </div>
+          {diveraLetzterSync ? (
+            <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+              Letzter Polling-Abruf:{" "}
+              {new Date(diveraLetzterSync).toLocaleString("de-DE")} &middot;{" "}
+              {diveraLetzterSyncAnzahl} Alarm{diveraLetzterSyncAnzahl !== 1 ? "e" : ""} abgerufen
+            </p>
+          ) : (
+            diveraAktiv && diveraModus === "polling" && (
+              <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+                Noch kein Polling-Abruf seit dem letzten Start.
+              </p>
+            )
+          )}
         </div>
 
         <div className="karte">

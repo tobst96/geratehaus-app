@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.einsatz import Einsatz
-from app.services import divera_client, einsatz_service
+from app.services import divera_client, einsatz_service, notifier_service
 from app.services.config_service import config_service
 
 logger = structlog.get_logger(__name__)
@@ -60,6 +60,7 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
         db, einsatz.id, "angelegt", "Einsatz angelegt (divera)"
     )
     logger.info("divera_einsatz_importiert", divera_id=alarm["divera_id"], titel=alarm["titel"])
+    await notifier_service.benachrichtige(db, "benachrichtigung_divera_alarm", titel=alarm["titel"])
     return await einsatz_service.get_einsatz(db, einsatz.id)
 
 
@@ -76,5 +77,7 @@ async def synchronisiere(db: AsyncSession) -> int:
         einsatz = await importiere_alarm(db, roh)
         if einsatz is not None:
             anzahl_neu += 1
+    await config_service.set(db, "divera_letzter_sync", datetime.now(timezone.utc).isoformat())
+    await config_service.set(db, "divera_letzter_sync_anzahl", len(alarme))
     logger.info("divera_synchronisation_abgeschlossen", anzahl_neu=anzahl_neu, anzahl_gesamt=len(alarme))
     return anzahl_neu

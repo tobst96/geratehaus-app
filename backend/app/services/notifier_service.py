@@ -20,6 +20,7 @@ logger = structlog.get_logger(__name__)
 
 EREIGNIS_BETREFF = {
     "benachrichtigung_neuer_einsatz": "Einsatz abgeschlossen",
+    "benachrichtigung_divera_alarm": "Neuer Einsatz",
     "benachrichtigung_neues_dienstbuch": "Neues Dienstbuch",
     "benachrichtigung_buchungsanfrage": "Neue Buchungsanfrage",
     "benachrichtigung_schwellenwert_ueberschreitung": "Dienststunden-Schwellenwert überschritten",
@@ -28,6 +29,7 @@ EREIGNIS_BETREFF = {
 
 EREIGNIS_VORLAGE = {
     "benachrichtigung_neuer_einsatz": "benachrichtigung_text_neuer_einsatz",
+    "benachrichtigung_divera_alarm": "benachrichtigung_text_divera_alarm",
     "benachrichtigung_neues_dienstbuch": "benachrichtigung_text_neues_dienstbuch",
     "benachrichtigung_buchungsanfrage": "benachrichtigung_text_buchungsanfrage",
     "benachrichtigung_schwellenwert_ueberschreitung": "benachrichtigung_text_schwellenwert_ueberschreitung",

@@ -179,6 +179,8 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("divera_aktiv", "false", ConfigTyp.BOOL, "Divera-Anbindung aktiv"),
     ConfigDefault("divera_api_key", "", ConfigTyp.STR, "Divera Accesskey/API-Key"),
     ConfigDefault("divera_modus", "polling", ConfigTyp.STR, "Divera-Modus: polling oder webhook"),
+    ConfigDefault("divera_letzter_sync", "", ConfigTyp.STR, "Zeitpunkt des letzten Divera-Polling-Abrufs (ISO 8601)"),
+    ConfigDefault("divera_letzter_sync_anzahl", "0", ConfigTyp.INT, "Anzahl der beim letzten Sync gefundenen Alarme"),
     # Update-Kanal
     ConfigDefault("update_kanal", "stable", ConfigTyp.STR, "Update-Kanal: stable oder beta"),
     # Fehlerberichte (Sentry) – Zustimmung pro Instanz, Default aus. Sendet an
@@ -211,6 +213,12 @@ DEFAULTS: list[ConfigDefault] = [
         "true",
         ConfigTyp.BOOL,
         "Benachrichtigung, wenn ein Einsatz abgeschlossen wird",
+    ),
+    ConfigDefault(
+        "benachrichtigung_divera_alarm",
+        "true",
+        ConfigTyp.BOOL,
+        "Benachrichtigung, wenn ein neuer Alarm über Divera angelegt wird",
     ),
     ConfigDefault(
         "benachrichtigung_neues_dienstbuch",
@@ -281,6 +289,12 @@ DEFAULTS: list[ConfigDefault] = [
         "Einsatz abgeschlossen: {titel}",
         ConfigTyp.STR,
         "Text bei neuem Einsatz. Platzhalter: {titel}",
+    ),
+    ConfigDefault(
+        "benachrichtigung_text_divera_alarm",
+        "Neuer Einsatz via Divera: {titel}",
+        ConfigTyp.STR,
+        "Text bei neuem Divera-Alarm. Platzhalter: {titel}",
     ),
     ConfigDefault(
         "benachrichtigung_text_neues_dienstbuch",
