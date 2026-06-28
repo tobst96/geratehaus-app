@@ -320,6 +320,11 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
       (Backend-Router, Service, Migration, `modul_*`-Config-Keys, Frontend-Route, Kiosk-Kachel,
       Mitglied-Hub-Kachel, Benachrichtigungs-Hook, Punkte-Regeln). Prüfen ob daraus ein
       Claude-Code-Skill sinnvoll wäre.
+- [ ] [Allgemein] Zeitzone überprüfen: Backend (Server, DB-Timestamps, APScheduler-Jobs) und
+      Frontend-Anzeige sollen durchgängig mit Europe/Berlin statt UTC oder Server-Lokalzeit
+      arbeiten. Prüfen, ob Zeitstempel beim Speichern/Anzeigen (Dienststunden, Dienstbuch,
+      Einsätze, Buchungen, Punkte-Historie etc.) korrekt konvertiert werden, inkl. Sommer-/
+      Winterzeit-Wechsel.
 
 ## In Arbeit
 
