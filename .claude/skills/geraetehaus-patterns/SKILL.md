@@ -348,3 +348,9 @@ Wenn während der Implementierung ein neues wiederverwendbares Pattern entsteht,
 - falls nicht, ergänze EXAMPLES.md selbstständig.
 - dokumentiere nur allgemeingültige Patterns.
 - dokumentiere keine einmaligen Bugfixes oder projektspezifischen Sonderfälle.
+
+- ## Dokumentation
+
+Wiederverwendbare Beispiele werden in `EXAMPLES.md` gepflegt.
+
+Erkenntnisse aus der Entwicklung, Stolperfallen und Architekturentscheidungen gehören **nicht** in diesen Skill, sondern in den Skill `knowledge-management` (`LESSONS.md`).
