@@ -37,3 +37,4 @@ backend/uploads/
 
 # Docker
 docker-compose.override.yml
+.claude/settings.local.json
