@@ -197,3 +197,21 @@ remotely".
 - German is the UI/domain language throughout — identifiers, model fields, commit messages, and
   user-facing strings are German (`Einsatz`, `Dienstbuch`, `Gruppe`, `Funktion`, etc.). Keep new
   code consistent with this rather than introducing English domain terms.
+
+## Working Principles
+
+Before implementing any non-trivial change:
+
+1. Analyze the existing implementation.
+2. Search for similar patterns already used in the project.
+3. Propose an implementation plan.
+4. Wait for approval before changing code.
+
+General rules:
+
+- Keep changes as small as possible.
+- Do not refactor unrelated code.
+- Reuse existing patterns instead of introducing new ones.
+- If multiple files require the same change, keep the implementation consistent.
+- If a change affects API, frontend and database, implement them in logical phases.
+- Every backend behavior change requires a corresponding test.
