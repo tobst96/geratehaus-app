@@ -339,3 +339,12 @@ Erst danach mit der Implementierung beginnen.
 Gerätehaus.app soll über alle Module hinweg wie aus einem Guss wirken.
 
 Neue Funktionen orientieren sich immer an bestehenden Patterns und fügen sich in die vorhandene Architektur ein.
+
+# Wissenspflege
+
+Wenn während der Implementierung ein neues wiederverwendbares Pattern entsteht, das auch für zukünftige Aufgaben hilfreich ist:
+
+- prüfe, ob es bereits in EXAMPLES.md dokumentiert ist.
+- falls nicht, ergänze EXAMPLES.md selbstständig.
+- dokumentiere nur allgemeingültige Patterns.
+- dokumentiere keine einmaligen Bugfixes oder projektspezifischen Sonderfälle.
