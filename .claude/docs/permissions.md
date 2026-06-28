@@ -1,0 +1,13 @@
+Admin
+
+↓
+
+Moderator
+
+↓
+
+Mitglied
+
+↓
+
+Gast
