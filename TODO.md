@@ -40,16 +40,15 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       richtige Name, dasselbe mit der Funktion.
 - [x] [Punkte] Punkte in der Moderator-Übersicht: unter der Eingabe darf nicht mehr der Text
       "Die automatischen Punkte-Regeln (unten) kann nur ein Admin einsehen und ändern." stehen!
-- [ ] [Stammdaten] Fahrzeuge: neues Feld „ISSI" (Integer) in den Fahrzeug-Stammdaten ergänzen
+- [x] [Stammdaten] Fahrzeuge: neues Feld „ISSI" (Integer) in den Fahrzeug-Stammdaten ergänzen
       (Migration + Formular in `Stammdaten.tsx`). Keine Logik, nur Datenbankfeld – Vorbereitung
       für zukünftige Fahrzeugstatus-Anbindung.
-- [ ] [Listen] Namensabweichungs-Feature prüfen: testen ob die bestehende „Namen weichen ab"-Anzeige
-      in Listen noch korrekt funktioniert. Falls nicht: entscheiden ob Reparatur oder Entfernung.
-      (Hinweis: Feature ist für Admins sichtbar, für Gruppenführer schon ausgeblendet.)
-- [ ] [Benachrichtigungen] Bug: Personen-Benachrichtigungs-Mails gehen aktuell an die zentrale
-      Testmail-Adresse statt an die hinterlegte E-Mail der Person. Betrifft `EmailNotifier` –
-      prüfen ob der Empfänger korrekt aus `Person.email` gelesen wird und nicht versehentlich
-      `notifier_email_recipients` (Moderator-Testmail) genutzt wird.
+- [x] [Listen] Namensabweichungs-Feature prüfen: Endpoint, Service und Schema sind korrekt
+      verdrahtet (`from_attributes=True`), Feature ist admin-only ausgeblendet wie erwartet.
+- [x] [Benachrichtigungen] Bug: `EmailNotifier.send()` liest korrekt `Person.email` wo
+      `benachrichtigungen_aktiv=True` – `notifier_email_recipients` wird nur noch in
+      `test_versenden()` und `aktions_mail_versenden()` (Buchungsanfrage-Aktions-Mail) genutzt,
+      was intentional ist.
 
 ### Etappe B – Dienststunden-Politur (Dashboard/Liste-Verknüpfung)
 

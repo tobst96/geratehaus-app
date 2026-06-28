@@ -37,6 +37,7 @@ export interface Fahrzeug {
   name: string;
   aktiv: boolean;
   buchbar: boolean;
+  issi: number | null;
   sitzplaetze: Sitzplatz[];
 }
 

@@ -16,6 +16,7 @@ class FahrzeugOut(BaseModel):
     name: str
     aktiv: bool
     buchbar: bool
+    issi: int | None = None
     sitzplaetze: list[SitzplatzSchema] = []
 
 
@@ -23,6 +24,7 @@ class FahrzeugCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     aktiv: bool = True
     buchbar: bool = True
+    issi: int | None = None
     sitzplaetze: list[SitzplatzSchema] = []
 
 
@@ -30,6 +32,7 @@ class FahrzeugUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     aktiv: bool | None = None
     buchbar: bool | None = None
+    issi: int | None = None
     sitzplaetze: list[SitzplatzSchema] | None = None
 
 

@@ -121,6 +121,7 @@ function FahrzeugeTab() {
             <th>Name</th>
             <th>Aktiv</th>
             <th>Buchbar</th>
+            <th>ISSI</th>
             <th>Sitzplätze</th>
             <th></th>
           </tr>
@@ -137,6 +138,19 @@ function FahrzeugeTab() {
                   type="checkbox"
                   checked={f.buchbar}
                   onChange={(e) => feldAendern(f, "buchbar", e.target.checked)}
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  defaultValue={f.issi ?? ""}
+                  placeholder="–"
+                  style={{ width: 90 }}
+                  onBlur={(e) => {
+                    const val = e.target.value.trim();
+                    const neu = val === "" ? null : parseInt(val, 10);
+                    if (neu !== f.issi) fahrzeugAktualisieren(f.id, { issi: neu }).then(laden);
+                  }}
                 />
               </td>
               <td>{f.sitzplaetze.length}</td>

@@ -174,7 +174,7 @@ export const fahrzeugAnlegen = (daten: { name: string; aktiv: boolean; buchbar: 
   apiPost<Fahrzeug>("/moderator/stammdaten/fahrzeuge", daten);
 export const fahrzeugAktualisieren = (
   id: number,
-  daten: Partial<{ name: string; aktiv: boolean; buchbar: boolean; sitzplaetze: Sitzplatz[] }>
+  daten: Partial<{ name: string; aktiv: boolean; buchbar: boolean; issi: number | null; sitzplaetze: Sitzplatz[] }>
 ) => apiPut<Fahrzeug>(`/moderator/stammdaten/fahrzeuge/${id}`, daten);
 export const fahrzeugLoeschen = (id: number) => apiDelete<void>(`/moderator/stammdaten/fahrzeuge/${id}`);
 
