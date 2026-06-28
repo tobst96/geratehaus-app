@@ -18,3 +18,4 @@ Nachher:
 - Tests
 - mögliche Regressionen prüfen
 - Zusammenfassung schreiben
+- Todo auf erledigt setzen `todo.md` des Skills `todo` 
