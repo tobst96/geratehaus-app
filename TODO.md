@@ -324,7 +324,12 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
       Frontend-Anzeige sollen durchgängig mit Europe/Berlin statt UTC oder Server-Lokalzeit
       arbeiten. Prüfen, ob Zeitstempel beim Speichern/Anzeigen (Dienststunden, Dienstbuch,
       Einsätze, Buchungen, Punkte-Historie etc.) korrekt konvertiert werden, inkl. Sommer-/
-      Winterzeit-Wechsel.
+      Winterzeit-Wechsel. Datenbank speichert weiterhin in UTC0 (Best Practice); neue
+      Einstellung `app_config`-Schlüssel `zeitzone` (Admin-Bereich), Default `Europe/Berlin`.
+      Konvertierung UTC → eingestellte Zeitzone zentral an einer Stelle (Backend-Serialisierung
+      bzw. Frontend-Formatierung), nicht pro Modul einzeln. Muss NICHT im Setup-Wizard
+      abgefragt werden – Default Berlin passt erstmal immer, Einstellung reicht im
+      Admin-Bereich nachträglich.
 
 ## In Arbeit
 
