@@ -70,7 +70,7 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       Schwellenwert-Überschreitungen auf dem Dashboard aktualisiert werden.
 - [ ] Wenn man auf Schwellenwert-Überschreitungen auf dem Dashboard klickt, soll man direkt zu
       den Listen → Dienststunden springen.
-- [ ] Sende der Person eine Mail, wenn die Stunden eingetragen wurden.
+- [x] Sende der Person eine Mail, wenn die Stunden eingetragen wurden.
 
 ### Etappe C – Dienststunden-Erfassung touch-freundlich (größeres UI-Rework)
 
@@ -145,7 +145,7 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       – in die Profil-Zeile integrieren (siehe 1). Betrifft ausschließlich `MitgliedHub.tsx`
       und `index.css` (ggf. neues `.mitglied-hub-*`-CSS), kein Backend.
 
-### Etappe E – Punkte- & Barcode-Sicherheit
+### Etappe F – Punkte- & Barcode-Sicherheit
 
 - [ ] [Punkte] Punkte-Einstellungen nach Modulen gruppieren (`PunkteEinstellungen.tsx`):
       Aktuell werden alle Punkteregeln in einer flachen Liste angezeigt. Neu: zuerst ein
@@ -175,7 +175,7 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       werden. Wenn die Person keinen PIN hat, dann sperre die Option. Vermerke dies aber in ihrer
       Personen-Timeline.
 
-### Etappe F – Per-Zugang-Benachrichtigungen (zwei Schritte, sequenziell)
+### Etappe G – Per-Zugang-Benachrichtigungen (zwei Schritte, sequenziell)
 
 1. [ ] [Moderatoren] E-Mail-Adresse pro Moderatoren-Zugang (`moderatoren`-Tabelle, neues Feld
        `email`): Migration + Endpunkte `moderator_anlegen`/`moderator_aktualisieren` erweitern,
@@ -192,7 +192,7 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
        der Moderatoren abfragen, die das jeweilige Ereignis aktiviert haben. Migration nötig
        (Alembic).
 
-### Etappe G – Personen-Auswertung & Timeline-Details
+### Etappe H – Personen-Auswertung & Timeline-Details
 
 - [ ] [Personal] Personen-Auswertungsseite: Detailansicht pro Person im Moderator-Bereich mit
       zwei Bereichen: (1) **Timeline** – alle `PersonEreignis`-Einträge der Person chronologisch
@@ -215,7 +215,7 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       angereichert werden muss. Für Mitglieder soll die Timeline-Darstellung separat und anders
       gestaltet werden (eigener Punkt, noch offen).
 
-### Etappe H – Externe Kalender im Buchungskalender
+### Etappe I – Externe Kalender im Buchungskalender
 
 - [ ] [Buchungen] Externe Kalender (z. B. den Divera-Kalender) per Einstellungen hinterlegen
       können, damit sie zusätzlich zu den Gerätehaus.app-eigenen Fahrzeugbuchungen im
@@ -228,7 +228,7 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       ist schon vorhanden (`divera_service.py`/`divera_client.py`) – ggf. erst prüfen, ob Divera
       Termine auch direkt über die bestehende API statt iCal liefert.
 
-### Etappe I – Personen-CSV-Import
+### Etappe J – Personen-CSV-Import
 
 - [ ] [Personal] CSV-Import für Personen, inkl. Beispieldatei zum Download (Spalten-Vorlage:
       vorname, zwischenname, nachname, email, gruppe, funktion o. ä.). Betrifft
@@ -240,7 +240,7 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       Fehler abzubrechen). Beispieldatei als statische Datei im Frontend (z. B.
       `public/personen-vorlage.csv`) zum Download neben dem Upload-Button auf der Personal-Seite.
 
-### Etappe J – Druck-Fallback für Einsatz-/Dienstbuch-PDF (Netzwerkdrucker per IPP)
+### Etappe K – Druck-Fallback für Einsatz-/Dienstbuch-PDF (Netzwerkdrucker per IPP)
 
 Geklärter Scope (per Rückfrage): **nur** für die beiden Benachrichtigungen, die ohnehin schon
 ein PDF anhängen (Einsatz-/Dienstbuch-Abschluss) – nicht für Buchungsanfragen, Schwellenwerte
@@ -358,6 +358,14 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
 - [x] [Mitgliederbereich] Kachel-Design wie der Kiosk
 - [x] [Allgemein] Logo-Klick führt zum richtigen Bereich (Mitglieder/Moderator/Admin) statt
       immer zur Startseite
+- [x] [Dienststunden] Bug: `POST /api/v1/dienststunden` warf `ResponseValidationError` wegen
+      fehlender `person_name`/`funktion_name`-Felder – `dienststunden_service.erfassen()` gab
+      das rohe ORM-Objekt zurück statt `DienststundenEintragOut`. Fix: Namen nach Commit nachladen
+      und direkt als `DienststundenEintragOut` zurückgeben (auch von `reservierung_einloesen()`).
+- [x] [Divera] Bug: Divera-Personal-Abgleich synchronisierte keine Personen – `hole_personal()`
+      las `data.user` (nur das Profil des API-Key-Inhabers, ein einzelnes Objekt), stattdessen
+      muss `data.cluster.consumer` (alle Cluster-Mitglieder als Dict user_id → user_object)
+      verwendet werden. Fix: Endpunkt-Pfad und Extraktion in `divera_client.py` korrigiert.
 - [x] [Personal] Divera-Personal-Abgleich: Button "Vorschlag" auf der Personal-Seite zeigt neue
       Divera-Personen (Übernehmen/Ignorieren) und E-Mail-Aktualisierungsvorschläge für bestehende
       Personen. Matching per neuem Feld `divera_user_id` (Fallback: Name). Täglicher

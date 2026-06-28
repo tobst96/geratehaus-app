@@ -33,11 +33,11 @@ async def hole_alarme(api_key: str) -> list[dict]:
 
 
 async def hole_personal(api_key: str) -> list[dict]:
-    """Holt die Personalliste für den Personal-Abgleich. Nutzt denselben
-    /pull/all-Endpunkt wie hole_alarme() (ein Request liefert beide Bereiche),
-    liest aber den User-Bereich der Antwort. Das exakte Feld-Layout variiert je
-    Divera-Tarif (siehe Modul-Docstring) – die Normalisierung der Rohdaten
-    erfolgt isoliert in divera_personal_service._person_normalisieren()."""
+    """Holt die Personalliste aller Cluster-Mitglieder für den Personal-Abgleich.
+    Nutzt data.cluster.consumer aus /pull/all – das ist ein Dict user_id → user_object,
+    im Gegensatz zu data.user (nur das Profil des API-Key-Inhabers).
+    Das exakte Feld-Layout variiert je Divera-Tarif – Normalisierung in
+    divera_personal_service._person_normalisieren()."""
     url = f"{BASIS_URL}/pull/all"
     async with httpx.AsyncClient(timeout=15) as client:
         try:
@@ -48,7 +48,18 @@ async def hole_personal(api_key: str) -> list[dict]:
             return []
 
     daten = response.json()
-    personal = daten.get("data", {}).get("user", {})
-    if isinstance(personal, dict):
-        personal = list(personal.values())
-    return personal or []
+    cluster = daten.get("data", {}).get("cluster", {})
+    consumer = cluster.get("consumer", {}) if isinstance(cluster, dict) else {}
+    if isinstance(consumer, dict):
+        personal = list(consumer.values())
+    elif isinstance(consumer, list):
+        personal = consumer
+    else:
+        personal = []
+
+    if not personal:
+        logger.warning(
+            "divera_personal_leer",
+            cluster_keys=list(cluster.keys()) if isinstance(cluster, dict) else type(cluster).__name__,
+        )
+    return personal

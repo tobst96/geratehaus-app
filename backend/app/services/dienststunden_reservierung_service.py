@@ -4,9 +4,8 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.dienststunden import Dienststunden
 from app.models.dienststunden_reservierung import DienststundenReservierung
-from app.schemas.dienststunden import DienststundenErfassen
+from app.schemas.dienststunden import DienststundenEintragOut, DienststundenErfassen
 from app.schemas.dienststunden_reservierung import DienststundenReservierungEinloesen
 from app.services import dienststunden_service, stammdaten_service
 
@@ -55,7 +54,7 @@ async def reservierung_vorschau_setzen(
 
 async def reservierung_einloesen(
     db: AsyncSession, reservierung: DienststundenReservierung, daten: DienststundenReservierungEinloesen
-) -> Dienststunden:
+) -> DienststundenEintragOut:
     person = await stammdaten_service.get_person(db, daten.person_id)
     if person is None:
         raise ValueError("Person nicht gefunden.")

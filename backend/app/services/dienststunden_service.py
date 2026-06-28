@@ -7,6 +7,7 @@ from app.models.dienststunden_uebernahme import DienststundenUebernahme
 from app.models.funktion import FunktionDienststunden
 from app.models.person import Person
 from app.schemas.dienststunden import (
+    DienststundenEintragOut,
     DienststundenErfassen,
     DienststundenSummeOut,
     SchwellenwertEintragOut,
@@ -25,7 +26,7 @@ async def funktion_existiert_und_aktiv(db: AsyncSession, funktion_id: int) -> bo
     return result.scalar_one_or_none() is not None
 
 
-async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfassen) -> Dienststunden:
+async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfassen) -> DienststundenEintragOut:
     eintrag = Dienststunden(
         person_id=person_id,
         funktion_id=daten.funktion_id,
@@ -42,7 +43,22 @@ async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfasse
     await stammdaten_service.punkte_regel_anwenden(db, person_id, "dienststunden", faktor=eintrag.stunden)
     await db.commit()
     await _stunden_mail_senden(db, person_id, daten.funktion_id, eintrag.stunden, str(daten.datum))
-    return eintrag
+
+    person_result = await db.execute(select(Person).where(Person.id == person_id))
+    person = person_result.scalar_one_or_none()
+    funktion_result = await db.execute(
+        select(FunktionDienststunden).where(FunktionDienststunden.id == daten.funktion_id)
+    )
+    funktion = funktion_result.scalar_one_or_none()
+    return DienststundenEintragOut(
+        id=eintrag.id,
+        person_id=person_id,
+        person_name=person.name if person else "?",
+        funktion_id=daten.funktion_id,
+        funktion_name=funktion.name if funktion else "?",
+        stunden=eintrag.stunden,
+        datum=eintrag.datum,
+    )
 
 
 async def _stunden_mail_senden(
