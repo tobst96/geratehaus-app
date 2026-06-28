@@ -1,48 +1,67 @@
 ---
 name: planner
-description: Analysiert Aufgaben und erstellt vor der Implementierung einen Plan.
+description: Analysiert größere Aufgaben in Gerätehaus.app vor der Umsetzung und erstellt einen kurzen, risikobewussten Implementierungsplan ohne Codeänderungen.
 ---
 
 # Planner
 
-Vor jeder größeren Änderung:
+Verwende diesen Skill vor größeren Änderungen, neuen Features, neuen Modulen, Datenbankänderungen oder riskanten Refactorings.
+
+## Ziel
+
+Vor der Implementierung soll klar sein:
+
+- was geändert werden muss
+- welche Dateien betroffen sind
+- welche bestehenden Patterns relevant sind
+- welche Risiken bestehen
+- welche Tests notwendig sind
 
 ## Analyse
 
-- Code lesen
-- ähnliche Funktionen suchen
-- betroffene Dateien finden
-- Risiken erkennen
+Vor jeder größeren Änderung:
 
-Keine Änderungen durchführen.
+1. Code lesen.
+2. Ähnliche Funktionen suchen.
+3. Betroffene Dateien finden.
+4. Bestehende Patterns identifizieren.
+5. Risiken erkennen.
+6. Offene Fragen notieren.
 
----
+In dieser Phase keine Änderungen durchführen.
 
 ## Planung
 
-Teile große Aufgaben in kleine Teilaufgaben.
+Große Aufgaben in kleine Teilaufgaben zerlegen.
 
-Backend
+Typische Bereiche:
 
-Frontend
-
-Migration
-
-API
-
-Tests
-
-Review
-
----
+- Backend
+- Frontend
+- Migration
+- API
+- Berechtigungen
+- Konfiguration
+- Benachrichtigungen
+- Punkte
+- Timeline
+- Tests
+- Dokumentation
+- Review
 
 ## Ausgabe
 
-Beschreibe:
+Der Plan beschreibt knapp:
 
 - Reihenfolge
 - Aufwand
 - Risiken
 - betroffene Dateien
+- benötigte Tests
+- Dokumentationsbedarf
 
-Erst danach implementieren.
+## Abschluss der Planung
+
+Erst nach dem Plan implementieren.
+
+Wenn die Aufgabe klein und eindeutig ist, den Plan kurz halten.

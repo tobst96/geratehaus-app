@@ -1,23 +1,23 @@
 ---
 name: todo
-description: Verwaltet die Projektaufgaben.
+description: Verwaltet Projektaufgaben für Gerätehaus.app, priorisiert neue Aufgaben, zerlegt große Arbeiten und pflegt den Backlog.
 user-invocable: true
 ---
 
 # Todo Manager
 
+Verwende diesen Skill, wenn neue Aufgaben genannt, Aufgaben priorisiert oder der Aufgabenstatus geprüft werden soll.
+
 ## Neue Aufgabe
 
 Wenn eine neue Aufgabe erstellt wird:
 
-1. Analysieren
-2. Priorität vergeben
-3. Kategorie erkennen
-4. Passende Skills auswählen
-5. Große Aufgaben in Teilaufgaben zerlegen
-6. In backlog.md eintragen
-
----
+1. Aufgabe analysieren.
+2. Priorität vergeben.
+3. Kategorie erkennen.
+4. Passende Skills auswählen.
+5. Große Aufgaben in Teilaufgaben zerlegen.
+6. Aufgabe in `backlog.md` eintragen.
 
 ## Status
 
@@ -30,44 +30,71 @@ Aufgaben besitzen folgende Stati:
 - Erledigt
 - Archiviert
 
----
+## Priorität
 
-## Skills
+Verwende einfache Prioritäten:
+
+- Hoch
+- Mittel
+- Niedrig
+
+Priorität hoch, wenn:
+
+- Sicherheit betroffen ist
+- produktive Nutzung blockiert ist
+- Datenverlust droht
+- ein kritischer Bug vorliegt
+
+## Kategorien
+
+Mögliche Kategorien:
+
+- Bug
+- Feature
+- Neues Modul
+- Datenbank
+- Frontend
+- Backend
+- Tests
+- Dokumentation
+- Wartung
+
+## Skill-Zuordnung
 
 Ordne automatisch passende Skills zu.
 
-Beispiele
+Beispiele:
 
-Bug
+| Aufgabe | Passende Skills |
+| --- | --- |
+| Bug | `bugfix`, `tests`, `review` |
+| Neues Modul | `planner`, `new-module`, `geraetehaus-patterns`, `tests` |
+| Größeres Feature | `planner`, `geraetehaus-patterns`, `tests`, `review` |
+| Review | `review` |
+| Neue Tests | `tests` |
+| Dokumentation | `knowledge-management` |
 
-→ bugfix
+## Backlog-Eintrag
 
-Neue Datenbank
+Ein Backlog-Eintrag soll enthalten:
 
-→ database-change
+```md
+## <Titel>
 
-Neues Modul
-
-→ geraetehaus-patterns
-
-Größeres Feature
-
-→ planner
-
----
+- Status:
+- Priorität:
+- Kategorie:
+- Skills:
+- Beschreibung:
+- Akzeptanzkriterien:
+- Notizen:
+```
 
 ## Nach Abschluss
 
 Nach jeder erledigten Aufgabe prüfen:
 
-- neues Pattern?
-
-→ EXAMPLES.md
-
-- neue Erkenntnis?
-
-→ LESSONS.md
-
-- neue Projektregel?
-
-→ CLAUDE.md
+- Neues Pattern? → `EXAMPLES.md`
+- Neue Erkenntnis? → `LESSONS.md`
+- Neue Projektregel? → `CLAUDE.md`
+- Architekturwissen? → `.claude/architecture.md` oder `.claude/docs/`

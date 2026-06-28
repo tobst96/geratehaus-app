@@ -1,49 +1,113 @@
-# SKILL: Backend Testing & Quality Assurance (Python/pytest)
-
-Du bist ein Experte für das Testen dieses Backend-Projekts. Deine Hauptaufgabe ist es, die Integrität der Testsuite zu wahren, Regressionen zu verhindern und bei jeder Code-Änderung die Testabdeckung synchron zu halten.
-
-## 1. Testumgebung & Architektur
-
-* **Framework:** `pytest` + `pytest-asyncio`
-* **Datenbank:** Echte lokale PostgreSQL-Testdatenbank (`geratehaus_test`). 
-    > **Wichtig:** Kein SQLite verwenden! Das Projekt nutzt Postgres-spezifische Features wie `JSONB` und `INSERT ... ON CONFLICT`.
-* **Isolierung:** Jeder Test läuft isoliert gegen `geratehaus_test` (erzwungen via `DATABASE_URL` in `tests/conftest.py`). Vor jedem Test werden alle Tabellen geleert und der `config_service`-Cache wird invalidiert. Tests sind komplett unabhängig und reihenfolgen-agnostisch.
-
-### Setup & Befehle
-* **Einrichten (einmalig):** `createdb geratehaus_test` -> `cd backend` -> `python3.12 -m venv .venv && source .venv/bin/activate` -> `pip install -e ".[dev]"`
-* **Ausführen:**
-    * Ganze Suite: `pytest`
-    * Mit Testnamen (Verbose): `pytest -v`
-    * Einzelne Datei: `pytest tests/test_dienststunden_schwellenwert.py`
-    * Pattern-Matching: `pytest -k barcode`
-
+---
+name: tests
+description: Unterstützt Backend-Testing und Qualitätssicherung für Gerätehaus.app mit pytest, PostgreSQL-Testdatenbank, Regressionstests und Testdokumentation.
 ---
 
-## 2. Aktueller Testumfang (Scope)
+# Backend Testing & Quality Assurance
 
-Die Suite deckt gezielt sicherheitskritische und volatile Kernbereiche ab:
+Verwende diesen Skill, wenn Backend-Code geändert, ein Bug gefixt, ein Endpunkt ergänzt oder die Testsuite angepasst wird.
 
-| Testdatei | Fokus / Abgedecktes Verhalten |
-| :--- | :--- |
-| `test_security.py` | Sicherheitsheader, Rate-Limiter (Blockieren nach Max-Zahl, Client-IP Trennung). |
-| `test_moderator_auth.py` | Login-Validierung, Login-Rate-Limiting, Admin- vs. Gruppenführer-Rechte. |
-| `test_barcode_auth.py` | Barcode-Scan (Gültigkeit, Ablauf), Rate-Limiting, Cookie-Löschung bei Logout. |
-| `test_dienststunden_schwellenwert.py` | Schwellenwert-Überschreitungen, Stunden-Übernahme, Moderator-Zwang. |
-| `test_update_kanal.py` | Admin-only Update-Kanäle (stable/beta). **Achtung:** Ruft echte GitHub-API auf (Internet benötigt, kein Mock). |
-| `test_sentry_setup.py` | DSN-Konstante, .env-Override, Initialisierung via `app_config`, Sentry-Log-Level, Env/Release-Mapping. |
-| `test_logging_setup.py` | Integration von `structlog` mit stdlib-`logging` (wichtig für Sentry). |
-| `test_setup.py` | `POST /setup` Frontend-Payload (Geofence-Pflichtfelder-Regression), Login, Blockieren von Zweit-Setup (409). |
-| `test_email_html.py` | HTML-Mail-Rendering, Autoescaping (HTML-Injection Schutz), Multipart-Aufbau. (SMTP ist gemockt). |
-| `test_buchung_aktion.py` | Mail-Buttons (Annehmen/Ablehnen), Token-Generierung, Statusänderung, Token-Ablauf (404). |
-| `test_punkte_belohnung.py` | Rechteprüfung: Gruppenführer darf Punkte vergeben/lesen, aber keine Personen anlegen (403). |
+## Rolle
 
----
+Du bist ein Experte für das Testen dieses Backend-Projekts.
 
-## 3. Strikte Handlungsanweisungen für Claude (Definition of Done)
+Die Hauptaufgaben sind:
 
-Wenn du Code-Änderungen im Backend vornimmst, neue Endpunkte hinzufügst oder Bugs fixst, **musst** du folgende Regeln einhalten:
+- Integrität der Testsuite wahren
+- Regressionen verhindern
+- Testabdeckung mit Codeänderungen synchron halten
+- kritische Projektbereiche absichern
 
-1.  **Test-Driven-Mindset bei Bugfixes:** Schreibe bei einer Regression *zuerst* einen fehlschlagenden Test, der den Bug reproduziert. Fixe erst danach den Code, bis der Test grün ist.
-2.  **Keine Code-Änderung ohne Test:** Jedes neue Feature und jede Verhaltensänderung muss in *derselben* Änderung durch entsprechende Tests in `backend/tests/` abgedekt werden. Ein Feature ohne Test gilt als unfertig.
-3.  **Dokumentation aktualisieren:** Wenn du eine neue Testdatei anlegst oder den Scope der Suite erweiterst, aktualisiere zwingend die `TESTS.md`, damit die obige Liste aktuell bleibt.
-4.  **Deployment-Sicherheit:** Vor jedem potenziellen Deploy oder Abschluss einer Aufgabe muss `pytest` lokal fehlerfrei durchlaufen.
+## Testumgebung
+
+Framework:
+
+- `pytest`
+- `pytest-asyncio`
+
+Datenbank:
+
+- echte lokale PostgreSQL-Testdatenbank `geratehaus_test`
+
+Wichtig:
+
+- Kein SQLite verwenden.
+- Das Projekt nutzt PostgreSQL-spezifische Features wie `JSONB` und `INSERT ... ON CONFLICT`.
+
+## Isolierung
+
+Jeder Test läuft isoliert gegen `geratehaus_test`.
+
+Die Isolierung wird über `DATABASE_URL` in `tests/conftest.py` erzwungen.
+
+Vor jedem Test:
+
+- alle Tabellen leeren
+- `config_service`-Cache invalidieren
+
+Tests müssen unabhängig und reihenfolgen-agnostisch sein.
+
+## Setup und Befehle
+
+Einmalig einrichten:
+
+```bash
+createdb geratehaus_test
+cd backend
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+Tests ausführen:
+
+```bash
+pytest
+pytest -v
+pytest tests/test_dienststunden_schwellenwert.py
+pytest -k barcode
+```
+
+## Aktueller Testumfang
+
+Die Suite deckt gezielt sicherheitskritische und volatile Kernbereiche ab.
+
+| Testdatei | Fokus |
+| --- | --- |
+| `test_security.py` | Sicherheitsheader, Rate-Limiter, Client-IP-Trennung |
+| `test_moderator_auth.py` | Login-Validierung, Login-Rate-Limiting, Admin- vs. Gruppenführer-Rechte |
+| `test_barcode_auth.py` | Barcode-Scan, Gültigkeit, Ablauf, Rate-Limiting, Cookie-Löschung bei Logout |
+| `test_dienststunden_schwellenwert.py` | Schwellenwert-Überschreitungen, Stunden-Übernahme, Moderator-Zwang |
+| `test_update_kanal.py` | Admin-only Update-Kanäle `stable` und `beta`; Achtung: ruft echte GitHub-API auf |
+| `test_sentry_setup.py` | DSN-Konstante, `.env`-Override, Initialisierung via `app_config`, Sentry-Log-Level, Env/Release-Mapping |
+| `test_logging_setup.py` | Integration von `structlog` mit stdlib-`logging` |
+| `test_setup.py` | `POST /setup`, Geofence-Pflichtfelder-Regression, Login, Zweit-Setup blockiert mit 409 |
+| `test_email_html.py` | HTML-Mail-Rendering, Autoescaping, Multipart-Aufbau; SMTP ist gemockt |
+| `test_buchung_aktion.py` | Mail-Buttons, Token-Generierung, Statusänderung, Token-Ablauf |
+| `test_punkte_belohnung.py` | Rechteprüfung: Gruppenführer darf Punkte vergeben/lesen, aber keine Personen anlegen |
+
+## Definition of Done
+
+Wenn Backend-Code geändert, ein Endpunkt ergänzt oder ein Bug gefixt wird:
+
+1. Bei Regressionen zuerst einen fehlschlagenden Test schreiben.
+2. Den Code erst danach fixen.
+3. Jedes neue Feature und jede Verhaltensänderung in `backend/tests/` abdecken.
+4. Neue Tests möglichst nah am betroffenen Verhalten platzieren.
+5. Testdaten isoliert und deterministisch halten.
+6. Keine externen Services verwenden, außer ein bestehender Test ist ausdrücklich so angelegt.
+7. Vor Abschluss relevante Tests ausführen.
+
+Ein Feature ohne Test gilt als unfertig.
+
+## Testdokumentation
+
+Wenn eine neue Testdatei entsteht oder der Scope der Testsuite erweitert wird:
+
+- passende Testdokumentation aktualisieren
+- den abgedeckten Bereich klar benennen
+- wichtige Einschränkungen dokumentieren
+
+## Deployment-Sicherheit
+
+Vor jedem potenziellen Deploy oder Abschluss einer größeren Backend-Aufgabe muss `pytest` lokal fehlerfrei durchlaufen.
