@@ -18,3 +18,4 @@ Nach der Umsetzung
 - npm run build
 - neue Tests
 - Änderungen zusammenfassen
+- Todo auf erledigt setzen `todo.md` des Skills `todo` 
