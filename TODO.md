@@ -13,23 +13,6 @@ Reihenfolge unten ist ein Vorschlag (kleine/mechanische Etappen zuerst), kein Zw
 einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorziehen willst.
 
 
-## Noch in Ettapen einplanen - Wenn diese ToDo eingelesen wird, bearbeite die Folgende Punkten in den Vorhanden Ettapen ein oder erzeuge eine neue Ettape
-
-- In Dienstbuch kann ein Gruppenführer oder Admin den als "Relevant" markieren. Für Relevante gibt es extra Punkte. Zudem soll für ein zukünftiges Modul die Anzahl von Relevanten Diensten mit angezeigt werden. Damit kann dann eine mindest Dienstbeteilung überprüft werden.
-- Überprüfen ob Namensabweichung noch funktionert, wenn nicht fragen ob es wieder umgesetzt werden soll oder entfernt werden soll
-- Benachtichtigungen bei Personal soll nicht generell ein und ausgeschaltet werden. Sondern für jedes Modul und zukünftige Module einzeln.
-  Alle Mails gehen zu der Mail die als Testmail eingerichtet ist. Das ist natürlich nicht richtig. Gehört zu den Punkt darüber.
-- Fahrzeuge sollen in den Stammdaten das Feld "ISSI" bekommen, das sind Zahlen. Damit zukünftig ggf. Fahrzeugstatus mit angezeigt werden kann
-- Überprüfe wie einfach zukünftig es ist, weitere Module zu erweiter. Such dir da bereits alle Informationen und schreibe dir diese sinnig auf. Macht es Sinn davon ein Skill zu erstellen?
-- Die möglichkeit geben das für den Dark-Mode ein anderes Logo verwendet werden kann.
-- Personal nach A-Z Sortieren. Gerne auch eine erweitere suche (Wer hat keine Mail eingetragen, hat die erlaubnis oder nicht für das Modul benachrichtigungen zu bekommen, kein Profilbild). 
-- Dashboard die Schwellwerte aktuallisieren nicht richtig
-- Schwellenwert-Überschreitungen in /moderator/dashboard einmal kontrollieren ob da der richtige Wert genommen wird
-- "Punkte als Belohnung vergeben" für Moderatoren begrenzen. Die Begrenzung soll im Adminbereich einstellbar sein.
-- Baue "Punkte" als Modul auf. Das soll eine App in der App quasi sein. Es soll im Admin bereich seine eigene Einstellungsbereich bekommen, bei den Personal können dafür extra die Benachrichtigungen ein und ausgeschaltet werden. Alles was mit dem Thema "Punkte" zu tun hat, dieses Modul zu orden. Darunter zählt auch die Rang Liste, was wofür wie viele Punkte zu bekommen hat.
-- Bau bitte die Regel ein, dass jedes Modul immer drei Bereiche braucht. Mitglieder/Kiosk, Moderator/Gruppenfrüher und Admin. Das soll dafür sein, dass immer alle Module gleich angelegt werden. Das in den Admin bereich alle Einstellungen kommen, wenn das Modul aktiviert wird. Dann kann man da Auswählen ob der Moderator etwas damit machen darf. Auch ob ein Mitglied von außerhalb drauf zugreifen darf oder nur im Kiosk oder persönlichen Login darin läuft. Aktuell gibt es Folgende Module: Einsatzbericht, Dienstbuch, Dienststunden, Fahrzeugbuchung, Punkte, Divera
-- Punkte sollen von ein Datum bis ein Datum ausgewertet werden, wie viele Pubnkte man gesammt in der Zeit bekommen hat. Ohne das die Punkte ihre Gültigkeit verlieren
-
 ## Etappen
 
 ### Etappe A – Quick Fixes (mehrere Module, klein/mechanisch)
@@ -57,6 +40,16 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       richtige Name, dasselbe mit der Funktion.
 - [x] [Punkte] Punkte in der Moderator-Übersicht: unter der Eingabe darf nicht mehr der Text
       "Die automatischen Punkte-Regeln (unten) kann nur ein Admin einsehen und ändern." stehen!
+- [ ] [Stammdaten] Fahrzeuge: neues Feld „ISSI" (Integer) in den Fahrzeug-Stammdaten ergänzen
+      (Migration + Formular in `Stammdaten.tsx`). Keine Logik, nur Datenbankfeld – Vorbereitung
+      für zukünftige Fahrzeugstatus-Anbindung.
+- [ ] [Listen] Namensabweichungs-Feature prüfen: testen ob die bestehende „Namen weichen ab"-Anzeige
+      in Listen noch korrekt funktioniert. Falls nicht: entscheiden ob Reparatur oder Entfernung.
+      (Hinweis: Feature ist für Admins sichtbar, für Gruppenführer schon ausgeblendet.)
+- [ ] [Benachrichtigungen] Bug: Personen-Benachrichtigungs-Mails gehen aktuell an die zentrale
+      Testmail-Adresse statt an die hinterlegte E-Mail der Person. Betrifft `EmailNotifier` –
+      prüfen ob der Empfänger korrekt aus `Person.email` gelesen wird und nicht versehentlich
+      `notifier_email_recipients` (Moderator-Testmail) genutzt wird.
 
 ### Etappe B – Dienststunden-Politur (Dashboard/Liste-Verknüpfung)
 
@@ -71,6 +64,9 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
 - [ ] Wenn man auf Schwellenwert-Überschreitungen auf dem Dashboard klickt, soll man direkt zu
       den Listen → Dienststunden springen.
 - [x] Sende der Person eine Mail, wenn die Stunden eingetragen wurden.
+- [ ] Bug: Schwellenwert-Berechnung im Dashboard (`/moderator/dashboard`) prüfen – sowohl ob
+      der korrekte Summenwert (nach Übernahmen) genutzt wird, als auch ob die Anzeige sich nach
+      einer Übernahme live aktualisiert.
 
 ### Etappe C – Dienststunden-Erfassung touch-freundlich (größeres UI-Rework)
 
@@ -131,6 +127,13 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       Sticky-Leiste oben fixiert werden, damit man beim Scrollen durch eine lange Liste nicht
       zurückscrollen muss. Suche ggf. prominenter platzieren (volle Breite, direkt unter dem
       Seitentitel).
+- [ ] [Personal] Personenliste alphabetisch sortieren (Standard: A-Z nach Name) + erweiterte
+      Filteroptionen: „keine Mail hinterlegt", „Benachrichtigungen erlaubt/nicht erlaubt",
+      „kein Profilbild". Betrifft `Personal.tsx` (Filter-UI) + optionaler Query-Parameter
+      am GET-Endpunkt für serverseitiges Filtern.
+- [ ] [Design] Dark Mode: alternatives Logo hinterlegen können – zweites Logo-Upload-Feld in
+      den Einstellungen, das im Dark Mode statt dem Standard-Logo gezeigt wird (CSS
+      `prefers-color-scheme`-aware oder über den vorhandenen Darkmode-State in `index.css`).
 
 ### Etappe E – Mitglieder-Hub Redesign (`MitgliedHub.tsx`, nur Frontend)
 
@@ -174,6 +177,12 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       seinen Namen und PIN eingeben muss zum Einloggen. Erst dann sollen die Bilder angezeigt
       werden. Wenn die Person keinen PIN hat, dann sperre die Option. Vermerke dies aber in ihrer
       Personen-Timeline.
+- [ ] [Punkte] Punkte-Belohnung für Moderatoren begrenzen: maximale Punktzahl pro Vergabe
+      konfigurierbar im Admin-Bereich (neuer `app_config`-Schlüssel `punkte_belohnung_max`).
+      Verhindert, dass Gruppenführer beliebig viele Punkte auf einmal vergeben.
+- [ ] [Punkte] Punkte-Zeitraum-Auswertung: Ansicht „wie viele Punkte hat eine Person im
+      Zeitraum Von–Bis gesammelt?" (ohne Gültigkeitsverfall zu berücksichtigen). Naheliegend
+      als Filter in der Personen-Auswertungsseite (Etappe H) oder eigenem Auswertungsbereich.
 
 ### Etappe G – Per-Zugang-Benachrichtigungen (zwei Schritte, sequenziell)
 
@@ -191,6 +200,11 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
        statt der bisherigen `notifier_email_recipients`-Liste die hinterlegten E-Mail-Adressen
        der Moderatoren abfragen, die das jeweilige Ereignis aktiviert haben. Migration nötig
        (Alembic).
+3. [ ] [Benachrichtigungen] Mitglieder-Benachrichtigungen pro Modul: Aktuell gibt es einen
+       einzigen `benachrichtigungen_aktiv`-Schalter pro Person. Stattdessen sollen Mitglieder
+       pro Modul (Einsatz, Dienstbuch, Dienststunden, Fahrzeugbuchung, Punkte) separat wählen
+       können. Backend: neue Tabelle `person_benachrichtigungen` (person_id, modul, aktiv) oder
+       JSONB-Feld auf `Person`; Frontend: Pro-Modul-Schalter in der Mitglied-Profilseite.
 
 ### Etappe H – Personen-Auswertung & Timeline-Details
 
@@ -275,6 +289,37 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
 - [ ] Tests: mind. ein Test, der `druck_service.drucke_pdf()` mockt und prüft, dass bei
       simuliertem SMTP-Fehlschlag + `drucker_aktiv=True` der Druckpfad aufgerufen wird, und einer
       für den `drucker_immer_*`-Pfad unabhängig vom Mailerfolg.
+
+### Etappe L – Dienstbuch „Relevant"-Markierung + Mindest-Dienstbeteiligung
+
+- [ ] [Dienstbuch] Gruppenführer/Admin können einen Dienstbuch-Eintrag nachträglich als
+      „relevant" markieren (neues Bool-Feld `relevant` auf `Dienstbuch`). Neue Endpunkte
+      `PATCH /moderator/dienstbuecher/{id}/relevant` (CurrentModerator) und entsprechender
+      Button in der Dienstbuch-Detailansicht (Moderator-Bereich).
+- [ ] [Dienstbuch] Relevante Dienste bringen Extrapunkte: neue Punktregel `dienstbuch_relevant`
+      (analog `dienstbuch`), wird beim Markieren als relevant ausgelöst (nur einmalig, nicht
+      retroaktiv beim Abmelden).
+- [ ] [Dienstbuch] Anzahl relevanter Dienste pro Person exportierbar/abrufbar: neuer
+      Query-Parameter oder eigener Endpunkt – Grundlage für ein späteres Modul zur
+      Mindest-Dienstbeteiligung.
+
+### Etappe M – Punkte-Modul & Modul-Architektur (Feature-Branch + PR erforderlich)
+
+- [ ] [Punkte] Punkte als eigenständiges Modul: eigener Admin-Einstellungsbereich, Rangliste,
+      vollständige Punkthistorie, Benachrichtigungs-Konfiguration pro Person. Alles was mit
+      Punkte zu tun hat wird unter diesem Modul zusammengefasst. Betrifft
+      `PunkteEinstellungen.tsx`, neue Route `/moderator/punkte`, `app_config`-Schlüssel
+      `modul_punkte_aktiv`/`_startseite`/`_aussenzugriff` (analog anderen Modulen).
+- [ ] [Architektur] Jedes Modul braucht einheitlich drei Bereiche:
+      (1) Mitglieder/Kiosk, (2) Moderator/Gruppenführer, (3) Admin (Einstellungen).
+      Im Admin-Bereich konfigurierbar: ob Moderator Schreibrechte hat, ob Außenzugriff erlaubt ist.
+      Bestehende Module (Einsatz, Dienstbuch, Dienststunden, Fahrzeugbuchung, Divera) auf
+      Konformität prüfen und ggf. fehlende Admin-Einstellungen nachrüsten. Diese Konvention
+      in `CLAUDE.md` dokumentieren.
+- [ ] [Architektur] Modul-Erweiterbarkeit: Checkliste für neue Module in `CLAUDE.md` anlegen
+      (Backend-Router, Service, Migration, `modul_*`-Config-Keys, Frontend-Route, Kiosk-Kachel,
+      Mitglied-Hub-Kachel, Benachrichtigungs-Hook, Punkte-Regeln). Prüfen ob daraus ein
+      Claude-Code-Skill sinnvoll wäre.
 
 ## In Arbeit
 
