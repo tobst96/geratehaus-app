@@ -46,10 +46,15 @@ async def hole_alarme(api_key: str, last_ts: int | None = None) -> tuple[list[di
         alarme = list(alarme.values())
     alarme = alarme or []
     if "alarm" not in daten_block:
-        logger.warning(
-            "divera_unerwartete_antwortstruktur",
-            data_keys=list(daten_block.keys()),
-        )
+        if last_ts is None:
+            # Vollständiger Pull ohne lastUpdate sollte immer alarm enthalten
+            logger.warning(
+                "divera_unerwartete_antwortstruktur",
+                data_keys=list(daten_block.keys()),
+            )
+        else:
+            # Delta-Pull: kein alarm-Key bedeutet schlicht keine Änderungen seit last_ts
+            logger.debug("divera_keine_alarm_aenderungen", last_ts=last_ts)
     else:
         logger.debug("divera_alarme_geladen", anzahl=len(alarme), last_ts=last_ts, neuer_ts=neuer_ts)
     return alarme, neuer_ts
@@ -74,7 +79,9 @@ async def hole_personal(api_key: str) -> list[dict]:
     cluster = daten.get("data", {}).get("cluster", {})
     consumer = cluster.get("consumer", {}) if isinstance(cluster, dict) else {}
     if isinstance(consumer, dict):
-        personal = list(consumer.values())
+        # consumer ist ein Dict user_id → user_object; user_id als "id"-Feld
+        # injizieren damit _person_normalisieren() die divera_user_id findet
+        personal = [{"id": k, **v} for k, v in consumer.items()]
     elif isinstance(consumer, list):
         personal = consumer
     else:
