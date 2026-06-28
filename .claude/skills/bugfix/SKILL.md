@@ -1,21 +1,22 @@
-# Bugfix Workflow
+---
+name: bugfix
+description: Behebt Fehler systematisch.
+---
+
+# Bugfix
 
 Vor jeder Änderung:
 
-1. Ursache finden
-2. Ursache erklären
-3. Alle betroffenen Dateien nennen
-4. Prüfen ob ähnliche Stellen existieren
+- Ursache finden
+- Ursache erklären
+- ähnliche Stellen suchen
 
-Dann:
+Danach:
 
 - kleinste mögliche Änderung
-- keine Refactorings
-- bestehende Architektur beibehalten
+- Regressionstest
 
-Nachher:
+Nach Abschluss:
 
-- Tests
-- mögliche Regressionen prüfen
-- Zusammenfassung schreiben
-- Todo auf erledigt setzen `todo.md` des Skills `todo` 
+- Review
+- Dokumentation prüfen
