@@ -1,35 +1,39 @@
-Neue Erkenntnis?
+---
+name: knowledge-management
+description: Pflegt die Projektdokumentation und hält das Wissen aktuell.
+---
 
-↓
+# Knowledge Management
 
-Ist es eine feste Projektregel?
+Während jeder Implementierung soll geprüft werden, ob neues Wissen entsteht.
 
-→ CLAUDE.md
+## EXAMPLES.md
 
-↓
+Wenn ein neues wiederverwendbares Pattern entsteht:
 
-Ist es ein wiederverwendbares Pattern?
+- prüfen ob vorhanden
+- ansonsten ergänzen
+- keine Duplikate erzeugen
 
-→ EXAMPLES.md
+## LESSONS.md
 
-↓
+Wenn eine neue Erkenntnis entsteht:
 
-Ist es eine Erkenntnis aus einem Fehler oder einer Entscheidung?
+- Problem
+- Ursache
+- Lösung
+- Begründung
 
-→ LESSONS.md
+ergänzen.
 
-↓
+Nur dokumentieren wenn diese Erkenntnis langfristig hilfreich ist.
 
-Ist es nur für die aktuelle Aufgabe relevant?
+## CLAUDE.md
 
-→ Nicht dokumentieren.
+Nur dauerhaft gültige Projektregeln ergänzen.
 
-## Zusammenarbeit mit anderen Skills
+Keine temporären Informationen.
 
-Dieses Skill ist für die Pflege der Projektdokumentation verantwortlich.
+## Ziel
 
-- Architekturregeln befinden sich im Skill `geraetehaus-patterns`.
-- Wiederverwendbare Beispiele werden in `EXAMPLES.md` des Skills `geraetehaus-patterns` gepflegt.
-- Erfahrungen, Stolperfallen und Architekturentscheidungen werden in `LESSONS.md` dieses Skills gepflegt.
-
-Dokumentiere Informationen immer an der passenden Stelle und vermeide Duplikate.
+Das Projektwissen soll kontinuierlich wachsen.
