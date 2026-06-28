@@ -1,23 +1,33 @@
 ---
 name: geraetehaus-patterns
-description: Architektur- und Entwicklungsrichtlinien für Gerätehaus.app. Nutze diesen Skill immer vor Änderungen am Projekt, um bestehende Muster konsequent einzuhalten.
+description: Projektweite Architektur- und Entwicklungsrichtlinien für Gerätehaus.app. Nutze diesen Skill bei jeder Implementierung oder Änderung bestehender Funktionen.
 ---
 
-# Gerätehaus.app – Projektkonventionen
+# Gerätehaus.app Patterns
 
-Dieses Projekt folgt einer sehr konsequenten Architektur. Neue Funktionen sollen bestehende
-Muster übernehmen und keine neuen Architekturen oder Sonderlösungen einführen.
+## Ziel
 
----
+Dieses Projekt besitzt eine einheitliche Architektur. Neue Features sollen sich nahtlos in den
+bestehenden Code einfügen.
 
-# Grundprinzipien
+Es gilt:
 
-- Bevor neuer Code geschrieben wird, immer nach einer ähnlichen bestehenden Umsetzung suchen.
-- Bestehende Patterns wiederverwenden statt neue einzuführen.
+- Bestehende Patterns übernehmen.
+- Keine neue Architektur erfinden.
 - Änderungen möglichst klein halten.
-- Keine Refactorings außerhalb des eigentlichen Scopes.
-- Keine neuen Abhängigkeiten ohne ausdrückliche Freigabe.
-- Deutsche Domänensprache verwenden (Einsatz, Dienstbuch, Person, Gruppe, Funktion usw.).
+- Nur den Scope der Aufgabe bearbeiten.
+
+---
+
+# Arbeitsweise
+
+Vor jeder Implementierung:
+
+1. Analysiere den bestehenden Code.
+2. Suche nach ähnlichen Implementierungen.
+3. Wiederverwende bestehende Patterns.
+4. Erstelle einen kurzen Plan.
+5. Erst danach Änderungen durchführen.
 
 ---
 
@@ -27,36 +37,37 @@ Muster übernehmen und keine neuen Architekturen oder Sonderlösungen einführen
 
 Router enthalten ausschließlich:
 
-- Request entgegennehmen
+- Routing
+- Authentifizierung
 - Berechtigungen
-- Validierung
-- Service aufrufen
-- Response zurückgeben
+- Requestvalidierung
+- Aufruf eines Services
+- Response
 
-Keine Businesslogik im Router.
+Keine Businesslogik.
 
 ---
 
 ## Services
 
-Die komplette Businesslogik gehört in Services.
+Businesslogik gehört ausschließlich in Services.
 
-Services
+Services dürfen:
 
-- lesen Daten
-- schreiben Daten
-- führen commit() aus
-- erzeugen Timeline-Einträge
-- verschicken Benachrichtigungen
-- vergeben Punkte
+- Daten lesen
+- Daten schreiben
+- commit() ausführen
+- Benachrichtigungen auslösen
+- Punkte vergeben
+- Timeline schreiben
 
-Nicht im Router.
+Router dürfen das nicht.
 
 ---
 
 ## Models
 
-SQLAlchemy Models bilden ausschließlich die Datenbank ab.
+Models bilden ausschließlich die Datenbank ab.
 
 Keine Businesslogik.
 
@@ -64,11 +75,14 @@ Keine Businesslogik.
 
 ## Schemas
 
-Pydantic-Schemas sind strikt von ORM-Modellen getrennt.
+Pydantic-Schemas sind strikt von SQLAlchemy-Modellen getrennt.
 
-ResponseModelle niemals direkt aus ORM-Objekten zurückgeben, wenn berechnete Felder vorhanden sind.
+ResponseModels niemals direkt aus ORM-Objekten zurückgeben,
+wenn berechnete Felder vorhanden sind.
 
-Bei Personen immer prüfen, ob `personen_zu_out()` verwendet werden muss.
+Personen immer über bestehende Helper wie
+personen_zu_out()
+konvertieren.
 
 ---
 
@@ -78,31 +92,33 @@ Neue Tabellen benötigen immer:
 
 - Alembic Migration
 - SQLAlchemy Model
-- Schema
+- Pydantic Schema
 - Service
 - API
 - Tests
 
-Neue Felder benötigen immer:
+Neue Felder benötigen:
 
 - Migration
 - Model
 - Schema
 - Frontendanpassung (falls sichtbar)
 
-Migrationen werden fortlaufend nummeriert.
+Migrationen immer fortlaufend nummerieren.
 
 ---
 
 # Konfiguration
 
-Business-Konfiguration niemals aus `.env` lesen.
+Business-Konfiguration niemals aus .env lesen.
 
 Immer:
 
 ConfigService
 
-Neue Keys immer zusätzlich in
+verwenden.
+
+Neue Config-Keys zusätzlich in
 
 app/services/config_defaults.py
 
@@ -112,7 +128,7 @@ registrieren.
 
 # Module
 
-Alle Module folgen derselben Struktur.
+Jedes Modul besitzt dieselbe Architektur.
 
 Backend
 
@@ -123,8 +139,8 @@ Backend
 
 Frontend
 
-- Moderator
-- Mitglieder
+- Moderatorbereich
+- Mitgliederbereich
 - Kiosk
 
 Konfiguration
@@ -133,23 +149,23 @@ Konfiguration
 - modul_<name>_startseite
 - modul_<name>_aussenzugriff
 
-Neue Module sollen sich wie bestehende Module verhalten.
+Neue Module sollen sich identisch verhalten.
 
 ---
 
-# Berechtigungen
+# Authentifizierung
 
-Moderatorrechte niemals direkt prüfen.
+Vorhandene Dependencies verwenden.
 
-Immer bestehende Dependencies verwenden.
+Beispiele
 
-Beispiele:
-
-- CurrentModerator
 - CurrentAdmin
+- CurrentModerator
 - CurrentPerson
 
-Module immer zusätzlich über
+Keine eigenen Berechtigungsprüfungen implementieren.
+
+Module zusätzlich über
 
 require_modul_aktiv()
 
@@ -159,7 +175,7 @@ absichern.
 
 # Benachrichtigungen
 
-Benachrichtigungen niemals direkt verschicken.
+Benachrichtigungen niemals direkt versenden.
 
 Immer
 
@@ -173,9 +189,12 @@ verwenden.
 
 Punkte niemals direkt in Tabellen schreiben.
 
-Immer bestehende Services verwenden.
+Bestehende Services verwenden.
 
-Timeline-Einträge und Punkte müssen konsistent bleiben.
+Neue Features prüfen immer:
+
+- Punkte erforderlich?
+- Timeline erforderlich?
 
 ---
 
@@ -183,26 +202,18 @@ Timeline-Einträge und Punkte müssen konsistent bleiben.
 
 Frontend folgt vorhandenen Komponenten.
 
-Keine neuen UI-Konzepte einführen.
-
-Wenn bereits ähnliche Komponenten existieren:
+Wenn bereits vorhanden:
 
 - Banner
 - Ladeanzeige
 - Formularfelder
 - Kachel-Design
+- Tabellen
+- Dialoge
 
 diese wiederverwenden.
 
----
-
-# API
-
-Keine direkten fetch()-Aufrufe verstreut einführen.
-
-Bestehende API-Struktur verwenden.
-
-Neue Endpunkte nach bestehendem Muster aufbauen.
+Keine neuen UI-Konzepte einführen.
 
 ---
 
@@ -212,39 +223,33 @@ Keine unnötigen Inline-Styles.
 
 Bestehende CSS-Klassen wiederverwenden.
 
-Design an vorhandene Seiten anpassen.
-
 Dark Mode berücksichtigen.
 
----
-
-# Tests
-
-Backendänderungen benötigen passende Tests.
-
-Bugfixes benötigen Regressionstests.
-
-Neue Features benötigen mindestens einen Happy-Path-Test.
-
-Bestehende Tests dürfen nicht verschlechtert werden.
+Responsive Verhalten beibehalten.
 
 ---
 
-# Bekannte Projektmuster
+# API
 
-## Reservierungen
+Neue Endpunkte orientieren sich an bestehenden APIs.
 
-Alle Reservierungsmodule folgen demselben Ablauf.
+Keine neue Struktur einführen.
 
-Reservierung
+---
+
+# Reservierungen
+
+Alle Reservierungsmodule folgen exakt diesem Ablauf.
+
+Reservierung erstellen
 
 ↓
 
-QR-Code
+QR-Code erzeugen
 
 ↓
 
-Mitgliederlogin
+Mitglied authentifiziert sich
 
 ↓
 
@@ -254,29 +259,54 @@ Vorschau
 
 Einlösen
 
-Neue Reservierungen müssen dieses Muster übernehmen.
+Neue Reservierungsfunktionen müssen dieses Verhalten übernehmen.
 
 ---
 
-## Timeline
+# Timeline
 
-Alle relevanten Änderungen an Personen sollen über bestehende Timeline-Ereignisse protokolliert werden.
+Relevante Änderungen an Personen sollen als PersonEreignis protokolliert werden.
 
-Neue Features prüfen immer, ob ein PersonEreignis erforderlich ist.
+Vor jeder Implementierung prüfen:
 
----
-
-## Punkte
-
-Automatische Punktevergabe niemals doppelt implementieren.
-
-Vorhandene Mechanismen wiederverwenden.
+- Ist ein Timeline-Eintrag notwendig?
 
 ---
 
-# Vor jeder Implementierung
+# Tests
 
-Claude soll sich folgende Fragen beantworten:
+Backendänderungen benötigen Tests.
+
+Bugfixes benötigen Regressionstests.
+
+Neue Features benötigen mindestens einen Happy-Path-Test.
+
+Vor Abschluss immer:
+
+- pytest
+- npm run build
+
+ausführen.
+
+---
+
+# Was vermieden werden soll
+
+Nicht:
+
+- unnötige Refactorings
+- neue Architektur
+- doppelte Logik
+- Hardcodings
+- Businesslogik im Router
+- direkte Config-Zugriffe
+- direkte Datenbankzugriffe aus dem Frontend
+
+---
+
+# Vor jeder Implementierung prüfen
+
+Claude beantwortet zuerst folgende Fragen:
 
 1. Gibt es bereits eine ähnliche Funktion?
 
@@ -284,17 +314,21 @@ Claude soll sich folgende Fragen beantworten:
 
 3. Kann bestehender Code wiederverwendet werden?
 
-4. Muss auch Frontend, API oder Migration angepasst werden?
+4. Muss Frontend angepasst werden?
 
-5. Sind Berechtigungen korrekt?
+5. Muss Backend angepasst werden?
 
-6. Sind Benachrichtigungen betroffen?
+6. Ist eine Migration erforderlich?
 
-7. Sind Punkte betroffen?
+7. Sind Berechtigungen betroffen?
 
-8. Ist eine Timeline erforderlich?
+8. Sind Benachrichtigungen betroffen?
 
-9. Werden Tests benötigt?
+9. Sind Punkte betroffen?
+
+10. Ist ein Timeline-Eintrag erforderlich?
+
+11. Sind Tests notwendig?
 
 Erst danach mit der Implementierung beginnen.
 
@@ -302,6 +336,6 @@ Erst danach mit der Implementierung beginnen.
 
 # Ziel
 
-Gerätehaus.app soll über alle Module hinweg einheitlich bleiben.
+Gerätehaus.app soll über alle Module hinweg wie aus einem Guss wirken.
 
-Lieber bestehende Patterns konsequent wiederverwenden als neue Lösungen entwickeln.
+Neue Funktionen orientieren sich immer an bestehenden Patterns und fügen sich in die vorhandene Architektur ein.
