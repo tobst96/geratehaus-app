@@ -142,7 +142,7 @@ export function BarcodeGenerator() {
 
       <div className="karte" style={{ marginBottom: "2rem", maxWidth: "100%" }}>
         <label htmlFor="barcode-gueltigkeit">Gültigkeitsdauer neuer Barcodes (Tage)</label>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", margin-top: 16 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 16 }}>
           <input
             id="barcode-gueltigkeit"
             type="number"
