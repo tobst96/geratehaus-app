@@ -107,8 +107,8 @@ textarea {
 
 input[type="checkbox"],
 input[type="radio"] {
-  width: 20px;
-  height: 20px;
+  width: clamp(20px, 1.8vw, 27px);
+  height: clamp(20px, 1.8vw, 27px);
   min-height: 0;
   padding: 0;
   vertical-align: middle;
@@ -242,7 +242,7 @@ a {
 
 .formular-feld label {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: clamp(0.9rem, 1vw, 1.2rem);
 }
 
 .formular-zeile {
