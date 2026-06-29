@@ -50,7 +50,7 @@
 .kiosk-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
-  grid-auto-rows: 1fr;
+  grid-auto-rows: auto;
   gap: clamp(0.8rem, 2.5vh, 2rem);
   width: 100%;
   max-width: 1300px;
@@ -80,8 +80,8 @@
   height: 100%;
   max-width: 340px;
   max-height: 340px;
-  min-height: 0;
-  min-width: 0;
+  min-height: clamp(120px, 20vh, 340px);
+  min-width: clamp(120px, 20vh, 340px);
   justify-self: center;
   align-self: center;
   border: 1px solid var(--farbe-rand);
