@@ -278,9 +278,3 @@
   border-radius: 12px;
   border: 1px solid var(--farbe-rand);
 }
-
-.seite-einsatzeingabe {
-    width: 100%;
-    max-width: none;
-    padding: 0;
-}
