@@ -133,9 +133,16 @@ a {
 
 .seite {
   flex: 1;
-  width: 100%;
+  width: min(calc(100% - 3rem), 1300px);
   padding: var(--abstand);
   box-sizing: border-box;
+  margin: 0 auto;
+}
+
+@media (max-width: 470px) {
+    .seite {
+        width: 100%;
+    }
 }
 
 .kopfzeile {
