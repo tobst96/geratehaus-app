@@ -140,9 +140,9 @@ export function BarcodeGenerator() {
         codiert und 2 Jahre gültig ist. Personen werden unter Stammdaten → Personen verwaltet.
       </p>
 
-      <div className="karte" style={{ marginBottom: "2rem", maxWidth: 100% }}>
+      <div className="karte" style={{ marginBottom: "2rem", maxWidth: "100%" }}>
         <label htmlFor="barcode-gueltigkeit">Gültigkeitsdauer neuer Barcodes (Tage)</label>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", margin-top: 16px }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", margin-top: "16px" }}>
           <input
             id="barcode-gueltigkeit"
             type="number"
