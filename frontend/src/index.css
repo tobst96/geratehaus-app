@@ -178,9 +178,9 @@ a {
 
 .kopfzeile .organisation {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: clamp(1.1em, 1.5em, 1.8em);
   font-family: "Alata", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--farbe-akzent);
+  color: var(--farbe-text);
 }
 
 .fusszeile {
