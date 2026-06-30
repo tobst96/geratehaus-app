@@ -1,3 +1,5 @@
+- Issues beheben
 - Wenn im kisok Modus ein Barcode gescannt wird, darf diese person danach nicht eingeloggt sein. Es soll normal links das profilbild und name auftauchen.
+- Divera Import Einsatz & Benutzer fixxen
 - Punktesystem löschen so das es nicht mehr existiert. Auch aus der Datenbank löschen
 - Stable release, keine neuerungen davor einbringen.
