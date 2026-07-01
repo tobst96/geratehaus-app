@@ -126,6 +126,27 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       Sticky-Leiste oben fixiert werden, damit man beim Scrollen durch eine lange Liste nicht
       zurückscrollen muss. Suche ggf. prominenter platzieren (volle Breite, direkt unter dem
       Seitentitel).
+- [ ] [Design] Master-Detail-Seiten auf Mobil einspaltig statt zwei Spalten (Screenshot-Befund
+      Personal): Aktuell stehen Liste (links) und Detailansicht (rechts) auch auf dem Handy fest
+      nebeneinander (`Personal.tsx`: `display:flex, gap:24` mit fester `width:300`-Spalte). Dadurch
+      ist die Detailspalte ein schmaler Streifen – ohne Auswahl bricht dort „Bitte links eine Person
+      auswählen." unschön um, mit Auswahl werden Felder (E-Mail) abgeschnitten. Lösung: unter einem
+      Breakpoint (z. B. ≤768 px) einspaltig – nur die Liste zeigen, bei Auswahl die Detailansicht in
+      voller Breite (darunter oder als eigene Ansicht/Overlay mit „Zurück"-Button); der leere
+      Platzhaltertext entfällt auf Mobil. Gleiches Muster in `Listen.tsx`/`Buchungsmanagement.tsx`
+      prüfen. (Hängt mit dem Layout-Overflow-Punkt oben zusammen.)
+- [ ] [Design] Seitenkopf + Aktionsbuttons auf Mobil (Screenshot-Befund Personal): Titel „Personal"
+      und die Buttons „Vorschlag" / „+ Person hinzufügen" stehen in einer Zeile und quetschen den
+      Titel. Lösung: auf Mobil Titel über den Buttons, Buttons volle Breite bzw. sauber umbrechend.
+- [ ] [Design] Aktions-Buttons in der Personen-Detailansicht vereinheitlichen (Screenshot-Befund):
+      „Bild hochladen", „Bild per QR-Code hochladen", „Barcode erzeugen", „Barcode per Mail senden",
+      „PIN setzen", „Löschen" haben unterschiedliche Breiten und wirken zerfranst. Lösung:
+      einheitliche Button-Breite/-Abstände (volle Breite gestapelt oder 2-spaltiges Grid), sinnvoll
+      gruppieren (Bild / Barcode / Verwaltung) und primär/sekundär-Hierarchie; möglichst über die
+      globalen Button-Styles in `index.css`, damit es überall konsistent bleibt.
+- [ ] [Design] Detail-Formularfelder responsive machen (Screenshot-Befund): Vorname/Zwischenname/
+      Nachname/E-Mail haben feste Pixelbreiten (160/200 px) und schneiden auf Mobil ab (E-Mail
+      „…weste"). Auf schmalen Screens volle Breite, ggf. gestapelt.
 - [x] [Personal] Personenliste alphabetisch sortieren (Standard: A-Z nach Name) + erweiterte
       Filteroptionen: „keine Mail hinterlegt", „Benachrichtigungen erlaubt/nicht erlaubt",
       „kein Profilbild". A-Z-Sortierung war bereits backendseitig vorhanden
