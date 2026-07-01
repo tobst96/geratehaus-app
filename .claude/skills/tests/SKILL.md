@@ -85,6 +85,8 @@ Die Suite deckt gezielt sicherheitskritische und volatile Kernbereiche ab.
 | `test_email_html.py` | HTML-Mail-Rendering, Autoescaping, Multipart-Aufbau; SMTP ist gemockt |
 | `test_buchung_aktion.py` | Mail-Buttons, Token-Generierung, Statusänderung, Token-Ablauf |
 | `test_punkte_belohnung.py` | Rechteprüfung: Gruppenführer darf Punkte vergeben/lesen, aber keine Personen anlegen |
+| `test_divera_client.py` | `divera_client.hole_alarme`: korrekter v2-Endpunkt, Response-Parsing, `lastUpdate`-Delta, Fehler → leere Liste |
+| `test_divera_personal_service.py` | Personal-Sync: Matching (divera_user_id/Name), Vorschlag-Erzeugung, Übernehmen/Ignorieren, 1-Jahres-Aufräumung, deaktiviert = No-op |
 
 ## Definition of Done
 

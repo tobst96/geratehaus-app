@@ -50,3 +50,13 @@ Gib einen kompakten Plan aus:
 8. Tests
 9. Risiken
 10. Umsetzungsempfehlung
+
+## Referenzwissen
+
+Nur-lesend arbeiten (Read/Grep/Glob, kein Bash, keine Änderungen). Vor dem Planen
+die relevanten Projektdocs heranziehen:
+
+- `.claude/architecture.md` – Architektur-Landkarte
+- `.claude/docs/backend.md`, `.claude/docs/database.md`, `.claude/docs/api.md`
+- `.claude/docs/permissions.md`, `.claude/docs/notifications.md`, `.claude/docs/timeline.md`
+- `.claude/CLAUDE.md` – globale Projektregeln

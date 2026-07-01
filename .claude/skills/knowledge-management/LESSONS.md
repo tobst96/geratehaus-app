@@ -40,3 +40,95 @@ Nicht dokumentieren
 ### Gilt auch für
 
 -
+
+---
+
+# Dokumentierte Lessons
+
+---
+
+## PostgreSQL-only – kein SQLite (auch nicht in Tests)
+
+### Problem
+
+Tests oder lokale Setups gegen SQLite laufen scheinbar, brechen aber bei
+PostgreSQL-spezifischen Features.
+
+### Ursache
+
+Das Projekt nutzt bewusst `JSONB` (Migration `0007_json_zu_jsonb`) und
+`INSERT ... ON CONFLICT` (Config-Seeding/-Update in `config_service`). Beides
+existiert in SQLite nicht bzw. verhält sich anders.
+
+### Lösung
+
+Tests laufen gegen eine echte lokale PostgreSQL-Testdatenbank `geratehaus_test`
+(`tests/conftest.py`, überschreibbar via `DATABASE_URL`). Keine SQLite-Annahmen.
+
+### Warum?
+
+Konsistenz zwischen Test-, Entwicklungs- und Produktionsumgebung; keine falsch-
+positiven Tests.
+
+### Gilt auch für
+
+- Neue Migrationen (PostgreSQL-Typen/-Constraints nutzen ist erlaubt)
+- Neue Tests (immer PostgreSQL voraussetzen)
+
+---
+
+## Fachliche Config zur Laufzeit lesen – Scheduler ohne Neustart
+
+### Problem
+
+Änderungen an Einstellungen (z. B. Uhrzeit für Auto-Abschluss, Divera an/aus)
+sollen sofort wirken, ohne Backend-Neustart oder Neu-Registrierung der Jobs.
+
+### Ursache
+
+Würde ein Cron-Job seine Uhrzeit fest bei der Registrierung übernehmen oder ein
+Wert einmalig beim Start gelesen, müsste man für jede Änderung neu starten.
+
+### Lösung
+
+Zeit-/Zustandsabhängige Jobs sind grob registriert (stündlich/minütlich) und lesen
+die maßgeblichen Werte **im Job selbst** über `config_service` (z. B.
+`einsatz_autoabschluss_stunde`, `divera_modus`). `config_service` cached prozessweit
+und invalidiert bei jedem `set()`.
+
+### Warum?
+
+Live-Konfigurierbarkeit über den Moderator-Bereich ist ein Kernprinzip der App.
+
+### Gilt auch für
+
+- Neue Jobs mit konfigurierbarem Zeitpunkt/Verhalten
+- Jede Businesslogik, die auf `app_config` reagiert
+
+---
+
+## Berechtigung ist Rolle am Moderator, keine eigene Tabelle
+
+### Problem
+
+Man könnte versucht sein, für „Admin" vs. „Gruppenführer" getrennte Modelle oder
+eigene Prüfungen zu bauen.
+
+### Ursache
+
+Fachlich klingt es nach zwei Rollen – technisch ist es **ein** `Moderator`-Datensatz
+mit dem Feld `rolle` (`"admin"` vs. sonst).
+
+### Lösung
+
+Trennung ausschließlich über die vorhandenen Dependencies `CurrentModerator` /
+`CurrentAdmin` (`app/api/deps.py`). Frontend-Guards (`ModeratorRoute`/`AdminRoute`)
+sind nur UX; maßgeblich ist die serverseitige Prüfung.
+
+### Warum?
+
+Ein Modell, eine Prüfstelle – keine divergierenden Rollen-Checks.
+
+### Gilt auch für
+
+- Jeden neuen admin-only Endpunkt (siehe `.claude/docs/permissions.md`)

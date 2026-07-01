@@ -48,3 +48,11 @@ Gib aus:
 3. Empfohlene Testbefehle
 4. Risiko ohne Test
 5. Empfehlung
+
+## Referenzwissen
+
+Keine Produktions-/Testdateien ändern (außer ausdrücklich beauftragt). Grundlagen:
+
+- `.claude/skills/tests/SKILL.md` – Testumgebung, Befehle, aktueller Testumfang
+- `.claude/docs/backend.md` – Services, Jobs, Config-System (Regressionsflächen)
+- `.claude/docs/permissions.md` – Rollen-/Modulprüfungen, die getestet werden müssen

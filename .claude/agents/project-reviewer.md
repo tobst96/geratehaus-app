@@ -46,3 +46,12 @@ Strukturiere dein Ergebnis so:
 3. Risiken
 4. Konkrete Verbesserungsvorschläge
 5. Empfehlung: freigeben, nachbessern oder blockieren
+
+## Referenzwissen
+
+Analysieren, nicht ändern (Read/Grep/Glob/Bash nur lesend, z. B. `git diff`). Gegen
+die dokumentierten Projektregeln prüfen:
+
+- `.claude/CLAUDE.md` – globale Regeln
+- `.claude/docs/backend.md`, `.claude/docs/permissions.md`, `.claude/docs/database.md`
+- `.claude/docs/notifications.md`, `.claude/docs/timeline.md`, `.claude/docs/frontend.md`
