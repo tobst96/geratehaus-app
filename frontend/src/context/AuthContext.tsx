@@ -26,6 +26,8 @@ interface AuthContextValue {
   angezeigterName: string | null;
   namenEintragen: (name: string) => Promise<void>;
   barcodeEinscannen: (token: string) => Promise<string>;
+  barcodeEinscannenEinmalig: (token: string) => Promise<string>;
+  kioskScanBeenden: () => Promise<void>;
   moderatorAngemeldet: boolean;
   moderatorRolle: string | null;
   moderatorAnmelden: (username: string, passwort: string) => Promise<void>;
@@ -59,6 +61,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return identitaet.name;
   }
 
+  /** Kiosk-Variante: löst den Barcode nur zur Bestätigung für genau EINE
+   * Eintragung auf und setzt den Namens-Cookie (den die Buchung serverseitig
+   * über CurrentPerson liest), OHNE die Identität dauerhaft zu speichern
+   * (kein localStorage/angezeigterName). So bleibt auf dem öffentlich
+   * stehenden Kiosk niemand eingeloggt – es ist reine Bestätigung. */
+  async function barcodeEinscannenEinmalig(token: string): Promise<string> {
+    const identitaet = await barcodeEinscannenApi(token);
+    return identitaet.name;
+  }
+
+  /** Löscht den Namens-Cookie serverseitig wieder – nach einer Kiosk-Eintragung,
+   * damit der nächste sich frisch einscannen kann und niemand eingeloggt bleibt. */
+  async function kioskScanBeenden(): Promise<void> {
+    await mitgliedAbmeldenApi();
+  }
+
   async function moderatorAnmelden(username: string, passwort: string): Promise<void> {
     const token = await moderatorLogin(username, passwort);
     setModeratorToken(token.access_token);
@@ -87,6 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         angezeigterName,
         namenEintragen,
         barcodeEinscannen,
+        barcodeEinscannenEinmalig,
+        kioskScanBeenden,
         moderatorAngemeldet,
         moderatorRolle,
         moderatorAnmelden,

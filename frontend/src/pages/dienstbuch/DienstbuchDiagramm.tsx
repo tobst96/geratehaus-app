@@ -38,7 +38,7 @@ const AGT_MAX_MINUTEN = 35;
 const AGT_DEFAULT_MINUTEN = 30;
 
 export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCancel }: DienstbuchDiagrammProps) {
-  const { barcodeEinscannen } = useAuth();
+  const { barcodeEinscannenEinmalig, kioskScanBeenden } = useAuth();
   const { config } = useConfig();
   const mitgliedModus = useMitgliedModus();
   const { spieleErkannt, spieleFehler } = useBarcodeSound();
@@ -172,7 +172,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
     setFehler(null);
     try {
       if (!mitgliedModus.aktiv) {
-        await barcodeEinscannen(barcode.trim());
+        await barcodeEinscannenEinmalig(barcode.trim());
       }
       await teilnehmerEintragen(dienstbuch.id, {
         gruppe_id: gruppeId,
@@ -185,6 +185,15 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Eintragung fehlgeschlagen.");
     } finally {
+      if (!mitgliedModus.aktiv) {
+        // Kiosk: gescannte Identität galt nur für diese eine Eintragung – Cookie
+        // serverseitig löschen, damit niemand eingeloggt bleibt (best effort).
+        try {
+          await kioskScanBeenden();
+        } catch {
+          // ignorieren
+        }
+      }
       setLaeuft(false);
     }
   }

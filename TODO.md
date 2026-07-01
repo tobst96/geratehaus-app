@@ -304,11 +304,13 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
 > Release **keine neuen Features/Neuerungen** mehr einbringen – nur die hier
 > gelisteten Fixes und das Aufräumen (Feature-Freeze).
 
-- [ ] [Kiosk] Nach einem Barcode-Scan im **Kiosk-Modus** darf die gescannte Person
-      danach **nicht eingeloggt** bleiben. Nach dem Eintragen soll die normale
-      Kiosk-Ansicht erscheinen (links Profilbild + Name), kein Mitglieder-Login.
-      Prüfen, ob der Scan versehentlich den `geraetehaus_name`-Cookie / Mitglied-Modus
-      setzt; Kiosk-Scan strikt von der Login-Identität trennen.
+- [x] [Kiosk] Nach einem Barcode-Scan im **Kiosk-Modus** bleibt die Person nicht mehr
+      eingeloggt: neuer `barcodeEinscannenEinmalig()` in `AuthContext` löst den Barcode
+      nur zur Bestätigung für die eine Eintragung auf (setzt den Cookie, den die Buchung
+      über `CurrentPerson` liest), OHNE `angezeigterName`/localStorage zu persistieren;
+      nach der Eintragung löscht `kioskScanBeenden()` den Cookie wieder. Umgestellt in
+      allen vier Modulseiten (Einsatz/Dienstbuch/Dienststunden/Fahrzeugbuchung). Der
+      echte Mitglieder-Login (`MitgliedLogin.tsx`) bleibt bewusst persistent.
 - [ ] [Divera] Divera-Import für **Einsätze und Benutzer** fixen (Alarm-→Einsatz-Anlage
       und Personal-Abgleich prüfen). Siehe auch Branch `fix/divera-api-endpunkt`.
 - [ ] [Benachrichtigungen] Benachrichtigungen vollständig einrichten/einstellbar machen

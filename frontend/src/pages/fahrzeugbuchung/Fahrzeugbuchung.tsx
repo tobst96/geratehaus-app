@@ -38,7 +38,7 @@ function initialenAus(name: string): string {
 }
 
 export function Fahrzeugbuchung() {
-  const { angezeigterName, barcodeEinscannen } = useAuth();
+  const { angezeigterName, barcodeEinscannenEinmalig, kioskScanBeenden } = useAuth();
   const { config } = useConfig();
   const mitgliedModus = useMitgliedModus();
   const { spieleErkannt, spieleFehler } = useBarcodeSound();
@@ -165,7 +165,7 @@ export function Fahrzeugbuchung() {
     setLaeuft(true);
     try {
       if (!mitgliedModus.aktiv) {
-        await barcodeEinscannen(barcode.trim());
+        await barcodeEinscannenEinmalig(barcode.trim());
       }
       const ergebnis = await buchungAnfrage({
         fahrzeug_id: Number(fahrzeugId),
@@ -186,6 +186,15 @@ export function Fahrzeugbuchung() {
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Anfrage konnte nicht gestellt werden.");
     } finally {
+      if (!mitgliedModus.aktiv) {
+        // Kiosk: gescannte Identität galt nur für diese eine Eintragung – Cookie
+        // serverseitig löschen, damit niemand eingeloggt bleibt (best effort).
+        try {
+          await kioskScanBeenden();
+        } catch {
+          // ignorieren
+        }
+      }
       setLaeuft(false);
     }
   }

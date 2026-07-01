@@ -47,7 +47,7 @@ function initialenAus(name: string): string {
 }
 
 export function Dienststunden() {
-  const { barcodeEinscannen } = useAuth();
+  const { barcodeEinscannenEinmalig, kioskScanBeenden } = useAuth();
   const { config } = useConfig();
   const mitgliedModus = useMitgliedModus();
   const { spieleErkannt, spieleFehler } = useBarcodeSound();
@@ -173,7 +173,7 @@ export function Dienststunden() {
     try {
       const name = mitgliedModus.aktiv ? mitgliedModus.name : vorschau?.name ?? null;
       if (!mitgliedModus.aktiv) {
-        await barcodeEinscannen(barcode.trim());
+        await barcodeEinscannenEinmalig(barcode.trim());
       }
       await stundenErfassen(Number(funktionId), stunden, datum);
       const summen = await holeMeineSummen();
@@ -186,6 +186,15 @@ export function Dienststunden() {
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Stunden konnten nicht erfasst werden.");
     } finally {
+      if (!mitgliedModus.aktiv) {
+        // Kiosk: gescannte Identität galt nur für diese eine Eintragung – Cookie
+        // serverseitig löschen, damit niemand eingeloggt bleibt (best effort).
+        try {
+          await kioskScanBeenden();
+        } catch {
+          // ignorieren
+        }
+      }
       setLaeuft(false);
     }
   }

@@ -132,3 +132,37 @@ Ein Modell, eine Prüfstelle – keine divergierenden Rollen-Checks.
 ### Gilt auch für
 
 - Jeden neuen admin-only Endpunkt (siehe `.claude/docs/permissions.md`)
+
+---
+
+## Kiosk-Scan ist Bestätigung, kein Login
+
+### Problem
+
+Auf dem öffentlich stehenden Kiosk blieb nach einem Barcode-Scan die gescannte
+Person „eingeloggt" – der nächste musste sich erst abmelden.
+
+### Ursache
+
+Der Scan lief über dieselbe Funktion wie der Mitglieder-Login
+(`barcodeEinscannen`), die neben dem serverseitigen `geraetehaus_name`-Cookie auch
+`angezeigterName` in localStorage persistiert. Auf einem geteilten Gerät ist das
+falsch: der Scan soll nur bestätigen, wer sich gerade für genau EINE Eintragung
+(Sitzplatz/Stunden/Fahrzeug) einträgt.
+
+### Lösung
+
+Kiosk und Login getrennt: `barcodeEinscannenEinmalig()` setzt nur den Cookie (den
+die Buchung über `CurrentPerson` liest) ohne localStorage/State zu persistieren;
+nach der Buchung löscht `kioskScanBeenden()` den Cookie wieder (im `finally`, best
+effort). Der echte Mitglieder-Login auf dem eigenen Handy persistiert weiterhin.
+
+### Warum?
+
+Auf geteilten, öffentlich zugänglichen Geräten darf keine dauerhafte Identität
+zurückbleiben – Identität gilt nur für die eine Aktion.
+
+### Gilt auch für
+
+- Alle vier Modul-Eintragungen (Einsatz, Dienstbuch, Dienststunden, Fahrzeugbuchung)
+- Jede künftige Kiosk-Aktion mit Personenbezug

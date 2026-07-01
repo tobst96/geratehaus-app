@@ -56,7 +56,7 @@ const AGT_MAX_MINUTEN = 35;
 const AGT_DEFAULT_MINUTEN = 30;
 
 export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert, onCancel }: EinsatzDiagrammProps) {
-  const { barcodeEinscannen } = useAuth();
+  const { barcodeEinscannenEinmalig, kioskScanBeenden } = useAuth();
   const mitgliedModus = useMitgliedModus();
   const { spieleErkannt, spieleFehler } = useBarcodeSound();
   const { config } = useConfig();
@@ -279,7 +279,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     setFehler(null);
     try {
       if (!mitgliedModus.aktiv) {
-        await barcodeEinscannen(barcode.trim());
+        await barcodeEinscannenEinmalig(barcode.trim());
       }
       await teilnahmeEintragen(einsatz.id, {
         fahrzeug_id: ausgewaehlteAktion.fahrzeug?.id ?? null,
@@ -307,6 +307,15 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         // Fehlermeldung an die Person nicht verschlucken.
       }
     } finally {
+      if (!mitgliedModus.aktiv) {
+        // Kiosk: gescannte Identität galt nur für diese eine Eintragung – Cookie
+        // serverseitig löschen, damit niemand eingeloggt bleibt (best effort).
+        try {
+          await kioskScanBeenden();
+        } catch {
+          // ignorieren
+        }
+      }
       setLaeuft(false);
     }
   }
