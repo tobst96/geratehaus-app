@@ -46,15 +46,15 @@ async def hole_alarme(api_key: str, last_ts: int | None = None) -> tuple[list[di
         alarme = list(alarme.values())
     alarme = alarme or []
     if "alarm" not in daten_block:
-        if last_ts is None:
-            # Vollständiger Pull ohne lastUpdate sollte immer alarm enthalten
+        if neuer_ts is None:
+            # Kein ts und kein alarm → wirklich unerwartete Antwortstruktur
             logger.warning(
                 "divera_unerwartete_antwortstruktur",
                 data_keys=list(daten_block.keys()),
             )
         else:
-            # Delta-Pull: kein alarm-Key bedeutet schlicht keine Änderungen seit last_ts
-            logger.debug("divera_keine_alarm_aenderungen", last_ts=last_ts)
+            # ts vorhanden aber kein alarm-Key = keine aktiven Alarme (normaler Zustand)
+            logger.debug("divera_keine_aktiven_alarme", last_ts=last_ts)
     else:
         logger.debug("divera_alarme_geladen", anzahl=len(alarme), last_ts=last_ts, neuer_ts=neuer_ts)
     return alarme, neuer_ts

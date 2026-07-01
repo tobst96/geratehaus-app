@@ -59,11 +59,11 @@ async def _bestehender_vorschlag(
 
 async def _person_finden(db: AsyncSession, divera_user_id: str, name: str) -> Person | None:
     result = await db.execute(select(Person).where(Person.divera_user_id == divera_user_id))
-    person = result.scalar_one_or_none()
+    person = result.scalars().first()
     if person is not None:
         return person
     result = await db.execute(select(Person).where(Person.name == name))
-    return result.scalar_one_or_none()
+    return result.scalars().first()
 
 
 async def synchronisiere_personal(db: AsyncSession) -> int:
