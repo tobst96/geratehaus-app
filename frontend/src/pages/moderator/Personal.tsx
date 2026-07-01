@@ -129,6 +129,9 @@ export function Personal() {
   const [funktionen, setFunktionen] = useState<FunktionDienststunden[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
   const [suche, setSuche] = useState("");
+  const [filterKeineMail, setFilterKeineMail] = useState(false);
+  const [filterKeinBild, setFilterKeinBild] = useState(false);
+  const [filterBenachrichtigung, setFilterBenachrichtigung] = useState<"alle" | "an" | "aus">("alle");
   const [ausgewaehlteId, setAusgewaehlteId] = useState<number | null>(null);
   const bildInputRef = useRef<HTMLInputElement>(null);
 
@@ -390,9 +393,15 @@ export function Personal() {
   if (fehler) return <p className="fehlertext">{fehler}</p>;
   if (!liste) return <Ladeanzeige />;
 
-  const gefiltert = !suche.trim()
-    ? liste
-    : liste.filter((p) => p.name.toLowerCase().includes(suche.trim().toLowerCase()));
+  const suchbegriff = suche.trim().toLowerCase();
+  const gefiltert = liste.filter((p) => {
+    if (suchbegriff && !p.name.toLowerCase().includes(suchbegriff)) return false;
+    if (filterKeineMail && p.email) return false;
+    if (filterKeinBild && p.bild_url) return false;
+    if (filterBenachrichtigung === "an" && !p.benachrichtigungen_aktiv) return false;
+    if (filterBenachrichtigung === "aus" && p.benachrichtigungen_aktiv) return false;
+    return true;
+  });
   const ausgewaehltePerson = liste.find((p) => p.id === ausgewaehlteId) ?? null;
 
   return (
@@ -581,6 +590,38 @@ export function Personal() {
             onChange={(e) => setSuche(e.target.value)}
             style={{ width: "100%", marginBottom: 12 }}
           />
+
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12, fontSize: "0.85rem" }}
+          >
+            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <input
+                type="checkbox"
+                checked={filterKeineMail}
+                onChange={(e) => setFilterKeineMail(e.target.checked)}
+              />
+              Keine E-Mail hinterlegt
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <input
+                type="checkbox"
+                checked={filterKeinBild}
+                onChange={(e) => setFilterKeinBild(e.target.checked)}
+              />
+              Kein Profilbild
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              Benachrichtigungen:
+              <select
+                value={filterBenachrichtigung}
+                onChange={(e) => setFilterBenachrichtigung(e.target.value as "alle" | "an" | "aus")}
+              >
+                <option value="alle">alle</option>
+                <option value="an">erlaubt</option>
+                <option value="aus">nicht erlaubt</option>
+              </select>
+            </label>
+          </div>
 
           <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px 0" }}>
             {gefiltert.map((p) => (

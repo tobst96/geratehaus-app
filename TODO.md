@@ -126,10 +126,12 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       Sticky-Leiste oben fixiert werden, damit man beim Scrollen durch eine lange Liste nicht
       zurückscrollen muss. Suche ggf. prominenter platzieren (volle Breite, direkt unter dem
       Seitentitel).
-- [ ] [Personal] Personenliste alphabetisch sortieren (Standard: A-Z nach Name) + erweiterte
+- [x] [Personal] Personenliste alphabetisch sortieren (Standard: A-Z nach Name) + erweiterte
       Filteroptionen: „keine Mail hinterlegt", „Benachrichtigungen erlaubt/nicht erlaubt",
-      „kein Profilbild". Betrifft `Personal.tsx` (Filter-UI) + optionaler Query-Parameter
-      am GET-Endpunkt für serverseitiges Filtern.
+      „kein Profilbild". A-Z-Sortierung war bereits backendseitig vorhanden
+      (`stammdaten_service.liste_personen` sortiert nach nachname/vorname/name). Filter-UI
+      in `Personal.tsx` clientseitig ergänzt (Liste ist bereits vollständig geladen, daher
+      kein Query-Parameter am Endpunkt nötig).
 - [ ] [Design] Dark Mode: alternatives Logo hinterlegen können – zweites Logo-Upload-Feld in
       den Einstellungen, das im Dark Mode statt dem Standard-Logo gezeigt wird (CSS
       `prefers-color-scheme`-aware oder über den vorhandenen Darkmode-State in `index.css`).
