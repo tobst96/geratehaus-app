@@ -330,6 +330,45 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
       abgefragt werden – Default Berlin passt erstmal immer, Einstellung reicht im
       Admin-Bereich nachträglich.
 
+### Etappe N – Stable-Release: Bugfixes & Aufräumen (Priorität hoch)
+
+> Release-Direktive (Quelle: `notizen.tmp`): Ziel ist ein **Stable-Release**. Vor dem
+> Release **keine neuen Features/Neuerungen** mehr einbringen – nur die hier
+> gelisteten Fixes und das Aufräumen (Feature-Freeze).
+
+- [ ] [Kiosk] Nach einem Barcode-Scan im **Kiosk-Modus** darf die gescannte Person
+      danach **nicht eingeloggt** bleiben. Nach dem Eintragen soll die normale
+      Kiosk-Ansicht erscheinen (links Profilbild + Name), kein Mitglieder-Login.
+      Prüfen, ob der Scan versehentlich den `geraetehaus_name`-Cookie / Mitglied-Modus
+      setzt; Kiosk-Scan strikt von der Login-Identität trennen.
+- [ ] [Divera] Divera-Import für **Einsätze und Benutzer** fixen (Alarm-→Einsatz-Anlage
+      und Personal-Abgleich prüfen). Siehe auch Branch `fix/divera-api-endpunkt`.
+- [ ] [Benachrichtigungen] Benachrichtigungen vollständig einrichten/einstellbar machen
+      (Kanäle + Ereignisse End-to-End prüfen). Aufgabe ist knapp formuliert – vor der
+      Umsetzung konkretisieren, was genau fehlt.
+- [ ] [Update] **Stable-Updater** tatsächlich einbauen: aktuell zeigt der Admin-Bereich
+      nur die Info „neue Version verfügbar". Es soll ein echtes Update ausgelöst werden
+      können (nicht nur Anzeige). Betrifft `moderator_update.py` / `update_service.py` /
+      `Update.tsx`.
+- [ ] [Punkte] **Punktesystem vollständig entfernen**, so dass es nicht mehr existiert –
+      inkl. **Datenbank**: Tabelle `person_punkte` per Migration droppen, `PersonPunkt`-
+      Model, Punkte-Services/-Endpunkte, alle `punkte_*`-Config-Keys, Frontend
+      `PunkteEinstellungen.tsx` + Route `/moderator/punkte`, `punkte_ablauf`-Job.
+      Achtung: **Widerspruch zu bestehenden Punkte-Aufgaben** in Etappe F, L
+      (relevant-Punkte) und M (Punkte-Modul) – diese werden dadurch hinfällig. Vor der
+      Umsetzung bestätigen und die betroffenen Todos entfernen/anpassen.
+- [ ] [Release] **Stable-Release** vorbereiten: nach Erledigung obiger Punkte Version
+      finalisieren; davor keine weiteren Neuerungen mergen (Feature-Freeze einhalten).
+
+### Etappe O – Repo/Doku aufräumen (Priorität niedrig)
+
+- [ ] [Doku] `.claude/settings.json` ist leer – Permission-Allowlist für
+      Routine-Kommandos (pytest, `npm run build`, `git`, `docker compose`) ergänzen.
+- [ ] [Doku] `.claude/docs/backlog.md` ist leer und redundant zur `TODO.md` – füllen
+      oder entfernen (Entscheidung offen).
+- [ ] [Wartung] Verwaiste Prompt-/Notiz-Dateien im Repo-Root entfernen: `tmp.md` und
+      `notizen.tmp` (Inhalte sind in `TODO.md` übernommen).
+
 ## In Arbeit
 
 ## Erledigt
