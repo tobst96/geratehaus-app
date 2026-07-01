@@ -69,6 +69,10 @@ Zusätzlich prüfen:
 - Welche Rollen dürfen lesen?
 - Welche Rollen dürfen schreiben?
 - Gibt es Kiosk- oder Außenzugriff?
+  - Kiosk-Aktionen mit Personenbezug: der Barcode-Scan ist eine **Einmal-Bestätigung**
+    für genau eine Aktion, **kein Login** – Identität nur transient für die eine
+    Buchung setzen, nicht persistent einloggen (Details/Begründung: `LESSONS.md`
+    „Kiosk-Scan ist Bestätigung, kein Login").
 
 ## Benachrichtigungen
 
