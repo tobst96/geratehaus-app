@@ -349,6 +349,10 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
       (Punkte-Modul) wurden bereits aus dieser TODO entfernt (vom Nutzer bestätigt).
 - [ ] [Release] **Stable-Release** vorbereiten: nach Erledigung obiger Punkte Version
       finalisieren; davor keine weiteren Neuerungen mergen (Feature-Freeze einhalten).
+      Release-Checkliste (siehe `.claude/CLAUDE.md` „Vor einem Release"):
+      **Datenschutz-Seite (`frontend/src/pages/Datenschutz.tsx`) prüfen und an die aktuelle
+      Datenverarbeitung anpassen – darf nie vergessen werden**, `pytest` + `npm run build`
+      fehlerfrei.
 
 ### Etappe O – Repo/Doku aufräumen (Priorität niedrig)
 

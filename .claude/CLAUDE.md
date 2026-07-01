@@ -87,6 +87,17 @@ Kiosk/Mitglied/Moderator; Config: `modul_<name>_aktiv` / `_startseite` /
 - Vor jeder Implementierung bestehende Patterns suchen und wiederverwenden –
   Skill `geraetehaus-patterns`.
 
+## Vor einem Release
+
+Feste Checkliste, bevor eine neue Version veröffentlicht wird:
+
+- **Datenschutz-Seite prüfen und anpassen** (`frontend/src/pages/Datenschutz.tsx`):
+  Spiegelt sie noch die aktuell aktive Datenverarbeitung wider (neue Features, neue
+  erhobene Daten)? Darf nie vergessen werden.
+- `pytest` (Backend) und `npm run build` (Frontend) fehlerfrei.
+- Feature-Freeze: vor dem Release keine neuen Features mehr mergen (siehe `TODO.md`
+  Etappe N).
+
 ## Wissenspflege
 
 Neue allgemeingültige Patterns → `.claude/skills/geraetehaus-patterns/EXAMPLES.md`.
