@@ -331,7 +331,7 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
       Routine-Kommandos (pytest, `npm run build`, `git`, `docker compose`) ergänzen.
 - [ ] [Doku] `.claude/docs/backlog.md` ist leer und redundant zur `TODO.md` – füllen
       oder entfernen (Entscheidung offen).
-- [ ] [Wartung] Verwaiste Prompt-/Notiz-Dateien im Repo-Root entfernen: `tmp.md` und
+- [x] [Wartung] Verwaiste Prompt-/Notiz-Dateien im Repo-Root entfernt: `tmp.md` und
       `notizen.tmp` (Inhalte sind in `TODO.md` übernommen).
 
 ## In Arbeit
