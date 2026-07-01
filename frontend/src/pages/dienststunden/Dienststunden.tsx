@@ -18,7 +18,7 @@ import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 import type { DienststundenSummeOut, FunktionDienststunden } from "../../api/types";
 import "./Dienststunden.css";
 
-const SCHNELLAUSWAHL_STUNDEN = [0.5, 1, 1.5, 2, 3, 4];
+const SCHNELLAUSWAHL_STUNDEN = [0.25, 0.5, 1, 1.5, 2, 3, 4];
 const STEPPER_SCHRITT = 0.25;
 const STEPPER_MIN = 0.25;
 const STEPPER_MAX = 12;

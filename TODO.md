@@ -76,9 +76,11 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       Zwischenwerte. Die Anzeige erfolgt im Format "2 Std. 30 Min." statt als Dezimalzahl.
       Intern weiterhin als Dezimalstunden (float) an die API übergeben. Betrifft
       `Dienststunden.tsx` (Bereich "Stunden erfassen"), keine Backend-Änderung nötig.
-- [ ] [Dienststunden] Bei der Stunden-Erfassung fehlt ein Schnellauswahl-Button für 15 Minuten
+- [x] [Dienststunden] Bei der Stunden-Erfassung fehlt ein Schnellauswahl-Button für 15 Minuten
       (0:15) – bisher gibt es nur 0:30 als kleinsten Chip. Betrifft `Dienststunden.tsx` (Bereich
-      "Stunden erfassen", Schnellauswahl-Chips aus dem Eintrag oben).
+      "Stunden erfassen", Schnellauswahl-Chips aus dem Eintrag oben). Erledigt: `0.25` als
+      kleinsten Chip in `SCHNELLAUSWAHL_STUNDEN` ergänzt (Stepper/Anzeige unterstützten 15 Min.
+      bereits).
 - [ ] [Dienststunden] Nach dem Buchen eine klare Bestätigung/Liste der eigenen letzten Einträge
       zeigen statt nur die kumulierten Summen – aktuell sieht man nicht auf einen Blick, welche
       Buchung gerade erfasst wurde. Betrifft `Dienststunden.tsx` (zeigt nur Summen-Tabelle) und
