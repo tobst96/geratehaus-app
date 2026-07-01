@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.buchung import FahrzeugBuchung
 from app.models.dienststunden import Dienststunden
+from app.models.dienststunden_uebernahme import DienststundenUebernahme
 from app.models.einsatz import Einsatz, EinsatzPerson
 from app.models.funktion import FunktionDienststunden
 from app.models.person import Person
@@ -56,7 +57,7 @@ async def _offene_buchungen_anzahl(db: AsyncSession) -> int:
 
 
 async def _schwellenwert_ueberschreitungen(db: AsyncSession) -> list[SchwellenwertUeberschreitung]:
-    stmt = (
+    summen_stmt = (
         select(
             Person.id,
             Person.name,
@@ -72,20 +73,37 @@ async def _schwellenwert_ueberschreitungen(db: AsyncSession) -> list[Schwellenwe
             Person.id, Person.name, FunktionDienststunden.id, FunktionDienststunden.name,
             FunktionDienststunden.schwellenwert_stunden,
         )
-        .having(func.sum(Dienststunden.stunden) >= FunktionDienststunden.schwellenwert_stunden)
     )
-    result = await db.execute(stmt)
-    return [
-        SchwellenwertUeberschreitung(
-            person_id=pid,
-            person_name=pname,
-            funktion_id=fid,
-            funktion_name=fname,
-            summe_stunden=summe,
-            schwellenwert_stunden=schwellenwert,
+    summen_result = await db.execute(summen_stmt)
+    summen = summen_result.all()
+    if not summen:
+        return []
+
+    uebernahmen_result = await db.execute(
+        select(
+            DienststundenUebernahme.person_id,
+            DienststundenUebernahme.funktion_id,
+            func.sum(DienststundenUebernahme.stunden),
+        ).group_by(DienststundenUebernahme.person_id, DienststundenUebernahme.funktion_id)
+    )
+    uebernommen_je_paar = {(pid, fid): s for pid, fid, s in uebernahmen_result.all()}
+
+    ergebnis = []
+    for pid, pname, fid, fname, summe, schwellenwert in summen:
+        uebernommen = uebernommen_je_paar.get((pid, fid), 0.0)
+        if summe - uebernommen < schwellenwert:
+            continue
+        ergebnis.append(
+            SchwellenwertUeberschreitung(
+                person_id=pid,
+                person_name=pname,
+                funktion_id=fid,
+                funktion_name=fname,
+                summe_stunden=summe,
+                schwellenwert_stunden=schwellenwert,
+            )
         )
-        for pid, pname, fid, fname, summe, schwellenwert in result.all()
-    ]
+    return ergebnis
 
 
 async def dashboard_daten(db: AsyncSession) -> DashboardOut:

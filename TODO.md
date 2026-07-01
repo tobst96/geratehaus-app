@@ -52,18 +52,18 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
 
 ### Etappe B – Dienststunden-Politur (Dashboard/Liste-Verknüpfung)
 
-- [ ] Schwellenwert-Überschreitungen sollten nach oben und die Liste mit den ganzen Einträgen
+- [x] Schwellenwert-Überschreitungen sollten nach oben und die Liste mit den ganzen Einträgen
       nach unten.
-- [ ] Bug: Die Schwellenwert-Überschreitungs-Anzeige auf dem Dashboard verschwindet nicht,
+- [x] Bug: Die Schwellenwert-Überschreitungs-Anzeige auf dem Dashboard verschwindet nicht,
       nachdem Stunden erfasst wurden – sie bleibt stehen, auch wenn die Person danach unter
       dem Schwellenwert liegt. Dashboard-Daten nach dem Stunden-Eintrag neu laden bzw. den
       Schwellenwert-Status serverseitig korrekt neu berechnen.
-- [ ] Wenn die Stunden übernommen werden und unter der Schwelle ist, dann sollten auch die
+- [x] Wenn die Stunden übernommen werden und unter der Schwelle ist, dann sollten auch die
       Schwellenwert-Überschreitungen auf dem Dashboard aktualisiert werden.
-- [ ] Wenn man auf Schwellenwert-Überschreitungen auf dem Dashboard klickt, soll man direkt zu
+- [x] Wenn man auf Schwellenwert-Überschreitungen auf dem Dashboard klickt, soll man direkt zu
       den Listen → Dienststunden springen.
 - [x] Sende der Person eine Mail, wenn die Stunden eingetragen wurden.
-- [ ] Bug: Schwellenwert-Berechnung im Dashboard (`/moderator/dashboard`) prüfen – sowohl ob
+- [x] Bug: Schwellenwert-Berechnung im Dashboard (`/moderator/dashboard`) prüfen – sowohl ob
       der korrekte Summenwert (nach Übernahmen) genutzt wird, als auch ob die Anzeige sich nach
       einer Übernahme live aktualisiert.
 

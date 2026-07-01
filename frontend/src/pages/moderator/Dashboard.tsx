@@ -54,6 +54,40 @@ export function Dashboard() {
         </div>
       </div>
 
+      <h2
+        onClick={() => navigate("/moderator/listen?tab=Dienststunden")}
+        style={{ cursor: "pointer" }}
+        title="Zu Listen → Dienststunden"
+      >
+        Schwellenwert-Überschreitungen
+      </h2>
+      <div className="tabelle-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Funktion</th>
+            <th>Stunden</th>
+            <th>Schwellenwert</th>
+          </tr>
+        </thead>
+        <tbody>
+          {daten.schwellenwert_ueberschreitungen.length === 0 ? (
+            <tr><td colSpan={4} style={{ color: "var(--farbe-text-mute)" }}>Keine Überschreitungen.</td></tr>
+          ) : (
+            daten.schwellenwert_ueberschreitungen.map((s, i) => (
+              <tr key={i}>
+                <td>{s.person_name}</td>
+                <td>{s.funktion_name}</td>
+                <td>{s.summe_stunden}</td>
+                <td>{s.schwellenwert_stunden}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+      </div>
+
       <h2>Einsätze pro Monat</h2>
       <div className="karte">
         {daten.einsaetze_pro_monat.length === 0 && <p>Keine Daten.</p>}
@@ -88,30 +122,6 @@ export function Dashboard() {
             <tr key={t.person_id}>
               <td>{t.person_name}</td>
               <td>{t.punkte}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      </div>
-
-      <h2>Schwellenwert-Überschreitungen</h2>
-      <div className="tabelle-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Funktion</th>
-            <th>Stunden</th>
-            <th>Schwellenwert</th>
-          </tr>
-        </thead>
-        <tbody>
-          {daten.schwellenwert_ueberschreitungen.map((s, i) => (
-            <tr key={i}>
-              <td>{s.person_name}</td>
-              <td>{s.funktion_name}</td>
-              <td>{s.summe_stunden}</td>
-              <td>{s.schwellenwert_stunden}</td>
             </tr>
           ))}
         </tbody>
