@@ -147,28 +147,8 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       – in die Profil-Zeile integrieren (siehe 1). Betrifft ausschließlich `MitgliedHub.tsx`
       und `index.css` (ggf. neues `.mitglied-hub-*`-CSS), kein Backend.
 
-### Etappe F – Punkte- & Barcode-Sicherheit
+### Etappe F – Barcode-Sicherheit
 
-- [ ] [Punkte] Punkte-Einstellungen nach Modulen gruppieren (`PunkteEinstellungen.tsx`):
-      Aktuell werden alle Punkteregeln in einer flachen Liste angezeigt. Neu: zuerst ein
-      Abschnitt **„Allgemein"** für modulunabhängige Regeln (z. B. Belohnungen, manuelle
-      Vergabe), dann je ein Abschnitt pro Modul (Einsatztagebuch, Dienstbuch, Dienststunden,
-      Fahrzeugbuchung) – aber nur angezeigt, wenn das jeweilige Modul in den Einstellungen
-      aktiv ist (`modul_*_aktiv` aus `app_config`/`ConfigContext`). Inaktive Module werden
-      komplett ausgeblendet, damit keine verwaisten Regeln sichtbar sind. Reihenfolge der
-      Abschnitte: Allgemein → Einsatztagebuch → Dienstbuch → Dienststunden → Fahrzeugbuchung.
-      Kein Backend-Änderung nötig, nur Frontend-Umstrukturierung.
-- [ ] [Punkte] Personen-Auswahl bei Punkte-Vergabe als Namenssuche statt Dropdown: Aktuell
-      ist die Empfänger-Auswahl ein `<select>`-Dropdown, das bei vielen Personen unhandlich
-      wird. Ersetzen durch eine Echtzeit-Namenssuche (Textfeld + gefilterter Listenvorschlag
-      darunter) analog zur Personenauswahl auf der „Barcode vergessen"-Seite. Betrifft
-      `PunkteEinstellungen.tsx` o. ä., kein Backend-Änderung nötig (Personenliste wird
-      bereits geladen).
-- [ ] [Punkte] Punkte als Belohnung vergeben: darf man sich nicht selber Punkte geben. Bei der
-      Empfänger-Person soll in der Timeline die Punkte, Gültigkeit, Grund und wer die Punkte
-      hinzugefügt hat stehen.
-- [ ] [Punkte] Im Admin-Bereich soll man Personen auch Punkte entziehen können. Überlegen, wie
-      sich das schön einbauen lässt, ohne die Oberfläche zu überladen.
 - [ ] [Buchungen] Wenn bei der Fahrzeugbuchung "Barcode vergessen" geklickt wird, dann soll –
       sobald die Person sich am Handy mit Name und PIN eingeloggt hat – neben dem QR-Code sofort
       das Profilbild und der Name angezeigt werden.
@@ -176,12 +156,6 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       seinen Namen und PIN eingeben muss zum Einloggen. Erst dann sollen die Bilder angezeigt
       werden. Wenn die Person keinen PIN hat, dann sperre die Option. Vermerke dies aber in ihrer
       Personen-Timeline.
-- [ ] [Punkte] Punkte-Belohnung für Moderatoren begrenzen: maximale Punktzahl pro Vergabe
-      konfigurierbar im Admin-Bereich (neuer `app_config`-Schlüssel `punkte_belohnung_max`).
-      Verhindert, dass Gruppenführer beliebig viele Punkte auf einmal vergeben.
-- [ ] [Punkte] Punkte-Zeitraum-Auswertung: Ansicht „wie viele Punkte hat eine Person im
-      Zeitraum Von–Bis gesammelt?" (ohne Gültigkeitsverfall zu berücksichtigen). Naheliegend
-      als Filter in der Personen-Auswertungsseite (Etappe H) oder eigenem Auswertungsbereich.
 
 ### Etappe G – Per-Zugang-Benachrichtigungen (zwei Schritte, sequenziell)
 
@@ -201,7 +175,7 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
        (Alembic).
 3. [ ] [Benachrichtigungen] Mitglieder-Benachrichtigungen pro Modul: Aktuell gibt es einen
        einzigen `benachrichtigungen_aktiv`-Schalter pro Person. Stattdessen sollen Mitglieder
-       pro Modul (Einsatz, Dienstbuch, Dienststunden, Fahrzeugbuchung, Punkte) separat wählen
+       pro Modul (Einsatz, Dienstbuch, Dienststunden, Fahrzeugbuchung) separat wählen
        können. Backend: neue Tabelle `person_benachrichtigungen` (person_id, modul, aktiv) oder
        JSONB-Feld auf `Person`; Frontend: Pro-Modul-Schalter in der Mitglied-Profilseite.
 
@@ -295,20 +269,12 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
       „relevant" markieren (neues Bool-Feld `relevant` auf `Dienstbuch`). Neue Endpunkte
       `PATCH /moderator/dienstbuecher/{id}/relevant` (CurrentModerator) und entsprechender
       Button in der Dienstbuch-Detailansicht (Moderator-Bereich).
-- [ ] [Dienstbuch] Relevante Dienste bringen Extrapunkte: neue Punktregel `dienstbuch_relevant`
-      (analog `dienstbuch`), wird beim Markieren als relevant ausgelöst (nur einmalig, nicht
-      retroaktiv beim Abmelden).
 - [ ] [Dienstbuch] Anzahl relevanter Dienste pro Person exportierbar/abrufbar: neuer
       Query-Parameter oder eigener Endpunkt – Grundlage für ein späteres Modul zur
       Mindest-Dienstbeteiligung.
 
-### Etappe M – Punkte-Modul & Modul-Architektur (Feature-Branch + PR erforderlich)
+### Etappe M – Modul-Architektur & Zeitzone (Feature-Branch + PR erforderlich)
 
-- [ ] [Punkte] Punkte als eigenständiges Modul: eigener Admin-Einstellungsbereich, Rangliste,
-      vollständige Punkthistorie, Benachrichtigungs-Konfiguration pro Person. Alles was mit
-      Punkte zu tun hat wird unter diesem Modul zusammengefasst. Betrifft
-      `PunkteEinstellungen.tsx`, neue Route `/moderator/punkte`, `app_config`-Schlüssel
-      `modul_punkte_aktiv`/`_startseite`/`_aussenzugriff` (analog anderen Modulen).
 - [ ] [Architektur] Jedes Modul braucht einheitlich drei Bereiche:
       (1) Mitglieder/Kiosk, (2) Moderator/Gruppenführer, (3) Admin (Einstellungen).
       Im Admin-Bereich konfigurierbar: ob Moderator Schreibrechte hat, ob Außenzugriff erlaubt ist.
@@ -317,12 +283,12 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
       in `CLAUDE.md` dokumentieren.
 - [ ] [Architektur] Modul-Erweiterbarkeit: Checkliste für neue Module in `CLAUDE.md` anlegen
       (Backend-Router, Service, Migration, `modul_*`-Config-Keys, Frontend-Route, Kiosk-Kachel,
-      Mitglied-Hub-Kachel, Benachrichtigungs-Hook, Punkte-Regeln). Prüfen ob daraus ein
+      Mitglied-Hub-Kachel, Benachrichtigungs-Hook). Prüfen ob daraus ein
       Claude-Code-Skill sinnvoll wäre.
 - [ ] [Allgemein] Zeitzone überprüfen: Backend (Server, DB-Timestamps, APScheduler-Jobs) und
       Frontend-Anzeige sollen durchgängig mit Europe/Berlin statt UTC oder Server-Lokalzeit
       arbeiten. Prüfen, ob Zeitstempel beim Speichern/Anzeigen (Dienststunden, Dienstbuch,
-      Einsätze, Buchungen, Punkte-Historie etc.) korrekt konvertiert werden, inkl. Sommer-/
+      Einsätze, Buchungen etc.) korrekt konvertiert werden, inkl. Sommer-/
       Winterzeit-Wechsel. Datenbank speichert weiterhin in UTC0 (Best Practice); neue
       Einstellung `app_config`-Schlüssel `zeitzone` (Admin-Bereich), Default `Europe/Berlin`.
       Konvertierung UTC → eingestellte Zeitzone zentral an einer Stelle (Backend-Serialisierung
@@ -354,9 +320,8 @@ können. Zieldrucker ist ein Netzwerkdrucker mit IPP/CUPS-Unterstützung im selb
       inkl. **Datenbank**: Tabelle `person_punkte` per Migration droppen, `PersonPunkt`-
       Model, Punkte-Services/-Endpunkte, alle `punkte_*`-Config-Keys, Frontend
       `PunkteEinstellungen.tsx` + Route `/moderator/punkte`, `punkte_ablauf`-Job.
-      Achtung: **Widerspruch zu bestehenden Punkte-Aufgaben** in Etappe F, L
-      (relevant-Punkte) und M (Punkte-Modul) – diese werden dadurch hinfällig. Vor der
-      Umsetzung bestätigen und die betroffenen Todos entfernen/anpassen.
+      Hinweis: Die dadurch hinfälligen Punkte-Todos in Etappe F, L (Extrapunkte) und M
+      (Punkte-Modul) wurden bereits aus dieser TODO entfernt (vom Nutzer bestätigt).
 - [ ] [Release] **Stable-Release** vorbereiten: nach Erledigung obiger Punkte Version
       finalisieren; davor keine weiteren Neuerungen mergen (Feature-Freeze einhalten).
 
