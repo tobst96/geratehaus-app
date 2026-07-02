@@ -64,6 +64,9 @@ export function Dienststunden() {
 
   const [letztePerson, setLetztePerson] = useState<string | null>(null);
   const [letzteSummen, setLetzteSummen] = useState<DienststundenSummeOut[] | null>(null);
+  const [letzteBuchung, setLetzteBuchung] = useState<
+    { name: string | null; funktionName: string; stundenText: string; datum: string } | null
+  >(null);
 
   const [qrAnsicht, setQrAnsicht] = useState<{ token: string; bildUrl: string; ablaufAm: string } | null>(
     null
@@ -177,6 +180,8 @@ export function Dienststunden() {
       }
       await stundenErfassen(Number(funktionId), stunden, datum);
       const summen = await holeMeineSummen();
+      const funktionName = funktionen.find((f) => String(f.id) === funktionId)?.name ?? "";
+      setLetzteBuchung({ name, funktionName, stundenText: stundenAnzeige(stunden), datum });
       setLetztePerson(name);
       setLetzteSummen(summen);
       setBarcode("");
@@ -370,6 +375,18 @@ export function Dienststunden() {
           </form>
         )}
       </div>
+
+      {letzteBuchung && (
+        <div className="karte" style={{ borderColor: "var(--farbe-primaer)", marginBottom: 16 }}>
+          <strong>✓ Erfasst</strong>
+          <div style={{ marginTop: 4 }}>
+            {letzteBuchung.name ? `${letzteBuchung.name}: ` : ""}
+            {letzteBuchung.stundenText}
+            {letzteBuchung.funktionName ? ` als ${letzteBuchung.funktionName}` : ""} am{" "}
+            {new Date(letzteBuchung.datum).toLocaleDateString("de-DE")}
+          </div>
+        </div>
+      )}
 
       {letzteSummen && (
         <>

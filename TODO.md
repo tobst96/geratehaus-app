@@ -81,10 +81,13 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       "Stunden erfassen", Schnellauswahl-Chips aus dem Eintrag oben). Erledigt: `0.25` als
       kleinsten Chip in `SCHNELLAUSWAHL_STUNDEN` ergänzt (Stepper/Anzeige unterstützten 15 Min.
       bereits).
-- [ ] [Dienststunden] Nach dem Buchen eine klare Bestätigung/Liste der eigenen letzten Einträge
+- [x] [Dienststunden] Nach dem Buchen eine klare Bestätigung/Liste der eigenen letzten Einträge
       zeigen statt nur die kumulierten Summen – aktuell sieht man nicht auf einen Blick, welche
       Buchung gerade erfasst wurde. Betrifft `Dienststunden.tsx` (zeigt nur Summen-Tabelle) und
       `DienststundenManuelleEintragung.tsx` (zeigt nur statisches "Eingetragen!" ohne Details).
+      Erledigt: beide Seiten zeigen nach dem Erfassen eine „✓ Erfasst"-Bestätigung mit
+      Person, Dauer (z. B. „1 Std. 30 Min."), Funktion und Datum. Nebenbei den 0:15-Chip auch
+      in `DienststundenManuelleEintragung.tsx` ergänzt (Konsistenz zur Hauptseite).
 - [ ] [Dienststunden] Schutz vor Doppelbuchung: Aktuell wird nicht geprüft, ob für
       Person+Datum+Funktion bereits ein Eintrag existiert – Mehrfachbuchung (inkl. mehrfacher
       Punktevergabe) ist möglich. Warnung oder Block einbauen in

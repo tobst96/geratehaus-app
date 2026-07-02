@@ -13,7 +13,7 @@ import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { DienststundenReservierungInfo, FunktionDienststunden, Person } from "../api/types";
 import "./dienststunden/Dienststunden.css";
 
-const SCHNELLAUSWAHL_STUNDEN = [0.5, 1, 1.5, 2, 3, 4];
+const SCHNELLAUSWAHL_STUNDEN = [0.25, 0.5, 1, 1.5, 2, 3, 4];
 const STEPPER_SCHRITT = 0.25;
 const STEPPER_MIN = 0.25;
 const STEPPER_MAX = 12;
@@ -56,6 +56,9 @@ export function DienststundenManuelleEintragung() {
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
   const [erfolg, setErfolg] = useState(false);
+  const [gebucht, setGebucht] = useState<
+    { personName: string; funktionName: string; stundenText: string; datum: string } | null
+  >(null);
   const [gesperrtMinuten] = useState(() => eintragungGesperrtMinuten());
 
   useEffect(() => {
@@ -104,6 +107,13 @@ export function DienststundenManuelleEintragung() {
         stunden,
         datum,
       });
+      const funktionName = funktionen.find((f) => String(f.id) === funktionId)?.name ?? "";
+      setGebucht({
+        personName: ausgewaehltePerson.name,
+        funktionName,
+        stundenText: stundenAnzeige(stunden),
+        datum,
+      });
       eintragungVermerken();
       setErfolg(true);
     } catch (err) {
@@ -149,6 +159,13 @@ export function DienststundenManuelleEintragung() {
       <div className="seite">
         <div className="karte">
           <h1>Eingetragen!</h1>
+          {gebucht && (
+            <p style={{ fontWeight: 600 }}>
+              {gebucht.personName}: {gebucht.stundenText}
+              {gebucht.funktionName ? ` als ${gebucht.funktionName}` : ""} am{" "}
+              {new Date(gebucht.datum).toLocaleDateString("de-DE")}
+            </p>
+          )}
           <p>Deine Dienststunden wurden erfasst. Du kannst diese Seite jetzt schließen.</p>
         </div>
       </div>
