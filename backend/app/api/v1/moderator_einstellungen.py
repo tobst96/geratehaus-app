@@ -1,18 +1,24 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
-from app.api.deps import CurrentAdmin, DbSession
+from app.api.deps import CurrentModerator, DbSession, require_modul_zugriff
 from app.schemas.moderator import ModeratorAnlegen, ModeratorOut, ModeratorPasswortAendern
 from app.services import archive_service, logo_service, moderator_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
-router = APIRouter(prefix="/moderator/einstellungen", tags=["moderator:einstellungen"])
+# Phase 4b: granular geschützt – Admins immer (Bypass), sonst Freigabe von
+# „einstellungen" nötig.
+router = APIRouter(
+    prefix="/moderator/einstellungen",
+    tags=["moderator:einstellungen"],
+    dependencies=[Depends(require_modul_zugriff("einstellungen"))],
+)
 
 
 @router.get("")
-async def einstellungen_lesen(db: DbSession, _admin: CurrentAdmin) -> dict[str, Any]:
+async def einstellungen_lesen(db: DbSession) -> dict[str, Any]:
     """Alle app_config-Werte. Wirkt als einzige Quelle der Wahrheit für die
     Einstellungen-UI im Moderator-Bereich."""
     return await config_service.get_all(db, refresh=True)
@@ -20,7 +26,7 @@ async def einstellungen_lesen(db: DbSession, _admin: CurrentAdmin) -> dict[str, 
 
 @router.put("")
 async def einstellungen_schreiben(
-    db: DbSession, _admin: CurrentAdmin, werte: dict[str, Any]
+    db: DbSession, werte: dict[str, Any]
 ) -> dict[str, Any]:
     """Schreibt beliebig viele app_config-Werte auf einmal, sofort wirksam
     ohne Neustart (Cache wird invalidiert)."""
@@ -30,7 +36,7 @@ async def einstellungen_schreiben(
 
 @router.post("/logo")
 async def logo_hochladen(
-    db: DbSession, _admin: CurrentAdmin, datei: UploadFile
+    db: DbSession, datei: UploadFile
 ) -> dict[str, str]:
     logo_url = await logo_service.logo_speichern(datei)
     await config_service.set(db, "logo_url", logo_url)
@@ -38,7 +44,7 @@ async def logo_hochladen(
 
 
 @router.post("/email-testen", status_code=status.HTTP_204_NO_CONTENT)
-async def email_testen(db: DbSession, _admin: CurrentAdmin) -> None:
+async def email_testen(db: DbSession) -> None:
     """Sendet eine Testmail mit der aktuell gespeicherten SMTP-Konfiguration,
     damit Fehler in den Einstellungen sofort sichtbar werden (statt erst beim
     nächsten echten Ereignis, dessen Versand bei Fehlern nur geloggt wird)."""
@@ -53,7 +59,7 @@ async def email_testen(db: DbSession, _admin: CurrentAdmin) -> None:
 
 
 @router.post("/archivierung-ausfuehren")
-async def archivierung_ausfuehren(db: DbSession, _admin: CurrentAdmin) -> dict[str, int]:
+async def archivierung_ausfuehren(db: DbSession) -> dict[str, int]:
     """Stößt die tägliche Archivierung sofort an, unabhängig vom
     Scheduler-Zeitpunkt (z. B. zum Testen nach einer Konfigurationsänderung)."""
     return await archive_service.archiviere_alte_eintraege(db)
@@ -63,7 +69,7 @@ async def archivierung_ausfuehren(db: DbSession, _admin: CurrentAdmin) -> dict[s
 
 
 @router.get("/moderatoren", response_model=list[ModeratorOut])
-async def moderatoren_liste(db: DbSession, _admin: CurrentAdmin) -> list[ModeratorOut]:
+async def moderatoren_liste(db: DbSession) -> list[ModeratorOut]:
     return await moderator_service.liste_moderatoren(db)
 
 
@@ -71,7 +77,7 @@ async def moderatoren_liste(db: DbSession, _admin: CurrentAdmin) -> list[Moderat
     "/moderatoren", response_model=ModeratorOut, status_code=status.HTTP_201_CREATED
 )
 async def moderator_anlegen(
-    db: DbSession, _admin: CurrentAdmin, daten: ModeratorAnlegen
+    db: DbSession, daten: ModeratorAnlegen
 ) -> ModeratorOut:
     if await moderator_service.get_moderator_by_username(db, daten.username) is not None:
         raise HTTPException(
@@ -82,7 +88,7 @@ async def moderator_anlegen(
 
 @router.put("/moderatoren/{moderator_id}/passwort", response_model=ModeratorOut)
 async def moderator_passwort_aendern(
-    db: DbSession, _admin: CurrentAdmin, moderator_id: int, daten: ModeratorPasswortAendern
+    db: DbSession, moderator_id: int, daten: ModeratorPasswortAendern
 ) -> ModeratorOut:
     ziel = await moderator_service.get_moderator(db, moderator_id)
     if ziel is None:
@@ -91,7 +97,7 @@ async def moderator_passwort_aendern(
 
 
 @router.delete("/moderatoren/{moderator_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def moderator_loeschen(db: DbSession, admin: CurrentAdmin, moderator_id: int) -> None:
+async def moderator_loeschen(db: DbSession, admin: CurrentModerator, moderator_id: int) -> None:
     ziel = await moderator_service.get_moderator(db, moderator_id)
     if ziel is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moderator nicht gefunden.")

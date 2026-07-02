@@ -1,0 +1,90 @@
+import { useEffect, useState } from "react";
+import {
+  holeKanalTypen,
+  holePersonKanaele,
+  setzePersonKanal,
+  type KanalTyp,
+} from "../../api/personKanaele";
+import { ApiError } from "../../api/client";
+
+interface Wert {
+  zielwert: string;
+  aktiv: boolean;
+}
+
+/** Benachrichtigungskanäle einer Person (Admin-Menü, in der Personal-Detailseite).
+ * Selbstständige Komponente – lädt Registry + gespeicherte Kanäle für personId. */
+export function PersonKanaele({ personId }: { personId: number }) {
+  const [typen, setTypen] = useState<KanalTyp[]>([]);
+  const [werte, setWerte] = useState<Record<string, Wert>>({});
+  const [hinweis, setHinweis] = useState<string | null>(null);
+
+  useEffect(() => {
+    let abbruch = false;
+    Promise.all([holeKanalTypen(), holePersonKanaele(personId)])
+      .then(([typenR, kanaeleR]) => {
+        if (abbruch) return;
+        setTypen(typenR);
+        const map: Record<string, Wert> = {};
+        for (const t of typenR) map[t.key] = { zielwert: "", aktiv: true };
+        for (const k of kanaeleR) map[k.typ] = { zielwert: k.zielwert, aktiv: k.aktiv };
+        setWerte(map);
+      })
+      .catch(() => {});
+    return () => {
+      abbruch = true;
+    };
+  }, [personId]);
+
+  async function speichern(typ: string) {
+    const w = werte[typ] ?? { zielwert: "", aktiv: true };
+    try {
+      await setzePersonKanal(personId, typ, w.zielwert, w.aktiv);
+      setHinweis("Gespeichert.");
+      setTimeout(() => setHinweis(null), 1500);
+    } catch (err) {
+      setHinweis(err instanceof ApiError ? String(err.detail) : "Speichern fehlgeschlagen.");
+    }
+  }
+
+  return (
+    <div>
+      <h3>Benachrichtigungskanäle</h3>
+      {typen.map((t) => {
+        const w = werte[t.key] ?? { zielwert: "", aktiv: true };
+        return (
+          <div
+            key={t.key}
+            style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}
+          >
+            <span style={{ minWidth: 90 }}>{t.label}</span>
+            <input
+              placeholder={t.zielwert_label}
+              value={w.zielwert}
+              onChange={(e) =>
+                setWerte((m) => ({ ...m, [t.key]: { ...w, zielwert: e.target.value } }))
+              }
+              style={{ width: 200 }}
+            />
+            <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <input
+                type="checkbox"
+                checked={w.aktiv}
+                onChange={(e) =>
+                  setWerte((m) => ({ ...m, [t.key]: { ...w, aktiv: e.target.checked } }))
+                }
+              />
+              aktiv
+            </label>
+            <button type="button" className="sekundaer" onClick={() => speichern(t.key)}>
+              Speichern
+            </button>
+          </div>
+        );
+      })}
+      {hinweis && (
+        <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>{hinweis}</p>
+      )}
+    </div>
+  );
+}

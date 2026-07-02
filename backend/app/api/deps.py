@@ -90,3 +90,26 @@ def require_modul_aktiv(config_schluessel: str):
             )
 
     return _check
+
+
+def require_modul_zugriff(modul_key: str):
+    """Dependency-Factory für das granulare Berechtigungssystem: verlangt, dass der
+    angemeldete Moderator Zugriff auf das Modul `modul_key` hat (Admins immer, via
+    Admin-Bypass in berechtigungs_service). Gibt den Moderator zurück, sonst 403.
+
+    Phase 4-Werkzeug: bewusst noch NICHT auf bestehende Endpunkte angewandt – die
+    schrittweise Umstellung (inkl. Datenmigration Rollen→Rechte) erfolgt separat,
+    damit bestehende Zugänge nicht ausgesperrt werden."""
+
+    async def _check(moderator: CurrentModerator, db: DbSession) -> Moderator:
+        # lokaler Import vermeidet einen Import-Zyklus (Service nutzt Models/Config)
+        from app.services import berechtigungs_service
+
+        if await berechtigungs_service.hat_zugriff(db, moderator, modul_key):
+            return moderator
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Kein Zugriff auf dieses Modul.",
+        )
+
+    return _check
