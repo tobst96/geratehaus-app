@@ -96,6 +96,9 @@ Feste Checkliste, bevor eine neue Version veröffentlicht wird:
 - **Datenschutz-Seite prüfen und anpassen** (`frontend/src/pages/Datenschutz.tsx`):
   Spiegelt sie noch die aktuell aktive Datenverarbeitung wider (neue Features, neue
   erhobene Daten)? Darf nie vergessen werden.
+- **README prüfen und anpassen** (`README.md`): Spiegelt sie noch den aktuellen
+  Funktionsumfang, Setup und Stand wider (neue/entfernte Features, geänderte
+  Schritte)? Vor jeder Veröffentlichung kontrollieren.
 - `pytest` (Backend) und `npm run build` (Frontend) fehlerfrei.
 - Feature-Freeze: vor dem Release keine neuen Features mehr mergen (siehe Backlog
   `.claude/docs/backlog.md`, Etappe N).
