@@ -18,3 +18,12 @@ class KanalOut(BaseModel):
 class KanalSetzen(BaseModel):
     zielwert: str = ""
     aktiv: bool = True
+
+
+class EreignisTypOut(BaseModel):
+    key: str
+    label: str
+
+
+class AboSetzen(BaseModel):
+    aktiv: bool
