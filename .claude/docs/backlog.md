@@ -511,10 +511,16 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Granulare, individuelle Berechtigungsverwaltung als eigenständiges Modul
 
-- Status: Backlog
-- Priorität: Mittel
+- Status: Planung
+- Priorität: Hoch
 - Kategorie: Neues Modul / Feature / Architektur
 - Skills: planner, new-module, geraetehaus-patterns, tests, review
+- **Loop-Vorgehen (vom Nutzer priorisiert 2026-07-02): NÄCHSTER Loop-Fokus.**
+  Schritt 1: einen konkreten, **phasenweisen Umsetzungsplan** erstellen (Datenmodell,
+  Migrationsreihenfolge, betroffene Endpunkte, neue Seiten, Modul-Registry, Migration
+  des heutigen Rollenmodells) – **KEIN Code**. Schritt 2+: Umsetzung schrittweise auf
+  einem **Feature-Branch mit PR**. **NICHT direkt auf `main`, KEIN Auto-Deploy/Rebuild**,
+  bis der PR vom Nutzer freigegeben ist (großer Auth-Umbau, quer durch die App).
 - Beschreibung: Berechtigungen sollen künftig **nicht rollenbasiert** (Admin/
   Gruppenführer), sondern **individuell pro Mitarbeiter und Modul** vergeben werden.
   Umsetzung als eigenständiges, erweiterbares Modul, verwaltet über eine neue
