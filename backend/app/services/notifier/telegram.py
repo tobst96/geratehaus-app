@@ -29,3 +29,18 @@ class TelegramNotifier(Notifier):
                     response.raise_for_status()
                 except httpx.HTTPError:
                     logger.warning("telegram_versand_fehlgeschlagen", chat_id=chat_id, exc_info=True)
+
+    async def send_an_chat(
+        self, db: AsyncSession, chat_id: str, betreff: str, nachricht: str
+    ) -> None:
+        """Versand an eine bestimmte Chat-ID (für die per-Person-Zustellung)."""
+        bot_token = await config_service.get(db, "notifier_telegram_bot_token", "")
+        if not bot_token or not chat_id.strip():
+            return
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        text = f"*{betreff}*\n{nachricht}"
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.post(
+                url, json={"chat_id": chat_id.strip(), "text": text, "parse_mode": "Markdown"}
+            )
+            response.raise_for_status()

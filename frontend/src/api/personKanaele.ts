@@ -25,3 +25,16 @@ export const setzePersonKanal = (personId: number, typ: string, zielwert: string
 
 export const loeschePersonKanal = (personId: number, typ: string) =>
   apiDelete<void>(`/moderator/personen/${personId}/kanaele/${encodeURIComponent(typ)}`);
+
+export interface EreignisTyp {
+  key: string;
+  label: string;
+}
+
+export const holeEreignisTypen = () => apiGet<EreignisTyp[]>("/moderator/ereignis-typen");
+
+export const holePersonAbos = (personId: number) =>
+  apiGet<string[]>(`/moderator/personen/${personId}/abos`);
+
+export const setzePersonAbo = (personId: number, ereignis: string, aktiv: boolean) =>
+  apiPut<void>(`/moderator/personen/${personId}/abos/${encodeURIComponent(ereignis)}`, { aktiv });

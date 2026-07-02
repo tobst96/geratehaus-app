@@ -8,7 +8,12 @@ from sqlalchemy.orm import selectinload
 from app.models.einsatz import Einsatz, EinsatzPerson
 from app.models.einsatz_ereignis import EinsatzEreignis
 from app.schemas.einsatz import EinsatzAnlegen, TeilnahmeAnlegen
-from app.services import notifier_service, pdf_service, stammdaten_service
+from app.services import (
+    benachrichtigungskanal_service,
+    notifier_service,
+    pdf_service,
+    stammdaten_service,
+)
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -217,6 +222,12 @@ async def einsaetze_mit_faelligem_abschluss(db: AsyncSession) -> list[Einsatz]:
 
 
 async def _pdf_per_mail_versenden(db: AsyncSession, einsatz: Einsatz) -> None:
+    # Nur an Personen, die „neuer Einsatz" abonniert haben (aktiver Mail-Kanal).
+    empfaenger = await benachrichtigungskanal_service.mail_empfaenger_fuer_ereignis(
+        db, "benachrichtigung_neuer_einsatz"
+    )
+    if not empfaenger:
+        return
     try:
         ereignisse = await liste_ereignisse(db, einsatz.id)
         timeline_text = "\n".join(
@@ -227,7 +238,12 @@ async def _pdf_per_mail_versenden(db: AsyncSession, einsatz: Einsatz) -> None:
         pdf_inhalt = await pdf_service.einsatz_pdf(db, einsatz)
         dateiname = f"einsatz-{einsatz.id}.pdf"
         await EmailNotifier().pdf_versenden(
-            db, f"Einsatz abgeschlossen: {einsatz.titel}", nachricht, dateiname, pdf_inhalt
+            db,
+            f"Einsatz abgeschlossen: {einsatz.titel}",
+            nachricht,
+            dateiname,
+            pdf_inhalt,
+            empfaenger_liste=empfaenger,
         )
         await ereignis_protokollieren(db, einsatz.id, "email", "Einsatzbericht (PDF) per E-Mail versendet")
     except Exception as exc:

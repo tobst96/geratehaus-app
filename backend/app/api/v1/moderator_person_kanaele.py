@@ -3,7 +3,13 @@ from sqlalchemy import select
 
 from app.api.deps import DbSession, require_modul_zugriff
 from app.models.person import Person
-from app.schemas.benachrichtigungskanal import KanalOut, KanalSetzen, KanalTypOut
+from app.schemas.benachrichtigungskanal import (
+    AboSetzen,
+    EreignisTypOut,
+    KanalOut,
+    KanalSetzen,
+    KanalTypOut,
+)
 from app.services import benachrichtigungskanal_service as kanal_service
 
 # Phase 4b: granular geschützt – Admins immer (Bypass), sonst Freigabe des Moduls
@@ -53,3 +59,25 @@ async def kanal_loeschen(db: DbSession, person_id: int, typ: str) -> None:
     await _person_oder_404(db, person_id)
     if not await kanal_service.loeschen(db, person_id, typ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kanal nicht gefunden.")
+
+
+# --- Ereignis-Abos pro Person -------------------------------------------------
+
+
+@router.get("/ereignis-typen", response_model=list[EreignisTypOut])
+async def ereignis_typen() -> list[EreignisTypOut]:
+    """Abonnierbare Ereignistypen (Registry) für die Abo-UI."""
+    return [EreignisTypOut(key=e.key, label=e.label) for e in kanal_service.EREIGNIS_TYPEN]
+
+
+@router.get("/personen/{person_id}/abos", response_model=list[str])
+async def abos_lesen(db: DbSession, person_id: int) -> list[str]:
+    await _person_oder_404(db, person_id)
+    return await kanal_service.abos_fuer_person(db, person_id)
+
+
+@router.put("/personen/{person_id}/abos/{ereignis}", status_code=status.HTTP_204_NO_CONTENT)
+async def abo_setzen(db: DbSession, person_id: int, ereignis: str, daten: AboSetzen) -> None:
+    await _person_oder_404(db, person_id)
+    if not await kanal_service.set_abo(db, person_id, ereignis, daten.aktiv):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unbekanntes Ereignis.")

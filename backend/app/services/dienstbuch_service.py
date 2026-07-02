@@ -7,7 +7,12 @@ from sqlalchemy.orm import selectinload
 
 from app.models.dienstbuch import Dienstbuch, DienstbuchPerson
 from app.schemas.dienstbuch import DienstbuchAnlegen, TeilnehmerAktualisieren, TeilnehmerAnlegen
-from app.services import notifier_service, pdf_service, stammdaten_service
+from app.services import (
+    benachrichtigungskanal_service,
+    notifier_service,
+    pdf_service,
+    stammdaten_service,
+)
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -148,6 +153,12 @@ async def _pdf_per_mail_versenden(dienstbuch: Dienstbuch, db: AsyncSession) -> N
         return
     if not await config_service.get(db, "notifier_email_pdf_bei_dienstbuch_abschluss", False):
         return
+    # Nur an Personen, die „neues Dienstbuch" abonniert haben (aktiver Mail-Kanal).
+    empfaenger = await benachrichtigungskanal_service.mail_empfaenger_fuer_ereignis(
+        db, "benachrichtigung_neues_dienstbuch"
+    )
+    if not empfaenger:
+        return
     try:
         pdf_inhalt = await pdf_service.dienstbuch_pdf(db, dienstbuch)
         dateiname = f"dienstbuch-{dienstbuch.id}.pdf"
@@ -157,6 +168,7 @@ async def _pdf_per_mail_versenden(dienstbuch: Dienstbuch, db: AsyncSession) -> N
             f"Im Anhang das geschlossene Dienstbuch „{dienstbuch.titel}“.",
             dateiname,
             pdf_inhalt,
+            empfaenger_liste=empfaenger,
         )
     except Exception:
         logger.warning("dienstbuch_pdf_mail_fehlgeschlagen", exc_info=True)

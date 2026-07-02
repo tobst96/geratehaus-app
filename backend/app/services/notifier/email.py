@@ -54,11 +54,27 @@ class EmailNotifier(Notifier):
         )
 
     async def pdf_versenden(
-        self, db: AsyncSession, betreff: str, nachricht: str, dateiname: str, pdf_inhalt: bytes
+        self,
+        db: AsyncSession,
+        betreff: str,
+        nachricht: str,
+        dateiname: str,
+        pdf_inhalt: bytes,
+        empfaenger_liste: list[str] | None = None,
     ) -> None:
-        """Wie test_versenden(): wirft bei Fehlern weiter, damit der Aufrufer
-        (Einsatzabschluss) den Versand in der Timeline protokollieren kann."""
-        await self._versenden(db, betreff, nachricht, anhang=(dateiname, pdf_inhalt, "application", "pdf"))
+        """Versendet ein PDF. Mit `empfaenger_liste` gezielt an diese Adressen (z. B.
+        die Abonnenten des Ereignisses), ohne Liste an die zentrale Empfängerliste.
+        Leere Liste = niemand abonniert → kein Versand. Wirft bei Fehlern weiter,
+        damit der Aufrufer den Versand in der Timeline protokollieren kann."""
+        if empfaenger_liste is not None and not empfaenger_liste:
+            return
+        await self._versenden(
+            db,
+            betreff,
+            nachricht,
+            anhang=(dateiname, pdf_inhalt, "application", "pdf"),
+            empfaenger_liste=empfaenger_liste,
+        )
 
     async def aktions_mail_versenden(
         self,

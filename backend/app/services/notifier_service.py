@@ -1,20 +1,20 @@
 """Zentraler Dispatch-Punkt für Benachrichtigungen.
 
-Welche Events Benachrichtigungen auslösen ist über app_config einzeln
-an/abschaltbar; welche Kanäle aktiv sind und ihre Zugangsdaten kommen
-ebenfalls aus app_config (Moderator-Bereich > Einstellungen), nicht aus der
-.env. Domain-Services (Einsatz, Dienstbuch, Buchung, Dienststunden) rufen
-ausschließlich `benachrichtige()` auf und kennen die Kanäle nicht.
+Ereignis-Benachrichtigungen gehen ausschließlich an **Personen, die das jeweilige
+Ereignis abonniert haben** (Personal-Bereich > Benachrichtigungskanäle), und zwar
+über deren **aktive Kanäle** (E-Mail/Telegram mit hinterlegtem Zielwert). Ob ein
+Ereignis überhaupt ausgelöst wird, ist zusätzlich global über app_config
+an/abschaltbar (Master-Schalter). Domain-Services rufen ausschließlich
+`benachrichtige()` auf und kennen die Zustellung nicht.
 """
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.services import benachrichtigungskanal_service
 from app.services.config_service import config_service
-from app.services.notifier.base import Notifier
 from app.services.notifier.email import EmailNotifier
 from app.services.notifier.telegram import TelegramNotifier
-from app.services.notifier.webpush import WebPushNotifier
 
 logger = structlog.get_logger(__name__)
 
@@ -36,16 +36,9 @@ EREIGNIS_VORLAGE = {
     "benachrichtigung_person_inaktiv": "benachrichtigung_text_person_inaktiv",
 }
 
-
-async def _aktive_notifier(db: AsyncSession) -> list[Notifier]:
-    notifier: list[Notifier] = []
-    if await config_service.get(db, "notifier_telegram_aktiv", False):
-        notifier.append(TelegramNotifier())
-    if await config_service.get(db, "notifier_email_aktiv", False):
-        notifier.append(EmailNotifier())
-    if await config_service.get(db, "notifier_webpush_aktiv", False):
-        notifier.append(WebPushNotifier())
-    return notifier
+# Kanal-Typ (Benachrichtigungskanal.typ) → Notifier-Kanalname (für ausschluss_kanaele,
+# das historisch die Notifier-Namen nutzt, z. B. {"email"}).
+_KANAL_NAME = {"mail": "email", "telegram": "telegram"}
 
 
 async def benachrichtige(
@@ -54,11 +47,11 @@ async def benachrichtige(
     ausschluss_kanaele: set[str] | None = None,
     **platzhalter: object,
 ) -> None:
-    """Sendet eine Benachrichtigung für ein Ereignis, falls es in app_config
-    aktiviert ist. ereignis_schluessel ist einer der vier
-    benachrichtigung_*-Keys aus app_config. `ausschluss_kanaele` erlaubt es
-    Aufrufern, einen Kanal hier auszulassen, wenn sie ihn selbst (z. B. mit
-    PDF-Anhang) separat bedienen, um Doppel-Mails zu vermeiden."""
+    """Sendet eine Ereignis-Benachrichtigung an alle Personen, die das Ereignis
+    abonniert haben, über ihre aktiven Kanäle. Voraussetzung: das Ereignis ist in
+    app_config global aktiviert (Master-Schalter). `ausschluss_kanaele` (Notifier-
+    Namen wie {"email"}) lässt einen Kanaltyp aus, wenn der Aufrufer ihn separat
+    bedient (z. B. PDF-Mail), um Doppelversand zu vermeiden."""
     if not await config_service.get(db, ereignis_schluessel, True):
         return
 
@@ -71,10 +64,25 @@ async def benachrichtige(
         nachricht = vorlage
 
     betreff = EREIGNIS_BETREFF[ereignis_schluessel]
-    for notifier in await _aktive_notifier(db):
-        if ausschluss_kanaele and notifier.name in ausschluss_kanaele:
-            continue
-        try:
-            await notifier.send(db, betreff, nachricht)
-        except Exception:
-            logger.warning("notifier_fehlgeschlagen", kanal=notifier.name, exc_info=True)
+
+    empfaenger = await benachrichtigungskanal_service.empfaenger_fuer_ereignis(
+        db, ereignis_schluessel
+    )
+    if not empfaenger:
+        return
+
+    email = EmailNotifier()
+    telegram = TelegramNotifier()
+    for person, kanaele in empfaenger:
+        for kanal in kanaele:
+            if ausschluss_kanaele and _KANAL_NAME.get(kanal.typ, kanal.typ) in ausschluss_kanaele:
+                continue
+            try:
+                if kanal.typ == "mail":
+                    await email.send_an(db, kanal.zielwert, betreff, nachricht)
+                elif kanal.typ == "telegram":
+                    await telegram.send_an_chat(db, kanal.zielwert, betreff, nachricht)
+            except Exception:
+                logger.warning(
+                    "notifier_fehlgeschlagen", kanal=kanal.typ, person_id=person.id, exc_info=True
+                )
