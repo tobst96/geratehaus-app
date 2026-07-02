@@ -36,11 +36,20 @@ def _alarm_normalisieren(roh: dict[str, Any]) -> dict[str, Any] | None:
     # abgeschlossene Einsätze; aktive Alarme (/pull/all) haben es nicht bzw. False.
     geschlossen = bool(roh.get("closed"))
 
+    # Zusatzinfos: Adresse und ausführlicher Meldungstext. `text` ist die
+    # eigentliche Alarmmeldung (der `titel`/`title` ist nur das kurze Stichwort);
+    # sind beide identisch, keine redundante Meldung speichern.
+    adresse = roh.get("address") or None
+    text = roh.get("text") or None
+    meldung = text if text and text != str(titel) else None
+
     return {
         "divera_id": str(divera_id),
         "titel": str(titel),
         "zeitpunkt": zeitpunkt,
         "geschlossen": geschlossen,
+        "adresse": str(adresse) if adresse else None,
+        "meldung": str(meldung) if meldung else None,
     }
 
 
@@ -66,6 +75,8 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
         quelle="divera",
         divera_id=alarm["divera_id"],
         zeitpunkt=alarm["zeitpunkt"],
+        adresse=alarm["adresse"],
+        meldung=alarm["meldung"],
         status="abgeschlossen" if geschlossen else "offen",
     )
     db.add(einsatz)

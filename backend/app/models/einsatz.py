@@ -20,6 +20,9 @@ class Einsatz(Base, TimestampMixin):
     quelle: Mapped[str] = mapped_column(String(32), default="manuell", nullable=False)
     divera_id: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True)
     zeitpunkt: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Einsatzadresse und ausführlicher Meldungstext (z. B. aus Divera: address / text).
+    adresse: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    meldung: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="offen", nullable=False)
     archiviert: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Gesetzt durch "Alle eingetragen" im Gerätehaus; der Autoabschluss-Job

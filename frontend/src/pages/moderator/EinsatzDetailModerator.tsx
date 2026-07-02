@@ -113,6 +113,21 @@ export function EinsatzDetailModerator() {
         {einsatz.archiviert && <span className="einsatz-status-badge">archiviert</span>}
       </div>
 
+      {(einsatz.adresse || einsatz.meldung) && (
+        <div className="karte" style={{ marginTop: "1rem" }}>
+          {einsatz.adresse && (
+            <p style={{ margin: "0 0 0.25rem" }}>
+              <strong>Adresse:</strong> {einsatz.adresse}
+            </p>
+          )}
+          {einsatz.meldung && (
+            <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>
+              <strong>Meldung:</strong> {einsatz.meldung}
+            </p>
+          )}
+        </div>
+      )}
+
       <p style={{ marginTop: "1rem", display: "flex", gap: 12, alignItems: "center" }}>
         <a href={einsatzPdfUrl(einsatz.id)} target="_blank" rel="noreferrer">
           Als PDF exportieren

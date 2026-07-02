@@ -149,6 +149,8 @@ export interface EinsatzOut {
   quelle: string;
   divera_id: string | null;
   zeitpunkt: string;
+  adresse: string | null;
+  meldung: string | null;
   status: string;
   archiviert: boolean;
   geplanter_abschluss_am: string | null;

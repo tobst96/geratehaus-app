@@ -49,6 +49,8 @@ class EinsatzOut(BaseModel):
     quelle: str
     divera_id: str | None
     zeitpunkt: datetime
+    adresse: str | None = None
+    meldung: str | None = None
     status: str
     archiviert: bool
     geplanter_abschluss_am: datetime | None

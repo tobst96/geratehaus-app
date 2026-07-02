@@ -32,6 +32,36 @@ async def test_importiere_alarm_legt_einsatz_an(db: AsyncSession):
 
 
 @pytest.mark.asyncio
+async def test_importiere_alarm_uebernimmt_adresse_und_meldung(db: AsyncSession):
+    einsatz = await divera_service.importiere_alarm(
+        db,
+        {
+            "id": 700,
+            "title": "H2",
+            "text": "PKW im Graben, 2 eingeschlossen",
+            "address": "Westerstede, Kanalstraße",
+            "date": 1719439900,
+        },
+    )
+
+    assert einsatz is not None
+    assert einsatz.titel == "H2"
+    assert einsatz.adresse == "Westerstede, Kanalstraße"
+    assert einsatz.meldung == "PKW im Graben, 2 eingeschlossen"
+
+
+@pytest.mark.asyncio
+async def test_importiere_alarm_ohne_zusatzinfos_laesst_felder_leer(db: AsyncSession):
+    # titel == text -> keine redundante Meldung; keine Adresse vorhanden
+    einsatz = await divera_service.importiere_alarm(
+        db, {"id": 701, "title": "Probealarm", "text": "Probealarm", "date": 1719439900}
+    )
+    assert einsatz is not None
+    assert einsatz.adresse is None
+    assert einsatz.meldung is None
+
+
+@pytest.mark.asyncio
 async def test_importiere_geschlossenen_alarm_als_abgeschlossen(db: AsyncSession):
     """Ein bereits in Divera geschlossener (nachgeholter) Alarm wird als
     abgeschlossen angelegt und löst KEINE „neuer Einsatz"-Benachrichtigung aus."""
