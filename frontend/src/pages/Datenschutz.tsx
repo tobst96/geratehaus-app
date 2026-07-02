@@ -47,12 +47,45 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
-        <h2>Push-Benachrichtigungen</h2>
+        <h2>Benachrichtigungen</h2>
         <p>
-          Falls deine Organisation Web-Push-Benachrichtigungen aktiviert hat und du diese in deinem
-          Browser zulässt, wird eine technische Abonnement-Kennung (kein Name, keine Standortdaten)
-          gespeichert, um dir Benachrichtigungen zu Einsätzen, Dienstbüchern und Buchungen senden zu
-          können. Du kannst die Berechtigung jederzeit in den Browser-Einstellungen widerrufen.
+          Für jede Person können Benachrichtigungskanäle hinterlegt werden, über die sie zu
+          Ereignissen (z. B. neuer Einsatz, neues Dienstbuch, Buchungsanfrage) informiert wird. Je
+          nach Konfiguration deiner Organisation sind das:
+        </p>
+        <ul>
+          <li>
+            <strong>E-Mail:</strong> deine E-Mail-Adresse wird gespeichert, um dir Nachrichten und
+            deinen persönlichen Barcode zuzusenden.
+          </li>
+          <li>
+            <strong>Telegram:</strong> falls du diesen Kanal nutzt, wird deine Telegram-Chat-ID
+            gespeichert, um Nachrichten über den von der Organisation betriebenen Telegram-Bot zu
+            senden (Übermittlung an Telegram als externen Dienst).
+          </li>
+          <li>
+            <strong>Web-Push:</strong> falls aktiviert und im Browser zugelassen, wird eine
+            technische Abonnement-Kennung (kein Name, keine Standortdaten) gespeichert. Die
+            Berechtigung kann jederzeit in den Browser-Einstellungen widerrufen werden.
+          </li>
+        </ul>
+        <p>
+          Welche Ereignisse du empfängst, ist pro Person einstellbar; Benachrichtigungen werden nur
+          an die jeweils dafür freigegebenen Kanäle gesendet.
+        </p>
+      </div>
+
+      <div className="karte">
+        <h2>Divera-24/7-Anbindung</h2>
+        <p>
+          Nutzt deine Organisation die optionale Anbindung an den externen Alarmierungsdienst
+          <strong> Divera&nbsp;24/7</strong>, ruft diese Instanz darüber Einsatz- und Personendaten
+          ab und speichert sie im System: Alarme werden als Einsätze übernommen (inkl. Stichwort,
+          Zeitpunkt sowie – sofern von Divera geliefert – Einsatzadresse und Meldungstext), und
+          Mitglieder aus dem Divera-Verband können als Personen vorgeschlagen und übernommen werden
+          (Name und, sofern vorhanden, E-Mail-Adresse; zur Zuordnung wird die Divera-Benutzer-ID
+          gespeichert). Der Datenabruf erfolgt gegenüber Divera mit einem von der Organisation
+          hinterlegten Zugangsschlüssel; es gelten zusätzlich die Datenschutzbestimmungen von Divera.
         </p>
       </div>
 
