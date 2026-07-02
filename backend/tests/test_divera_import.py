@@ -32,6 +32,32 @@ async def test_importiere_alarm_legt_einsatz_an(db: AsyncSession):
 
 
 @pytest.mark.asyncio
+async def test_importiere_geschlossenen_alarm_als_abgeschlossen(db: AsyncSession):
+    """Ein bereits in Divera geschlossener (nachgeholter) Alarm wird als
+    abgeschlossen angelegt und löst KEINE „neuer Einsatz"-Benachrichtigung aus."""
+    with patch.object(divera_service.notifier_service, "benachrichtige", new=AsyncMock()) as mock_notify:
+        einsatz = await divera_service.importiere_alarm(
+            db, {"id": 500, "title": "H1 - alt", "date": 1719439900, "closed": True}
+        )
+
+    assert einsatz is not None
+    assert einsatz.status == "abgeschlossen"
+    mock_notify.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_importiere_offenen_alarm_benachrichtigt(db: AsyncSession):
+    with patch.object(divera_service.notifier_service, "benachrichtige", new=AsyncMock()) as mock_notify:
+        einsatz = await divera_service.importiere_alarm(
+            db, {"id": 501, "title": "H1 - aktiv", "date": 1719439900, "closed": False}
+        )
+
+    assert einsatz is not None
+    assert einsatz.status == "offen"
+    mock_notify.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_importiere_alarm_dedupliziert_ueber_divera_id(db: AsyncSession):
     roh = {"id": 99, "title": "B2 - Zimmerbrand", "date": 1719439900}
     erster = await divera_service.importiere_alarm(db, roh)

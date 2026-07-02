@@ -32,7 +32,16 @@ def _alarm_normalisieren(roh: dict[str, Any]) -> dict[str, Any] | None:
     else:
         zeitpunkt = datetime.now(timezone.utc)
 
-    return {"divera_id": str(divera_id), "titel": str(titel), "zeitpunkt": zeitpunkt}
+    # `closed` liefert die Alarm-Historie (/api/v2/alarms) für bereits
+    # abgeschlossene Einsätze; aktive Alarme (/pull/all) haben es nicht bzw. False.
+    geschlossen = bool(roh.get("closed"))
+
+    return {
+        "divera_id": str(divera_id),
+        "titel": str(titel),
+        "zeitpunkt": zeitpunkt,
+        "geschlossen": geschlossen,
+    }
 
 
 async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | None:
@@ -48,19 +57,35 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
     if result.scalar_one_or_none() is not None:
         return None
 
+    # Bereits in Divera geschlossene Alarme (z. B. beim Nachholen der Historie)
+    # direkt als abgeschlossen anlegen, damit sie nicht als aktiver Einsatz im
+    # Kiosk erscheinen.
+    geschlossen = alarm["geschlossen"]
     einsatz = Einsatz(
         titel=alarm["titel"],
         quelle="divera",
         divera_id=alarm["divera_id"],
         zeitpunkt=alarm["zeitpunkt"],
+        status="abgeschlossen" if geschlossen else "offen",
     )
     db.add(einsatz)
     await db.commit()
     await einsatz_service.ereignis_protokollieren(
-        db, einsatz.id, "angelegt", "Einsatz angelegt (divera)"
+        db,
+        einsatz.id,
+        "angelegt",
+        "Einsatz angelegt (divera, bereits abgeschlossen)" if geschlossen else "Einsatz angelegt (divera)",
     )
-    logger.info("divera_einsatz_importiert", divera_id=alarm["divera_id"], titel=alarm["titel"])
-    await notifier_service.benachrichtige(db, "benachrichtigung_divera_alarm", titel=alarm["titel"])
+    logger.info(
+        "divera_einsatz_importiert",
+        divera_id=alarm["divera_id"],
+        titel=alarm["titel"],
+        geschlossen=geschlossen,
+    )
+    # Für bereits geschlossene (nachgeholte) Alarme keine „neuer Einsatz"-
+    # Benachrichtigung – die würde für alte Alarme fälschlich Alarm auslösen.
+    if not geschlossen:
+        await notifier_service.benachrichtige(db, "benachrichtigung_divera_alarm", titel=alarm["titel"])
     return await einsatz_service.get_einsatz(db, einsatz.id)
 
 
