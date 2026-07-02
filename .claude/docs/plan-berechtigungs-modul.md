@@ -115,11 +115,21 @@ Datenmodell fixieren, Migrationsreihenfolge festlegen.
   Enforcement-Umbau in Phase 4, um bestehende Benachrichtigungen nicht zu brechen.
 
 **Phase 4 – Enforcement umstellen (schrittweise, Modul für Modul):**
-- Endpunkte von `CurrentAdmin`/`CurrentModerator` auf `require_modul_zugriff(...)`
-  migrieren – pro Modul, mit **Admin-Bypass** als Sicherheitsnetz.
-- Datenmigration: bestehende Rollen → passende Berechtigungen (Admins bekommen alle
-  Module), damit niemand ausgesperrt wird.
-- Tests je migriertem Bereich (Zugriff erlaubt/verweigert).
+- **4a ✅ Werkzeug fertig:** `require_modul_zugriff(modul_key)` in `deps.py`
+  (Admin-Bypass via `berechtigungs_service.hat_zugriff`, sonst 403). Noch **nicht**
+  angewandt → nicht-brechend. Tests `test_modul_zugriff.py`. Suite grün (91).
+- **4b offen (braucht Design-Entscheidung + Review vor dem Flip):**
+  - **Endpoint→Modul-Mapping** festlegen: heutige Gruppenführer-Bereiche
+    (Dashboard/Listen/Buchungen/Punkte + Einsatz/Dienstbuch/Fahrzeugbuchung managen)
+    vs. die Modul-Taxonomie. Vorschlag: Gruppenführer behalten die operativen
+    Fachmodule (einsatztagebuch/dienstbuch/dienststunden/fahrzeugbuchung), Querschnitt
+    (personal/stammdaten/barcodes/benachrichtigungen/einstellungen/berechtigungen)
+    bleibt admin-only.
+  - **Datenmigration Rollen→Rechte** (bestehende Gruppenführer bekommen ihre
+    bisherigen Module), damit beim Aktivieren niemand ausgesperrt wird.
+  - Dann Endpunkte schrittweise von `CurrentAdmin`/`CurrentModerator` auf
+    `require_modul_zugriff(...)` umstellen; Tests je Bereich.
+  - **Notifier-Wiring** (Phase-3-Kanäle in den Versand) im selben Zug.
 
 **Phase 5 – Aufräumen & Doku:**
 - Altes Rollenmodell abkündigen/entfernen (sofern Entscheidung 3 das zulässt).
