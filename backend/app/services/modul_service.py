@@ -34,6 +34,7 @@ MODUL_REGISTRY: list[ModulDef] = [
     ModulDef("personal", "Personal", "Personen-Stammdaten verwalten"),
     ModulDef("stammdaten", "Stammdaten", "Fahrzeuge, Funktionen, Gruppen, Zusatzfelder"),
     ModulDef("barcodes", "Barcodes", "Barcodes erzeugen und versenden"),
+    ModulDef("kiosk-geraete", "Kiosk-Geräte", "Kiosk-/Geräte-Tokens verwalten"),
     ModulDef("benachrichtigungen", "Benachrichtigungen", "Benachrichtigungskanäle konfigurieren"),
     ModulDef("einstellungen", "Einstellungen", "App-Konfiguration"),
     ModulDef("berechtigungen", "Berechtigungen", "Modul-Zugriffe pro Moderator vergeben"),

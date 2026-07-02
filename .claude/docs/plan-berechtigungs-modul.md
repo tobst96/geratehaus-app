@@ -126,7 +126,12 @@ Datenmodell fixieren, Migrationsreihenfolge festlegen.
   (`require_modul_zugriff("personal")`) sind jetzt granular geschützt – Admins via
   Bypass, sonst 403 bis Freigabe. Nicht-brechend (Nicht-Admins waren vorher auch
   gesperrt). Enforcement-Tests in `test_berechtigungen.py`/`test_benachrichtigungskanal.py`.
-  Suite grün (93).
+  Suite grün (93). **Weiterer Batch:** Registry um `kiosk-geraete` ergänzt;
+  `moderator_einstellungen` + `moderator_update` auf `require_modul_zugriff("einstellungen")`
+  umgestellt (Selbstlösch-Schutz via `CurrentModerator` erhalten). Suite grün (95).
+  **Mapping-Entscheidungen des Nutzers:** Dashboard/Listen bleiben für jeden Moderator
+  sichtbar (kein Recht); Kiosk-Geräte = eigenes Modul `kiosk-geraete`; Punkte wird
+  übersprungen (Backlog: Punktesystem wird entfernt).
 - **4b Rest offen (Rollout über die restlichen Router):**
   - **Endpoint→Modul-Mapping** festlegen: heutige Gruppenführer-Bereiche
     (Dashboard/Listen/Buchungen/Punkte + Einsatz/Dienstbuch/Fahrzeugbuchung managen)
