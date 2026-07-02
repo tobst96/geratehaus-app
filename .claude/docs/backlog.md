@@ -378,6 +378,25 @@ Netzwerkdrucker mit IPP/CUPS im LAN.
 Release-Direktive: Ziel ist ein **Stable-Release**. Vor dem Release keine neuen
 Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
+### Einsatzdetails: Eingaben verschwinden beim Eintippen
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Bug / Frontend
+- Skills: bugfix, review, tests
+- Beschreibung: Beim Eingeben der Einsatzdetails (Zusatzfelder in der Garage-/Einsatz-
+  Detailansicht) verschwinden plötzlich **alle bereits eingegebenen Werte**. Das darf
+  nicht passieren – die Eingaben müssen erhalten bleiben. **Stable-Blocker.**
+- Akzeptanzkriterien: Eingaben bleiben während des Tippens/Bearbeitens erhalten und
+  gehen nicht durch Hintergrund-Aktualisierung/Timer/Reload verloren; Regressionstest
+  bzw. reproduzierbarer manueller Testfall.
+- Notizen: Verdachtsmomente zum Prüfen bei der Umsetzung – (a) periodische
+  Aktualisierung/Polling der Einsatzansicht überschreibt den lokalen Formular-State;
+  (b) der Einsatz-Countdown schließt die Garage-Ansicht bei Ablauf automatisch (README:
+  „schließt die Ansicht automatisch bei Ablauf") und verwirft ungespeicherte Details;
+  (c) ein Re-Render/`useEffect` setzt die Felder auf die Serverwerte zurück. Betrifft
+  vermutlich `EinsatzDetail.tsx` / `EinsatzDiagramm.tsx` bzw. `EinsatzDetailModerator.tsx`.
+
 ### Divera-Import für Einsätze und Benutzer fixen
 
 - Status: Backlog
