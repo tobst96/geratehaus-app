@@ -46,6 +46,34 @@ async def test_barcode_einscannen_wird_rate_limitiert(client, db):
     assert letzte_antwort.status_code == 429
 
 
+async def test_token_fuer_person_erneuert_abgelaufenen(db):
+    """Regression: ein abgelaufener Barcode-Token darf beim Erzeugen/Abrufen für
+    den Moderator nicht unverändert zurückgegeben werden (sonst kopiert/mailt er
+    einen Barcode, der beim Scannen sofort als abgelaufen gilt) – er wird frisch
+    erzeugt."""
+    from app.services import barcode_service
+
+    person, alter = await _person_mit_barcode(db, abgelaufen=True)
+    alter_token = alter.token
+
+    neuer = await barcode_service.token_fuer_person(db, person.id)
+
+    assert neuer.token != alter_token
+    assert neuer.ablauf_am is not None
+    assert neuer.ablauf_am > datetime.utcnow()
+
+
+async def test_token_fuer_person_behaelt_gueltigen(db):
+    """Ein noch gültiger Token bleibt unverändert (idempotent)."""
+    from app.services import barcode_service
+
+    person, gueltig = await _person_mit_barcode(db, abgelaufen=False)
+
+    selber = await barcode_service.token_fuer_person(db, person.id)
+
+    assert selber.token == gueltig.token
+
+
 async def test_abmelden_loescht_namens_cookie(client, db):
     _, token = await _person_mit_barcode(db)
     eingeloggt = await client.post("/api/v1/auth/barcode", json={"token": token.token})

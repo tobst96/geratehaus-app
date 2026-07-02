@@ -460,6 +460,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 Nur zur Nachvollziehbarkeit; nicht mehr zu tun.
 
+**[Barcode] Bug behoben (2026-07-02):** Ein für eine Person erzeugter/kopierter
+Barcode galt beim Scannen als abgelaufen, weil `barcode_service.token_fuer_person()`
+einen bereits abgelaufenen Token unverändert zurückgab. Fix: abgelaufener Token wird
+frisch erzeugt (`barcode_erneuern`). Auto-Erneuerung + Mail bei Ablauf existierten
+bereits (Tagesjob `barcode_erneuerung` + Hintergrund-Mail beim Scannen eines
+abgelaufenen Barcodes). 2 Regressionstests in `test_barcode_auth.py`.
+
 **Etappe A – Quick Fixes:** Update-Versionsvergleich (PEP-440↔Semver) normalisiert ·
 Abstand unter Aktions-Buttons vereinheitlicht · Dienstbuch Mitglied: Gruppe
 vorgewählt · Dienststunden-Liste zeigt Namen statt IDs · Punkte-Übersicht: irre­

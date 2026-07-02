@@ -26,6 +26,11 @@ async def token_fuer_person(db: AsyncSession, person_id: int) -> BarcodeToken:
     result = await db.execute(select(BarcodeToken).where(BarcodeToken.person_id == person_id))
     bestehender = result.scalar_one_or_none()
     if bestehender is not None:
+        # Einen bereits abgelaufenen Token NICHT weitergeben – sonst würde der
+        # Moderator einen abgelaufenen Barcode kopieren/drucken/mailen, der beim
+        # Scannen sofort als abgelaufen abgewiesen wird. Stattdessen frisch erzeugen.
+        if bestehender.ablauf_am is not None and bestehender.ablauf_am < datetime.utcnow():
+            return await barcode_erneuern(db, person_id)
         if bestehender.ablauf_am is None:
             gueltigkeit_tage = await config_service.get(db, "barcode_gueltigkeit_tage", 730)
             bestehender.ablauf_am = datetime.utcnow() + timedelta(days=gueltigkeit_tage)

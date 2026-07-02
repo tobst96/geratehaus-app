@@ -79,9 +79,11 @@ scripts/test-backend.sh -k barcode # pytest-Argumente werden durchgereicht
 ```
 
 Das Skript legt die Test-DB `geratehaus_test` in der `db`-Container-Postgres an
-(idempotent) und führt `pytest` im `backend`-Container aus (dort liegen alle
-Laufzeit-Deps + `tests/`; `pytest` wird nur ephemer nachinstalliert, das Prod-Image
-bleibt unverändert). Voraussetzung: `docker compose up -d` läuft.
+(idempotent) und startet einen Wegwerf-Container aus dem `backend`-Image, in den das
+lokale `./backend` als `/app` gemountet wird – so testet `pytest` den **aktuellen
+Working-Tree** (Code + `tests/`), nicht den ins Image gebackenen Stand. `pytest` wird
+nur ephemer nachinstalliert, das Prod-Image bleibt unverändert. Voraussetzung: der
+`db`-Container läuft (`docker compose up -d`).
 
 ## Aktueller Testumfang
 
