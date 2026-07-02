@@ -27,6 +27,16 @@ async def funktion_existiert_und_aktiv(db: AsyncSession, funktion_id: int) -> bo
 
 
 async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfassen) -> DienststundenEintragOut:
+    doppelt = await db.execute(
+        select(Dienststunden).where(
+            Dienststunden.person_id == person_id,
+            Dienststunden.funktion_id == daten.funktion_id,
+            Dienststunden.datum == daten.datum,
+        )
+    )
+    if doppelt.scalar_one_or_none() is not None:
+        raise ValueError("Für diese Person, Funktion und Datum existiert bereits ein Eintrag.")
+
     eintrag = Dienststunden(
         person_id=person_id,
         funktion_id=daten.funktion_id,
@@ -41,15 +51,23 @@ async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfasse
     # Punkte je Stunde, präzise anteilig (z. B. 1,5 Std. = 1,5-facher Wert,
     # also auch auf die Minute genau berücksichtigt).
     await stammdaten_service.punkte_regel_anwenden(db, person_id, "dienststunden", faktor=eintrag.stunden)
+
+    funktion_result = await db.execute(
+        select(FunktionDienststunden).where(FunktionDienststunden.id == daten.funktion_id)
+    )
+    funktion = funktion_result.scalar_one_or_none()
+    stunden_str = str(int(eintrag.stunden)) if eintrag.stunden == int(eintrag.stunden) else f"{eintrag.stunden:.1f}"
+    await stammdaten_service.person_ereignis_protokollieren(
+        db,
+        person_id,
+        "dienststunden_erfasst",
+        f"{stunden_str} Stunden als {funktion.name if funktion else '?'} am {daten.datum}",
+    )
     await db.commit()
     await _stunden_mail_senden(db, person_id, daten.funktion_id, eintrag.stunden, str(daten.datum))
 
     person_result = await db.execute(select(Person).where(Person.id == person_id))
     person = person_result.scalar_one_or_none()
-    funktion_result = await db.execute(
-        select(FunktionDienststunden).where(FunktionDienststunden.id == daten.funktion_id)
-    )
-    funktion = funktion_result.scalar_one_or_none()
     return DienststundenEintragOut(
         id=eintrag.id,
         person_id=person_id,

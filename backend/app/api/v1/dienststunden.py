@@ -25,7 +25,10 @@ async def erfassen(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Funktion nicht gefunden oder inaktiv."
         )
-    return await dienststunden_service.erfassen(db, person.id, daten)
+    try:
+        return await dienststunden_service.erfassen(db, person.id, daten)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
 
 @router.get(

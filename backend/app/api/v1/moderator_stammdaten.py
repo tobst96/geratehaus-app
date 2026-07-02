@@ -363,7 +363,10 @@ async def person_dienststunden_erfassen(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Funktion nicht gefunden oder inaktiv."
         )
-    return await dienststunden_service.erfassen(db, person_id, daten)
+    try:
+        return await dienststunden_service.erfassen(db, person_id, daten)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
 
 # --- Divera-Personal-Abgleich ---------------------------------------------------

@@ -88,11 +88,11 @@ einfach "mach Etappe X" oder nenn das Modul, wenn du gezielt etwas anderes vorzi
       Erledigt: beide Seiten zeigen nach dem Erfassen eine „✓ Erfasst"-Bestätigung mit
       Person, Dauer (z. B. „1 Std. 30 Min."), Funktion und Datum. Nebenbei den 0:15-Chip auch
       in `DienststundenManuelleEintragung.tsx` ergänzt (Konsistenz zur Hauptseite).
-- [ ] [Dienststunden] Schutz vor Doppelbuchung: Aktuell wird nicht geprüft, ob für
+- [x] [Dienststunden] Schutz vor Doppelbuchung: Aktuell wird nicht geprüft, ob für
       Person+Datum+Funktion bereits ein Eintrag existiert – Mehrfachbuchung (inkl. mehrfacher
       Punktevergabe) ist möglich. Warnung oder Block einbauen in
       `dienststunden_service.erfassen()` (backend/app/services/dienststunden_service.py).
-- [ ] [Dienststunden] Dienststunden-Buchungen werden nicht als eigenes Ereignis in der
+- [x] [Dienststunden] Dienststunden-Buchungen werden nicht als eigenes Ereignis in der
       Person-Timeline protokolliert – aktuell wird dort nur ein Funktionswechsel festgehalten
       (`_funktion_in_stammdaten_abgleichen()`), nicht die Buchung selbst. Eigenes PersonEreignis
       (z. B. `"dienststunden_erfasst"`) beim Buchen ergänzen.
