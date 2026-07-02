@@ -20,6 +20,7 @@ import { EinsatzDetailModerator } from "./pages/moderator/EinsatzDetailModerator
 import { DienstbuchDetailModerator } from "./pages/moderator/DienstbuchDetailModerator";
 import { Einstellungen } from "./pages/moderator/Einstellungen";
 import { Update } from "./pages/moderator/Update";
+import { Module } from "./pages/moderator/Module";
 import { BarcodeGenerator } from "./pages/moderator/BarcodeGenerator";
 import { NotifierEinstellungen } from "./pages/moderator/NotifierEinstellungen";
 import { SetupWizard } from "./pages/setup/SetupWizard";
@@ -71,6 +72,7 @@ export function App() {
                 <Route path="kiosk-geraete" element={<KioskGeraete />} />
                 <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />
                 <Route path="einstellungen" element={<Einstellungen />} />
+                <Route path="module" element={<Module />} />
                 <Route path="update" element={<Update />} />
               </Route>
             </Route>

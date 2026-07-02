@@ -1,9 +1,10 @@
 # Umsetzungsplan: Granulare Berechtigungsverwaltung & Modul-System
 
-Status: **Plan / Entwurf** – noch kein Code. Backlog-Item: „Granulare, individuelle
-Berechtigungsverwaltung als eigenständiges Modul" (`.claude/docs/backlog.md`).
-Umsetzung anschließend phasenweise auf diesem Feature-Branch mit PR, **nicht** direkt
-auf `main`.
+Status: **In Umsetzung** – Phase 0 (Entscheidungen) + **Phase 1 umgesetzt** (Modul-
+Registry, `module`-Tabelle, Admin-Seite „Module", Tests). Phasen 2–5 offen. Backlog-
+Item: „Granulare, individuelle Berechtigungsverwaltung als eigenständiges Modul"
+(`.claude/docs/backlog.md`). Umsetzung phasenweise auf diesem Feature-Branch mit PR,
+**nicht** direkt auf `main`.
 
 ## 1. Ziel
 
@@ -77,11 +78,14 @@ eigenständiges, erweiterbares **Modul**, verwaltet über eine neue Einstellungs
 **Phase 0 – Entscheidungen & Feinentwurf** (kein/kaum Code): Fragen aus §3 klären,
 Datenmodell fixieren, Migrationsreihenfolge festlegen.
 
-**Phase 1 – Modul-Registry + „Module"-Seite (nicht-brechend):**
-- `Module`-Modell + Migration; Registry, die bestehende Bereiche seedet
-  (`ensure_defaults`-Analogie).
-- Read-only „Module"-Einstellungsseite (Liste, aktiv/inaktiv umschalten).
-- Keine Änderung an bestehenden Auth-Prüfungen. Tests: Registry/Seeding, Endpoint.
+**Phase 1 – Modul-Registry + „Module"-Seite (nicht-brechend): ✅ umgesetzt**
+- `Modul`-Modell (`module`-Tabelle) + Migration `0035_module.py`; Registry
+  `modul_service.MODUL_REGISTRY` + `ensure_module()` (idempotent, im Lifespan geseedet).
+- Admin-Endpunkte `GET /moderator/module`, `PATCH /moderator/module/{key}`
+  (`moderator_module.py`, `CurrentAdmin`).
+- Admin-Seite „Module" (`pages/moderator/Module.tsx`) + Nav-Eintrag + Route.
+- Keine Änderung an bestehenden Auth-Prüfungen. Tests: `test_module_registry.py`
+  (Seeding, Idempotenz, set_aktiv, Admin-only, Patch). Suite grün (79).
 
 **Phase 2 – Berechtigungen (noch ohne Enforcement):**
 - `Berechtigung`-Modell + Migration; `berechtigungs_service.hat_zugriff()` +

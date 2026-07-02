@@ -23,6 +23,7 @@ from app.api.v1 import (
     moderator_dashboard,
     moderator_einstellungen,
     moderator_listen,
+    moderator_module,
     moderator_punkte,
     moderator_stammdaten,
     moderator_update,
@@ -39,6 +40,7 @@ from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.sentry_setup import init_sentry_wenn_aktiviert
 from app.db.session import AsyncSessionLocal
 from app.jobs import scheduler
+from app.services import modul_service
 from app.services.config_service import config_service
 
 konfiguriere_logging()
@@ -48,6 +50,7 @@ konfiguriere_logging()
 async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as db:
         await config_service.ensure_defaults(db)
+        await modul_service.ensure_module(db)
         init_sentry_wenn_aktiviert(await config_service.get(db, "fehlerberichte_aktiv", False))
     scheduler.start()
     yield
@@ -92,6 +95,7 @@ app.include_router(moderator_stammdaten.router, prefix="/api/v1")
 app.include_router(person_bild_reservierungen.router, prefix="/api/v1")
 app.include_router(moderator_dashboard.router, prefix="/api/v1")
 app.include_router(moderator_listen.router, prefix="/api/v1")
+app.include_router(moderator_module.router, prefix="/api/v1")
 app.include_router(moderator_punkte.router, prefix="/api/v1")
 app.include_router(moderator_buchungen.router, prefix="/api/v1")
 app.include_router(push.router, prefix="/api/v1")
