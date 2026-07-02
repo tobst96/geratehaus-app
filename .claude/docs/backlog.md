@@ -479,6 +479,69 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ---
 
+## Berechtigungsverwaltung & Modul-System
+
+### Granulare, individuelle Berechtigungsverwaltung als eigenständiges Modul
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Neues Modul / Feature / Architektur
+- Skills: planner, new-module, geraetehaus-patterns, tests, review
+- Beschreibung: Berechtigungen sollen künftig **nicht rollenbasiert** (Admin/
+  Gruppenführer), sondern **individuell pro Mitarbeiter und Modul** vergeben werden.
+  Umsetzung als eigenständiges, erweiterbares Modul, verwaltet über eine neue
+  Einstellungsseite „Module".
+  - **(1) Admin-Seite „Berechtigungen"** – eine zentrale Seite (nicht über
+    Unterseiten verteilt): keine rollenbasierte Vergabe; jeder Mitarbeiter erhält
+    Rechte individuell. Pro Mitarbeiter alle Module einzeln auflisten, Zugriff je
+    Modul separat setzbar (Checkbox/Toggle). Filter: Mitarbeiter nach vorhandener
+    Berechtigung filtern (z. B. „alle mit Zugriff auf Modul X").
+  - **(2) Benachrichtigungsweg pro Mitarbeiter** – bevorzugter Kanal je Mitarbeiter,
+    initial E-Mail und Telegram (mit Chat-ID-Feld). Kanal-Auswahl **erweiterbar**
+    aufgebaut (Registry/Interface statt Hardcoding), damit künftige Kanäle
+    (SMS, Push, Slack …) ohne Umbau ergänzbar sind.
+  - **(3) Neue Einstellungsseite „Module"** – alle Module zentral gelistet/verwaltet
+    (Name, Beschreibung, aktiv/inaktiv). Das Berechtigungssystem selbst erscheint als
+    eigenständiges Modul in dieser Liste; künftige Module registrieren sich über
+    diesen Mechanismus.
+- Datenmodell (Orientierung, keine feste Vorgabe): `Module` (id, key, name,
+  beschreibung, aktiv); `Berechtigung` (mitarbeiter_id, modul_id);
+  `Benachrichtigungskanal` (mitarbeiter_id, typ = mail/telegram/…, zielwert =
+  E-Mail/Chat-ID). „Mitarbeiter" = bestehendes Personal (`Person`).
+- Architektur: Feature als eigenes Modul (eigener Namespace) über die Modul-Registry
+  einbinden; Berechtigungen überall über eine zentrale Prüf-Funktion/Service abfragen
+  (kein verstreuter direkter Tabellenzugriff).
+- UI/UX: Tabelle Mitarbeiter × Module (Checkbox je Zelle) ODER Detailansicht pro
+  Mitarbeiter mit Modulliste (je nach Modulanzahl sinnvollere Variante); Filterleiste
+  oben; pro Mitarbeiter Kanalauswahl inkl. Zieldaten; möglichst Inline-Speichern ohne
+  Reload.
+- Technischer Kontext: Backend FastAPI (async) + SQLAlchemy 2.0 + Alembic +
+  PostgreSQL; Frontend React 18 + TypeScript + Vite; Modul-/Ordnerkonvention siehe
+  `.claude/architecture.md`, `.claude/docs/backend.md`, `.claude/docs/frontend.md`.
+- Akzeptanzkriterien (Definition of Done):
+  - Admin-Seite „Berechtigungen" zeigt alle Mitarbeiter × Module.
+  - Berechtigung pro Mitarbeiter/Modul einzeln setzbar; Filter nach Berechtigung
+    funktioniert.
+  - Benachrichtigungsweg (Mail/Telegram inkl. Chat-ID) pro Mitarbeiter einstellbar
+    und erweiterbar (Kanal-Registry).
+  - Einstellungsseite „Module" listet alle Module inkl. Berechtigungs-Modul.
+  - Berechtigungssystem als eigenständiges Modul über Modul-Registry eingebunden.
+  - Migrationen + Tests; `.claude/docs/permissions.md` und `CLAUDE.md` aktualisiert.
+- Notizen:
+  - **Explizit NICHT gewünscht:** rollenbasierte Vergabe; Verteilung über mehrere
+    Admin-Unterseiten.
+  - **Großer Umbau** – eigener Feature-Branch + PR laut Projektkonvention. Bei
+    Unklarheiten zu Stack/Struktur während der Umsetzung nachfragen statt annehmen.
+  - **Ersetzt/überarbeitet das aktuelle Rollenmodell** (Admin vs. Gruppenführer über
+    `Moderator.rolle`, siehe `.claude/docs/permissions.md`) – Auswirkungen auf alle
+    `CurrentAdmin`/`CurrentModerator`-abgesicherten Endpunkte klären; ebenso, für
+    welche Nutzer (Moderatoren vs. Personen/Kiosk) die Rechte gelten.
+  - Überschneidet sich mit **Etappe G** (Benachrichtigungen pro Empfänger) und
+    **Etappe M** (einheitliche Modul-Architektur/Registry) – bei der Umsetzung
+    zusammenführen.
+
+---
+
 ## Archiviert (bereits erledigt – aus TODO.md übernommen)
 
 Nur zur Nachvollziehbarkeit; nicht mehr zu tun.
