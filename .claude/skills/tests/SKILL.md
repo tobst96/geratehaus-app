@@ -68,6 +68,21 @@ pytest tests/test_dienststunden_schwellenwert.py
 pytest -k barcode
 ```
 
+### In dieser (Docker-)Umgebung
+
+Es gibt hier kein Host-`venv` und kein Host-Postgres. Die Suite läuft über die
+laufenden Container – Helfer-Skript:
+
+```bash
+scripts/test-backend.sh            # ganze Suite
+scripts/test-backend.sh -k barcode # pytest-Argumente werden durchgereicht
+```
+
+Das Skript legt die Test-DB `geratehaus_test` in der `db`-Container-Postgres an
+(idempotent) und führt `pytest` im `backend`-Container aus (dort liegen alle
+Laufzeit-Deps + `tests/`; `pytest` wird nur ephemer nachinstalliert, das Prod-Image
+bleibt unverändert). Voraussetzung: `docker compose up -d` läuft.
+
 ## Aktueller Testumfang
 
 Die Suite deckt gezielt sicherheitskritische und volatile Kernbereiche ab.

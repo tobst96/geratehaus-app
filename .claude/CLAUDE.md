@@ -77,6 +77,8 @@ Kiosk/Mitglied/Moderator; Config: `modul_<name>_aktiv` / `_startseite` /
 - Bugfixes brauchen einen Regressionstest (erst der fehlschlagende Test, dann Fix).
 - Neue Features brauchen mindestens einen Happy-Path-Test.
 - Vor Abschluss/Deploy `pytest` und `npm run build` ausführen. Skill `tests`.
+- In dieser Docker-Umgebung (kein Host-venv/-Postgres) läuft die Backend-Suite über
+  `scripts/test-backend.sh` (nutzt die Container + Test-DB `geratehaus_test`).
 
 ## Arbeitsweise / Workflow
 
