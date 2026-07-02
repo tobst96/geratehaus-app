@@ -113,13 +113,30 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
     roter Text), Hover-/Touch-Feedback, klarere Abstände.
   - **Abmelden**- und **Schließen**-Button sauber im Menü-Layout verankern (aktuell
     wirken sie freistehend links neben der Liste).
-- Akzeptanzkriterien: Menü ist visuell strukturiert (Icons + optionale Gruppen),
+- Gruppierung nach Modulen (gewünschte Struktur): Alle modulbezogenen Seiten
+  sollen unter einem Sammelpunkt **„Module"** als **Unterseiten** zusammengefasst
+  werden – statt jede modulbezogene Seite flach im Top-Level-Menü aufzulisten.
+  Unter jedem Modul liegen dann sowohl die eigentliche Modul-Seite als auch die
+  **jeweiligen (Modul-)Einstellungen** direkt beim Modul (nicht mehr verteilt in
+  einer zentralen „Einstellungen"-Seite). Beispiel: „Module → Einsatztagebuch"
+  bündelt Liste/Verwaltung **und** die Einsatztagebuch-Einstellungen an einer
+  Stelle; analog für Dienstbuch, Fahrzeugbuchung, Barcodes, Kiosk-Geräte,
+  Benachrichtigungen usw. Die Modul-Liste stammt aus der bestehenden
+  `MODUL_REGISTRY` / dem Module-Bereich; Sichtbarkeit weiterhin über die
+  Berechtigungen (`require_modul_zugriff` / admin) steuern.
+- Akzeptanzkriterien: Menü ist visuell strukturiert (Icons + Gruppen), Module
+  hängen als Unterseiten unter „Module" inkl. der jeweiligen Modul-Einstellungen,
   aktiver Punkt klar erkennbar, Abmelden/Schließen sinnvoll platziert. Keine
-  organisationsspezifischen Werte hart kodiert; Funktion/Routing unverändert.
-- Notizen: Betrifft `frontend/src/components/ModeratorLayout.tsx` (Nav-Rendering)
-  + zugehörige Styles in `index.css`. Nur kosmetisch – keine Änderung an
-  Berechtigungen oder Sichtbarkeitslogik (admin-gefilterte Einträge bleiben wie
-  bisher).
+  organisationsspezifischen Werte hart kodiert; nur berechtigte/aktive Module
+  sichtbar.
+- Notizen: Betrifft `frontend/src/components/ModeratorLayout.tsx` (Nav-Rendering,
+  Verschachtelung) + ggf. Routing in `App.tsx` (Unterseiten je Modul) + zugehörige
+  Styles in `index.css`. Die Verschachtelung ändert Navigation/Informations-
+  architektur – bei der Umsetzung prüfen, ob je Modul eigene Einstellungs-
+  Unterseiten nötig sind (heute liegen viele Einstellungen zentral in
+  `Einstellungen.tsx`). Keine Änderung an der Berechtigungs-/Sichtbarkeitslogik
+  selbst (admin-gefilterte bzw. `require_modul_zugriff`-geschützte Einträge bleiben
+  wie bisher, nur anders gruppiert).
 
 ### Logo-Vorschau verzerrt Seitenverhältnis (Screenshot-Befund)
 
@@ -145,6 +162,25 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 ---
 
 ## Etappe E – Mitglieder-Hub Redesign (`MitgliedHub.tsx`, nur Frontend)
+
+### Kacheln im Mitgliederbereich werden seitlich abgeschnitten (Screenshot-Befund)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Bug / Frontend / Design
+- Skills: bugfix, review
+- Beschreibung: Im Mitgliederbereich (Kachel-Übersicht: Einsatzbericht,
+  Dienstbuch, Dienststunden, Fahrzeugbuchung …) ragt eine Kachel links und rechts
+  über den Container hinaus – am Rand sind rote Kachel-Reste sichtbar, ein Teil
+  der Kachel fehlt/ist abgeschnitten (horizontaler Overflow). Ursache prüfen
+  (feste Breite/`min-width` bzw. negative Margins/Grid ohne `overflow`) und die
+  Kacheln vollständig innerhalb des Containers rendern.
+- Akzeptanzkriterien: Alle Kacheln werden vollständig und mittig im Container
+  angezeigt, kein horizontaler Overflow/keine abgeschnittenen Kacheln – auf
+  schmalen Screens wie auf Desktop.
+- Notizen: Betrifft `frontend/src/pages/MitgliedHub.tsx` + zugehörige Styles in
+  `index.css`. Verwandt mit „Layout-Overflow auf Mobile beheben" (Etappe D) –
+  bei der Umsetzung gemeinsam prüfen.
 
 ### (1) Kompakte Profil-Zeile statt Begrüßungsblock
 
