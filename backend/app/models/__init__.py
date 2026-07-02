@@ -4,6 +4,7 @@ String-Referenzen ("personen.id" etc.) auf."""
 
 from app.models.app_config import AppConfig
 from app.models.barcode_token import BarcodeToken, FahrzeugToken
+from app.models.berechtigung import Berechtigung
 from app.models.buchung import FahrzeugBuchung
 from app.models.buchung_aktion_token import BuchungAktionToken
 from app.models.dienstbuch import Dienstbuch, DienstbuchPerson
@@ -34,6 +35,7 @@ from app.models.reservierung import SitzplatzReservierung
 __all__ = [
     "AppConfig",
     "BarcodeToken",
+    "Berechtigung",
     "BuchungAktionToken",
     "Dienstbuch",
     "DienstbuchPerson",

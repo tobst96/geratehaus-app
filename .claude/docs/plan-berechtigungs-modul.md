@@ -1,7 +1,8 @@
 # Umsetzungsplan: Granulare Berechtigungsverwaltung & Modul-System
 
-Status: **In Umsetzung** – Phase 0 (Entscheidungen) + **Phase 1 umgesetzt** (Modul-
-Registry, `module`-Tabelle, Admin-Seite „Module", Tests). Phasen 2–5 offen. Backlog-
+Status: **In Umsetzung** – Phase 0 + **Phase 1 & 2 umgesetzt** (Modul-Registry +
+Admin-Seite „Module"; Berechtigungen pro Moderator + `berechtigungs_service` +
+Admin-Matrix „Berechtigungen"). **Enforcement noch aus.** Phasen 3–5 offen. Backlog-
 Item: „Granulare, individuelle Berechtigungsverwaltung als eigenständiges Modul"
 (`.claude/docs/backlog.md`). Umsetzung phasenweise auf diesem Feature-Branch mit PR,
 **nicht** direkt auf `main`.
@@ -87,12 +88,18 @@ Datenmodell fixieren, Migrationsreihenfolge festlegen.
 - Keine Änderung an bestehenden Auth-Prüfungen. Tests: `test_module_registry.py`
   (Seeding, Idempotenz, set_aktiv, Admin-only, Patch). Suite grün (79).
 
-**Phase 2 – Berechtigungen (noch ohne Enforcement):**
-- `Berechtigung`-Modell + Migration; `berechtigungs_service.hat_zugriff()` +
-  Setzen/Lesen.
-- Admin-Seite „Berechtigungen": Matrix Mitarbeiter × Module (Checkbox je Zelle) +
-  Filter nach Berechtigung; Inline-Speichern.
-- Enforcement noch **aus** (nur Datenpflege). Tests: Service, Endpunkte, Filter.
+**Phase 2 – Berechtigungen (noch ohne Enforcement): ✅ umgesetzt**
+- `Berechtigung`-Modell (`berechtigungen`-Tabelle, unique (moderator, modul)) +
+  Migration `0036_berechtigung.py`.
+- `berechtigungs_service`: `hat_zugriff()` (Admin-Bypass), `matrix()`,
+  `set_berechtigung()`.
+- Admin-Endpunkte `GET /moderator/berechtigungen` (Matrix), `PUT
+  /moderator/berechtigungen/{moderator_id}/{modul_key}`.
+- Admin-Seite „Berechtigungen" (`Berechtigungen.tsx`): Matrix Moderator × Module
+  (Checkbox je Zelle, Admins = Vollzugriff/disabled) + Filter nach Modul-Zugriff +
+  Inline-Speichern. Nav + Route.
+- Enforcement noch **aus** (nur Datenpflege). Tests `test_berechtigungen.py`
+  (Bypass, grant/revoke, unbekannt, Matrix-Endpoint admin-only, PUT+404). Suite grün (84).
 
 **Phase 3 – Benachrichtigungsweg pro Person (im Admin-Menü):**
 - `Benachrichtigungskanal`-Modell + Migration; erweiterbare Kanal-Registry

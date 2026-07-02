@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { pfad: "/moderator/benachrichtigungen", titel: "Benachrichtigungen", admin: true },
   { pfad: "/moderator/einstellungen", titel: "Einstellungen", admin: true },
   { pfad: "/moderator/module", titel: "Module", admin: true },
+  { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", admin: true },
   { pfad: "/moderator/update", titel: "Update", admin: true },
 ];
 

@@ -19,6 +19,7 @@ from app.api.v1 import (
     manifest,
     mitglied_login_reservierungen,
     moderator_barcodes,
+    moderator_berechtigungen,
     moderator_buchungen,
     moderator_dashboard,
     moderator_einstellungen,
@@ -96,6 +97,7 @@ app.include_router(person_bild_reservierungen.router, prefix="/api/v1")
 app.include_router(moderator_dashboard.router, prefix="/api/v1")
 app.include_router(moderator_listen.router, prefix="/api/v1")
 app.include_router(moderator_module.router, prefix="/api/v1")
+app.include_router(moderator_berechtigungen.router, prefix="/api/v1")
 app.include_router(moderator_punkte.router, prefix="/api/v1")
 app.include_router(moderator_buchungen.router, prefix="/api/v1")
 app.include_router(push.router, prefix="/api/v1")
