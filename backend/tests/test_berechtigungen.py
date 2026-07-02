@@ -87,3 +87,20 @@ async def test_put_berechtigung_setzt_und_matrix_zeigt(client, db):
         headers={"Authorization": f"Bearer {token}"},
     )
     assert fehlend.status_code == 404
+
+
+async def test_enforcement_berechtigungen_seite(client, db):
+    """Phase 4b: die Berechtigungen-Seite selbst ist granular geschützt. Ein
+    Gruppenführer ohne Freigabe des Moduls „berechtigungen" bekommt 403, nach der
+    Freigabe 200 (Admin hätte via Bypass immer Zugriff)."""
+    await modul_service.ensure_module(db)
+    await _moderator(db, "admin", "admin")
+    gf = await _moderator(db, "gf", "gruppenfuehrer")
+    h = {"Authorization": f"Bearer {await _token(client, 'gf')}"}
+
+    ohne = await client.get("/api/v1/moderator/berechtigungen", headers=h)
+    assert ohne.status_code == 403
+
+    await berechtigungs_service.set_berechtigung(db, gf.id, "berechtigungen", True)
+    mit = await client.get("/api/v1/moderator/berechtigungen", headers=h)
+    assert mit.status_code == 200

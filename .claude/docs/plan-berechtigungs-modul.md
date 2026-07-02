@@ -118,7 +118,14 @@ Datenmodell fixieren, Migrationsreihenfolge festlegen.
 - **4a ✅ Werkzeug fertig:** `require_modul_zugriff(modul_key)` in `deps.py`
   (Admin-Bypass via `berechtigungs_service.hat_zugriff`, sonst 403). Noch **nicht**
   angewandt → nicht-brechend. Tests `test_modul_zugriff.py`. Suite grün (91).
-- **4b offen (braucht Design-Entscheidung + Review vor dem Flip):**
+- **4b teilweise umgesetzt** – Entscheidung des Nutzers: **„leer starten, Admin
+  vergibt"** (nach dem Scharfschalten hat außer Admins niemand Zugriff, bis der Admin
+  das Modul freigibt). Erster Slice: die eigenständigen Admin-Seiten **Module**
+  (`require_modul_zugriff("einstellungen")`) und **Berechtigungen**
+  (`require_modul_zugriff("berechtigungen")`) sind jetzt granular geschützt – Admins
+  via Bypass, sonst 403 bis Freigabe. Nicht-brechend (Nicht-Admins waren vorher auch
+  gesperrt). Enforcement-Test in `test_berechtigungen.py`. Suite grün (92).
+- **4b Rest offen (Rollout über die restlichen Router):**
   - **Endpoint→Modul-Mapping** festlegen: heutige Gruppenführer-Bereiche
     (Dashboard/Listen/Buchungen/Punkte + Einsatz/Dienstbuch/Fahrzeugbuchung managen)
     vs. die Modul-Taxonomie. Vorschlag: Gruppenführer behalten die operativen

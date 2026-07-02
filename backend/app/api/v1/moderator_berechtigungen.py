@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.deps import CurrentAdmin, DbSession
+from app.api.deps import DbSession, require_modul_zugriff
 from app.schemas.berechtigung import (
     BerechtigungMatrixOut,
     BerechtigungSetzen,
@@ -9,11 +9,17 @@ from app.schemas.berechtigung import (
 )
 from app.services import berechtigungs_service
 
-router = APIRouter(prefix="/moderator/berechtigungen", tags=["moderator:berechtigungen"])
+# Phase 4b: dieses Modul ist jetzt granular geschützt – Admins immer (Bypass),
+# andere Moderatoren nur mit Freigabe des Moduls „berechtigungen".
+router = APIRouter(
+    prefix="/moderator/berechtigungen",
+    tags=["moderator:berechtigungen"],
+    dependencies=[Depends(require_modul_zugriff("berechtigungen"))],
+)
 
 
 @router.get("", response_model=BerechtigungMatrixOut)
-async def berechtigungen_matrix(db: DbSession, _admin: CurrentAdmin) -> BerechtigungMatrixOut:
+async def berechtigungen_matrix(db: DbSession) -> BerechtigungMatrixOut:
     """Matrix Moderatoren × Module für die Admin-Seite „Berechtigungen"."""
     module, moderatoren, keys_je_moderator = await berechtigungs_service.matrix(db)
     return BerechtigungMatrixOut(
@@ -33,7 +39,7 @@ async def berechtigungen_matrix(db: DbSession, _admin: CurrentAdmin) -> Berechti
 
 @router.put("/{moderator_id}/{modul_key}", status_code=status.HTTP_204_NO_CONTENT)
 async def berechtigung_setzen(
-    db: DbSession, _admin: CurrentAdmin, moderator_id: int, modul_key: str, daten: BerechtigungSetzen
+    db: DbSession, moderator_id: int, modul_key: str, daten: BerechtigungSetzen
 ) -> None:
     """Erteilt/entzieht einem Moderator den Zugriff auf ein Modul (Admin-only)."""
     ok = await berechtigungs_service.set_berechtigung(db, moderator_id, modul_key, daten.erlaubt)
