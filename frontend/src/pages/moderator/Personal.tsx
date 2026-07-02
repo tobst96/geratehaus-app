@@ -406,9 +406,9 @@ export function Personal() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+      <div className="personal-kopf">
         <h1 style={{ margin: 0 }}>Personal</h1>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="personal-kopf-buttons">
           <button type="button" className="sekundaer" onClick={() => setZeigeDiveraModal(true)} style={{ position: "relative" }}>
             Vorschlag
             {diveraVorschlaegeAnzahl > 0 && (
@@ -582,8 +582,8 @@ export function Personal() {
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
-        <div style={{ width: 300, flexShrink: 0 }}>
+      <div className="personal-layout">
+        <div className="personal-liste">
           <input
             placeholder="Suche…"
             value={suche}
@@ -662,31 +662,27 @@ export function Personal() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+              <div className="person-felder">
                 <input
                   defaultValue={ausgewaehltePerson.vorname ?? ""}
                   placeholder="Vorname"
                   onBlur={(e) => feldAendern(ausgewaehltePerson, "vorname", e.target.value)}
-                  style={{ width: 160 }}
                 />
                 <input
                   defaultValue={ausgewaehltePerson.zwischenname ?? ""}
                   placeholder="Zwischenname"
                   onBlur={(e) => feldAendern(ausgewaehltePerson, "zwischenname", e.target.value)}
-                  style={{ width: 160 }}
                 />
                 <input
                   defaultValue={ausgewaehltePerson.nachname ?? ""}
                   placeholder="Nachname"
                   onBlur={(e) => feldAendern(ausgewaehltePerson, "nachname", e.target.value)}
-                  style={{ width: 160 }}
                 />
                 <input
                   defaultValue={ausgewaehltePerson.email ?? ""}
                   placeholder="E-Mail"
                   type="email"
                   onBlur={(e) => feldAendern(ausgewaehltePerson, "email", e.target.value)}
-                  style={{ width: 200 }}
                 />
                 <label
                   style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.9rem" }}
@@ -732,7 +728,7 @@ export function Personal() {
                 </select>
               </div>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
+              <div className="person-aktionen">
                 <input
                   ref={bildInputRef}
                   type="file"

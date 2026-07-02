@@ -343,3 +343,181 @@ table td {
 table tr:hover {
   background: var(--farbe-hintergrund);
 }
+
+/* === Moderator-Navigation ================================================ */
+
+.moderator-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--farbe-rand);
+  padding-bottom: 12px;
+}
+
+.moderator-hamburger {
+  display: none;
+  background: transparent;
+  color: var(--farbe-text);
+  border: 1px solid var(--farbe-rand);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  font-size: 1.1rem;
+  min-height: 40px;
+  line-height: 1;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+
+.moderator-hamburger:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+  background: var(--farbe-oberflaeche-hover);
+}
+
+.moderator-nav-links {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.moderator-nav-link {
+  font-weight: 400;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  color: var(--farbe-text);
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.moderator-nav-link:hover {
+  background: var(--farbe-oberflaeche-hover);
+  color: var(--farbe-text);
+}
+
+.moderator-nav-link.aktiv {
+  font-weight: 700;
+  color: var(--farbe-primaer);
+}
+
+.moderator-abmelden {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .moderator-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .moderator-nav {
+    flex-wrap: wrap;
+    gap: 0;
+    padding-bottom: 0;
+  }
+
+  .moderator-abmelden {
+    margin-left: auto;
+  }
+
+  .moderator-nav-links {
+    display: none;
+    order: 3;
+    width: 100%;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 0 12px;
+    border-top: 1px solid var(--farbe-rand);
+    margin-top: 8px;
+  }
+
+  .moderator-nav-links.offen {
+    display: flex;
+  }
+
+  .moderator-nav-link {
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    display: block;
+  }
+}
+
+/* === Personal-Seite Mobile =============================================== */
+
+.personal-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.personal-kopf-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.personal-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.personal-liste {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.person-felder {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.person-felder input:not([type="checkbox"]):not([type="file"]),
+.person-felder select {
+  flex: 1 1 150px;
+  width: auto;
+}
+
+.person-aktionen {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .personal-layout {
+    flex-direction: column;
+  }
+
+  .personal-liste {
+    width: 100%;
+  }
+
+  .personal-kopf-buttons {
+    width: 100%;
+  }
+
+  .personal-kopf-buttons button {
+    flex: 1;
+  }
+
+  .person-felder input:not([type="checkbox"]):not([type="file"]),
+  .person-felder select {
+    flex: 1 1 100%;
+  }
+
+  .person-aktionen button {
+    flex: 1 1 calc(50% - 4px);
+  }
+}

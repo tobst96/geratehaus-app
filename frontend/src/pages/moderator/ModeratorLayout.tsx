@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -25,6 +26,7 @@ export function ModeratorLayout() {
   const navigate = useNavigate();
   const istAdmin = moderatorRolle === "admin";
   const sichtbareNavItems = NAV_ITEMS.filter((item) => !item.admin || istAdmin);
+  const [menuOffen, setMenuOffen] = useState(false);
 
   function abmelden() {
     moderatorAbmelden();
@@ -33,30 +35,29 @@ export function ModeratorLayout() {
 
   return (
     <div>
-      <nav
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 8,
-          marginBottom: 24,
-          borderBottom: "1px solid #e0e0e0",
-          paddingBottom: 12,
-        }}
-      >
-        {sichtbareNavItems.map((item) => (
-          <NavLink
-            key={item.pfad}
-            to={item.pfad}
-            style={({ isActive }) => ({
-              fontWeight: isActive ? 700 : 400,
-              textDecoration: "none",
-              padding: "6px 10px",
-            })}
-          >
-            {item.titel}
-          </NavLink>
-        ))}
-        <button className="sekundaer" style={{ marginLeft: "auto" }} onClick={abmelden}>
+      <nav className="moderator-nav">
+        <button
+          type="button"
+          className="moderator-hamburger"
+          onClick={() => setMenuOffen((o) => !o)}
+          aria-label="Navigation öffnen"
+          aria-expanded={menuOffen}
+        >
+          {menuOffen ? "✕" : "☰"}
+        </button>
+        <div className={`moderator-nav-links${menuOffen ? " offen" : ""}`}>
+          {sichtbareNavItems.map((item) => (
+            <NavLink
+              key={item.pfad}
+              to={item.pfad}
+              className={({ isActive }) => `moderator-nav-link${isActive ? " aktiv" : ""}`}
+              onClick={() => setMenuOffen(false)}
+            >
+              {item.titel}
+            </NavLink>
+          ))}
+        </div>
+        <button className="sekundaer moderator-abmelden" onClick={abmelden}>
           Abmelden
         </button>
       </nav>
