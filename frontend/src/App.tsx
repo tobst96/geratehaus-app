@@ -13,7 +13,6 @@ import { Dashboard } from "./pages/moderator/Dashboard";
 import { Listen } from "./pages/moderator/Listen";
 import { Buchungsmanagement } from "./pages/moderator/Buchungsmanagement";
 import { Personal } from "./pages/moderator/Personal";
-import { PunkteEinstellungen } from "./pages/moderator/PunkteEinstellungen";
 import { Stammdaten } from "./pages/moderator/Stammdaten";
 import { KioskGeraete } from "./pages/moderator/KioskGeraete";
 import { EinsatzDetailModerator } from "./pages/moderator/EinsatzDetailModerator";
@@ -62,10 +61,6 @@ export function App() {
               <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
               <Route path="dienstbuecher/:id" element={<DienstbuchDetailModerator />} />
               <Route path="buchungen" element={<Buchungsmanagement />} />
-              {/* Punkte: für jeden Moderator erreichbar (Gruppenführer können
-                  Belohnungen vergeben), die Regel-Einstellungen auf der Seite
-                  selbst bleiben dabei admin-only (siehe PunkteEinstellungen.tsx). */}
-              <Route path="punkte" element={<PunkteEinstellungen />} />
               <Route element={<AdminRoute />}>
                 <Route path="personal" element={<Personal />} />
                 <Route path="stammdaten" element={<Stammdaten />} />

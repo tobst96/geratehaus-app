@@ -231,7 +231,7 @@ a {
 
 /* Formular-Layout: Ersatz für <label>...<input>...<br /><br />-Ketten.
    .formular-feld für ein einzelnes Label+Input-Paar mit definiertem Abstand,
-   .formular-zeile für mehrere Felder nebeneinander (z. B. Person/Punkte/Grund
+   .formular-zeile für mehrere Felder nebeneinander (z. B. mehrere Felder
    in einer Reihe), bricht auf schmalen Screens automatisch um. */
 .formular-feld {
   display: flex;

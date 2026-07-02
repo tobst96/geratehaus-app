@@ -34,6 +34,13 @@ class Settings(BaseSettings):
     cors_origins: str = ""
     upload_dir: str = "/app/uploads"
 
+    # Verzeichnis für das Update-Signal: Schreibt der Admin über die Update-Seite
+    # eine Update-Anforderung, landet hier eine Markerdatei. Ein host-seitiges
+    # Skript (scripts/updater.sh, per cron/systemd) beobachtet diesen – über einen
+    # Bind-Mount geteilten – Ordner und führt dann git pull + docker compose
+    # up -d --build aus. Der Container selbst bleibt bewusst ohne Host-Zugriff.
+    update_signal_dir: str = "/app/update-signal"
+
     # Fehlerberichte (Sentry): die eigentliche DSN ist eine feste Konstante
     # im Code (app/core/sentry_setup.PROJECT_DSN), damit alle Installationen
     # dieses Open-Source-Repos an dasselbe zentrale Sentry-Projekt berichten

@@ -38,3 +38,8 @@ backend/uploads/
 # Docker
 docker-compose.override.yml
 .claude/settings.local.json
+
+# Update-Signal (host-seitiges Update-Skript): Markerdatei nicht versionieren,
+# nur den Ordner behalten
+update-signal/*
+!update-signal/.gitkeep

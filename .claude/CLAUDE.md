@@ -36,11 +36,11 @@ Strikte Trennung – siehe `.claude/docs/backend.md`:
 - **Router** (`app/api/v1/`): nur Routing, Auth, Berechtigungen, Requestvalidierung,
   Service-Aufruf, Response. **Keine** Businesslogik.
 - **Services** (`app/services/`): die gesamte Businesslogik, DB-Schreibzugriffe,
-  `commit()`, Benachrichtigungen, Punktevergabe, Timeline-Einträge.
+  `commit()`, Benachrichtigungen, Timeline-Einträge.
 - **Models** (`app/models/`): nur DB-Abbildung, keine Businesslogik.
 - **Schemas** (`app/schemas/`): Pydantic, strikt getrennt von ORM-Modellen.
   Personen immer über `stammdaten_service.personen_zu_out()` / `person_zu_out()`
-  konvertieren (berechnete Felder wie Gesamtpunkte).
+  konvertieren.
 
 ## Datenbankänderungen
 
@@ -55,13 +55,12 @@ Bestehende Dependencies verwenden (`CurrentModerator`, `CurrentAdmin`,
 `CurrentPerson`), Module über `require_modul_aktiv()` absichern. Keine eigenen
 Rollenprüfungen erfinden. Reales Rollenmodell: `.claude/docs/permissions.md`.
 
-## Benachrichtigungen, Punkte, Timeline
+## Benachrichtigungen, Timeline
 
 - Benachrichtigungen nie direkt versenden – immer
   `notifier_service.benachrichtige()`. Siehe `.claude/docs/notifications.md`.
-- Punkte nie direkt schreiben – über die bestehenden Services. Relevante
-  Personenänderungen als `PersonEreignis` protokollieren. Siehe
-  `.claude/docs/timeline.md`.
+- Relevante Personenänderungen als `PersonEreignis` protokollieren – aus dem
+  Service heraus. Siehe `.claude/docs/timeline.md`.
 
 ## Module
 

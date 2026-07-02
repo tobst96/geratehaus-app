@@ -39,7 +39,7 @@ export function LandingPage() {
 
         <div className="karte">
           <h2>Admin</h2>
-          <p style={{ color: "var(--farbe-text-mute)" }}>Personal, Punkte und alle Einstellungen verwalten.</p>
+          <p style={{ color: "var(--farbe-text-mute)" }}>Personal, Stammdaten und alle Einstellungen verwalten.</p>
           <Link to="/moderator/login">
             <button type="button">Admin-Login</button>
           </Link>

@@ -106,18 +106,6 @@ async def _einsatz_geplanter_abschluss_job() -> None:
             logger.warning("einsatz_geplanter_abschluss_fehlgeschlagen", exc_info=True)
 
 
-async def _punkte_ablauf_job() -> None:
-    """Läuft täglich um 0 Uhr; entfernt abgelaufene Personen-Punkte (deren
-    Gültigkeit überschritten ist) aus der person_punkte-Tabelle."""
-    async with AsyncSessionLocal() as db:
-        try:
-            anzahl = await stammdaten_service.punkte_aufraeumen(db)
-            if anzahl:
-                logger.info("punkte_aufgeraeumt", anzahl=anzahl)
-        except Exception:
-            logger.warning("punkte_aufraeumen_fehlgeschlagen", exc_info=True)
-
-
 async def _personen_inaktivitaet_job() -> None:
     """Läuft täglich um 0 Uhr; warnt inaktive Personen einmalig 7 Tage vor
     Ablauf und löscht Personen, die die eingestellte Inaktivitätsschwelle
@@ -220,16 +208,6 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("dienstbuch_autoschluss_job_registriert")
-
-    scheduler.add_job(
-        _punkte_ablauf_job,
-        "cron",
-        hour=0,
-        minute=0,
-        id="punkte_ablauf",
-        replace_existing=True,
-    )
-    logger.info("punkte_ablauf_job_registriert", uhrzeit="00:00")
 
     scheduler.add_job(
         _personen_inaktivitaet_job,

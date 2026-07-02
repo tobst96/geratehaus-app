@@ -465,7 +465,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Einsatzdetails: Eingaben verschwinden beim Eintippen
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Hoch
 - Kategorie: Bug / Frontend
 - Skills: bugfix, review, tests
@@ -484,7 +484,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Divera-Import für Einsätze und Benutzer fixen
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Hoch
 - Kategorie: Bug / Backend
 - Skills: bugfix, tests, review
@@ -494,7 +494,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Benachrichtigungen vollständig einrichten/einstellbar
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Hoch
 - Kategorie: Feature / Backend
 - Skills: geraetehaus-patterns, tests, review
@@ -505,7 +505,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Stable-Updater tatsächlich einbauen
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Hoch
 - Kategorie: Feature / Backend / Frontend
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -516,7 +516,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Punktesystem vollständig entfernen (inkl. Datenbank)
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Hoch
 - Kategorie: Wartung / Backend / Datenbank / Frontend
 - Skills: geraetehaus-patterns, tests, review
@@ -540,6 +540,11 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Release"): **Datenschutz-Seite (`frontend/src/pages/Datenschutz.tsx`) prüfen und
   an die aktuelle Datenverarbeitung anpassen – darf nie vergessen werden**;
   `scripts/test-backend.sh` (pytest) + `npm run build` fehlerfrei.
+- Notiz (Stand 02.07.2026): Alle inhaltlichen Etappe-N-Punkte sind erledigt
+  (Einsatzdetails-Bug, Divera, Benachrichtigungen, Stable-Updater, Punktesystem
+  entfernt). Das eigentliche Release ist auf ausdrücklichen Wunsch **noch nicht**
+  veröffentlicht – dieser letzte Schritt (Datenschutz-Prüfung, Version finalisieren,
+  Veröffentlichung) bleibt bewusst offen.
 
 ---
 

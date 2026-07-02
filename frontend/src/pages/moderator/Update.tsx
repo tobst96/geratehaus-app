@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { holeUpdateStatus, updateKanalSetzen, type UpdateStatus } from "../../api/moderator";
+import { holeUpdateStatus, updateAusloesen, updateKanalSetzen, type UpdateStatus } from "../../api/moderator";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 
@@ -7,6 +7,8 @@ export function Update() {
   const [status, setStatus] = useState<UpdateStatus | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [speichert, setSpeichert] = useState(false);
+  const [installiert, setInstalliert] = useState(false);
+  const [installMeldung, setInstallMeldung] = useState<string | null>(null);
 
   async function laden() {
     try {
@@ -20,6 +22,21 @@ export function Update() {
   useEffect(() => {
     laden();
   }, []);
+
+  async function updateInstallieren() {
+    if (!confirm("Update jetzt installieren? Der Server aktualisiert sich und startet dabei kurz neu.")) return;
+    setInstalliert(true);
+    setInstallMeldung(null);
+    try {
+      const ergebnis = await updateAusloesen();
+      setInstallMeldung(ergebnis.meldung);
+      setFehler(null);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Update konnte nicht angestoßen werden.");
+    } finally {
+      setInstalliert(false);
+    }
+  }
 
   async function kanalAendern(kanal: "stable" | "beta") {
     setSpeichert(true);
@@ -43,10 +60,11 @@ export function Update() {
       <div className="karte" style={{ maxWidth: 560 }}>
         <h2>Update-Kanal</h2>
         <p style={{ color: "var(--farbe-text-mute)" }}>
-          "Stable" zeigt nur fertige Veröffentlichungen an, "Beta" auch Vorabversionen. Diese App
-          aktualisiert sich nicht selbst – ein Update muss weiterhin manuell auf dem Server
-          eingespielt werden (<code>git pull</code> + <code>docker compose up -d --build</code>).
-          Diese Seite zeigt nur an, ob eine neue Version verfügbar ist.
+          "Stable" zeigt nur fertige Veröffentlichungen an, "Beta" auch Vorabversionen. Ist eine
+          neue Version verfügbar, kann sie unten per Klick installiert werden. Das Update wird von
+          einem Skript auf dem Server ausgeführt (<code>git pull</code> +
+          <code>docker compose up -d --build</code>); dazu muss <code>scripts/updater.sh</code>
+          einmalig als Cronjob/systemd-Dienst auf dem Host eingerichtet sein.
         </p>
         <div style={{ display: "flex", gap: 16 }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -104,21 +122,32 @@ export function Update() {
         </div>
 
         {status.update_verfuegbar ? (
-          <p style={{ marginTop: "1rem" }}>
-            🆕 Es ist eine neue Version verfügbar.{" "}
-            {status.release_url && (
-              <a href={status.release_url} target="_blank" rel="noreferrer">
-                Release-Hinweise ansehen
-              </a>
-            )}
-          </p>
+          <>
+            <p style={{ marginTop: "1rem" }}>
+              🆕 Es ist eine neue Version verfügbar.{" "}
+              {status.release_url && (
+                <a href={status.release_url} target="_blank" rel="noreferrer">
+                  Release-Hinweise ansehen
+                </a>
+              )}
+            </p>
+            <button onClick={updateInstallieren} disabled={installiert} style={{ marginTop: "0.5rem" }}>
+              {installiert ? "Update wird angestoßen …" : "Update installieren"}
+            </button>
+          </>
         ) : (
           !status.fehler && <p style={{ marginTop: "1rem", color: "var(--farbe-text-mute)" }}>Du bist auf dem neuesten Stand.</p>
         )}
 
-        <button className="sekundaer" onClick={laden} style={{ marginTop: "1rem" }}>
-          Erneut prüfen
-        </button>
+        {installMeldung && (
+          <p style={{ marginTop: "1rem", color: "var(--farbe-text-mute)" }}>{installMeldung}</p>
+        )}
+
+        <div>
+          <button className="sekundaer" onClick={laden} style={{ marginTop: "1rem" }}>
+            Erneut prüfen
+          </button>
+        </div>
       </div>
     </div>
   );

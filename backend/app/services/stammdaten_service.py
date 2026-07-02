@@ -1,9 +1,9 @@
 import time
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import HTTPException, UploadFile, status
-from sqlalchemy import delete, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -14,7 +14,6 @@ from app.models.funktion import FunktionDienststunden, FunktionEinsatz
 from app.models.gruppe import Gruppe
 from app.models.person import Person
 from app.models.person_ereignis import PersonEreignis
-from app.models.person_punkt import PersonPunkt
 from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionCreate,
     EinsatzFeldDefinitionUpdate,
@@ -293,10 +292,6 @@ async def person_anlegen(db: AsyncSession, daten: PersonCreate) -> Person:
         funktion_id=daten.funktion_id,
     )
     db.add(person)
-    await db.flush()
-
-    await punkte_regel_anwenden(db, person.id, "anlage")
-
     await db.commit()
     await db.refresh(person)
     return person
@@ -335,9 +330,6 @@ async def person_aktualisieren(db: AsyncSession, person: Person, daten: PersonUp
             list(aenderungen.keys()) == ["funktion_id"] and len(diff_teile) == 1
         ) else "stammdaten_geaendert"
         await person_ereignis_protokollieren(db, person.id, typ, "Geändert: " + "; ".join(diff_teile))
-
-    if "email" in aenderungen and not alte_werte["email"] and aenderungen["email"]:
-        await punkte_regel_anwenden(db, person.id, "email", einmalig=True)
 
     await db.commit()
     await db.refresh(person)
@@ -409,158 +401,13 @@ async def person_bild_speichern(db: AsyncSession, person: Person, datei: UploadF
     # Dateinamen nicht aus dem Browser-Cache des alten Bilds angezeigt wird.
     person.bild_url = f"/uploads/personen/{dateiname}?v={int(time.time())}"
     await person_ereignis_protokollieren(db, person.id, "bild_geaendert", "Profilbild aktualisiert")
-    if hatte_noch_kein_bild:
-        await punkte_regel_anwenden(db, person.id, "profilbild", einmalig=True)
     await db.commit()
     await db.refresh(person)
     return person
 
 
-# --- Personen-Punkte --------------------------------------------------------
-#
-# Automatische Vergaberegeln (Punkte/Tage/Abbau-Modus) sind über app_config
-# einstellbar (Moderator-Bereich > Punkte, siehe config_defaults.py), Keys
-# "punkte_<schluessel>_punkte" / "_tage" / "_modus". Pro Person+Grund wird nur
-# einmalig vergeben (siehe `_bereits_vergeben`), damit z. B. das erste
-# Profilbild nicht bei jedem erneuten Hochladen erneut Punkte bringt.
-
-PUNKTE_REGEL_SCHLUESSEL = ("anlage", "profilbild", "email", "einsatz", "dienstbuch", "dienststunden")
-
-
-async def _punkte_regel_lesen(db: AsyncSession, schluessel: str) -> tuple[float, int, str]:
-    punkte = await config_service.get(db, f"punkte_{schluessel}_punkte", 0)
-    tage = await config_service.get(db, f"punkte_{schluessel}_tage", 0)
-    modus = await config_service.get(db, f"punkte_{schluessel}_modus", "halten")
-    return float(punkte), int(tage), modus
-
-
-async def _bereits_vergeben(db: AsyncSession, person_id: int, grund: str) -> bool:
-    result = await db.execute(
-        select(PersonPunkt.id).where(PersonPunkt.person_id == person_id, PersonPunkt.grund == grund).limit(1)
-    )
-    return result.scalar_one_or_none() is not None
-
-
-async def punkte_regel_anwenden(
-    db: AsyncSession,
-    person_id: int,
-    regel_schluessel: str,
-    *,
-    grund: str | None = None,
-    einmalig: bool = False,
-    faktor: float = 1.0,
-) -> None:
-    """Wendet eine konfigurierte Punkte-Regel an und protokolliert sie in der
-    Timeline. `regel_schluessel` bestimmt, welche app_config-Werte gelesen
-    werden (punkte_<schluessel>_*); `grund` ist der in PersonPunkt.grund
-    gespeicherte Wert (Default = regel_schluessel, kann z. B. für Einsätze
-    auf "einsatz_<id>" individualisiert werden, damit die Punkte bei
-    Wiedereröffnung gezielt wieder entfernt werden können). `einmalig=True`
-    vergibt nur, wenn für diesen Grund noch nie Punkte vergeben wurden (z. B.
-    erstes Profilbild, erste E-Mail). `faktor` skaliert die konfigurierten
-    Punkte (z. B. Dienststunden: Punkte pro Stunde × Anzahl Stunden)."""
-    punkte, tage, modus = await _punkte_regel_lesen(db, regel_schluessel)
-    if punkte <= 0 or tage <= 0:
-        return
-    grund = grund or regel_schluessel
-    if einmalig and await _bereits_vergeben(db, person_id, grund):
-        return
-
-    effektive_punkte = round(punkte * faktor, 2)
-    if effektive_punkte <= 0:
-        return
-    gueltig_bis = date.today() + timedelta(days=tage)
-    await punkte_vergeben(db, person_id, effektive_punkte, grund, gueltig_bis, abbau_modus=modus)
-    modus_text = "linear abgebaut bis" if modus == "abziehend" else "gültig bis"
-    await person_ereignis_protokollieren(
-        db,
-        person_id,
-        "punkte_vergeben",
-        f"{effektive_punkte:g} Punkt(e) vergeben ({modus_text} {gueltig_bis.strftime('%d.%m.%Y')})",
-    )
-
-
-async def punkte_entfernen(db: AsyncSession, grund: str) -> int:
-    """Entfernt alle Punkte mit dem angegebenen Grund – z. B. wenn ein
-    Einsatz/Dienstbuch wieder geöffnet wird und die dafür vergebenen Punkte
-    zurückgenommen werden müssen (bei erneutem Abschluss werden sie über
-    `punkte_regel_anwenden` neu vergeben)."""
-    result = await db.execute(delete(PersonPunkt).where(PersonPunkt.grund == grund))
-    await db.commit()
-    return result.rowcount
-
-
-async def punkte_vergeben(
-    db: AsyncSession, person_id: int, punkte: float, grund: str, gueltig_bis: date, abbau_modus: str = "halten"
-) -> PersonPunkt:
-    eintrag = PersonPunkt(
-        person_id=person_id, punkte=punkte, grund=grund, gueltig_bis=gueltig_bis, abbau_modus=abbau_modus
-    )
-    db.add(eintrag)
-    return eintrag
-
-
-def _punkt_wert_aktuell(punkte: float, erstellt_am: date, gueltig_bis: date, abbau_modus: str, heute: date) -> float:
-    if heute > gueltig_bis:
-        return 0.0
-    if abbau_modus != "abziehend":
-        return punkte
-    gesamt_tage = (gueltig_bis - erstellt_am).days
-    if gesamt_tage <= 0:
-        return punkte
-    vergangene_tage = max(0, (heute - erstellt_am).days)
-    anteil_rest = max(0.0, (gesamt_tage - vergangene_tage) / gesamt_tage)
-    return punkte * anteil_rest
-
-
-async def gesamtpunkte(db: AsyncSession, person_id: int) -> int:
-    batch = await gesamtpunkte_batch(db, [person_id])
-    return batch.get(person_id, 0)
-
-
-async def gesamtpunkte_batch(db: AsyncSession, person_ids: list[int]) -> dict[int, int]:
-    """Gibt je Person die gerundete Gesamtpunktzahl zurück. In der Datenbank
-    dürfen Punkte-Einträge Kommazahlen enthalten (z. B. Dienststunden-Punkte
-    je angefangener Minute) – angezeigt wird immer nur die gerundete Summe."""
-    if not person_ids:
-        return {}
-    heute = date.today()
-    stmt = select(
-        PersonPunkt.person_id,
-        PersonPunkt.punkte,
-        PersonPunkt.erstellt_am,
-        PersonPunkt.gueltig_bis,
-        PersonPunkt.abbau_modus,
-    ).where(PersonPunkt.person_id.in_(person_ids), PersonPunkt.gueltig_bis >= heute)
-    result = await db.execute(stmt)
-
-    summen: dict[int, float] = {}
-    for person_id, punkte, erstellt_am, gueltig_bis, abbau_modus in result.all():
-        wert = _punkt_wert_aktuell(punkte, erstellt_am.date(), gueltig_bis, abbau_modus, heute)
-        summen[person_id] = summen.get(person_id, 0.0) + wert
-    return {person_id: round(wert) for person_id, wert in summen.items()}
-
-
-async def platzierung_nach_punkten(db: AsyncSession, person_id: int) -> int | None:
-    """Gibt den Rang der Person in der Punkte-Rangliste zurück (1 = meiste Punkte).
-    None wenn die Person 0 Punkte hat."""
-    alle = await liste_personen(db)
-    punkte_map = await gesamtpunkte_batch(db, [p.id for p in alle])
-    eigene = punkte_map.get(person_id, 0)
-    if eigene == 0:
-        return None
-    return sum(1 for pk in punkte_map.values() if pk > eigene) + 1
-
-
-async def punkte_aufraeumen(db: AsyncSession) -> int:
-    heute = date.today()
-    result = await db.execute(delete(PersonPunkt).where(PersonPunkt.gueltig_bis < heute))
-    await db.commit()
-    return result.rowcount
-
-
 async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[PersonOut]:
-    punkte_je_person = await gesamtpunkte_batch(db, [p.id for p in personen])
+    # `db` bleibt für Signatur-Kompatibilität mit den Aufrufern erhalten.
     return [
         PersonOut(
             id=p.id,
@@ -572,7 +419,6 @@ async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[Pers
             email=p.email,
             gruppe_id=p.gruppe_id,
             funktion_id=p.funktion_id,
-            gesamtpunkte=punkte_je_person.get(p.id, 0),
             pin_gesetzt=p.pin_gesetzt,
             benachrichtigungen_aktiv=p.benachrichtigungen_aktiv,
         )

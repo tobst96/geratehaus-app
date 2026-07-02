@@ -24,6 +24,10 @@ services:
       UPLOAD_DIR: /app/uploads
     volumes:
       - uploads:/app/uploads
+      # Geteilter Ordner fürs Update-Signal: Die Update-Seite schreibt hier eine
+      # Markerdatei; das Host-Skript scripts/updater.sh beobachtet denselben Ordner
+      # auf dem Host und führt git pull + docker compose up -d --build aus.
+      - ./update-signal:/app/update-signal
     depends_on:
       db:
         condition: service_healthy

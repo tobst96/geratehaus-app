@@ -77,7 +77,7 @@ function ModeratorenVerwaltung() {
     <div className="karte">
       <h2>Admin- &amp; Gruppenführer-Zugänge</h2>
       <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
-        Admins sehen Personal, Punkte, Stammdaten und alle Einstellungen. Gruppenführer sehen nur
+        Admins sehen Personal, Stammdaten und alle Einstellungen. Gruppenführer sehen nur
         Dashboard, Listen (Einsatzberichte/Dienstbucheinträge) und Buchungen (Fahrzeugreservierungen).
       </p>
       {fehler && <p className="fehlertext">{fehler}</p>}

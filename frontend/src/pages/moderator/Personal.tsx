@@ -113,7 +113,6 @@ async function tokenKopieren(token: string, knopf: HTMLButtonElement) {
 const PERSON_EREIGNIS_ICON: Record<string, string> = {
   funktion_geaendert: "🔄",
   stammdaten_geaendert: "✏️",
-  punkte_vergeben: "🎯",
   bild_geaendert: "🖼️",
   pin_gesetzt: "🔒",
   inaktivitaets_warnung: "⚠️",
@@ -249,7 +248,7 @@ export function Personal() {
 
   // Solange eines der beiden QR-Foto-Popups offen ist, prüfen ob das Foto
   // bereits vom Handy aus hochgeladen wurde – dabei direkt die Person (Avatar,
-  // Punkte, Timeline) aktualisieren, ohne dass man erst abwählen/auswählen muss.
+  // Timeline) aktualisieren, ohne dass man erst abwählen/auswählen muss.
   useEffect(() => {
     if (!bildQr || bildHochgeladen) return;
     const intervall = setInterval(async () => {
@@ -642,7 +641,6 @@ export function Personal() {
                 >
                   <PersonenAvatar person={p} groesse={32} />
                   <span style={{ flex: 1 }}>{p.name}</span>
-                  <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>{p.gesamtpunkte} Pkt.</span>
                 </button>
               </li>
             ))}
@@ -659,7 +657,6 @@ export function Personal() {
                 <PersonenAvatar person={ausgewaehltePerson} groesse={64} />
                 <div>
                   <h2 style={{ margin: 0 }}>{ausgewaehltePerson.name}</h2>
-                  <strong>{ausgewaehltePerson.gesamtpunkte} Punkte</strong>
                 </div>
               </div>
 

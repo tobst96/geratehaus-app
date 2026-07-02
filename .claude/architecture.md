@@ -32,7 +32,7 @@ Strikte Trennung (siehe `.claude/docs/backend.md`):
 1. **Router** `app/api/v1/` – ~30 Router, alle unter Prefix `/api/v1`, registriert
    in `app/main.py`. Enthalten nur Routing/Auth/Validierung/Service-Aufruf.
 2. **Services** `app/services/` – gesamte Businesslogik, DB-Zugriffe, `commit()`,
-   Benachrichtigungen, Punkte, Timeline.
+   Benachrichtigungen, Timeline.
 3. **Models** `app/models/` – reine SQLAlchemy-ORM-Abbildung, gebündelt in
    `app/models/__init__.py` (für Alembic-Autogenerate).
 4. **Schemas** `app/schemas/` – Pydantic v2, getrennt von den ORM-Modellen.
@@ -82,18 +82,16 @@ Zentraler Dispatch `notifier_service.benachrichtige()` mit drei config-gesteuert
 Kanälen (`app/services/notifier/`: `email`, `telegram`, `webpush`). Domain-Services
 kennen die Kanäle nicht. Details: `.claude/docs/notifications.md`.
 
-## Timeline & Punkte
+## Timeline
 
 - `PersonEreignis` / `EinsatzEreignis` – chronologische Ereignisprotokolle als
-  Grundlage der Moderator-Timeline.
-- `PersonPunkt` – Aktivitätspunkte mit Gültigkeitsdatum und Abbau-Modus; täglicher
-  Aufräum-Job. Details: `.claude/docs/timeline.md`.
+  Grundlage der Moderator-Timeline. Details: `.claude/docs/timeline.md`.
 
 ## Hintergrundjobs
 
-APScheduler mit 9 Jobs (Divera-Polling & -Personal-Sync, Archivierung,
-Einsatz-Autoabschluss + geplanter Abschluss, Dienstbuch-Autoschluss, Punkte-Ablauf,
-Personen-Inaktivität, Barcode-Erneuerung). Job-Tabelle in `.claude/docs/backend.md`.
+APScheduler (Divera-Polling & -Personal-Sync, Archivierung, Einsatz-Autoabschluss
++ geplanter Abschluss, Dienstbuch-Autoschluss, Personen-Inaktivität,
+Barcode-Erneuerung). Job-Tabelle in `.claude/docs/backend.md`.
 
 ## Externe Integrationen
 

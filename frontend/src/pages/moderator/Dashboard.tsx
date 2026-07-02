@@ -108,25 +108,6 @@ export function Dashboard() {
         ))}
       </div>
 
-      <h2>Rangliste nach Punkten</h2>
-      <div className="tabelle-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Punkte</th>
-          </tr>
-        </thead>
-        <tbody>
-          {daten.punkte_rangliste.map((t) => (
-            <tr key={t.person_id}>
-              <td>{t.person_name}</td>
-              <td>{t.punkte}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      </div>
     </div>
   );
 }

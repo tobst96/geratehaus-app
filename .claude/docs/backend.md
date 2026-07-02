@@ -22,11 +22,10 @@ FastAPI (async) + SQLAlchemy 2.0 + Alembic + PostgreSQL, Python 3.12. Einstieg:
 - **Router**: nur Routing, Auth/Berechtigungen, Requestvalidierung, Service-Aufruf,
   Response. Keine Businesslogik. Registrierung in `app/main.py`.
 - **Service**: gesamte Businesslogik, DB-Lesen/-Schreiben, `commit()`,
-  `notifier_service.benachrichtige(...)`, Punktevergabe, Timeline-Einträge.
+  `notifier_service.benachrichtige(...)`, Timeline-Einträge.
 - **Model**: reine Datenabbildung, keine Seiteneffekte.
 - **Schema**: getrennt vom ORM. Personen immer über
-  `stammdaten_service.personen_zu_out()` / `person_zu_out()` serialisieren
-  (berechnete Felder wie Gesamtpunkte).
+  `stammdaten_service.personen_zu_out()` / `person_zu_out()` serialisieren.
 
 ## Konfigurationssystem
 
@@ -54,7 +53,6 @@ im Job selbst – so wirken Änderungen ohne Neustart.
 | `einsatz_autoabschluss` | stündlich, aktiv nur zur Stunde | `einsatz_autoabschluss_stunde`, `einsatz_autoabschluss_inaktivitaet_stunden` |
 | `einsatz_geplanter_abschluss` | minütlich | geplanter Abschlusszeitpunkt (aus „Alle eingetragen") |
 | `dienstbuch_autoschluss` | stündlich, aktiv nur zur Stunde | `dienstbuch_autoschluss_stunde` |
-| `punkte_ablauf` | täglich 00:00 | – (entfernt abgelaufene `person_punkte`) |
 | `personen_inaktivitaet` | täglich 00:00 | `personen_inaktivitaet_tage` |
 | `barcode_erneuerung` | täglich 03:30 | `barcode_gueltigkeit_tage` + Personen-Mail-Flags |
 

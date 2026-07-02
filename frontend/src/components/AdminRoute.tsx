@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-/** Schützt Admin-only-Seiten (Personal, Punkte, Stammdaten, Barcodes,
+/** Schützt Admin-only-Seiten (Personal, Stammdaten, Barcodes,
  * Kiosk-Geräte, Benachrichtigungen, Einstellungen) zusätzlich zu
  * ModeratorRoute – Gruppenführer werden zum Dashboard zurückgeschickt,
  * falls sie die URL direkt aufrufen. */

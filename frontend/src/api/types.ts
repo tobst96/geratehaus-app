@@ -57,7 +57,6 @@ export interface Person {
   email: string | null;
   gruppe_id: number | null;
   funktion_id: number | null;
-  gesamtpunkte: number;
   pin_gesetzt: boolean;
   benachrichtigungen_aktiv: boolean;
 }
