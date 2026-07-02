@@ -6,6 +6,24 @@
     Quelle: {{ einsatz.quelle }} ·
     Status: {{ einsatz.status }}
 </div>
+{% if einsatz.quelle == "divera" and (einsatz.adresse or einsatz.meldung) %}
+<table>
+    <tbody>
+        {% if einsatz.adresse %}
+        <tr>
+            <td><strong>Adresse</strong></td>
+            <td>{{ einsatz.adresse }}</td>
+        </tr>
+        {% endif %}
+        {% if einsatz.meldung %}
+        <tr>
+            <td><strong>Meldung</strong></td>
+            <td>{{ einsatz.meldung }}</td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endif %}
 {% if zusatzfelder_anzeige %}
 <table>
     <tbody>
