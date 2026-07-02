@@ -98,9 +98,15 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     holeEinsatzFelder().then(setFelder).catch(() => setFelder([]));
   }, []);
 
+  // Zusatzfelder nur zurücksetzen, wenn ein ANDERER Einsatz geöffnet wird –
+  // nicht bei jedem Polling-Reload (Parent lädt alle 15 s neu und liefert dabei
+  // ein frisches `zusatzfelder`-Objekt). Andernfalls würden gerade getippte,
+  // noch nicht gespeicherte Einsatzdetails regelmäßig überschrieben und gingen
+  // verloren (Stable-Blocker).
   useEffect(() => {
     setFeldWerte(einsatz.zusatzfelder);
-  }, [einsatz.zusatzfelder]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [einsatz.id]);
 
   // Live-Vorschau (Name + Bild) während des Scannens, debounced, damit nicht
   // bei jedem Tastendruck ein Request raus geht.
