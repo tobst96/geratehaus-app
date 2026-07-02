@@ -121,6 +121,27 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   Berechtigungen oder Sichtbarkeitslogik (admin-gefilterte Einträge bleiben wie
   bisher).
 
+### Logo-Vorschau verzerrt Seitenverhältnis (Screenshot-Befund)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Bug / Frontend / Design
+- Skills: bugfix, review
+- Beschreibung: In den Einstellungen (Abschnitt „Organisation & Branding") wird
+  das hochgeladene Logo in der Vorschau auf die volle Breite gezogen und dadurch
+  horizontal verzerrt – das runde Wappen erscheint breitgedrückt. Das Logo soll
+  sein **Seitenverhältnis behalten** (nicht breitziehen), z. B. `object-fit:
+  contain` / `max-width: 100%` + `height: auto` mit einer sinnvollen Maximalhöhe,
+  linksbündig statt volle Breite erzwingen.
+- Akzeptanzkriterien: Logo-Vorschau zeigt das Bild unverzerrt im
+  Original-Seitenverhältnis (kein horizontales Strecken), unabhängig von der
+  Bildgröße. Auch im Mitglieder-/Kiosk-Header prüfen, ob dort dieselbe
+  Verzerrung auftritt.
+- Notizen: Betrifft die Logo-Vorschau in der Einstellungen-Seite
+  (`frontend/src/pages/moderator/Einstellungen.tsx` bzw. zugehörige Styles in
+  `index.css`). Prüfen, ob das Logo an weiteren Stellen (Header, E-Mail-Template)
+  ebenfalls ohne festes Seitenverhältnis gerendert wird.
+
 ---
 
 ## Etappe E – Mitglieder-Hub Redesign (`MitgliedHub.tsx`, nur Frontend)
