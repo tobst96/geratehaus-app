@@ -590,6 +590,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 Nur zur Nachvollziehbarkeit; nicht mehr zu tun.
 
+**[Benachrichtigungen] Pro-Person-Zustellung (2026-07-02, PR #13 gemergt):** Pro Person
+abonnierbar, welche der 6 Ereignisse sie empfängt (`PersonEreignisAbo`, Migration 0038);
+`benachrichtige()` stellt nur noch an Abonnenten über deren aktive Kanäle (Mail/Telegram)
+zu, PDF-Abschluss-Mails ebenso – die zentrale `notifier_email_recipients`-Liste ist damit
+für Ereignis-/PDF-Mails obsolet (bleibt nur für Testmail + Buchungs-Aktionsmails an
+Moderatoren). Überschneidet sich mit Etappe G (Pro-Empfänger-Benachrichtigungen).
+
 **[Barcode] Bug behoben (2026-07-02):** Ein für eine Person erzeugter/kopierter
 Barcode galt beim Scannen als abgelaufen, weil `barcode_service.token_fuer_person()`
 einen bereits abgelaufenen Token unverändert zurückgab. Fix: abgelaufener Token wird
