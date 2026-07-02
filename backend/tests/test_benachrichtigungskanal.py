@@ -86,3 +86,24 @@ async def test_person_kanal_fehlerfaelle(client, db):
         headers=h,
     )
     assert ungueltig.status_code == 400
+
+
+async def test_enforcement_personal_modul(client, db):
+    """Phase 4b: die Kanal-Endpunkte sind granular geschützt (Modul „personal").
+    Gruppenführer ohne Freigabe → 403, mit Freigabe → 200 (Admin via Bypass immer)."""
+    from app.services import berechtigungs_service, modul_service
+
+    await modul_service.ensure_module(db)
+    gf = Moderator(username="gf", passwort_hash=hash_secret("geheim123"), rolle="gruppenfuehrer")
+    db.add(gf)
+    await db.commit()
+    await db.refresh(gf)
+    login = await client.post(
+        "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}
+    )
+    h = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+    assert (await client.get("/api/v1/moderator/kanal-typen", headers=h)).status_code == 403
+
+    await berechtigungs_service.set_berechtigung(db, gf.id, "personal", True)
+    assert (await client.get("/api/v1/moderator/kanal-typen", headers=h)).status_code == 200

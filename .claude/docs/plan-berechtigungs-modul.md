@@ -122,9 +122,11 @@ Datenmodell fixieren, Migrationsreihenfolge festlegen.
   vergibt"** (nach dem Scharfschalten hat außer Admins niemand Zugriff, bis der Admin
   das Modul freigibt). Erster Slice: die eigenständigen Admin-Seiten **Module**
   (`require_modul_zugriff("einstellungen")`) und **Berechtigungen**
-  (`require_modul_zugriff("berechtigungen")`) sind jetzt granular geschützt – Admins
-  via Bypass, sonst 403 bis Freigabe. Nicht-brechend (Nicht-Admins waren vorher auch
-  gesperrt). Enforcement-Test in `test_berechtigungen.py`. Suite grün (92).
+  (`require_modul_zugriff("berechtigungen")`) sowie die Personen-Kanäle
+  (`require_modul_zugriff("personal")`) sind jetzt granular geschützt – Admins via
+  Bypass, sonst 403 bis Freigabe. Nicht-brechend (Nicht-Admins waren vorher auch
+  gesperrt). Enforcement-Tests in `test_berechtigungen.py`/`test_benachrichtigungskanal.py`.
+  Suite grün (93).
 - **4b Rest offen (Rollout über die restlichen Router):**
   - **Endpoint→Modul-Mapping** festlegen: heutige Gruppenführer-Bereiche
     (Dashboard/Listen/Buchungen/Punkte + Einsatz/Dienstbuch/Fahrzeugbuchung managen)
