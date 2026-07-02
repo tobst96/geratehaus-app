@@ -144,21 +144,38 @@ async def liste_offene_vorschlaege(db: AsyncSession) -> list[DiveraVorschlag]:
     return list(result.scalars().all())
 
 
+async def _neuen_vorschlag_anlegen_oder_verknuepfen(
+    db: AsyncSession, vorschlag: DiveraVorschlag
+) -> None:
+    """Legt für einen „neu"-Vorschlag eine Person an – oder verknüpft eine
+    bereits vorhandene Person (gleiche divera_user_id ODER gleicher Name),
+    falls sie inzwischen schon existiert. Das verhindert eine Verletzung der
+    Unique-Constraint auf personen.name (z. B. wenn dieselbe Person zuvor
+    einzeln angelegt oder ein Namensvetter bereits erfasst wurde)."""
+    daten = vorschlag.vorschlag_daten
+    bestehende = await _person_finden(db, vorschlag.divera_user_id, daten["name"])
+    if bestehende is not None:
+        if not bestehende.divera_user_id:
+            bestehende.divera_user_id = vorschlag.divera_user_id
+        return
+    db.add(
+        Person(
+            vorname=daten.get("vorname"),
+            nachname=daten.get("nachname"),
+            name=daten["name"],
+            email=daten.get("email"),
+            divera_user_id=vorschlag.divera_user_id,
+        )
+    )
+    await db.flush()
+
+
 async def entscheide_vorschlag(
     db: AsyncSession, vorschlag: DiveraVorschlag, aktion: str
 ) -> DiveraVorschlag:
     if aktion == "uebernehmen":
         if vorschlag.art == "neu":
-            daten = vorschlag.vorschlag_daten
-            person = Person(
-                vorname=daten.get("vorname"),
-                nachname=daten.get("nachname"),
-                name=daten["name"],
-                email=daten.get("email"),
-                divera_user_id=vorschlag.divera_user_id,
-            )
-            db.add(person)
-            await db.flush()
+            await _neuen_vorschlag_anlegen_oder_verknuepfen(db, vorschlag)
         else:
             result = await db.execute(
                 select(Person).where(Person.id == vorschlag.bestehende_person_id)
@@ -222,16 +239,12 @@ async def alle_neuen_uebernehmen(db: AsyncSession) -> int:
     neue = list(result.scalars().all())
     jetzt = datetime.now(timezone.utc)
     for vorschlag in neue:
-        daten = vorschlag.vorschlag_daten
-        db.add(
-            Person(
-                vorname=daten.get("vorname"),
-                nachname=daten.get("nachname"),
-                name=daten["name"],
-                email=daten.get("email"),
-                divera_user_id=vorschlag.divera_user_id,
-            )
-        )
+        # Kollisionssicher: legt an oder verknüpft bestehende Person. Das Flush
+        # innerhalb der Helper-Funktion sorgt dafür, dass eine im selben Lauf
+        # neu angelegte Person bei einem gleichnamigen Folge-Vorschlag gefunden
+        # wird (kein doppelter Insert, keine Unique-Verletzung → kein Rollback
+        # des ganzen Batches).
+        await _neuen_vorschlag_anlegen_oder_verknuepfen(db, vorschlag)
         vorschlag.status = "uebernommen"
         vorschlag.entschieden_am = jetzt
     if neue:

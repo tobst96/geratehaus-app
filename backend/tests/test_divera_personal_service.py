@@ -165,6 +165,34 @@ async def test_alle_neuen_uebernehmen_legt_alle_personen_an(db: AsyncSession):
 
 
 @pytest.mark.asyncio
+async def test_alle_neuen_uebernehmen_mit_namenskollision(db: AsyncSession):
+    """Regression: Ein Vorschlag mit bereits vergebenem Namen darf NICHT den
+    ganzen Bulk-Insert abbrechen (personen.name ist unique)."""
+    db.add(Person(name="Jannick Bremm", vorname="Jannick", nachname="Bremm"))
+    await db.commit()
+
+    for uid, name in [("10", "Jannick Bremm"), ("11", "Neu Eins"), ("12", "Neu Zwei")]:
+        db.add(
+            DiveraVorschlag(
+                divera_user_id=uid,
+                art="neu",
+                vorschlag_daten={"name": name, "vorname": name.split()[0], "nachname": name.split()[1], "email": None},
+                status="offen",
+            )
+        )
+    await db.commit()
+
+    # Darf nicht werfen und muss alle drei Vorschläge abschließen.
+    anzahl = await divera_personal_service.alle_neuen_uebernehmen(db)
+    assert anzahl == 3
+    assert await divera_personal_service.liste_offene_vorschlaege(db) == []
+    # Die beiden echten Neuen sind angelegt, kein Duplikat für „Jannick Bremm".
+    namen = (await db.execute(select(Person.name).where(Person.name == "Jannick Bremm"))).scalars().all()
+    assert len(namen) == 1
+    assert len((await db.execute(select(Person).where(Person.divera_user_id.in_(["11", "12"])))).scalars().all()) == 2
+
+
+@pytest.mark.asyncio
 async def test_ignorierte_auflisten_und_zuruecksetzen(db: AsyncSession):
     v = DiveraVorschlag(
         divera_user_id="5",
