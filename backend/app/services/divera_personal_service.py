@@ -184,6 +184,36 @@ async def entscheide_vorschlag(
     return vorschlag
 
 
+async def alle_neuen_uebernehmen(db: AsyncSession) -> int:
+    """Übernimmt alle offenen „neu"-Vorschläge auf einmal (legt je eine Person an)
+    in einer einzigen Transaktion. Gibt die Anzahl übernommener Vorschläge zurück.
+    E-Mail-Update-Vorschläge bleiben unberührt – die werden bewusst einzeln
+    entschieden."""
+    result = await db.execute(
+        select(DiveraVorschlag).where(
+            DiveraVorschlag.status == "offen", DiveraVorschlag.art == "neu"
+        )
+    )
+    neue = list(result.scalars().all())
+    jetzt = datetime.now(timezone.utc)
+    for vorschlag in neue:
+        daten = vorschlag.vorschlag_daten
+        db.add(
+            Person(
+                vorname=daten.get("vorname"),
+                nachname=daten.get("nachname"),
+                name=daten["name"],
+                email=daten.get("email"),
+                divera_user_id=vorschlag.divera_user_id,
+            )
+        )
+        vorschlag.status = "uebernommen"
+        vorschlag.entschieden_am = jetzt
+    if neue:
+        await db.commit()
+    return len(neue)
+
+
 async def raeume_alte_vorschlaege_auf(db: AsyncSession) -> int:
     """Löscht Vorschläge (offen oder entschieden), die älter als 1 Jahr sind."""
     grenze = datetime.now(timezone.utc) - timedelta(days=VORSCHLAG_AUFBEWAHRUNG_TAGE)

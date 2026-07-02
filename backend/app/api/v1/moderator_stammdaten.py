@@ -383,6 +383,17 @@ async def divera_vorschlaege_synchronisieren(
     return await divera_personal_service.liste_offene_vorschlaege(db)
 
 
+@router.post("/personen/divera-vorschlaege/alle-uebernehmen", response_model=list[DiveraVorschlagOut])
+async def divera_vorschlaege_alle_uebernehmen(
+    db: DbSession, _admin: CurrentAdmin
+) -> list[DiveraVorschlagOut]:
+    """Übernimmt alle offenen „neu"-Vorschläge auf einmal (legt je eine Person an)
+    und gibt die verbleibenden offenen Vorschläge zurück (i. d. R. nur noch
+    E-Mail-Aktualisierungen, die einzeln entschieden werden)."""
+    await divera_personal_service.alle_neuen_uebernehmen(db)
+    return await divera_personal_service.liste_offene_vorschlaege(db)
+
+
 @router.post("/personen/divera-vorschlaege/{vorschlag_id}/entscheiden", response_model=DiveraVorschlagOut)
 async def divera_vorschlag_entscheiden(
     db: DbSession, _admin: CurrentAdmin, vorschlag_id: int, daten: DiveraVorschlagEntscheidung

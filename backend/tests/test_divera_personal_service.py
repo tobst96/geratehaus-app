@@ -132,6 +132,39 @@ async def test_zweiter_sync_erzeugt_keinen_doppelten_vorschlag(db: AsyncSession)
 
 
 @pytest.mark.asyncio
+async def test_alle_neuen_uebernehmen_legt_alle_personen_an(db: AsyncSession):
+    for uid, name in [("1", "A A"), ("2", "B B"), ("3", "C C")]:
+        db.add(
+            DiveraVorschlag(
+                divera_user_id=uid,
+                art="neu",
+                vorschlag_daten={"name": name, "vorname": name.split()[0], "nachname": name.split()[1], "email": None},
+                status="offen",
+            )
+        )
+    # Ein E-Mail-Update-Vorschlag darf NICHT mit übernommen werden.
+    db.add(
+        DiveraVorschlag(
+            divera_user_id="9",
+            art="email_update",
+            vorschlag_daten={"name": "D D", "neue_email": "d@example.org"},
+            bestehende_person_id=None,
+            status="offen",
+        )
+    )
+    await db.commit()
+
+    anzahl = await divera_personal_service.alle_neuen_uebernehmen(db)
+
+    assert anzahl == 3
+    personen = (await db.execute(select(Person).where(Person.divera_user_id.in_(["1", "2", "3"])))).scalars().all()
+    assert len(personen) == 3
+    # Der E-Mail-Update-Vorschlag bleibt offen.
+    offen = await divera_personal_service.liste_offene_vorschlaege(db)
+    assert [v.art for v in offen] == ["email_update"]
+
+
+@pytest.mark.asyncio
 async def test_uebernehmen_neuer_vorschlag_legt_person_an(db: AsyncSession):
     vorschlag = DiveraVorschlag(
         divera_user_id="7",

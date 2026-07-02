@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  diveraVorschlaegeAlleUebernehmen,
   diveraVorschlaegeSynchronisieren,
   diveraVorschlagEntscheiden,
   holeDiveraVorschlaege,
@@ -17,6 +18,7 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
   const [vorschlaege, setVorschlaege] = useState<DiveraVorschlagOut[] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [verarbeitetIds, setVerarbeitetIds] = useState<number[]>([]);
+  const [alleLaeuft, setAlleLaeuft] = useState(false);
 
   useEffect(() => {
     diveraVorschlaegeSynchronisieren()
@@ -42,6 +44,21 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
       if (aktion === "uebernehmen") onUebernommen();
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Aktion fehlgeschlagen.");
+    }
+  }
+
+  async function alleHinzufuegen() {
+    setAlleLaeuft(true);
+    setFehler(null);
+    try {
+      const verbleibend = await diveraVorschlaegeAlleUebernehmen();
+      setVorschlaege(verbleibend);
+      setVerarbeitetIds([]);
+      onUebernommen();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Aktion fehlgeschlagen.");
+    } finally {
+      setAlleLaeuft(false);
     }
   }
 
@@ -89,10 +106,17 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
           <>
             {neue.length > 0 && (
               <section style={{ marginTop: 16 }}>
-                <h3>Neue Personen ({neue.length})</h3>
-                {neue.map((v) => (
-                  <VorschlagKarte key={v.id} vorschlag={v} onEntscheiden={entscheiden} />
-                ))}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                  <h3 style={{ margin: 0 }}>Neue Personen ({neue.length})</h3>
+                  <button type="button" onClick={alleHinzufuegen} disabled={alleLaeuft}>
+                    {alleLaeuft ? "Fügt hinzu …" : `Alle hinzufügen (${neue.length})`}
+                  </button>
+                </div>
+                <div style={{ marginTop: 8 }}>
+                  {neue.map((v) => (
+                    <VorschlagKarte key={v.id} vorschlag={v} onEntscheiden={entscheiden} />
+                  ))}
+                </div>
               </section>
             )}
             {emailUpdates.length > 0 && (

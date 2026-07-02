@@ -284,6 +284,9 @@ export const diveraVorschlagEntscheiden = (id: number, aktion: "uebernehmen" | "
     aktion,
   });
 
+export const diveraVorschlaegeAlleUebernehmen = () =>
+  apiPost<DiveraVorschlagOut[]>("/moderator/stammdaten/personen/divera-vorschlaege/alle-uebernehmen");
+
 export const barcodeBildUrl = (token: string) =>
   `/api/v1/moderator/barcodes/render/${token}`;
 
