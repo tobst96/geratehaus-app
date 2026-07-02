@@ -1,10 +1,20 @@
 """Tests für divera_client.hole_alarme: korrekter API-Endpunkt und Response-Parsing."""
 
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.services.divera_client import hole_alarme, BASIS_URL
+from app.services.divera_client import hole_alarme, hole_alarme_historie, BASIS_URL
+
+
+def _mock_client(response):
+    mock_get = AsyncMock(return_value=response)
+    mock_client = AsyncMock()
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=None)
+    mock_client.get = mock_get
+    return mock_client, mock_get
 
 
 def _mock_response(status_code: int, json_data: dict) -> MagicMock:
@@ -110,3 +120,28 @@ async def test_last_ts_wird_als_lastupdate_uebergeben():
 
     aufgerufene_params = mock_get.call_args[1]["params"]
     assert aufgerufene_params.get("lastUpdate") == 4000
+
+
+@pytest.mark.asyncio
+async def test_historie_ruft_alarms_endpoint_und_filtert_nach_zeitraum():
+    """hole_alarme_historie nutzt /api/v2/alarms und filtert auf die letzten
+    `tage` Tage (nach dem Feld `date`)."""
+    jetzt = time.time()
+    alt = {"id": 1, "title": "Alt", "date": jetzt - 20 * 86400}  # außerhalb 7 Tage
+    neu = {"id": 2, "title": "Neu", "date": jetzt - 2 * 86400}   # innerhalb 7 Tage
+    antwort = {"success": True, "data": {"items": {"1": alt, "2": neu}}}
+
+    mock_client, mock_get = _mock_client(_mock_response(200, antwort))
+    with patch("app.services.divera_client.httpx.AsyncClient", return_value=mock_client):
+        alarme = await hole_alarme_historie("test-key", tage=7)
+
+    assert mock_get.call_args[0][0] == f"{BASIS_URL}/alarms"
+    assert [a["id"] for a in alarme] == [2]
+
+
+@pytest.mark.asyncio
+async def test_historie_http_fehler_gibt_leere_liste():
+    mock_client, _ = _mock_client(_mock_response(500, {}))
+    with patch("app.services.divera_client.httpx.AsyncClient", return_value=mock_client):
+        alarme = await hole_alarme_historie("test-key", tage=7)
+    assert alarme == []

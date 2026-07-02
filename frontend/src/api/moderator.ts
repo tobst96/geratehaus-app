@@ -287,13 +287,19 @@ export const diveraVorschlagEntscheiden = (id: number, aktion: "uebernehmen" | "
 export const diveraVorschlaegeAlleUebernehmen = () =>
   apiPost<DiveraVorschlagOut[]>("/moderator/stammdaten/personen/divera-vorschlaege/alle-uebernehmen");
 
+export const holeIgnorierteDiveraVorschlaege = () =>
+  apiGet<DiveraVorschlagOut[]>("/moderator/stammdaten/personen/divera-vorschlaege/ignoriert");
+
+export const diveraIgnorierteZuruecksetzen = () =>
+  apiPost<DiveraVorschlagOut[]>("/moderator/stammdaten/personen/divera-vorschlaege/ignorierte-zuruecksetzen");
+
 export const barcodeBildUrl = (token: string) =>
   `/api/v1/moderator/barcodes/render/${token}`;
 
 // --- Divera ---------------------------------------------------------------
 
-export const diveraEinsaetzeNachholen = () =>
-  apiPost<{ anzahl_gefunden: number; anzahl_neu: number }>("/divera/einsaetze-nachholen");
+export const diveraEinsaetzeNachholen = (tage = 1) =>
+  apiPost<{ anzahl_gefunden: number; anzahl_neu: number }>(`/divera/einsaetze-nachholen?tage=${tage}`);
 
 // --- Update (Admin) ----------------------------------------------------------
 

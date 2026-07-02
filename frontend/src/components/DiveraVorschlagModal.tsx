@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import {
+  diveraIgnorierteZuruecksetzen,
   diveraVorschlaegeAlleUebernehmen,
   diveraVorschlaegeSynchronisieren,
   diveraVorschlagEntscheiden,
   holeDiveraVorschlaege,
+  holeIgnorierteDiveraVorschlaege,
   type DiveraVorschlagOut,
 } from "../api/moderator";
 import { ApiError } from "../api/client";
@@ -16,9 +18,19 @@ interface Props {
 
 export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
   const [vorschlaege, setVorschlaege] = useState<DiveraVorschlagOut[] | null>(null);
+  const [ignorierte, setIgnorierte] = useState<DiveraVorschlagOut[]>([]);
+  const [zeigeIgnorierte, setZeigeIgnorierte] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [verarbeitetIds, setVerarbeitetIds] = useState<number[]>([]);
   const [alleLaeuft, setAlleLaeuft] = useState(false);
+
+  async function ignorierteLaden() {
+    try {
+      setIgnorierte(await holeIgnorierteDiveraVorschlaege());
+    } catch {
+      setIgnorierte([]);
+    }
+  }
 
   useEffect(() => {
     diveraVorschlaegeSynchronisieren()
@@ -35,6 +47,7 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
           setFehler("Vorschläge konnten nicht geladen werden.");
         }
       });
+    ignorierteLaden();
   }, []);
 
   async function entscheiden(v: DiveraVorschlagOut, aktion: "uebernehmen" | "ignorieren") {
@@ -42,6 +55,29 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
       await diveraVorschlagEntscheiden(v.id, aktion);
       setVerarbeitetIds((ids) => [...ids, v.id]);
       if (aktion === "uebernehmen") onUebernommen();
+      // Bei „ignorieren" wandert der Vorschlag in die ignorierte Liste.
+      if (aktion === "ignorieren") ignorierteLaden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Aktion fehlgeschlagen.");
+    }
+  }
+
+  async function ignoriertHinzufuegen(v: DiveraVorschlagOut) {
+    try {
+      await diveraVorschlagEntscheiden(v.id, "uebernehmen");
+      setIgnorierte((liste) => liste.filter((x) => x.id !== v.id));
+      onUebernommen();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Aktion fehlgeschlagen.");
+    }
+  }
+
+  async function ignorierteWiederVorschlagen() {
+    try {
+      const offeneNeu = await diveraIgnorierteZuruecksetzen();
+      setVorschlaege(offeneNeu);
+      setVerarbeitetIds([]);
+      setIgnorierte([]);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Aktion fehlgeschlagen.");
     }
@@ -128,6 +164,47 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
               </section>
             )}
           </>
+        )}
+
+        {ignorierte.length > 0 && (
+          <section style={{ marginTop: 20, borderTop: "1px solid var(--farbe-rahmen, #ddd)", paddingTop: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <button
+                type="button"
+                className="sekundaer"
+                onClick={() => setZeigeIgnorierte((v) => !v)}
+                style={{ flex: 1, textAlign: "left" }}
+              >
+                {zeigeIgnorierte ? "▾" : "▸"} Ignorierte ({ignorierte.length})
+              </button>
+              {zeigeIgnorierte && (
+                <button type="button" className="sekundaer" onClick={ignorierteWiederVorschlagen}>
+                  Alle wieder vorschlagen
+                </button>
+              )}
+            </div>
+            {zeigeIgnorierte && (
+              <div style={{ marginTop: 8 }}>
+                {ignorierte.map((v) => (
+                  <div
+                    key={v.id}
+                    className="karte"
+                    style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+                  >
+                    <div>
+                      <strong>{String(v.vorschlag_daten.name ?? "")}</strong>
+                      {v.art === "email_update" && (
+                        <div style={{ color: "var(--farbe-text-mute)" }}>E-Mail-Aktualisierung</div>
+                      )}
+                    </div>
+                    <button type="button" onClick={() => ignoriertHinzufuegen(v)} style={{ flexShrink: 0 }}>
+                      Doch hinzufügen
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         )}
       </div>
     </div>

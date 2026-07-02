@@ -184,6 +184,31 @@ async def entscheide_vorschlag(
     return vorschlag
 
 
+async def liste_ignorierte_vorschlaege(db: AsyncSession) -> list[DiveraVorschlag]:
+    result = await db.execute(
+        select(DiveraVorschlag)
+        .where(DiveraVorschlag.status == "ignoriert")
+        .order_by(DiveraVorschlag.erstellt_am)
+    )
+    return list(result.scalars().all())
+
+
+async def alle_ignorierten_zuruecksetzen(db: AsyncSession) -> int:
+    """Setzt alle ignorierten Vorschläge zurück auf „offen", damit sie wieder
+    zur Entscheidung erscheinen. Gibt die Anzahl zurückgesetzter Vorschläge
+    zurück."""
+    result = await db.execute(
+        select(DiveraVorschlag).where(DiveraVorschlag.status == "ignoriert")
+    )
+    ignorierte = list(result.scalars().all())
+    for vorschlag in ignorierte:
+        vorschlag.status = "offen"
+        vorschlag.entschieden_am = None
+    if ignorierte:
+        await db.commit()
+    return len(ignorierte)
+
+
 async def alle_neuen_uebernehmen(db: AsyncSession) -> int:
     """Übernimmt alle offenen „neu"-Vorschläge auf einmal (legt je eine Person an)
     in einer einzigen Transaktion. Gibt die Anzahl übernommener Vorschläge zurück.

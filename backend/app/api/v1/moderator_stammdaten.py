@@ -383,6 +383,21 @@ async def divera_vorschlaege_synchronisieren(
     return await divera_personal_service.liste_offene_vorschlaege(db)
 
 
+@router.get("/personen/divera-vorschlaege/ignoriert", response_model=list[DiveraVorschlagOut])
+async def divera_vorschlaege_ignoriert(db: DbSession, _admin: CurrentAdmin) -> list[DiveraVorschlagOut]:
+    return await divera_personal_service.liste_ignorierte_vorschlaege(db)
+
+
+@router.post("/personen/divera-vorschlaege/ignorierte-zuruecksetzen", response_model=list[DiveraVorschlagOut])
+async def divera_vorschlaege_ignorierte_zuruecksetzen(
+    db: DbSession, _admin: CurrentAdmin
+) -> list[DiveraVorschlagOut]:
+    """Setzt alle ignorierten Vorschläge auf „offen" zurück und gibt die dann
+    offenen Vorschläge zurück."""
+    await divera_personal_service.alle_ignorierten_zuruecksetzen(db)
+    return await divera_personal_service.liste_offene_vorschlaege(db)
+
+
 @router.post("/personen/divera-vorschlaege/alle-uebernehmen", response_model=list[DiveraVorschlagOut])
 async def divera_vorschlaege_alle_uebernehmen(
     db: DbSession, _admin: CurrentAdmin
@@ -401,6 +416,10 @@ async def divera_vorschlag_entscheiden(
     vorschlag = await divera_personal_service.get_vorschlag(db, vorschlag_id)
     if vorschlag is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vorschlag nicht gefunden.")
-    if vorschlag.status != "offen":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Vorschlag bereits entschieden.")
+    # „offen" und „ignoriert" dürfen entschieden werden (ignorierte lassen sich so
+    # nachträglich „doch hinzufügen"); nur bereits übernommene sind final.
+    if vorschlag.status == "uebernommen":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Vorschlag wurde bereits übernommen."
+        )
     return await divera_personal_service.entscheide_vorschlag(db, vorschlag, daten.aktion)

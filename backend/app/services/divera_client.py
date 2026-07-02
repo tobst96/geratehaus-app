@@ -60,6 +60,45 @@ async def hole_alarme(api_key: str, last_ts: int | None = None) -> tuple[list[di
     return alarme, neuer_ts
 
 
+async def hole_alarme_historie(api_key: str, tage: int) -> list[dict]:
+    """Holt die Alarm-HISTORIE über /api/v2/alarms (nicht /pull/all, das nur
+    aktuell aktive Alarme liefert) und filtert auf die letzten `tage` Tage.
+
+    Gibt eine Liste roher Alarm-Dicts zurück (Feld `date` = Unix-Zeit), die
+    divera_service._alarm_normalisieren() versteht. Anders als /pull/all
+    enthält dieser Endpoint auch bereits geschlossene Alarme."""
+    import time
+
+    url = f"{BASIS_URL}/alarms"
+    async with httpx.AsyncClient(timeout=15) as client:
+        try:
+            response = await client.get(url, params={"accesskey": api_key})
+            response.raise_for_status()
+        except httpx.HTTPError:
+            logger.warning("divera_alarm_historie_abruf_fehlgeschlagen", exc_info=True)
+            return []
+
+    daten = response.json()
+    items = daten.get("data", {}).get("items", {})
+    if isinstance(items, dict):
+        items = list(items.values())
+    items = items or []
+
+    grenze = time.time() - tage * 86400
+    gefiltert = [
+        a
+        for a in items
+        if isinstance(a.get("date"), (int, float)) and a["date"] >= grenze
+    ]
+    logger.info(
+        "divera_alarm_historie_geladen",
+        anzahl_gesamt=len(items),
+        anzahl_im_zeitraum=len(gefiltert),
+        tage=tage,
+    )
+    return gefiltert
+
+
 async def hole_personal(api_key: str) -> list[dict]:
     """Holt die Personalliste aller Cluster-Mitglieder für den Personal-Abgleich.
     Nutzt data.cluster.consumer aus /pull/all – das ist ein Dict user_id → user_object,

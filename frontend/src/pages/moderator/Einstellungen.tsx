@@ -301,14 +301,15 @@ export function Einstellungen() {
     }
   }
 
-  async function diveraEinsaetzeHolen() {
+  async function diveraEinsaetzeHolen(tage: number) {
     setDiveraHolenLaeuft(true);
     setDiveraHolenErgebnis(null);
     try {
-      const { anzahl_gefunden, anzahl_neu } = await diveraEinsaetzeNachholen();
+      const { anzahl_gefunden, anzahl_neu } = await diveraEinsaetzeNachholen(tage);
+      const zeitraum = tage === 1 ? "24 Stunden" : `${tage} Tagen`;
       setDiveraHolenErgebnis(
         anzahl_gefunden === 0
-          ? "Keine Alarme in den letzten 24 Stunden gefunden."
+          ? `Keine Alarme in den letzten ${zeitraum} gefunden.`
           : `${anzahl_gefunden} Alarm${anzahl_gefunden !== 1 ? "e" : ""} gefunden, ${anzahl_neu} neu importiert.`
       );
     } catch (err) {
@@ -751,13 +752,23 @@ export function Einstellungen() {
           )}
           {diveraAktiv && (
             <div style={{ marginTop: "1rem" }}>
-              <button
-                type="button"
-                onClick={diveraEinsaetzeHolen}
-                disabled={diveraHolenLaeuft}
-              >
-                {diveraHolenLaeuft ? "Wird abgerufen…" : "Einsätze letzte 24 Stunden holen"}
-              </button>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => diveraEinsaetzeHolen(1)}
+                  disabled={diveraHolenLaeuft}
+                >
+                  {diveraHolenLaeuft ? "Wird abgerufen…" : "Einsätze letzte 24 Stunden holen"}
+                </button>
+                <button
+                  type="button"
+                  className="sekundaer"
+                  onClick={() => diveraEinsaetzeHolen(7)}
+                  disabled={diveraHolenLaeuft}
+                >
+                  {diveraHolenLaeuft ? "Wird abgerufen…" : "Einsätze letzte 7 Tage holen"}
+                </button>
+              </div>
               {diveraHolenErgebnis && (
                 <p style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
                   {diveraHolenErgebnis}

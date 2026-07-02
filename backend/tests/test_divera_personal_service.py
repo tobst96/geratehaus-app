@@ -165,6 +165,30 @@ async def test_alle_neuen_uebernehmen_legt_alle_personen_an(db: AsyncSession):
 
 
 @pytest.mark.asyncio
+async def test_ignorierte_auflisten_und_zuruecksetzen(db: AsyncSession):
+    v = DiveraVorschlag(
+        divera_user_id="5",
+        art="neu",
+        vorschlag_daten={"name": "E E", "vorname": "E", "nachname": "E", "email": None},
+        status="offen",
+    )
+    db.add(v)
+    await db.commit()
+
+    await divera_personal_service.entscheide_vorschlag(db, v, "ignorieren")
+
+    ignorierte = await divera_personal_service.liste_ignorierte_vorschlaege(db)
+    assert len(ignorierte) == 1 and ignorierte[0].divera_user_id == "5"
+    assert await divera_personal_service.liste_offene_vorschlaege(db) == []
+
+    anzahl = await divera_personal_service.alle_ignorierten_zuruecksetzen(db)
+    assert anzahl == 1
+    offen = await divera_personal_service.liste_offene_vorschlaege(db)
+    assert len(offen) == 1 and offen[0].status == "offen"
+    assert await divera_personal_service.liste_ignorierte_vorschlaege(db) == []
+
+
+@pytest.mark.asyncio
 async def test_uebernehmen_neuer_vorschlag_legt_person_an(db: AsyncSession):
     vorschlag = DiveraVorschlag(
         divera_user_id="7",

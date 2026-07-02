@@ -38,20 +38,23 @@ async def manuell_synchronisieren(db: DbSession, _moderator: CurrentModerator) -
 
 
 @router.post("/einsaetze-nachholen")
-async def einsaetze_nachholen(db: DbSession, _moderator: CurrentModerator) -> dict[str, int]:
-    """Vollständiger Pull von Divera ohne lastUpdate-Filter: gibt alle aktuell
-    in Divera aktiven Alarme zurück und importiert fehlende Einsätze.
-    Nützlich zum Testen der Konfiguration und zum manuellen Nachholen von
-    Alarmen, die im Polling-Fenster verpasst wurden und noch aktiv sind."""
+async def einsaetze_nachholen(
+    db: DbSession, _moderator: CurrentModerator, tage: int = 1
+) -> dict[str, int]:
+    """Holt die Alarm-HISTORIE der letzten `tage` Tage über /api/v2/alarms und
+    importiert fehlende Einsätze (Upsert über divera_id). Anders als der
+    Polling-Endpoint /pull/all enthält die Historie auch bereits geschlossene
+    Alarme – damit lassen sich verpasste Einsätze zuverlässig nachholen."""
+    if tage < 1 or tage > 31:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Zeitraum muss zwischen 1 und 31 Tagen liegen."
+        )
     divera_aktiv = await config_service.get(db, "divera_aktiv", False)
     api_key = await config_service.get(db, "divera_api_key", "")
     if not divera_aktiv or not api_key:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Divera ist nicht aktiv oder kein API-Key konfiguriert.")
 
-    # Kein lastUpdate – vollständiger Pull, gibt alle aktuell aktiven Alarme zurück.
-    # Divera entfernt quittierte/geschlossene Alarme sofort aus der API-Antwort;
-    # für historische Alarme ist Webhook-Modus nötig.
-    alarme, _ = await divera_client.hole_alarme(api_key, last_ts=None)
+    alarme = await divera_client.hole_alarme_historie(api_key, tage=tage)
 
     anzahl_neu = 0
     for roh in alarme:
