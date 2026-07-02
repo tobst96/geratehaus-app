@@ -479,6 +479,37 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ---
 
+## Einsatztagebuch
+
+### Einsatz-Statistik: Jahresanzahl mit Vorjahresvergleich zum Stichtag
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Feature / Backend / Frontend
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Im Einsatztagebuch die Gesamtzahl der Einsätze im **laufenden Jahr**
+  anzeigen und mit dem **Vorjahr zum selben Stichtag (gleicher Tag im Jahr)**
+  vergleichen. Anzeigeformat z. B. „2026: 50 Einsätze +4" – die +4 ist die Differenz
+  zum Vorjahr bis zum gleichen Kalendertag (2026 hat bis 15.5. bereits 50 Einsätze,
+  2025 hatte bis 15.5. 46 → +4 mehr als im Vorjahr zu diesem Zeitpunkt). Vorzeichen
+  entsprechend (+/−, 0 neutral).
+- Setup-Wizard: neues Feld „Wie viele Einsätze wurden im laufenden Jahr bereits
+  abgearbeitet?" als **Startwert/Offset**, damit die Zählung auch bei Einführung
+  mitten im Jahr stimmt (in der App erfasste Einsätze + Offset).
+- Akzeptanzkriterien:
+  - Einsatztagebuch zeigt „<Jahr>: <n> Einsätze <±diff>".
+  - Der Vergleich nutzt den Vorjahresstand bis zum gleichen Tag im Jahr (Stichtag =
+    heute).
+  - Der Wizard fragt den Startwert fürs laufende Jahr ab; er fließt in die Zählung ein.
+  - Backend liefert die Kennzahlen (aktuelles Jahr gesamt, Vorjahr bis Stichtag);
+    Tests.
+- Notizen: Startwert/Offset als `app_config`-Schlüssel (z. B. `einsatz_startwert_jahr`
+  inkl. zugehörigem Jahr), im Wizard und ggf. in den Einstellungen pflegbar. „Heute/
+  Stichtag" zeitzonenkorrekt (siehe Zeitzonen-Punkt in Etappe M). Zählbasis
+  (angelegte vs. abgeschlossene Einsätze) bei der Umsetzung definieren.
+
+---
+
 ## Benachrichtigungen
 
 ### Web Push nutzbar machen (Frontend-Abo-Flow)
