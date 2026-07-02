@@ -14,32 +14,6 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ## Etappe C – Dienststunden-Erfassung touch-freundlich
 
-### Schutz vor Doppelbuchung bei Dienststunden
-
-- Status: Backlog
-- Priorität: Hoch
-- Kategorie: Bug / Backend
-- Skills: bugfix, tests, review
-- Beschreibung: Aktuell wird nicht geprüft, ob für Person+Datum+Funktion bereits
-  ein Eintrag existiert – Mehrfachbuchung inkl. mehrfacher Punktevergabe ist möglich.
-  Warnung oder Block in `dienststunden_service.erfassen()` einbauen.
-- Akzeptanzkriterien: Zweite identische Buchung (Person+Datum+Funktion) wird
-  verhindert bzw. deutlich gewarnt; keine doppelte Punktevergabe; Regressionstest.
-- Notizen: `backend/app/services/dienststunden_service.py`.
-
-### Dienststunden-Buchung als PersonEreignis protokollieren
-
-- Status: Backlog
-- Priorität: Mittel
-- Kategorie: Feature / Backend
-- Skills: geraetehaus-patterns, tests, review
-- Beschreibung: Dienststunden-Buchungen erscheinen nicht in der Person-Timeline
-  (dort nur Funktionswechsel via `_funktion_in_stammdaten_abgleichen()`). Eigenes
-  `PersonEreignis` (z. B. `"dienststunden_erfasst"`) beim Buchen ergänzen.
-- Akzeptanzkriterien: Jede Erfassung erzeugt einen Timeline-Eintrag mit Dauer/
-  Funktion/Datum; Regressionstest.
-- Notizen: siehe `.claude/docs/timeline.md`.
-
 ### Dienstbuch-Felder analog Einsatz-Felder (+ Typ „Auswahl")
 
 - Status: Backlog
@@ -619,7 +593,10 @@ Klick auf Überschreitung → Listen/Dienststunden · Mail nach Stundenerfassung
 Schwellenwert-Berechnung im Dashboard geprüft.
 
 **Etappe C:** Touch-freundliche Stunden-Erfassung (Chips + Stepper) · 15-Min-Chip
-(0:15) · „✓ Erfasst"-Bestätigung auf beiden Erfassungsseiten.
+(0:15) · „✓ Erfasst"-Bestätigung auf beiden Erfassungsseiten · Doppelbuchungs-Schutz
+(409 bei gleicher Person+Funktion+Datum, `test_dienststunden_doppelbuchung.py`) ·
+Dienststunden-Erfassung als PersonEreignis `dienststunden_erfasst` in der Timeline
+(Regressionstest `test_dienststunden_timeline.py` ergänzt).
 
 **Etappe D:** Moderator-Navigation mobil (Hamburger) · Master-Detail einspaltig auf
 Mobil · Seitenkopf/Buttons stapeln · Detail-Aktionsbuttons vereinheitlicht ·
