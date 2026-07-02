@@ -39,7 +39,6 @@ Fachbegriffe rund um Gerätehaus.app (Feuerwehr-Domäne und projektinterne Begri
   „Barcode vergessen", Profilbild-Upload, Mitglied-Login). Ablauf:
   erstellen → QR/Token → identifizieren → Vorschau → einlösen.
 - **Timeline** – grafisches Ereignisprotokoll (`PersonEreignis`, `EinsatzEreignis`).
-- **Punkte** – Aktivitätspunkte mit Gültigkeit und Abbau-Modus (`PersonPunkt`).
 - **app_config** – Tabelle für alle fachlichen Einstellungen, Zugriff nur über
   `config_service`.
 - **Setup-Wizard** – Ersteinrichtung (Organisation, Logo, Farben, Admin-Passwort);

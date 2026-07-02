@@ -23,7 +23,7 @@ Token-Flows).
 ## Rollen-Trennung Moderator vs. Admin
 
 - `CurrentModerator`: Dashboard, Listen, Einsatz-/Dienstbuch-Details,
-  Fahrzeugbuchungen, Punkte **vergeben**.
+  Fahrzeugbuchungen.
 - `CurrentAdmin` (zusätzlich `rolle == "admin"`): Personal, Stammdaten, Barcodes,
   Kiosk-Geräte, Benachrichtigungen, Einstellungen, Update.
 - Frontend spiegelt das über `ModeratorRoute` / `AdminRoute` in `src/App.tsx` –
