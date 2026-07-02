@@ -31,6 +31,7 @@ import type {
 } from "../../api/types";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { DiveraVorschlagModal } from "../../components/DiveraVorschlagModal";
+import { PersonKanaele } from "./PersonKanaele";
 
 interface BildQr {
   personId: number;
@@ -876,6 +877,8 @@ export function Personal() {
                   {dienststundenFehler && <p className="fehlertext">{dienststundenFehler}</p>}
                 </>
               )}
+
+              <PersonKanaele personId={ausgewaehltePerson.id} />
 
               <h3>Timeline</h3>
               {!timeline ? (

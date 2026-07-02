@@ -1,8 +1,9 @@
 # Umsetzungsplan: Granulare Berechtigungsverwaltung & Modul-System
 
-Status: **In Umsetzung** – Phase 0 + **Phase 1 & 2 umgesetzt** (Modul-Registry +
-Admin-Seite „Module"; Berechtigungen pro Moderator + `berechtigungs_service` +
-Admin-Matrix „Berechtigungen"). **Enforcement noch aus.** Phasen 3–5 offen. Backlog-
+Status: **In Umsetzung** – Phase 0 + **Phasen 1–3 umgesetzt** (Modul-Registry +
+„Module"-Seite; Berechtigungen pro Moderator + Admin-Matrix; Benachrichtigungskanäle
+pro Person im Admin-Menü). **Enforcement + Notifier-Wiring noch aus.** Phasen 4–5
+offen. Backlog-
 Item: „Granulare, individuelle Berechtigungsverwaltung als eigenständiges Modul"
 (`.claude/docs/backlog.md`). Umsetzung phasenweise auf diesem Feature-Branch mit PR,
 **nicht** direkt auf `main`.
@@ -101,14 +102,17 @@ Datenmodell fixieren, Migrationsreihenfolge festlegen.
 - Enforcement noch **aus** (nur Datenpflege). Tests `test_berechtigungen.py`
   (Bypass, grant/revoke, unbekannt, Matrix-Endpoint admin-only, PUT+404). Suite grün (84).
 
-**Phase 3 – Benachrichtigungsweg pro Person (im Admin-Menü):**
-- `Benachrichtigungskanal`-Modell + Migration; erweiterbare Kanal-Registry
-  (mail/telegram, Interface für künftige Kanäle).
-- UI **pro Person** im Admin-Bereich (Kanalauswahl + Zielwert), baut auf den
-  bestehenden `Person.email`/`benachrichtigungen_aktiv`-Feldern auf. Integration in
-  `notifier_service` (Empfängerauflösung über die Kanäle der Personen).
-- Ereignis-Routing (Moderatoren vs. Personen) definieren.
-- Tests: Kanalauflösung, Versandpfad (gemockt).
+**Phase 3 – Benachrichtigungsweg pro Person (im Admin-Menü): ✅ umgesetzt**
+- `Benachrichtigungskanal`-Modell (`benachrichtigungskanaele`, unique person+typ) +
+  Migration `0037`; erweiterbare Kanal-Registry `KANAL_TYPEN` (mail/telegram).
+- `benachrichtigungskanal_service` (liste/setzen/loeschen, Typ-Validierung).
+- Admin-Endpunkte: `GET /moderator/kanal-typen`, `GET/PUT/DELETE
+  /moderator/personen/{id}/kanaele[/{typ}]`.
+- Frontend: Komponente `PersonKanaele` in der Personal-Detailseite (Kanal + Zielwert
+  + aktiv, Speichern). Tests `test_benachrichtigungskanal.py`. Suite grün (89).
+- **Offen (bewusst später):** Wiring in `notifier_service` (Empfängerauflösung über
+  diese Kanäle) + Ereignis-Routing (Moderatoren vs. Personen) – zusammen mit dem
+  Enforcement-Umbau in Phase 4, um bestehende Benachrichtigungen nicht zu brechen.
 
 **Phase 4 – Enforcement umstellen (schrittweise, Modul für Modul):**
 - Endpunkte von `CurrentAdmin`/`CurrentModerator` auf `require_modul_zugriff(...)`
