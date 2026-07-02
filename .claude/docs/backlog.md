@@ -511,16 +511,26 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Granulare, individuelle Berechtigungsverwaltung als eigenständiges Modul
 
-- Status: Planung
+- Status: In Bearbeitung
 - Priorität: Hoch
 - Kategorie: Neues Modul / Feature / Architektur
 - Skills: planner, new-module, geraetehaus-patterns, tests, review
-- **Loop-Vorgehen (vom Nutzer priorisiert 2026-07-02): NÄCHSTER Loop-Fokus.**
-  Schritt 1: einen konkreten, **phasenweisen Umsetzungsplan** erstellen (Datenmodell,
-  Migrationsreihenfolge, betroffene Endpunkte, neue Seiten, Modul-Registry, Migration
-  des heutigen Rollenmodells) – **KEIN Code**. Schritt 2+: Umsetzung schrittweise auf
-  einem **Feature-Branch mit PR**. **NICHT direkt auf `main`, KEIN Auto-Deploy/Rebuild**,
-  bis der PR vom Nutzer freigegeben ist (großer Auth-Umbau, quer durch die App).
+- **Fortschritt (PR #12 gemergt & deployt, 2026-07-02):** Umsetzungsplan
+  (`.claude/docs/plan-berechtigungs-modul.md`), Modul-Registry + „Module"-Seite
+  (Migration 0035), Berechtigungen pro Moderator + Admin-Matrix (0036),
+  Benachrichtigungskanäle pro Person (0037), Enforcement-Werkzeug
+  `require_modul_zugriff` + gescharfschaltete Admin-Router (module, berechtigungen,
+  personal-kanäle, einstellungen, update). Non-breaking. Migrationen live (head 0037).
+- **Offen (weiter über NEUEN Branch+PR, nicht direkt auf `main`):**
+  - **Frontend-Guards** rolle→berechtigung (AuthContext lädt eigene Rechte,
+    `AdminRoute`/Nav prüfen `hat_zugriff` statt `istAdmin`) – sonst erreichen
+    Nicht-Admins freigegebene Module in der UI nicht.
+  - Restliche Router gaten: `barcodes` (pro Endpunkt, `/render` bleibt auth-frei) +
+    `kiosk-geraete`, `stammdaten` (personal/stammdaten pro Endpunkt), **breaking**
+    Gruppenführer-Bereiche (`buchungen`→fahrzeugbuchung, Einsatz/Dienstbuch/
+    Dienststunden-Moderatoransicht). Dashboard/Listen bleiben für jeden Moderator;
+    Punkte übersprungen.
+  - Notifier-Wiring (Phase-3-Kanäle) + Phase 5 (altes Rollenmodell entfernen, Doku).
 - Beschreibung: Berechtigungen sollen künftig **nicht rollenbasiert** (Admin/
   Gruppenführer), sondern **individuell pro Mitarbeiter und Modul** vergeben werden.
   Umsetzung als eigenständiges, erweiterbares Modul, verwaltet über eine neue
