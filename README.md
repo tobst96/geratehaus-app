@@ -77,23 +77,31 @@ auf der Kiosk-Startseite ein-/ausblendbar und separat für den Außenzugriff
 
 ### Moderator-Bereich
 
-- **Rollen:** Admin und Gruppenführer – Admins sehen alles (Personal, Punkte,
-  Stammdaten, Einstellungen); Gruppenführer sehen Dashboard, Listen und
-  Buchungen; beide können Punkte vergeben
+- **Rollen & Berechtigungen:** Admin und Gruppenführer. Admins haben Zugriff auf
+  alles (Personal, Stammdaten, Einstellungen); für die übrigen Moderatoren lässt
+  sich der Zugriff **pro Modul granular freigeben** (Berechtigungs-Matrix im
+  Moderator-Bereich)
 - **Dashboard** mit konfigurierbaren Schwellenwert-Anzeigen für Dienststunden
 - **Gefilterte Listen** aller Einsätze, Dienstbücher, Dienststunden und Buchungen
 - **Stammdatenverwaltung** – Fahrzeuge/Sitzplätze, Funktionen, Einsatz-Zusatzfelder,
   Personen (inkl. Barcodes), Kiosk-Geräte
-- **Punkte-System** – Punkte pro Einsatz/Dienststunde/Dienstbuch vergeben, Punkte
-  manuell als Belohnung durch Moderatoren; Ablauf konfigurierbar
+- **Module & Berechtigungen** – zentrale Modul-Übersicht (aktivieren/deaktivieren)
+  und eine Rechte-Matrix, über die Admins einzelnen Moderatoren gezielt Zugriff
+  auf bestimmte Bereiche geben
 - **Benachrichtigungen** – eigener Bereich für Telegram, E-Mail (SMTP, inkl.
   Testmail-Button) und Web Push, vollständig über den Moderator-Bereich
   konfigurierbar (keine `.env`-Bearbeitung nötig). Mails werden im **HTML-Design
   der eingestellten Website** versendet. Die Einsatz-Benachrichtigung kann
-  optional den PDF-Bericht und den Timeline-Verlauf direkt enthalten; welche
-  Personen E-Mails erhalten, ist pro Person konfigurierbar
+  optional den PDF-Bericht und den Timeline-Verlauf direkt enthalten. **Kanäle
+  (E-Mail/Telegram/Web-Push) und die zu empfangenden Ereignisse sind pro Person
+  einstellbar**; zugestellt wird nur an die jeweils freigegebenen Kanäle
 - **Divera 24/7** – Anbindung (Polling oder Webhook) komplett über den
-  Moderator-Bereich konfigurierbar; Änderungen wirken ohne Neustart
+  Moderator-Bereich konfigurierbar; importiert Alarme als Einsätze (inkl.
+  **Adresse und Meldung**), gleicht das **Personal** ab (Vorschläge für neue
+  Mitglieder) und kann Einsätze der letzten Tage nachholen; Änderungen wirken
+  ohne Neustart
+- **Update** – zeigt verfügbare Versionen (Stable-/Beta-Kanal) und kann ein
+  Update der Instanz per Klick anstoßen
 
 ### Fehlerberichte & Monitoring
 
@@ -114,7 +122,9 @@ auf der Kiosk-Startseite ein-/ausblendbar und separat für den Außenzugriff
   (Fahrzeugbuchungskalender)
 - **PDF-Export:** WeasyPrint (HTML/CSS-Templates) für den einzelnen Einsatzbericht
 - **Barcodes:** `python-barcode` (Code128, serverseitig als PNG gerendert)
-- **Hintergrundjobs:** APScheduler (Divera-Polling, tägliche Archivierung)
+- **Hintergrundjobs:** APScheduler (Divera-Polling & Personal-Abgleich,
+  Einsatz-/Dienstbuch-Autoabschluss, Personen-Inaktivität, Barcode-Erneuerung,
+  tägliche Archivierung)
 - **Deployment:** Docker Compose (Postgres + Backend + Nginx/Frontend)
 
 ## Schnellstart (Docker)

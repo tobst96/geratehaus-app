@@ -542,9 +542,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `scripts/test-backend.sh` (pytest) + `npm run build` fehlerfrei.
 - Notiz (Stand 02.07.2026): Alle inhaltlichen Etappe-N-Punkte sind erledigt
   (Einsatzdetails-Bug, Divera, Benachrichtigungen, Stable-Updater, Punktesystem
-  entfernt). Das eigentliche Release ist auf ausdrücklichen Wunsch **noch nicht**
-  veröffentlicht – dieser letzte Schritt (Datenschutz-Prüfung, Version finalisieren,
-  Veröffentlichung) bleibt bewusst offen.
+  entfernt).
+- Notiz (Stand 03.07.2026): Beta **0.3.0-beta.3** veröffentlicht (GitHub-Prerelease).
+  Release-Checkliste dabei abgearbeitet: Datenschutz-Seite aktualisiert; README
+  gegen aktuellen Stand geprüft und nachgezogen (Punktesystem entfernt, Module/
+  Berechtigungen, Divera-Adresse/Meldung/Personal, Updater, Hintergrundjobs). Ein
+  eigenständiges **Stable-Release** (Nicht-Prerelease) steht weiterhin aus.
 
 ---
 
