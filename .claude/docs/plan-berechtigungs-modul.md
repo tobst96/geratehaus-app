@@ -26,44 +26,46 @@ eigenständiges, erweiterbares **Modul**, verwaltet über eine neue Einstellungs
   E-Mail/Telegram/WebPush; Empfänger global (`notifier_email_recipients`) bzw.
   per-Person-Opt-in. Kein per-Mitarbeiter-Kanal.
 
-## 3. Offene Grundsatzentscheidungen (VOR der Umsetzung klären)
+## 3. Grundsatzentscheidungen
 
-> Diese Fragen müssen beantwortet sein, bevor Code entsteht – sie bestimmen das
-> Datenmodell.
+**Vom Nutzer entschieden (2026-07-02):**
 
-1. **Wer ist „Mitarbeiter"?** Bezieht sich die Berechtigung auf **`Moderator`-
-   Accounts** (die sich einloggen und den Moderator-Bereich bedienen) oder auf
-   **`Person`** (Personal/Mitglieder ohne Login)? Die Aufgabe nennt „Personalverwaltung"
-   (= `Person`), aber Zugriffsrechte/Login existieren heute nur für `Moderator`.
-   → **Empfehlung:** Rechte an den **Login-fähigen Nutzern** vergeben. Falls jede
-   `Person` künftig Rechte/Bereiche bekommen soll, braucht sie zuerst ein Login-Konzept
-   (überschneidet sich mit PIN-Login) – das wäre ein eigener Vorbau.
-2. **Granularität pro Modul:** nur „Zugriff ja/nein" oder differenziert (lesen /
-   schreiben / admin)? Die Aufgabe nennt „Zugriff je Modul (Checkbox)". → Start mit
-   **Zugriff ja/nein je Modul**, Schreib-/Adminrechte als spätere Erweiterung
-   vorsehen.
-3. **Super-Admin bleibt?** Es sollte weiterhin (mind. während der Migration) einen
-   „darf alles"-Zugang geben, damit man sich nicht aussperrt. → **Ja**, Admin-Bypass
-   beibehalten, bis alles migriert ist.
-4. **„Module"-Umfang:** Nur die fachlichen Module (Einsatz/Dienstbuch/Dienststunden/
-   Fahrzeugbuchung) oder auch Querschnitt (Personal, Stammdaten, Einstellungen,
-   Barcodes, Benachrichtigungen)? → Registry so bauen, dass **beliebige Bereiche** als
-   Modul registrierbar sind; Migrationsdaten füllen die bestehenden Bereiche.
-5. **Kanal Telegram pro Mitarbeiter:** eigene Chat-ID je Mitarbeiter (statt globaler
-   Liste) – Bestätigung, dass die globale `notifier_telegram_chat_ids` dadurch abgelöst
-   bzw. ergänzt wird.
+1. **Berechtigungen = pro `Moderator`-Zugang.** Die individuelle Modul-Vergabe ersetzt
+   die pauschalen Rollen **Admin/Gruppenführer** (die die Aufgabe explizit nennt).
+   **Eingestellt wird sie vom Admin.**
+2. **Benachrichtigungen = pro `Person`** (Personal), Kanal **E-Mail/Telegram**,
+   **einstellbar im Admin-Menü**. Baut auf den vorhandenen Feldern `Person.email` /
+   `Person.benachrichtigungen_aktiv` auf und erweitert um Kanal + Zielwert (Chat-ID).
+   → Subjekt von Berechtigung (Moderator) und Benachrichtigung (Person) sind bewusst
+   **unterschiedlich**.
+3. **Admin behält Vollzugriff** (Admin-Bypass), stellt Berechtigungen zentral ein –
+   man kann sich nicht aussperren.
+
+**Noch offen (sinnvolle Defaults, bei Bedarf anpassen):**
+
+4. **Granularität pro Modul:** Start mit **Zugriff ja/nein je Modul**; read/write/admin
+   als spätere Erweiterung vorgesehen.
+5. **„Module"-Umfang:** Registry so bauen, dass **beliebige Bereiche** (Fachmodule +
+   Querschnitt wie Personal/Stammdaten/Einstellungen/Barcodes) registrierbar sind;
+   Migration füllt die bestehenden Bereiche.
+6. **Telegram pro Person:** eigene Chat-ID je Person; die globale
+   `notifier_telegram_chat_ids` wird dadurch abgelöst bzw. ergänzt (bei Umsetzung
+   festlegen).
+7. **Ereignis-Routing:** welche Ereignisse an Moderatoren (operativ, z. B.
+   Buchungsanfrage) und welche an Personen (persönlich, z. B. Barcode/Dienststunden)
+   gehen – in Phase 3 sauber definieren.
 
 ## 4. Zielarchitektur
 
-- **Datenmodell (Vorschlag):**
+- **Datenmodell (gemäß §3):**
   - `Module`: `id`, `key` (eindeutig), `name`, `beschreibung`, `aktiv`.
-  - `Berechtigung`: `subjekt_id` (Moderator- oder Person-ID, je nach Entscheidung 1),
-    `modul_id`, ggf. `stufe` (später: read/write). Unique (subjekt, modul).
-  - `Benachrichtigungskanal`: `subjekt_id`, `typ` (`mail`/`telegram`/…), `zielwert`
+  - `Berechtigung`: `moderator_id`, `modul_id`, ggf. `stufe` (später: read/write).
+    Unique (moderator_id, modul_id).
+  - `Benachrichtigungskanal`: `person_id`, `typ` (`mail`/`telegram`/…), `zielwert`
     (E-Mail bzw. Chat-ID), `aktiv`.
-- **Zentraler `berechtigungs_service`:** eine Prüf-Funktion `hat_zugriff(db, subjekt,
-  modul_key) -> bool`. **Alle** Zugriffsprüfungen laufen darüber – kein verstreuter
-  Tabellenzugriff.
+- **Zentraler `berechtigungs_service`:** eine Prüf-Funktion `hat_zugriff(db,
+  moderator, modul_key) -> bool` (mit Admin-Bypass). **Alle** Zugriffsprüfungen laufen
+  darüber – kein verstreuter Tabellenzugriff.
 - **Modul-Registry:** zentrale Registrierung (Backend-seitig Liste/Objekte je Modul mit
   `key`, `name`, `beschreibung`), die `Module` seedet und der Berechtigungs-UI die
   Modulliste liefert. Berechtigungssystem selbst ist ein registriertes Modul.
@@ -88,11 +90,13 @@ Datenmodell fixieren, Migrationsreihenfolge festlegen.
   Filter nach Berechtigung; Inline-Speichern.
 - Enforcement noch **aus** (nur Datenpflege). Tests: Service, Endpunkte, Filter.
 
-**Phase 3 – Benachrichtigungsweg pro Mitarbeiter:**
+**Phase 3 – Benachrichtigungsweg pro Person (im Admin-Menü):**
 - `Benachrichtigungskanal`-Modell + Migration; erweiterbare Kanal-Registry
   (mail/telegram, Interface für künftige Kanäle).
-- UI je Mitarbeiter (Kanalauswahl + Zielwert). Integration in `notifier_service`
-  (Empfängerauflösung über die Kanäle der berechtigten Mitarbeiter).
+- UI **pro Person** im Admin-Bereich (Kanalauswahl + Zielwert), baut auf den
+  bestehenden `Person.email`/`benachrichtigungen_aktiv`-Feldern auf. Integration in
+  `notifier_service` (Empfängerauflösung über die Kanäle der Personen).
+- Ereignis-Routing (Moderatoren vs. Personen) definieren.
 - Tests: Kanalauflösung, Versandpfad (gemockt).
 
 **Phase 4 – Enforcement umstellen (schrittweise, Modul für Modul):**
@@ -125,8 +129,10 @@ Datenmodell fixieren, Migrationsreihenfolge festlegen.
 
 ## 8. Nächste Schritte
 
-1. Grundsatzentscheidungen §3 mit dem Nutzer klären (v. a. „Mitarbeiter" = Moderator
-   vs. Person).
-2. Danach Phase 1 auf diesem Branch umsetzen (Modell + Migration + „Module"-Seite +
-   Tests), PR aktualisieren.
+Kernentscheidungen sind getroffen (§3, 1–3). Als Nächstes:
+
+1. **Phase 1** auf diesem Branch umsetzen: `Module`-Modell + Migration + Registry
+   (seedet bestehende Bereiche) + read-only „Module"-Einstellungsseite + Tests. PR
+   aktualisieren. Nicht-brechend, weiterhin ohne `main`-Deploy bis PR-Freigabe.
+2. Danach Phase 2 (Berechtigungen pro Moderator + Admin-Matrix, noch ohne Enforcement).
 </content>
