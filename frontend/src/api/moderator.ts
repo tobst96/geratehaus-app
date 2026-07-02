@@ -54,11 +54,6 @@ export interface EinsaetzeProMonat {
   monat: string;
   anzahl: number;
 }
-export interface PunkteRangliste {
-  person_id: number;
-  person_name: string;
-  punkte: number;
-}
 export interface SchwellenwertUeberschreitung {
   person_id: number;
   person_name: string;
@@ -69,7 +64,6 @@ export interface SchwellenwertUeberschreitung {
 }
 export interface DashboardOut {
   einsaetze_pro_monat: EinsaetzeProMonat[];
-  punkte_rangliste: PunkteRangliste[];
   vab_faelle_anzahl: number;
   offene_buchungen_anzahl: number;
   schwellenwert_ueberschreitungen: SchwellenwertUeberschreitung[];
@@ -335,12 +329,3 @@ export const buchungGenehmigen = (buchungId: number) =>
   apiPost<BuchungOut>(`/moderator/buchungen/${buchungId}/genehmigen`);
 export const buchungAblehnen = (buchungId: number, grund: string | null) =>
   apiPost<BuchungOut>(`/moderator/buchungen/${buchungId}/ablehnen`, { grund });
-
-// --- Punkte (Belohnung) ------------------------------------------------------
-
-export const punkteBelohnungVergeben = (daten: {
-  person_id: number;
-  punkte: number;
-  grund: string;
-  gueltig_tage: number;
-}) => apiPost<{ gesamtpunkte: number }>("/moderator/punkte/belohnung", daten);

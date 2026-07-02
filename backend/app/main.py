@@ -26,7 +26,6 @@ from app.api.v1 import (
     moderator_listen,
     moderator_module,
     moderator_person_kanaele,
-    moderator_punkte,
     moderator_stammdaten,
     moderator_update,
     oeffentlich,
@@ -100,7 +99,6 @@ app.include_router(moderator_listen.router, prefix="/api/v1")
 app.include_router(moderator_module.router, prefix="/api/v1")
 app.include_router(moderator_berechtigungen.router, prefix="/api/v1")
 app.include_router(moderator_person_kanaele.router, prefix="/api/v1")
-app.include_router(moderator_punkte.router, prefix="/api/v1")
 app.include_router(moderator_buchungen.router, prefix="/api/v1")
 app.include_router(push.router, prefix="/api/v1")
 app.include_router(divera.router, prefix="/api/v1")

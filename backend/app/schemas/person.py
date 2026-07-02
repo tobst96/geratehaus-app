@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -15,7 +15,6 @@ class PersonOut(BaseModel):
     email: str | None
     gruppe_id: int | None
     funktion_id: int | None
-    gesamtpunkte: int
     pin_gesetzt: bool
     benachrichtigungen_aktiv: bool
 
@@ -50,20 +49,3 @@ class PersonEreignisOut(BaseModel):
 
 class PersonPinSetzen(BaseModel):
     pin: str = Field(min_length=4, max_length=6, pattern=r"^\d+$")
-
-
-class PersonPunktOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    punkte: float
-    grund: str
-    gueltig_bis: date
-    erstellt_am: datetime
-
-
-class PunkteBelohnung(BaseModel):
-    person_id: int
-    punkte: float = Field(gt=0)
-    grund: str = Field(min_length=1, max_length=255)
-    gueltig_tage: int = Field(gt=0, default=180)

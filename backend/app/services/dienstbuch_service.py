@@ -11,7 +11,6 @@ from app.services import (
     benachrichtigungskanal_service,
     notifier_service,
     pdf_service,
-    stammdaten_service,
 )
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
@@ -128,13 +127,6 @@ async def dienstbuch_schliessen(db: AsyncSession, dienstbuch: Dienstbuch) -> Die
     geladen = await get_dienstbuch(db, dienstbuch.id)
     assert geladen is not None
 
-    grund = f"dienstbuch_{dienstbuch.id}"
-    for person_id in {teilnehmer.person_id for teilnehmer in geladen.teilnehmer}:
-        await stammdaten_service.punkte_regel_anwenden(
-            db, person_id, "dienstbuch", grund=grund, einmalig=True
-        )
-    await db.commit()
-
     await _pdf_per_mail_versenden(geladen, db)
     return geladen
 
@@ -142,7 +134,6 @@ async def dienstbuch_schliessen(db: AsyncSession, dienstbuch: Dienstbuch) -> Die
 async def dienstbuch_wieder_oeffnen(db: AsyncSession, dienstbuch: Dienstbuch) -> Dienstbuch:
     dienstbuch.geschlossen = False
     await db.commit()
-    await stammdaten_service.punkte_entfernen(db, f"dienstbuch_{dienstbuch.id}")
     geladen = await get_dienstbuch(db, dienstbuch.id)
     assert geladen is not None
     return geladen
