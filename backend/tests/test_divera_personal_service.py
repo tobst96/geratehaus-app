@@ -33,6 +33,31 @@ async def test_neue_person_erzeugt_vorschlag(db: AsyncSession):
     assert vorschlaege[0].art == "neu"
     assert vorschlaege[0].divera_user_id == "7"
     assert vorschlaege[0].vorschlag_daten["name"] == "Max Mustermann"
+    # erstellt_am muss automatisch gesetzt werden (server_default). Fehlt der
+    # DB-Default, scheitert der Insert an der NOT-NULL-Bedingung und es entstehen
+    # gar keine Vorschläge (siehe Migration 0040 – realer Divera-Bug).
+    assert vorschlaege[0].erstellt_am is not None
+
+
+@pytest.mark.asyncio
+async def test_mehrere_neue_personen_ohne_email_erzeugen_alle_vorschlaege(db: AsyncSession):
+    """Regressionsschutz: Divera liefert je Consumer nur firstname/lastname
+    (keine E-Mail, keine id im Objekt – id ist der Dict-Key). Alle müssen als
+    „neu" ankommen, wenn sie noch nicht im System sind."""
+    await _divera_aktivieren(db)
+    roh = [
+        {"id": "753618", "firstname": "Bastian", "lastname": "Sander"},
+        {"id": "753657", "firstname": "Benjamin", "lastname": "Sander"},
+        {"id": "753664", "firstname": "Björn", "lastname": "Seidel"},
+    ]
+
+    with patch("app.services.divera_client.hole_personal", new=AsyncMock(return_value=roh)):
+        anzahl = await divera_personal_service.synchronisiere_personal(db)
+
+    assert anzahl == 3
+    vorschlaege = await divera_personal_service.liste_offene_vorschlaege(db)
+    assert {v.divera_user_id for v in vorschlaege} == {"753618", "753657", "753664"}
+    assert all(v.art == "neu" and v.erstellt_am is not None for v in vorschlaege)
 
 
 @pytest.mark.asyncio
