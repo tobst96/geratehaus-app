@@ -2,8 +2,8 @@
 
 Globale, dauerhaft gültige Regeln für die Arbeit an diesem Projekt. Details zur
 Architektur stehen in `.claude/architecture.md` und `.claude/docs/*.md`. Nur
-allgemeingültige Regeln gehören hierher, keine temporären Aufgaben (die stehen in
-`TODO.md`).
+allgemeingültige Regeln gehören hierher, keine temporären Aufgaben (die stehen im
+Backlog `.claude/docs/backlog.md`).
 
 ## Was das Projekt ist
 
@@ -82,8 +82,9 @@ Kiosk/Mitglied/Moderator; Config: `modul_<name>_aktiv` / `_startseite` /
 
 ## Arbeitsweise / Workflow
 
-- Vor dem Lesen/Ändern von Aufgaben immer die aktuelle `TODO.md` aus Git holen;
-  nach Änderungen an `TODO.md` sofort committen und pushen.
+- Aufgaben werden im Backlog `.claude/docs/backlog.md` über den `todo`-Skill
+  gepflegt. Vor dem Lesen/Ändern immer den aktuellen Stand aus Git holen; nach
+  Änderungen sofort committen und pushen.
 - Nach jedem `git push` `docker compose up -d --build` ausführen, damit die
   laufende Instanz aktuell ist.
 - Vor jeder Implementierung bestehende Patterns suchen und wiederverwenden –
@@ -97,8 +98,8 @@ Feste Checkliste, bevor eine neue Version veröffentlicht wird:
   Spiegelt sie noch die aktuell aktive Datenverarbeitung wider (neue Features, neue
   erhobene Daten)? Darf nie vergessen werden.
 - `pytest` (Backend) und `npm run build` (Frontend) fehlerfrei.
-- Feature-Freeze: vor dem Release keine neuen Features mehr mergen (siehe `TODO.md`
-  Etappe N).
+- Feature-Freeze: vor dem Release keine neuen Features mehr mergen (siehe Backlog
+  `.claude/docs/backlog.md`, Etappe N).
 
 ## Wissenspflege
 

@@ -17,7 +17,7 @@ Wenn eine neue Aufgabe erstellt wird:
 3. Kategorie erkennen.
 4. Passende Skills auswählen.
 5. Große Aufgaben in Teilaufgaben zerlegen.
-6. Aufgabe in `backlog.md` eintragen.
+6. Aufgabe in `.claude/docs/backlog.md` eintragen.
 
 ## Status
 
