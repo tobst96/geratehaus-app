@@ -172,3 +172,15 @@ async def empfaenger_fuer_ereignis(
         await db.execute(select(Person).where(Person.id.in_(kanaele_je_person.keys())))
     ).scalars().all()
     return [(p, kanaele_je_person[p.id]) for p in personen]
+
+
+async def mail_empfaenger_fuer_ereignis(db: AsyncSession, ereignis: str) -> list[str]:
+    """Nur die E-Mail-Zielwerte der Abonnenten eines Ereignisses (aktiver Mail-Kanal).
+    Für den PDF-Versand bei Einsatz-/Dienstbuch-Abschluss – geht damit nur an die
+    Personen, die das Ereignis bei sich abonniert haben."""
+    adressen: list[str] = []
+    for _person, kanaele in await empfaenger_fuer_ereignis(db, ereignis):
+        for k in kanaele:
+            if k.typ == "mail" and k.zielwert.strip():
+                adressen.append(k.zielwert.strip())
+    return adressen

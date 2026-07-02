@@ -66,6 +66,19 @@ async def test_benachrichtige_geht_nur_an_abonnenten(db, monkeypatch):
     assert gesendet == ["abo@x.de"]
 
 
+async def test_mail_empfaenger_nur_mail_kanal(db):
+    """Für den PDF-Versand: nur Mail-Zielwerte der Abonnenten, keine Telegram."""
+    p_mail = await _person(db, "MailAbo")
+    p_tg = await _person(db, "TelegramAbo")
+    await ks.setzen(db, p_mail.id, "mail", "m@x.de", True)
+    await ks.set_abo(db, p_mail.id, "benachrichtigung_neuer_einsatz", True)
+    await ks.setzen(db, p_tg.id, "telegram", "999", True)
+    await ks.set_abo(db, p_tg.id, "benachrichtigung_neuer_einsatz", True)
+
+    adressen = await ks.mail_empfaenger_fuer_ereignis(db, "benachrichtigung_neuer_einsatz")
+    assert adressen == ["m@x.de"]
+
+
 async def test_benachrichtige_inaktiver_kanal_wird_uebersprungen(db, monkeypatch):
     gesendet: list[str] = []
 
