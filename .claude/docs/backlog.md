@@ -505,6 +505,23 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ## Benachrichtigungen
 
+### Personal-Filter nach Benachrichtigungs-Freigaben
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Feature / Frontend
+- Skills: geraetehaus-patterns, review
+- Beschreibung: In der Personal-Liste einen Filter auf die abonnierten Ereignisse
+  (Benachrichtigungs-Freigaben) ergänzen, damit man schnell sieht, **wer welche Mails
+  bekommt** – z. B. „nur Personen anzeigen, die ‚Einsatz abgeschlossen' abonniert
+  haben (mit aktivem Mail-Kanal)". Baut auf dem bereits vorhandenen `PersonEreignisAbo`
+  + `benachrichtigungskanal_service` auf.
+- Akzeptanzkriterien: In `Personal.tsx` ein Filter (z. B. Ereignis-Auswahl), der die
+  Liste auf Abonnenten des gewählten Ereignisses reduziert; erkennbar, ob ein aktiver
+  Mail-Kanal hinterlegt ist.
+- Notizen: Backend liefert die Abos ggf. gebündelt (neuer Übersichts-Endpunkt oder pro
+  Person), damit die Liste nicht viele Einzelabfragen macht.
+
 ### Web Push nutzbar machen (Frontend-Abo-Flow)
 
 - Status: Backlog
