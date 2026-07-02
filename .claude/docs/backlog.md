@@ -93,6 +93,34 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   Standard-Logo.
 - Notizen: `prefers-color-scheme` bzw. vorhandener Darkmode-State in `index.css`.
 
+### Moderator-Navigationsmenü optisch aufwerten (Screenshot-Befund)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / Design / UX
+- Skills: geraetehaus-patterns, review
+- Beschreibung: Das ausklappbare Moderator-Menü ist aktuell nur eine schmucklose,
+  lange Textliste (Dashboard, Listen, Buchungen, Punkte, Personal, Stammdaten,
+  Barcodes, Kiosk-Geräte, Benachrichtigungen, Einstellungen, Module,
+  Berechtigungen, Update) ohne Icons, Gruppierung oder visuelle Hierarchie. Bei
+  vielen Einträgen wirkt es unübersichtlich; der aktive Punkt hebt sich nur durch
+  rote Schrift ab. Verbesserungsideen:
+  - Pro Eintrag ein **Icon** (bestehendes Icon-Set des Projekts nutzen).
+  - Einträge in **Gruppen/Abschnitte** bündeln (z. B. „Betrieb" –
+    Dashboard/Listen/Buchungen/Personal; „Verwaltung/System" –
+    Einstellungen/Module/Berechtigungen/Update) mit dezenten Zwischenüberschriften.
+  - **Aktiven Zustand** deutlicher gestalten (farbige Fläche/Balken statt nur
+    roter Text), Hover-/Touch-Feedback, klarere Abstände.
+  - **Abmelden**- und **Schließen**-Button sauber im Menü-Layout verankern (aktuell
+    wirken sie freistehend links neben der Liste).
+- Akzeptanzkriterien: Menü ist visuell strukturiert (Icons + optionale Gruppen),
+  aktiver Punkt klar erkennbar, Abmelden/Schließen sinnvoll platziert. Keine
+  organisationsspezifischen Werte hart kodiert; Funktion/Routing unverändert.
+- Notizen: Betrifft `frontend/src/components/ModeratorLayout.tsx` (Nav-Rendering)
+  + zugehörige Styles in `index.css`. Nur kosmetisch – keine Änderung an
+  Berechtigungen oder Sichtbarkeitslogik (admin-gefilterte Einträge bleiben wie
+  bisher).
+
 ---
 
 ## Etappe E – Mitglieder-Hub Redesign (`MitgliedHub.tsx`, nur Frontend)
