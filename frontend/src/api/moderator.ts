@@ -303,9 +303,16 @@ export interface UpdateStatus {
   update_verfuegbar: boolean;
   fehler: string | null;
 }
+export interface UpdateAusloesenErgebnis {
+  angefordert: boolean;
+  verfuegbare_version: string | null;
+  meldung: string;
+}
 export const holeUpdateStatus = () => apiGet<UpdateStatus>("/moderator/update");
 export const updateKanalSetzen = (kanal: "stable" | "beta") =>
   apiPut<UpdateStatus>("/moderator/update/kanal", { kanal });
+export const updateAusloesen = () =>
+  apiPost<UpdateAusloesenErgebnis>("/moderator/update/ausloesen");
 
 // --- Kiosk-Geräte (Admin) ---------------------------------------------------
 

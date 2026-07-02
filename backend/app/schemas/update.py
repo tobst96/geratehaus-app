@@ -13,3 +13,9 @@ class UpdateStatusOut(BaseModel):
 
 class UpdateKanalSetzen(BaseModel):
     kanal: str = Field(pattern="^(stable|beta)$")
+
+
+class UpdateAusloesenOut(BaseModel):
+    angefordert: bool
+    verfuegbare_version: str | None
+    meldung: str
