@@ -479,6 +479,29 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ---
 
+## Benachrichtigungen
+
+### Web Push nutzbar machen (Frontend-Abo-Flow)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Feature / Frontend
+- Skills: geraetehaus-patterns, review
+- Beschreibung: Web Push ist backendseitig fertig (Endpunkte `/push/vapid-public-key`,
+  `/push/subscribe`, `/push/unsubscribe`, `PushSubscription`-Modell, `WebPushNotifier`),
+  aber im Frontend fehlt der Abo-Flow: kein `serviceWorker.pushManager.subscribe()`,
+  kein „Benachrichtigungen aktivieren"-Button. Dadurch entstehen keine
+  `PushSubscription`-Einträge und niemand empfängt Push. Ergänzen: VAPID-Public-Key
+  vom Backend holen, Notification-Permission anfragen, Push abonnieren und die
+  Subscription an `POST /push/subscribe` senden (Abmelden via `/push/unsubscribe`).
+- Akzeptanzkriterien: Nutzer kann Web Push aktivieren; eine Subscription wird
+  gespeichert; ausgelöste Ereignisse kommen als Push an.
+- Notizen: Kein Prioritätsthema. Push braucht einen **secure context (HTTPS)** – über
+  LAN-HTTP evtl. nicht testbar; ohne HTTPS ggf. nur dokumentieren bzw. Option
+  ausblenden. Die Kanäle E-Mail und Telegram funktionieren unabhängig davon.
+
+---
+
 ## Berechtigungsverwaltung & Modul-System
 
 ### Granulare, individuelle Berechtigungsverwaltung als eigenständiges Modul
