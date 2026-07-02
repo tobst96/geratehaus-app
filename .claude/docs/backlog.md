@@ -60,6 +60,29 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ## Etappe D – Moderator-Bereich Mobile-Optimierung
 
+### Personal-Seite: Detailansicht-Navigation auf Mobile (Screenshot-Befund)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Frontend / Design / UX
+- Skills: geraetehaus-patterns, review
+- Beschreibung: Wählt man eine Person aus der Liste, erscheint die Detailansicht
+  ganz unten – unterhalb aller anderen Personen. Auf dem Handy muss man an der
+  gesamten Liste vorbeiscrollen, um zum Formular zu gelangen.
+  Empfohlene Lösung: Auf Mobile (≤768 px) bei Personenauswahl die Liste ausblenden
+  und **nur die Detailansicht** in voller Breite zeigen, mit einem
+  „← Zurück zur Liste"-Button oben. Kein Routing-Wechsel nötig – nur ein
+  `zeigeDetail: boolean`-State in `Personal.tsx`. Kein Modal, da die Detailansicht
+  zu viele Felder enthält (Bild, Barcode, PIN, Dienststunden, Timeline) für ein
+  Overlay. Auf Desktop (>768 px) bleibt das Side-by-Side-Layout exakt unverändert,
+  da die App dort hauptsächlich genutzt wird.
+- Akzeptanzkriterien: Auf Mobile wird nach Personenauswahl sofort nur noch die
+  Detailansicht angezeigt (kein Scrollen durch die Liste nötig). „← Zurück"-Button
+  bringt zurück zur Liste. Auf Desktop keine Änderung.
+- Notizen: Betrifft `Personal.tsx` + ggf. neue CSS-Klassen in `index.css`.
+  Gleiche Logik ggf. in `Listen.tsx` und `Buchungsmanagement.tsx` prüfen, falls
+  dort ähnliches Master-Detail-Layout vorhanden ist.
+
 ### Layout-Overflow auf Mobile beheben
 
 - Status: Backlog
