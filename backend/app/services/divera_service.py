@@ -103,9 +103,10 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
 async def synchronisiere(db: AsyncSession) -> int:
     """Pollt die Divera-API und importiert neue Alarme. Gibt die Anzahl der
     neu angelegten Einsätze zurück."""
+    modul_aktiv = await config_service.get(db, "modul_divera_aktiv", False)
     divera_aktiv = await config_service.get(db, "divera_aktiv", False)
     api_key = await config_service.get(db, "divera_api_key", "")
-    if not divera_aktiv or not api_key:
+    if not modul_aktiv or not divera_aktiv or not api_key:
         return 0
     last_ts = await config_service.get(db, "divera_last_ts", 0) or None
     if last_ts == 0:

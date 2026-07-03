@@ -14,6 +14,7 @@ from app.services.config_service import config_service
 
 
 async def _divera_aktivieren(db: AsyncSession) -> None:
+    await config_service.set(db, "modul_divera_aktiv", True)
     await config_service.set(db, "divera_aktiv", True)
     await config_service.set(db, "divera_api_key", "test-key")
 

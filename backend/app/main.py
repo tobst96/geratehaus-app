@@ -53,6 +53,13 @@ async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as db:
         await config_service.ensure_defaults(db)
         await modul_service.ensure_module(db)
+        # Einmalige Übernahme: bestehende Divera-Instanzen (divera_aktiv=true) sollen
+        # das neue Divera-Feature-Modul aktiv haben, damit die Divera-Unterseite und
+        # -Funktionen weiterhin erreichbar bleiben.
+        if not await config_service.get(db, "modul_divera_migration_done", False):
+            if await config_service.get(db, "divera_aktiv", False):
+                await config_service.set(db, "modul_divera_aktiv", True)
+            await config_service.set(db, "modul_divera_migration_done", True)
         init_sentry_wenn_aktiviert(await config_service.get(db, "fehlerberichte_aktiv", False))
     scheduler.start()
     yield

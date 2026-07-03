@@ -47,6 +47,9 @@ DEFAULTS: list[ConfigDefault] = [
     # keine _startseite/_aussenzugriff-Keys. Steuert, ob der Divera-Bereich
     # (Unterseite + Polling/Personal-Sync) überhaupt verfügbar ist.
     ConfigDefault("modul_divera_aktiv", "false", ConfigTyp.BOOL, "Divera-Modul aktiv"),
+    # Einmal-Marker: übernimmt bestehende Divera-Instanzen (divera_aktiv=true) ins
+    # neue Divera-Modul (modul_divera_aktiv=true), siehe Lifespan in app/main.py.
+    ConfigDefault("modul_divera_migration_done", "false", ConfigTyp.BOOL, "Divera-Modul-Migration erfolgt"),
     # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
     # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
     # anhand der Registry ergänzt bzw. ignoriert.
