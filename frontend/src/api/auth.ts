@@ -23,8 +23,58 @@ export interface MeinProfil {
   funktion_id: number | null;
 }
 
+export interface PersonAuswahl {
+  id: number;
+  name: string;
+  bild_url: string | null;
+  pin_gesetzt: boolean;
+}
+
 export const barcodeEinscannen = (token: string) =>
   apiPost<BarcodeIdentitaet>("/auth/barcode", { token });
+
+/** Personenauswahl für den Kiosk (nur wenn das Barcode-Modul AUS ist). */
+export const personenAuswahl = (suche: string) =>
+  apiGet<PersonAuswahl[]>(`/auth/personen?suche=${encodeURIComponent(suche)}`);
+
+/** Login per Auswahl + PIN. Wirft ApiError(428, "kein_pin"), wenn die Person
+ * noch keinen PIN gesetzt hat – dann „PIN anfordern" anbieten. */
+export const namePinLogin = (personId: number, pin: string) =>
+  apiPost<BarcodeIdentitaet>("/auth/name-pin", { person_id: personId, pin });
+
+/** Stößt für eine Person ohne PIN den passenden Weg an (Self-Service-Mail oder
+ * Moderator-Freigabe). Gibt {weg: "mail" | "freigabe"} zurück. */
+export const pinAnfordern = (personId: number) =>
+  apiPost<{ weg: string }>("/auth/pin-anfordern", { person_id: personId });
+
+export interface PinTokenInfo {
+  name: string;
+  gueltig: boolean;
+}
+
+export const pinSetzenInfo = (token: string) =>
+  apiGet<PinTokenInfo>(`/pin-setzen/${encodeURIComponent(token)}`);
+
+export const pinSetzen = (token: string, pin: string) =>
+  apiPost<void>(`/pin-setzen/${encodeURIComponent(token)}`, { pin });
+
+export interface FreigabeTokenInfo {
+  name: string;
+  offen: boolean;
+  email: string | null;
+}
+
+export const freigabeInfo = (token: string) =>
+  apiGet<FreigabeTokenInfo>(`/person-freigabe/${encodeURIComponent(token)}`);
+
+export const freigabeFreigeben = (token: string, email: string, pin: string | null) =>
+  apiPost<void>(`/person-freigabe/${encodeURIComponent(token)}/freigeben`, {
+    email,
+    ...(pin ? { pin } : {}),
+  });
+
+export const freigabeAblehnen = (token: string) =>
+  apiPost<void>(`/person-freigabe/${encodeURIComponent(token)}/ablehnen`);
 
 export const holeMeinProfil = () => apiGet<MeinProfil>("/auth/mein-profil");
 

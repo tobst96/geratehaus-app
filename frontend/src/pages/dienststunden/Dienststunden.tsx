@@ -7,14 +7,15 @@ import {
 } from "../../api/dienststunden";
 import { holeDienststundenReservierung } from "../../api/dienststundenReservierungen";
 import { holeFunktionenDienststunden } from "../../api/stammdaten";
-import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
-import { BarcodeEingabe } from "../../components/BarcodeEingabe";
+import {
+  PersonIdentifikation,
+  type PersonIdentifikationHandle,
+} from "../../components/PersonIdentifikation";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
-import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 import type { DienststundenSummeOut, FunktionDienststunden } from "../../api/types";
 import "./Dienststunden.css";
 
@@ -47,15 +48,14 @@ function initialenAus(name: string): string {
 }
 
 export function Dienststunden() {
-  const { barcodeEinscannenEinmalig, kioskScanBeenden } = useAuth();
+  const { kioskScanBeenden } = useAuth();
   const { config } = useConfig();
+  const barcodeModus = config?.modul_barcode_aktiv !== false;
   const mitgliedModus = useMitgliedModus();
-  const { spieleErkannt, spieleFehler } = useBarcodeSound();
+  const identRef = useRef<PersonIdentifikationHandle>(null);
   const [funktionen, setFunktionen] = useState<FunktionDienststunden[]>([]);
   const [ladeFehler, setLadeFehler] = useState<string | null>(null);
 
-  const [barcode, setBarcode] = useState("");
-  const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [funktionId, setFunktionId] = useState<string>("");
   const [stunden, setStunden] = useState<number>(1);
   const [datum, setDatum] = useState(heuteAlsDatum());
@@ -89,29 +89,6 @@ export function Dienststunden() {
         setLadeFehler(err instanceof ApiError ? String(err.detail) : "Funktionen konnten nicht geladen werden.")
       );
   }, []);
-
-  // Live-Vorschau (Name + Bild) während des Scannens, debounced.
-  useEffect(() => {
-    const wert = barcode.trim();
-    if (!wert) {
-      setVorschau(null);
-      return;
-    }
-    const timeout = setTimeout(() => {
-      barcodeVorschau(wert)
-        .then((v) => {
-          setVorschau(v);
-          if (v.funktion_id) setFunktionId(String(v.funktion_id));
-          spieleErkannt();
-        })
-        .catch(() => {
-          setVorschau(null);
-          spieleFehler();
-        });
-    }, 250);
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [barcode]);
 
   function qrAnsichtZuruecksetzen() {
     setQrAnsicht(null);
@@ -167,25 +144,23 @@ export function Dienststunden() {
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
-    if (!funktionId || (!mitgliedModus.aktiv && !barcode.trim())) {
-      setFehler("Barcode erforderlich");
+    if (!funktionId) {
+      setFehler("Bitte eine Funktion wählen.");
       return;
     }
     setLaeuft(true);
     setFehler(null);
     try {
-      const name = mitgliedModus.aktiv ? mitgliedModus.name : vorschau?.name ?? null;
-      if (!mitgliedModus.aktiv) {
-        await barcodeEinscannenEinmalig(barcode.trim());
-      }
+      const name = mitgliedModus.aktiv
+        ? mitgliedModus.name
+        : await identRef.current!.identifiziere();
       await stundenErfassen(Number(funktionId), stunden, datum);
       const summen = await holeMeineSummen();
       const funktionName = funktionen.find((f) => String(f.id) === funktionId)?.name ?? "";
       setLetzteBuchung({ name, funktionName, stundenText: stundenAnzeige(stunden), datum });
       setLetztePerson(name);
       setLetzteSummen(summen);
-      setBarcode("");
-      setVorschau(null);
+      identRef.current?.zuruecksetzen();
       setStunden(1);
       setDatum(heuteAlsDatum());
     } catch (err) {
@@ -259,17 +234,6 @@ export function Dienststunden() {
         ) : (
           <form onSubmit={absenden}>
             <div className="dienststunden-scan-layout">
-              {!mitgliedModus.aktiv && vorschau && (
-                <div className="dienststunden-scan-vorschau">
-                  {vorschau.bild_url ? (
-                    <img src={vorschau.bild_url} alt={vorschau.name} className="dienststunden-scan-bild" />
-                  ) : (
-                    <div className="dienststunden-scan-initialen">{initialenAus(vorschau.name)}</div>
-                  )}
-                  <div className="dienststunden-scan-name">{vorschau.name}</div>
-                </div>
-              )}
-
               <div className="dienststunden-scan-felder">
                 <div className="formular-feld">
                   {mitgliedModus.aktiv ? (
@@ -277,18 +241,13 @@ export function Dienststunden() {
                       Eingeloggt als <strong>{mitgliedModus.name}</strong>
                     </p>
                   ) : (
-                    <>
-                      <label htmlFor="ds-barcode">Barcode einscannen</label>
-                      <BarcodeEingabe
-                        id="ds-barcode"
-                        type="text"
-                        value={barcode}
-                        onChange={setBarcode}
-                        placeholder="Barcode scannen oder eingeben"
-                        autoFocus
-                        required
-                      />
-                    </>
+                    <PersonIdentifikation
+                      ref={identRef}
+                      autoFocus
+                      onPersonInfo={(info) => {
+                        if (info?.funktion_id) setFunktionId(String(info.funktion_id));
+                      }}
+                    />
                   )}
                 </div>
 
@@ -359,7 +318,7 @@ export function Dienststunden() {
                   <button type="submit" disabled={laeuft}>
                     {laeuft ? "Wird gespeichert…" : "Erfassen"}
                   </button>
-                  {!mitgliedModus.aktiv && (
+                  {!mitgliedModus.aktiv && barcodeModus && (
                     <button
                       type="button"
                       className="sekundaer"

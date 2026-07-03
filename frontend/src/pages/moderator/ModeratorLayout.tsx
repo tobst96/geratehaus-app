@@ -35,7 +35,6 @@ const NAV_GRUPPEN: NavGruppe[] = [
     titel: "Verwaltung",
     admin: true,
     items: [
-      { pfad: "/moderator/barcodes", titel: "Barcodes", icon: "barcodes" },
       { pfad: "/moderator/kiosk-geraete", titel: "Kiosk-Geräte", icon: "kiosk" },
       { pfad: "/moderator/benachrichtigungen", titel: "Benachrichtigungen", icon: "benachrichtigungen" },
       { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen" },
@@ -67,6 +66,7 @@ const MODUL_ICON: Record<string, string> = {
   divera: "divera",
   personal: "personal",
   fahrzeuge: "fahrzeug",
+  barcode: "barcodes",
 };
 
 export function ModeratorLayout() {

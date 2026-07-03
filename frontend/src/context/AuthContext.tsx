@@ -4,6 +4,7 @@ import {
   barcodeEinscannen as barcodeEinscannenApi,
   mitgliedAbmelden as mitgliedAbmeldenApi,
   moderatorLogin,
+  namePinLogin,
 } from "../api/auth";
 
 const NAME_SPEICHER_KEY = "angezeigter_name";
@@ -27,6 +28,10 @@ interface AuthContextValue {
   namenEintragen: (name: string) => Promise<void>;
   barcodeEinscannen: (token: string) => Promise<string>;
   barcodeEinscannenEinmalig: (token: string) => Promise<string>;
+  nameLoginEinmalig: (personId: number, pin: string) => Promise<string>;
+  /** Merkt eine bereits serverseitig gesetzte Identität lokal (Anzeige/Persistenz),
+   * z. B. nach einem Namen+PIN-Login im Mitgliederbereich. */
+  identitaetSpeichern: (name: string) => void;
   kioskScanBeenden: () => Promise<void>;
   moderatorAngemeldet: boolean;
   moderatorRolle: string | null;
@@ -71,6 +76,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return identitaet.name;
   }
 
+  /** Kiosk-Variante für den Namen+PIN-Login (Barcode-Modul AUS): identifiziert
+   * die Person für genau EINE Eintragung (setzt den Namens-Cookie serverseitig),
+   * ohne die Identität dauerhaft zu speichern. */
+  async function nameLoginEinmalig(personId: number, pin: string): Promise<string> {
+    const identitaet = await namePinLogin(personId, pin);
+    return identitaet.name;
+  }
+
+  function identitaetSpeichern(name: string): void {
+    localStorage.setItem(NAME_SPEICHER_KEY, name);
+    setAngezeigterName(name);
+  }
+
   /** Löscht den Namens-Cookie serverseitig wieder – nach einer Kiosk-Eintragung,
    * damit der nächste sich frisch einscannen kann und niemand eingeloggt bleibt. */
   async function kioskScanBeenden(): Promise<void> {
@@ -106,6 +124,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         namenEintragen,
         barcodeEinscannen,
         barcodeEinscannenEinmalig,
+        nameLoginEinmalig,
+        identitaetSpeichern,
         kioskScanBeenden,
         moderatorAngemeldet,
         moderatorRolle,

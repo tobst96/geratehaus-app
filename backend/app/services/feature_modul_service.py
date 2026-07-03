@@ -39,6 +39,9 @@ FEATURE_MODULE: list[FeatureModulDef] = [
     FeatureModulDef("dienststunden", "Dienststunden", True),
     FeatureModulDef("fahrzeugbuchung", "Fahrzeugbuchung", True),
     FeatureModulDef("divera", "Divera 24/7", False),
+    # Barcode-Identifikation: wenn AUS (Default), identifizieren sich Personen am
+    # Kiosk per Namenssuche + PIN statt per Barcode-Scan.
+    FeatureModulDef("barcode", "Barcode", False),
 ]
 
 _BY_KEY = {m.key: m for m in FEATURE_MODULE}

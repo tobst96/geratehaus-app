@@ -31,6 +31,7 @@ from app.api.v1 import (
     moderator_update,
     oeffentlich,
     person_bild_reservierungen,
+    pin,
     push,
     reservierungen,
     setup,
@@ -48,6 +49,17 @@ from app.services.config_service import config_service
 konfiguriere_logging()
 
 
+async def _barcodes_vorhanden(db) -> bool:
+    """True, wenn bereits Personen-Barcodes existieren – dann nutzt die Instanz
+    den Barcode-Login und soll ihn behalten."""
+    from sqlalchemy import select
+
+    from app.models.barcode_token import BarcodeToken
+
+    result = await db.execute(select(BarcodeToken.id).limit(1))
+    return result.first() is not None
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as db:
@@ -60,6 +72,13 @@ async def lifespan(app: FastAPI):
             if await config_service.get(db, "divera_aktiv", False):
                 await config_service.set(db, "modul_divera_aktiv", True)
             await config_service.set(db, "modul_divera_migration_done", True)
+        # Einmalige Übernahme: Instanzen, die den Barcode-Login bereits nutzen (es
+        # existieren Barcode-Tokens), behalten ihn (modul_barcode_aktiv=true).
+        # Neue Instanzen starten ohne Barcode-Modul (Namenssuche + PIN).
+        if not await config_service.get(db, "modul_barcode_migration_done", False):
+            if await _barcodes_vorhanden(db):
+                await config_service.set(db, "modul_barcode_aktiv", True)
+            await config_service.set(db, "modul_barcode_migration_done", True)
         init_sentry_wenn_aktiviert(await config_service.get(db, "fehlerberichte_aktiv", False))
     scheduler.start()
     yield
@@ -112,6 +131,7 @@ app.include_router(moderator_buchungen.router, prefix="/api/v1")
 app.include_router(push.router, prefix="/api/v1")
 app.include_router(divera.router, prefix="/api/v1")
 app.include_router(oeffentlich.router, prefix="/api/v1")
+app.include_router(pin.router, prefix="/api/v1")
 app.include_router(reservierungen.router, prefix="/api/v1")
 app.include_router(mitglied_login_reservierungen.router, prefix="/api/v1")
 app.include_router(manifest.router, prefix="/api/v1")

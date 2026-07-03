@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import QRCode from "qrcode";
 import { useAuth } from "../../context/AuthContext";
@@ -12,6 +12,10 @@ import {
 } from "../../api/mitgliedLoginReservierungen";
 import { ApiError } from "../../api/client";
 import { BarcodeEingabe } from "../../components/BarcodeEingabe";
+import {
+  PersonIdentifikation,
+  type PersonIdentifikationHandle,
+} from "../../components/PersonIdentifikation";
 import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 
 function initialenAus(name: string): string {
@@ -25,9 +29,11 @@ function initialenAus(name: string): string {
 }
 
 export function MitgliedLogin() {
-  const { barcodeEinscannen } = useAuth();
+  const { barcodeEinscannen, identitaetSpeichern } = useAuth();
   const { config } = useConfig();
+  const barcodeModus = config?.modul_barcode_aktiv !== false;
   const navigate = useNavigate();
+  const identRef = useRef<PersonIdentifikationHandle>(null);
 
   const [barcode, setBarcode] = useState("");
   const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
@@ -67,11 +73,16 @@ export function MitgliedLogin() {
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
-    if (!barcode.trim()) return;
     setLaeuft(true);
     setFehler(null);
     try {
-      await barcodeEinscannen(barcode.trim());
+      if (barcodeModus) {
+        if (!barcode.trim()) return;
+        await barcodeEinscannen(barcode.trim());
+      } else {
+        const name = await identRef.current!.identifiziere();
+        identitaetSpeichern(name);
+      }
       navigate("/mitglied");
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Anmeldung fehlgeschlagen.");
@@ -169,46 +180,54 @@ export function MitgliedLogin() {
           </div>
         ) : (
           <form onSubmit={absenden}>
-            {vorschau && (
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                {vorschau.bild_url ? (
-                  <img
-                    src={vorschau.bild_url}
-                    alt={vorschau.name}
-                    style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover" }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: "50%",
-                      background: "var(--farbe-primaer)",
-                      color: "#fff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {initialenAus(vorschau.name)}
+            {barcodeModus ? (
+              <>
+                {vorschau && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                    {vorschau.bild_url ? (
+                      <img
+                        src={vorschau.bild_url}
+                        alt={vorschau.name}
+                        style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: 56,
+                          height: 56,
+                          borderRadius: "50%",
+                          background: "var(--farbe-primaer)",
+                          color: "#fff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {initialenAus(vorschau.name)}
+                      </div>
+                    )}
+                    <strong>{vorschau.name}</strong>
                   </div>
                 )}
-                <strong>{vorschau.name}</strong>
+
+                <div className="formular-feld">
+                  <label htmlFor="ml-barcode">Barcode einscannen</label>
+                  <BarcodeEingabe
+                    id="ml-barcode"
+                    value={barcode}
+                    onChange={setBarcode}
+                    placeholder="Barcode scannen oder eingeben"
+                    autoFocus
+                    required
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="formular-feld">
+                <PersonIdentifikation ref={identRef} autoFocus />
               </div>
             )}
-
-            <div className="formular-feld">
-              <label htmlFor="ml-barcode">Barcode einscannen</label>
-              <BarcodeEingabe
-                id="ml-barcode"
-                value={barcode}
-                onChange={setBarcode}
-                placeholder="Barcode scannen oder eingeben"
-                autoFocus
-                required
-              />
-            </div>
 
             {fehler && <p className="fehlertext">{fehler}</p>}
             {qrFehler && <p className="fehlertext">{qrFehler}</p>}
@@ -217,9 +236,11 @@ export function MitgliedLogin() {
               <button type="submit" disabled={laeuft}>
                 {laeuft ? "Wird angemeldet…" : "Anmelden"}
               </button>
-              <button type="button" className="sekundaer" onClick={barcodeVergessenKlick} disabled={qrLaeuft}>
-                {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
-              </button>
+              {barcodeModus && (
+                <button type="button" className="sekundaer" onClick={barcodeVergessenKlick} disabled={qrLaeuft}>
+                  {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
+                </button>
+              )}
             </div>
           </form>
         )}

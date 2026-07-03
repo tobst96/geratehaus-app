@@ -11,12 +11,13 @@ import {
 } from "../../api/buchungen";
 import { holeFahrzeugbuchungReservierung } from "../../api/fahrzeugbuchungReservierungen";
 import { holeFahrzeuge } from "../../api/stammdaten";
-import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { BuchungsKalender } from "../../components/BuchungsKalender";
-import { BarcodeEingabe } from "../../components/BarcodeEingabe";
+import {
+  PersonIdentifikation,
+  type PersonIdentifikationHandle,
+} from "../../components/PersonIdentifikation";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
-import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import type { BuchungOut, Fahrzeug } from "../../api/types";
 import "../dienststunden/Dienststunden.css";
@@ -38,10 +39,11 @@ function initialenAus(name: string): string {
 }
 
 export function Fahrzeugbuchung() {
-  const { angezeigterName, barcodeEinscannenEinmalig, kioskScanBeenden } = useAuth();
+  const { angezeigterName, kioskScanBeenden } = useAuth();
   const { config } = useConfig();
+  const barcodeModus = config?.modul_barcode_aktiv !== false;
   const mitgliedModus = useMitgliedModus();
-  const { spieleErkannt, spieleFehler } = useBarcodeSound();
+  const identRef = useRef<PersonIdentifikationHandle>(null);
   const [buchungen, setBuchungen] = useState<BuchungOut[] | null>(null);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -52,8 +54,6 @@ export function Fahrzeugbuchung() {
   const [von, setVon] = useState(jetztAlsDatetimeLocal());
   const [bis, setBis] = useState(jetztAlsDatetimeLocal(120));
   const [zweck, setZweck] = useState("");
-  const [barcode, setBarcode] = useState("");
-  const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [laeuft, setLaeuft] = useState(false);
 
   const [qrAnsicht, setQrAnsicht] = useState<{ token: string; bildUrl: string; ablaufAm: string } | null>(
@@ -66,27 +66,6 @@ export function Fahrzeugbuchung() {
   );
   const qrVorschauGezeigtSeit = useRef<number | null>(null);
   const qrSchliessenGeplant = useRef(false);
-
-  useEffect(() => {
-    const wert = barcode.trim();
-    if (!wert) {
-      setVorschau(null);
-      return;
-    }
-    const timeout = setTimeout(() => {
-      barcodeVorschau(wert)
-        .then((ergebnis) => {
-          setVorschau(ergebnis);
-          spieleErkannt();
-        })
-        .catch(() => {
-          setVorschau(null);
-          spieleFehler();
-        });
-    }, 250);
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [barcode]);
 
   function qrAnsichtZuruecksetzen() {
     setQrAnsicht(null);
@@ -159,13 +138,13 @@ export function Fahrzeugbuchung() {
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
-    if (!fahrzeugId || !zweck.trim() || (!mitgliedModus.aktiv && !barcode.trim())) return;
+    if (!fahrzeugId || !zweck.trim()) return;
     setHinweis(null);
     setFehler(null);
     setLaeuft(true);
     try {
       if (!mitgliedModus.aktiv) {
-        await barcodeEinscannenEinmalig(barcode.trim());
+        await identRef.current!.identifiziere();
       }
       const ergebnis = await buchungAnfrage({
         fahrzeug_id: Number(fahrzeugId),
@@ -179,8 +158,7 @@ export function Fahrzeugbuchung() {
           : "Anfrage gespeichert."
       );
       setZweck("");
-      setBarcode("");
-      setVorschau(null);
+      identRef.current?.zuruecksetzen();
       setFormularOffen(false);
       await laden();
     } catch (err) {
@@ -293,34 +271,14 @@ export function Fahrzeugbuchung() {
             </p>
           ) : (
             <div className="formular-feld">
-              <label htmlFor="fb-barcode">Barcode scannen (wer bist du?)</label>
-              <BarcodeEingabe
-                id="fb-barcode"
-                value={barcode}
-                onChange={setBarcode}
-                placeholder="Barcode scannen oder eingeben"
-                autoFocus
-                required
-              />
-              {vorschau && (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                  {vorschau.bild_url && (
-                    <img
-                      src={vorschau.bild_url}
-                      alt={vorschau.name}
-                      style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
-                    />
-                  )}
-                  <strong>{vorschau.name}</strong>
-                </div>
-              )}
+              <PersonIdentifikation ref={identRef} autoFocus />
             </div>
           )}
           {qrFehler && <p className="fehlertext">{qrFehler}</p>}
           <button type="submit" disabled={laeuft}>
             {laeuft ? "Wird gestellt…" : "Anfrage stellen"}
           </button>{" "}
-          {!mitgliedModus.aktiv && (
+          {!mitgliedModus.aktiv && barcodeModus && (
             <button type="button" className="sekundaer" onClick={barcodeVergessenKlick} disabled={qrLaeuft}>
               {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
             </button>

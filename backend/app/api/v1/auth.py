@@ -18,9 +18,19 @@ from app.schemas.auth import (
     MeinProfil,
     ModeratorToken,
     NameEintragen,
+    NamePinLogin,
+    PersonAuswahl,
+    PinAnfordern,
 )
 from app.db.session import AsyncSessionLocal
-from app.services import auth_service, barcode_service, mitglied_login_reservierung_service, stammdaten_service
+from app.services import (
+    auth_service,
+    barcode_service,
+    feature_modul_service,
+    mitglied_login_reservierung_service,
+    pin_service,
+    stammdaten_service,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -176,6 +186,65 @@ async def barcode_vorschau(db: DbSession, token: str) -> BarcodeVorschau:
         gruppe_id=person.gruppe_id,
         funktion_id=person.funktion_id,
     )
+
+
+@router.get(
+    "/personen", response_model=list[PersonAuswahl], dependencies=[Depends(rate_limit(30, 60))]
+)
+async def personen_auswahl(db: DbSession, suche: str = "") -> list[PersonAuswahl]:
+    """Namensauswahl für den Kiosk, wenn das Barcode-Modul AUS ist. Liefert nur
+    id/name/bild + ob ein PIN gesetzt ist – keine E-Mail/PIN. Bei aktivem
+    Barcode-Modul bewusst 404, damit die Personenliste nicht öffentlich ist."""
+    if await feature_modul_service.ist_aktiv(db, "barcode"):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Nicht verfügbar.")
+    begriff = suche.strip()
+    query = select(Person).order_by(Person.name)
+    if begriff:
+        query = query.where(Person.name.ilike(f"%{begriff}%"))
+    personen = (await db.execute(query.limit(50))).scalars().all()
+    return [
+        PersonAuswahl(id=p.id, name=p.name, bild_url=p.bild_url, pin_gesetzt=p.pin_gesetzt)
+        for p in personen
+    ]
+
+
+@router.post(
+    "/name-pin", response_model=BarcodeIdentitaet, dependencies=[Depends(rate_limit(20, 60))]
+)
+async def name_pin_login(db: DbSession, response: Response, daten: NamePinLogin) -> BarcodeIdentitaet:
+    """Identifiziert eine Person per Auswahl + persönlichem PIN (Standard, wenn das
+    Barcode-Modul AUS ist) und setzt den Namens-Cookie wie /auth/barcode. Ohne
+    gesetzten PIN wird bewusst nicht eingeloggt (428) – das Frontend zeigt dann
+    den Button „PIN anfordern"."""
+    person = await stammdaten_service.get_person(db, daten.person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    if not person.pin_gesetzt:
+        raise HTTPException(status_code=status.HTTP_428_PRECONDITION_REQUIRED, detail="kein_pin")
+    if not stammdaten_service.person_pin_korrekt(person, daten.pin):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="PIN falsch.")
+
+    response.set_cookie(
+        NAME_COOKIE,
+        person.name,
+        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
+        httponly=True,
+        samesite="lax",
+    )
+    return BarcodeIdentitaet(name=person.name)
+
+
+@router.post(
+    "/pin-anfordern", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(rate_limit(10, 60))]
+)
+async def pin_anfordern(db: DbSession, daten: PinAnfordern) -> dict[str, str]:
+    """Kiosk-Fallback für Personen ohne PIN: hat die Person eine E-Mail, bekommt
+    sie einen Self-Service-Link; sonst wird eine Moderator-Freigabe angestoßen."""
+    person = await stammdaten_service.get_person(db, daten.person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    weg = await pin_service.pin_anfordern(db, person)
+    return {"weg": weg}
 
 
 @router.post(

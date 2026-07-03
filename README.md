@@ -3,7 +3,7 @@
 # 🚒 Gerätehaus.app
 
 **Die selbst hostbare, mobile-first PWA für Feuerwehren.**
-Einsätze, Dienste, Dienststunden und Fahrzeugbuchungen – am Tablet im Gerätehaus per Barcode-Scan, ganz ohne Login.
+Einsätze, Dienste, Dienststunden und Fahrzeugbuchungen – am Tablet im Gerätehaus per Namensauswahl + PIN oder optional per Barcode-Scan.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Backend](https://img.shields.io/badge/Backend-FastAPI%20%C2%B7%20PostgreSQL-009688.svg)](#-tech-stack)
@@ -16,11 +16,12 @@ Einsätze, Dienste, Dienststunden und Fahrzeugbuchungen – am Tablet im Geräte
 
 ---
 
-Gerätehaus.app läuft als **Kiosk** auf einem Tablet oder Bildschirm im Gerätehaus: Mitglieder scannen
-ihren persönlichen Barcode, identifizieren sich damit eindeutig und tragen sich für Einsätze, Dienste
-oder Dienststunden ein – **ohne Tippen, ohne Login**. Ein Moderator-Bereich verwaltet alle Stammdaten,
-Personen und Einstellungen. Über den zusätzlichen **öffentlichen Mitglieder-Login** lassen sich
-freigeschaltete Module auch von außerhalb – z. B. vom eigenen Smartphone – nutzen.
+Gerätehaus.app läuft als **Kiosk** auf einem Tablet oder Bildschirm im Gerätehaus: Mitglieder
+identifizieren sich – standardmäßig per **Namensauswahl + persönlichem PIN**, optional (Modul „Barcode")
+per **Barcode-Scan** – und tragen sich für Einsätze, Dienste oder Dienststunden ein. Ein Moderator-Bereich
+verwaltet alle Stammdaten, Personen und Einstellungen. Über den zusätzlichen **öffentlichen
+Mitglieder-Login** lassen sich freigeschaltete Module auch von außerhalb – z. B. vom eigenen Smartphone –
+nutzen.
 
 > **Open-Source-Prinzip:** Kein einziger feuerwehr-spezifischer Wert steht hart im Code. Name, Logo,
 > Farben, Module, Fahrzeuge, Sitzplätze, Funktionen und Zusatzfelder werden beim ersten Start über einen
@@ -84,14 +85,20 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
 
 - **Kiosk-Startseite** – große, dynamisch skalierende Kacheln (nie Scrollen nötig), pro Modul einzeln
   ein- und ausblendbar; das Kiosk-Gerät wird per Geräte-Token autorisiert (kein Login nötig).
-- **Öffentlicher Mitglieder-Login** – Identifikation am eigenen Smartphone per Name oder Barcode;
-  Zugriff auf alle für den Außenzugriff freigeschalteten Module, Abmelden jederzeit möglich.
-- **Personen & Barcodes** – Vor-/Zwischen-/Nachname, Profilbild (Fallback: Initialen-Avatar), echter
-  Code128-Strichcode pro Person mit konfigurierbarer Gültigkeit; beim Scannen wird das Profilbild groß
-  zur Bestätigung angezeigt, **Scan-Töne** geben sofortiges akustisches Feedback.
-- **„Barcode vergessen"** – erzeugt im Scan-Dialog einen QR-Code für genau diesen Sitzplatz/diese Aktion;
-  die Person scannt ihn mit dem eigenen Handy und trägt sich ohne Barcode ein (kurzlebiger, einmalig
-  gültiger Token). Solche Eintragungen sind in Listen und PDF als „ohne Barcode" markiert.
+- **Identifikation per Namensauswahl + PIN** (Standard) – die Person sucht ihren Namen und bestätigt mit
+  ihrem persönlichen PIN. Hat sie noch keinen PIN, fordert sie über einen Knopf einen **Self-Service-Link
+  per E-Mail** an; ist keine E-Mail hinterlegt, geht stattdessen eine **Freigabe-Mail an die Moderatoren**
+  (Ja/Nein), die dann E-Mail und optional den PIN setzen. Personen ohne PIN werden zusätzlich in einem
+  einstellbaren Intervall automatisch per E-Mail erinnert (Modul Personal).
+- **Modul „Barcode" (optional)** – ist es aktiv, identifizieren sich Mitglieder stattdessen per echtem
+  **Code128-Strichcode** pro Person (konfigurierbare Gültigkeit); beim Scannen wird das Profilbild groß
+  zur Bestätigung angezeigt, **Scan-Töne** geben sofortiges akustisches Feedback. Bestehende Instanzen
+  behalten den Barcode-Login bei einem Update automatisch.
+- **Öffentlicher Mitglieder-Login** – Identifikation am eigenen Smartphone per Namensauswahl + PIN bzw.
+  Barcode; Zugriff auf alle für den Außenzugriff freigeschalteten Module, Abmelden jederzeit möglich.
+- **„Barcode vergessen"** (bei aktivem Barcode-Modul) – erzeugt im Scan-Dialog einen QR-Code für genau
+  diese Aktion; die Person scannt ihn mit dem eigenen Handy und trägt sich ohne Barcode ein (kurzlebiger,
+  einmalig gültiger Token). Solche Eintragungen sind in Listen und PDF als „ohne Barcode" markiert.
 
 ### 🧩 Module
 
@@ -104,6 +111,7 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
 | **Dienstbuch** | Schnelles Eintragen in zuletzt eröffnete Dienste |
 | **Dienststunden** | Erfassung pro Person/Funktion, kumulierte Übersicht mit konfigurierbaren Schwellenwerten |
 | **Fahrzeugbuchung** | Kalenderansicht mit Konflikterkennung und Moderator-Freigabe; Anfrage-Mails mit **Annehmen/Ablehnen-Buttons** ohne Login |
+| **Barcode** | Optionale Identifikation per Code128-Strichcode statt Namensauswahl + PIN; eigene Modul-Unterseite zum Erzeugen/Erneuern und Versenden der Barcodes |
 
 Jedes Modul ist einzeln **aktivierbar**, unabhängig davon auf der Kiosk-Startseite **ein-/ausblendbar**
 und separat für den **Außenzugriff** (Mitglieder-Login) freischaltbar.
@@ -146,7 +154,7 @@ Inhaltsdaten.
 | **Frontend** | React 18 · TypeScript · Vite · React Router · `react-big-calendar` |
 | **PDF-Export** | WeasyPrint (HTML/CSS-Templates) |
 | **Barcodes** | `python-barcode` (Code128, serverseitig als PNG) |
-| **Hintergrundjobs** | APScheduler (Divera-Polling & Personal-Abgleich, Einsatz-/Dienstbuch-Autoabschluss, Personen-Inaktivität, Barcode-Erneuerung, Archivierung) |
+| **Hintergrundjobs** | APScheduler (Divera-Polling & Personal-Abgleich, Einsatz-/Dienstbuch-Autoabschluss, Personen-Inaktivität, Barcode-Erneuerung, PIN-Erinnerung, Archivierung) |
 | **Deployment** | Docker Compose (PostgreSQL + Backend + Nginx/Frontend) |
 
 ## 🚀 Schnellstart (Docker)

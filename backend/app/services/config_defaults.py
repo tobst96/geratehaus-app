@@ -50,12 +50,21 @@ DEFAULTS: list[ConfigDefault] = [
     # Einmal-Marker: übernimmt bestehende Divera-Instanzen (divera_aktiv=true) ins
     # neue Divera-Modul (modul_divera_aktiv=true), siehe Lifespan in app/main.py.
     ConfigDefault("modul_divera_migration_done", "false", ConfigTyp.BOOL, "Divera-Modul-Migration erfolgt"),
+    # Barcode-Modul: wenn AUS (Default), Login per Namenssuche + PIN statt Barcode-Scan.
+    # Nicht mitgliederseitig – daher keine _startseite/_aussenzugriff-Keys.
+    ConfigDefault("modul_barcode_aktiv", "false", ConfigTyp.BOOL, "Barcode-Modul aktiv"),
+    # Einmal-Marker: bestehende Instanzen mit vorhandenen Barcodes behalten den
+    # Barcode-Login (modul_barcode_aktiv=true), siehe Lifespan in app/main.py.
+    ConfigDefault("modul_barcode_migration_done", "false", ConfigTyp.BOOL, "Barcode-Modul-Migration erfolgt"),
+    # Intervall (Tage) für die Erinnerungsmail an Personen ohne gesetzten PIN
+    # (nur relevant, wenn das Barcode-Modul AUS ist). Einstellbar im Modul Personal.
+    ConfigDefault("pin_erinnerung_intervall_tage", "7", ConfigTyp.INT, "Intervall (Tage) der PIN-Erinnerungsmail"),
     # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
     # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
     # anhand der Registry ergänzt bzw. ignoriert.
     ConfigDefault(
         "modul_reihenfolge",
-        "einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,divera,personal,fahrzeuge",
+        "personal,fahrzeuge,einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,divera,barcode",
         ConfigTyp.STR,
         "Reihenfolge der Feature-Module (kommagetrennte Keys)",
     ),
