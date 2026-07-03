@@ -95,10 +95,14 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Moderator-Navigationsmenü optisch aufwerten (Screenshot-Befund)
 
-- Status: Backlog
+- Status: Erledigt (Grundstruktur; Icons optional)
 - Priorität: Niedrig
 - Kategorie: Frontend / Design / UX
 - Skills: geraetehaus-patterns, review
+- Umsetzung (03.07.2026): Nav in Gruppen gegliedert (Übersicht / Verwaltung /
+  Module) mit Abschnittsüberschriften im mobilen Menü; Modul-Unterseiten klar als
+  eingerückte Unterpunkte unter „Module" (Verbindungslinie, aktive Linie farbig).
+  Offen als optionale Erweiterung: Icons je Eintrag.
 - Beschreibung: Das ausklappbare Moderator-Menü ist aktuell nur eine schmucklose,
   lange Textliste (Dashboard, Listen, Buchungen, Punkte, Personal, Stammdaten,
   Barcodes, Kiosk-Geräte, Benachrichtigungen, Einstellungen, Module,

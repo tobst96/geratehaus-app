@@ -409,6 +409,11 @@ table tr:hover {
   opacity: 0.85;
 }
 
+/* Abschnitts-Überschriften: nur im mobilen Menü sichtbar (Desktop = flache Leiste). */
+.moderator-nav-gruppe-titel {
+  display: none;
+}
+
 .moderator-abmelden {
   flex-shrink: 0;
   margin-left: auto;
@@ -450,6 +455,32 @@ table tr:hover {
     padding: 10px 12px;
     border-radius: var(--radius);
     display: block;
+  }
+
+  /* Abschnittsüberschriften im mobilen Menü. */
+  .moderator-nav-gruppe-titel {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--farbe-text-mute);
+    padding: 14px 12px 4px;
+  }
+
+  /* Modul-Unterpunkte klar als Unterseiten von „Module": eingerückt mit
+     Verbindungslinie, aktive Zeile bekommt eine farbige Linie. */
+  .moderator-nav-link.moderator-nav-unterpunkt {
+    margin-left: 20px;
+    padding-left: 14px;
+    border-left: 2px solid var(--farbe-rand);
+    border-radius: 0;
+    font-size: 0.95em;
+    opacity: 1;
+  }
+
+  .moderator-nav-link.moderator-nav-unterpunkt.aktiv {
+    border-left-color: var(--farbe-primaer);
   }
 }
 
