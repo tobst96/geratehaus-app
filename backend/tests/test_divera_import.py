@@ -69,6 +69,38 @@ async def test_importiere_alarm_uebernimmt_einsatznummer(db: AsyncSession):
 
 
 @pytest.mark.asyncio
+async def test_importiere_alarm_nutzt_divera_zeitstempel(db: AsyncSession):
+    """Der Einsatz-Zeitstempel entspricht der Divera-Alarmzeit, und die Änderung
+    von der Systemzeit auf den Divera-Zeitstempel wird in der Timeline vermerkt."""
+    from datetime import datetime, timezone
+
+    from app.services import einsatz_service
+
+    einsatz = await divera_service.importiere_alarm(
+        db, {"id": 800, "title": "F2", "date": 1719439900}
+    )
+    assert einsatz is not None
+    assert einsatz.zeitpunkt == datetime.fromtimestamp(1719439900, tz=timezone.utc)
+
+    ereignisse = await einsatz_service.liste_ereignisse(db, einsatz.id)
+    zeit_ereignis = [e for e in ereignisse if e.typ == "zeitstempel_divera"]
+    assert len(zeit_ereignis) == 1
+    assert "Divera-Zeitstempel" in zeit_ereignis[0].beschreibung
+
+
+@pytest.mark.asyncio
+async def test_importiere_alarm_ohne_divera_zeit_kein_zeitstempel_ereignis(db: AsyncSession):
+    """Fehlt eine (valide) Divera-Zeit, wird die Systemzeit genutzt und KEIN
+    Zeitstempel-Änderungs-Ereignis geschrieben."""
+    from app.services import einsatz_service
+
+    einsatz = await divera_service.importiere_alarm(db, {"id": 801, "title": "F1"})
+    assert einsatz is not None
+    ereignisse = await einsatz_service.liste_ereignisse(db, einsatz.id)
+    assert not [e for e in ereignisse if e.typ == "zeitstempel_divera"]
+
+
+@pytest.mark.asyncio
 async def test_importiere_alarm_ohne_zusatzinfos_laesst_felder_leer(db: AsyncSession):
     # titel == text -> keine redundante Meldung; keine Adresse vorhanden
     einsatz = await divera_service.importiere_alarm(

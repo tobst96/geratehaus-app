@@ -5,6 +5,7 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import zeit
 from app.models.einsatz import Einsatz
 from app.services import divera_client, einsatz_service, notifier_service
 from app.services.config_service import config_service
@@ -22,6 +23,10 @@ def _alarm_normalisieren(roh: dict[str, Any]) -> dict[str, Any] | None:
     if divera_id is None or not titel:
         return None
 
+    # `zeit_von_divera` unterscheidet einen echten Divera-Zeitstempel von der
+    # Fallback-Systemzeit – nur bei echtem Divera-Zeitstempel wird die Änderung
+    # in der Timeline protokolliert.
+    zeit_von_divera = True
     if isinstance(zeit_roh, (int, float)):
         zeitpunkt = datetime.fromtimestamp(zeit_roh, tz=timezone.utc)
     elif isinstance(zeit_roh, str):
@@ -29,8 +34,15 @@ def _alarm_normalisieren(roh: dict[str, Any]) -> dict[str, Any] | None:
             zeitpunkt = datetime.fromisoformat(zeit_roh)
         except ValueError:
             zeitpunkt = datetime.now(timezone.utc)
+            zeit_von_divera = False
     else:
         zeitpunkt = datetime.now(timezone.utc)
+        zeit_von_divera = False
+
+    # Naive Zeitangaben (ISO ohne Zeitzone) als UTC interpretieren, damit spätere
+    # Zeitzonen-Umrechnungen korrekt sind.
+    if zeitpunkt.tzinfo is None:
+        zeitpunkt = zeitpunkt.replace(tzinfo=timezone.utc)
 
     # `closed` liefert die Alarm-Historie (/api/v2/alarms) für bereits
     # abgeschlossene Einsätze; aktive Alarme (/pull/all) haben es nicht bzw. False.
@@ -51,6 +63,7 @@ def _alarm_normalisieren(roh: dict[str, Any]) -> dict[str, Any] | None:
         "divera_id": str(divera_id),
         "titel": str(titel),
         "zeitpunkt": zeitpunkt,
+        "zeit_von_divera": zeit_von_divera,
         "geschlossen": geschlossen,
         "adresse": str(adresse) if adresse else None,
         "meldung": str(meldung) if meldung else None,
@@ -75,6 +88,9 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
     # direkt als abgeschlossen anlegen, damit sie nicht als aktiver Einsatz im
     # Kiosk erscheinen.
     geschlossen = alarm["geschlossen"]
+    # Systemzeit zum Anlege-Zeitpunkt festhalten – Divera setzt den Einsatz-
+    # Zeitstempel auf die tatsächliche Alarmzeit; die Abweichung wird protokolliert.
+    system_zeit = datetime.now(timezone.utc)
     einsatz = Einsatz(
         titel=alarm["titel"],
         quelle="divera",
@@ -93,6 +109,19 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
         "angelegt",
         "Einsatz angelegt (divera, bereits abgeschlossen)" if geschlossen else "Einsatz angelegt (divera)",
     )
+    # Timeline-Eintrag: Divera hat den Einsatz-Zeitstempel von der Systemzeit auf
+    # die tatsächliche Alarmzeit aus Divera geändert (nur bei echtem Divera-Zeitstempel).
+    if alarm["zeit_von_divera"]:
+        tz = await zeit.zeitzone(db)
+        sys_lokal = system_zeit.astimezone(tz)
+        divera_lokal = alarm["zeitpunkt"].astimezone(tz)
+        await einsatz_service.ereignis_protokollieren(
+            db,
+            einsatz.id,
+            "zeitstempel_divera",
+            f"Zeitstempel von der Systemzeit ({sys_lokal:%d.%m.%Y %H:%M} Uhr) auf den "
+            f"Divera-Zeitstempel ({divera_lokal:%d.%m.%Y %H:%M} Uhr) geändert.",
+        )
     logger.info(
         "divera_einsatz_importiert",
         divera_id=alarm["divera_id"],
