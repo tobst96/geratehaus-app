@@ -5,6 +5,7 @@ class FeatureModulOut(BaseModel):
     key: str
     name: str
     mitgliederseitig: bool
+    immer_aktiv: bool
     reihenfolge: int
     aktiv: bool
     # Nur bei mitgliederseitigen Modulen gesetzt, sonst None.

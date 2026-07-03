@@ -12,8 +12,6 @@ import { ModeratorLayout } from "./pages/moderator/ModeratorLayout";
 import { Dashboard } from "./pages/moderator/Dashboard";
 import { Listen } from "./pages/moderator/Listen";
 import { Buchungsmanagement } from "./pages/moderator/Buchungsmanagement";
-import { Personal } from "./pages/moderator/Personal";
-import { Stammdaten } from "./pages/moderator/Stammdaten";
 import { KioskGeraete } from "./pages/moderator/KioskGeraete";
 import { EinsatzDetailModerator } from "./pages/moderator/EinsatzDetailModerator";
 import { DienstbuchDetailModerator } from "./pages/moderator/DienstbuchDetailModerator";
@@ -63,8 +61,6 @@ export function App() {
               <Route path="dienstbuecher/:id" element={<DienstbuchDetailModerator />} />
               <Route path="buchungen" element={<Buchungsmanagement />} />
               <Route element={<AdminRoute />}>
-                <Route path="personal" element={<Personal />} />
-                <Route path="stammdaten" element={<Stammdaten />} />
                 <Route path="barcodes" element={<BarcodeGenerator />} />
                 <Route path="kiosk-geraete" element={<KioskGeraete />} />
                 <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />

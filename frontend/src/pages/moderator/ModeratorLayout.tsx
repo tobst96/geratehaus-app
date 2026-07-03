@@ -23,8 +23,6 @@ const NAV_GRUPPEN: NavGruppe[] = [
     titel: "Verwaltung",
     admin: true,
     items: [
-      { pfad: "/moderator/personal", titel: "Personal" },
-      { pfad: "/moderator/stammdaten", titel: "Stammdaten" },
       { pfad: "/moderator/barcodes", titel: "Barcodes" },
       { pfad: "/moderator/kiosk-geraete", titel: "Kiosk-Geräte" },
       { pfad: "/moderator/benachrichtigungen", titel: "Benachrichtigungen" },

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FunktionenDienststundenVerwaltung } from "../verwaltung/FunktionenDienststundenVerwaltung";
 
 export function DienststundenModul() {
   return (
@@ -8,13 +9,13 @@ export function DienststundenModul() {
       </p>
       <h1>Dienststunden</h1>
 
-      <div className="karte" style={{ maxWidth: 640 }}>
+      <div className="karte">
         <h2>Funktionen &amp; Schwellenwerte</h2>
         <p style={{ color: "var(--farbe-text-mute)" }}>
-          Dienststunden-Funktionen und ihre Schwellenwerte werden unter{" "}
-          <Link to="/moderator/stammdaten">Stammdaten → Dienststunden-Funktionen</Link> gepflegt.
-          Überschreitungen erscheinen im <Link to="/moderator/dashboard">Dashboard</Link>.
+          Funktionen mit Schwellenwert (Stunden). Überschreitungen erscheinen im{" "}
+          <Link to="/moderator/dashboard">Dashboard</Link>.
         </p>
+        <FunktionenDienststundenVerwaltung />
       </div>
     </div>
   );
