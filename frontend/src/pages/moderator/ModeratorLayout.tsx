@@ -8,7 +8,7 @@ type NavGruppe = { titel: string | null; admin: boolean; items: NavItem[]; modul
 
 // Navigation in logische Gruppen. `titel` ist nur im mobilen Menü als
 // Abschnittsüberschrift sichtbar (auf dem Desktop ausgeblendet). Die Gruppe
-// „Module" bekommt die aktiven Feature-Module als eingerückte Unterpunkte.
+// „Module" bekommt die aktiven Feature-Module als einklappbare Unterpunkte.
 const NAV_GRUPPEN: NavGruppe[] = [
   {
     titel: null,
@@ -47,6 +47,8 @@ export function ModeratorLayout() {
   const istAdmin = moderatorRolle === "admin";
   const sichtbareGruppen = NAV_GRUPPEN.filter((g) => !g.admin || istAdmin);
   const [menuOffen, setMenuOffen] = useState(false);
+  // Modul-Unterseiten sind standardmäßig eingeklappt.
+  const [moduleOffen, setModuleOffen] = useState(false);
   const [aktiveModule, setAktiveModule] = useState<FeatureModul[]>([]);
 
   // Aktive Feature-Module als Unterpunkte unter „Module" (nur für Admins).
@@ -75,10 +77,25 @@ export function ModeratorLayout() {
         >
           {menuOffen ? "✕" : "☰"}
         </button>
-        <div className={`moderator-nav-links${menuOffen ? " offen" : ""}`}>
+        <div
+          className={`moderator-nav-links${menuOffen ? " offen" : ""}${moduleOffen ? "" : " module-zu"}`}
+        >
           {sichtbareGruppen.map((gruppe) => (
             <Fragment key={gruppe.titel ?? "start"}>
-              {gruppe.titel && <div className="moderator-nav-gruppe-titel">{gruppe.titel}</div>}
+              {gruppe.titel &&
+                (gruppe.module ? (
+                  <button
+                    type="button"
+                    className="moderator-nav-gruppe-titel moderator-nav-gruppe-toggle"
+                    onClick={() => setModuleOffen((o) => !o)}
+                    aria-expanded={moduleOffen}
+                  >
+                    {gruppe.titel}
+                    <span aria-hidden="true">{moduleOffen ? "▾" : "▸"}</span>
+                  </button>
+                ) : (
+                  <div className="moderator-nav-gruppe-titel">{gruppe.titel}</div>
+                ))}
               {gruppe.items.map((item) => (
                 <NavLink
                   key={item.pfad}
@@ -105,6 +122,10 @@ export function ModeratorLayout() {
                 ))}
             </Fragment>
           ))}
+          {/* Abmelden im mobilen Menü (unten). Auf dem Desktop steht es rechts in der Leiste. */}
+          <button type="button" className="sekundaer moderator-abmelden-mobil" onClick={abmelden}>
+            Abmelden
+          </button>
         </div>
         <button className="sekundaer moderator-abmelden" onClick={abmelden}>
           Abmelden

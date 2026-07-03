@@ -414,6 +414,11 @@ table tr:hover {
   display: none;
 }
 
+/* Abmelden im Menü nur mobil; auf dem Desktop steht die Leisten-Variante rechts. */
+.moderator-abmelden-mobil {
+  display: none;
+}
+
 .moderator-abmelden {
   flex-shrink: 0;
   margin-left: auto;
@@ -440,6 +445,7 @@ table tr:hover {
     display: none;
     order: 3;
     width: 100%;
+    flex-basis: 100%;
     flex-direction: column;
     gap: 2px;
     padding: 8px 0 12px;
@@ -481,6 +487,36 @@ table tr:hover {
 
   .moderator-nav-link.moderator-nav-unterpunkt.aktiv {
     border-left-color: var(--farbe-primaer);
+  }
+
+  /* Abmelden: nicht mehr frei in der oberen Leiste, sondern unten im Menü. */
+  .moderator-abmelden {
+    display: none;
+  }
+  .moderator-abmelden-mobil {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  /* „Module"-Abschnitt als Aufklapp-Schalter; Unterpunkte standardmäßig zu. */
+  .moderator-nav-gruppe-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    cursor: pointer;
+  }
+  .moderator-nav-gruppe-toggle:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+    background: var(--farbe-oberflaeche-hover);
+  }
+  .moderator-nav-links.module-zu .moderator-nav-unterpunkt {
+    display: none;
   }
 }
 
