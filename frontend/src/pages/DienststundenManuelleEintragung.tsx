@@ -50,6 +50,7 @@ export function DienststundenManuelleEintragung() {
 
   const [suche, setSuche] = useState("");
   const [ausgewaehltePerson, setAusgewaehltePerson] = useState<Person | null>(null);
+  const [pin, setPin] = useState("");
   const [funktionId, setFunktionId] = useState<string>("");
   const [stunden, setStunden] = useState<number>(1);
   const [datum, setDatum] = useState(heuteAlsDatum());
@@ -84,15 +85,12 @@ export function DienststundenManuelleEintragung() {
       ? []
       : personen.filter((p) => p.name.toLowerCase().includes(suche.trim().toLowerCase())).slice(0, 8);
 
-  async function personAuswaehlen(p: Person) {
+  function personAuswaehlen(p: Person) {
     setAusgewaehltePerson(p);
     setSuche("");
+    setPin("");
+    setFehler(null);
     if (p.funktion_id) setFunktionId(String(p.funktion_id));
-    try {
-      if (token) await dienststundenReservierungVorschauSetzen(token, p.id);
-    } catch {
-      // Best effort – die Vorschau am Gerätehaus ist nur ein Komfortfeature.
-    }
   }
 
   async function absenden(e: FormEvent) {
@@ -101,6 +99,9 @@ export function DienststundenManuelleEintragung() {
     setLaeuft(true);
     setFehler(null);
     try {
+      // Identität mit Name+PIN bestätigen (setzt zugleich die Vorschau am Display),
+      // bevor eingetragen wird. Ohne (korrekten) PIN wird hier abgebrochen.
+      await dienststundenReservierungVorschauSetzen(token, ausgewaehltePerson.id, pin);
       await dienststundenReservierungEinloesen(token, {
         person_id: ausgewaehltePerson.id,
         funktion_id: Number(funktionId),
@@ -266,6 +267,26 @@ export function DienststundenManuelleEintragung() {
           )}
           </div>
 
+          {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
+            <p className="fehlertext">
+              Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich –
+              bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
+            </p>
+          )}
+          {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
+            <div className="formular-feld">
+              <label htmlFor="dsme-pin">Dein PIN</label>
+              <input
+                id="dsme-pin"
+                type="password"
+                inputMode="numeric"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
           <div className="formular-feld">
             <label htmlFor="dsme-funktion">Funktion</label>
             <select
@@ -330,7 +351,10 @@ export function DienststundenManuelleEintragung() {
 
           {fehler && <p className="fehlertext">{fehler}</p>}
 
-          <button type="submit" disabled={laeuft || !ausgewaehltePerson}>
+          <button
+            type="submit"
+            disabled={laeuft || !ausgewaehltePerson || !ausgewaehltePerson.pin_gesetzt || !pin}
+          >
             {laeuft ? "Wird gespeichert…" : "Eintragen"}
           </button>
         </form>

@@ -47,8 +47,7 @@ async def anmelden(
     person = await stammdaten_service.get_person(db, person_id)
     if person is None:
         raise ValueError("Person nicht gefunden.")
-    if not stammdaten_service.person_pin_korrekt(person, pin):
-        raise PermissionError("PIN falsch oder fehlt.")
+    await stammdaten_service.pin_login_erzwingen(db, person, pin, "Mitglieder-Login")
     reservierung.person_id = person_id
     reservierung.bestaetigt = True
     await db.commit()

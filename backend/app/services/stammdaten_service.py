@@ -457,6 +457,25 @@ def person_pin_korrekt(person: Person, pin: str | None) -> bool:
     return verify_secret(pin, person.pin_hash)
 
 
+async def pin_login_erzwingen(db: AsyncSession, person: Person, pin: str | None, kontext: str) -> None:
+    """Selbstidentifikation am eigenen Handy („Barcode vergessen"): verlangt einen
+    GESETZTEN und korrekten PIN, bevor Vorschau/Bilder freigegeben werden. Ohne
+    gesetzten PIN wird der Zugriff verweigert und in der Personen-Timeline
+    vermerkt. Wirft PermissionError bei Verweigerung (Endpunkt → 403)."""
+    if not person.pin_gesetzt:
+        await person_ereignis_protokollieren(
+            db,
+            person.id,
+            "pin_zugriff_verweigert",
+            f"Zugriff über Barcode-vergessen verweigert – kein PIN gesetzt ({kontext}).",
+        )
+        # Audit-Eintrag festschreiben, auch wenn der Request danach mit 403 endet.
+        await db.commit()
+        raise PermissionError("Für diese Person ist kein PIN gesetzt. Bitte zuerst einen PIN setzen.")
+    if not person_pin_korrekt(person, pin):
+        raise PermissionError("PIN falsch.")
+
+
 # --- Personen-Inaktivität ---------------------------------------------------
 #
 # Täglicher Job (siehe app/jobs/scheduler.py): Personen, die seit

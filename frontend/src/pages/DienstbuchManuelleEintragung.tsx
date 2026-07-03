@@ -31,6 +31,7 @@ export function DienstbuchManuelleEintragung() {
 
   const [suche, setSuche] = useState("");
   const [ausgewaehltePerson, setAusgewaehltePerson] = useState<Person | null>(null);
+  const [pin, setPin] = useState("");
   const [gruppeId, setGruppeId] = useState<number | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
@@ -59,15 +60,12 @@ export function DienstbuchManuelleEintragung() {
       ? []
       : personen.filter((p) => p.name.toLowerCase().includes(suche.trim().toLowerCase())).slice(0, 8);
 
-  async function personAuswaehlen(p: Person) {
+  function personAuswaehlen(p: Person) {
     setAusgewaehltePerson(p);
     setGruppeId(p.gruppe_id);
     setSuche("");
-    try {
-      if (token) await dienstbuchReservierungVorschauSetzen(token, p.id);
-    } catch {
-      // Best effort – die Vorschau am Gerätehaus ist nur ein Komfortfeature.
-    }
+    setPin("");
+    setFehler(null);
   }
 
   async function absenden(e: FormEvent) {
@@ -76,6 +74,7 @@ export function DienstbuchManuelleEintragung() {
     setLaeuft(true);
     setFehler(null);
     try {
+      await dienstbuchReservierungVorschauSetzen(token, ausgewaehltePerson.id, pin);
       await dienstbuchReservierungEinloesen(token, {
         person_id: ausgewaehltePerson.id,
         gruppe_id: gruppeId,
@@ -229,6 +228,26 @@ export function DienstbuchManuelleEintragung() {
           )}
           </div>
 
+          {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
+            <p className="fehlertext">
+              Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich –
+              bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
+            </p>
+          )}
+          {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
+            <div className="formular-feld">
+              <label htmlFor="dbme-pin">Dein PIN</label>
+              <input
+                id="dbme-pin"
+                type="password"
+                inputMode="numeric"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
           <div className="formular-feld">
             <label htmlFor="dbme-gruppe">Gruppe</label>
             <select
@@ -247,7 +266,10 @@ export function DienstbuchManuelleEintragung() {
 
           {fehler && <p className="fehlertext">{fehler}</p>}
 
-          <button type="submit" disabled={laeuft || !ausgewaehltePerson}>
+          <button
+            type="submit"
+            disabled={laeuft || !ausgewaehltePerson || !ausgewaehltePerson.pin_gesetzt || !pin}
+          >
             {laeuft ? "Wird gespeichert…" : "Eintragen"}
           </button>
         </form>

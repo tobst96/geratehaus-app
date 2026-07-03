@@ -32,6 +32,7 @@ export function ManuelleEintragung() {
 
   const [suche, setSuche] = useState("");
   const [ausgewaehltePerson, setAusgewaehltePerson] = useState<Person | null>(null);
+  const [pin, setPin] = useState("");
   const [vab, setVab] = useState(false);
   const [atemschutzAktiv, setAtemschutzAktiv] = useState(false);
   const [atemschutzminuten, setAtemschutzminuten] = useState(0);
@@ -58,14 +59,11 @@ export function ManuelleEintragung() {
       ? []
       : personen.filter((p) => p.name.toLowerCase().includes(suche.trim().toLowerCase())).slice(0, 8);
 
-  async function personAuswaehlen(p: Person) {
+  function personAuswaehlen(p: Person) {
     setAusgewaehltePerson(p);
     setSuche("");
-    try {
-      if (token) await reservierungVorschauSetzen(token, p.id);
-    } catch {
-      // Best effort – die Vorschau am Gerätehaus ist nur ein Komfortfeature.
-    }
+    setPin("");
+    setFehler(null);
   }
 
   async function absenden(e: FormEvent) {
@@ -74,6 +72,7 @@ export function ManuelleEintragung() {
     setLaeuft(true);
     setFehler(null);
     try {
+      await reservierungVorschauSetzen(token, ausgewaehltePerson.id, pin);
       await reservierungEinloesen(token, {
         person_id: ausgewaehltePerson.id,
         vab,
@@ -232,6 +231,26 @@ export function ManuelleEintragung() {
           )}
           </div>
 
+          {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
+            <p className="fehlertext">
+              Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich –
+              bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
+            </p>
+          )}
+          {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
+            <div className="formular-feld">
+              <label htmlFor="me-pin">Dein PIN</label>
+              <input
+                id="me-pin"
+                type="password"
+                inputMode="numeric"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
           {!info.nur_geraetehaus && !info.auf_anfahrt && (
             <>
               <div className="formular-feld">
@@ -288,7 +307,10 @@ export function ManuelleEintragung() {
 
           {fehler && <p className="fehlertext">{fehler}</p>}
 
-          <button type="submit" disabled={laeuft || !ausgewaehltePerson}>
+          <button
+            type="submit"
+            disabled={laeuft || !ausgewaehltePerson || !ausgewaehltePerson.pin_gesetzt || !pin}
+          >
             {laeuft ? "Wird gespeichert…" : "Eintragen"}
           </button>
         </form>

@@ -48,8 +48,7 @@ async def reservierung_vorschau_setzen(
     person = await stammdaten_service.get_person(db, person_id)
     if person is None:
         raise ValueError("Person nicht gefunden.")
-    if not stammdaten_service.person_pin_korrekt(person, pin):
-        raise PermissionError("PIN falsch oder fehlt.")
+    await stammdaten_service.pin_login_erzwingen(db, person, pin, "Fahrzeugbuchung")
     reservierung.vorschau_person_id = person_id
     await db.commit()
 
@@ -62,6 +61,8 @@ async def reservierung_einloesen(
     person = await stammdaten_service.get_person(db, daten.person_id)
     if person is None:
         raise ValueError("Person nicht gefunden.")
+    if reservierung.vorschau_person_id != daten.person_id:
+        raise PermissionError("Bitte zuerst mit Name und PIN identifizieren.")
 
     if not await buchung_service.ist_buchbar(db, daten.fahrzeug_id):
         raise HTTPException(

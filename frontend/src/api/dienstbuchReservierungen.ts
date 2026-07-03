@@ -7,9 +7,10 @@ export const holeDienstbuchReservierung = (token: string) =>
 export const holeDienstbuchReservierungPersonen = (token: string) =>
   apiGet<Person[]>(`/dienstbuch-reservierungen/${encodeURIComponent(token)}/personen`);
 
-export const dienstbuchReservierungVorschauSetzen = (token: string, personId: number) =>
+export const dienstbuchReservierungVorschauSetzen = (token: string, personId: number, pin: string) =>
   apiPut<void>(`/dienstbuch-reservierungen/${encodeURIComponent(token)}/vorschau`, {
     person_id: personId,
+    pin,
   });
 
 export interface DienstbuchReservierungEinloesen {

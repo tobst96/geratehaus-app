@@ -8,9 +8,10 @@ export const holeDienststundenReservierung = (token: string) =>
 export const holeDienststundenReservierungPersonen = (token: string) =>
   apiGet<Person[]>(`/dienststunden-reservierungen/${encodeURIComponent(token)}/personen`);
 
-export const dienststundenReservierungVorschauSetzen = (token: string, personId: number) =>
+export const dienststundenReservierungVorschauSetzen = (token: string, personId: number, pin: string) =>
   apiPut<void>(`/dienststunden-reservierungen/${encodeURIComponent(token)}/vorschau`, {
     person_id: personId,
+    pin,
   });
 
 export interface DienststundenReservierungEinloesen {
