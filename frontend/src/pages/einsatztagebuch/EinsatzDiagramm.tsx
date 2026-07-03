@@ -372,7 +372,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   const hatLinkeSpalte = (felder && felder.length > 0) || geraetehausTeilnehmer.length > 0;
 
   return (
-    <div>
+    <div className="einsatz-diagramm">
       <div className="einsatz-kopf">
         <h2 style={{ margin: 0 }}>{einsatz.titel}</h2>
         <span

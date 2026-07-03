@@ -1,3 +1,33 @@
+/* Kiosk: die Einsatz-Ansicht soll komplett auf einen Bildschirm passen, ohne
+   Scrollen. Die Seite wird auf die Viewport-Höhe begrenzt; der Inhaltsbereich
+   (Fahrzeugauswahl bzw. Sitzplan) füllt den verbleibenden Platz. */
+#root:has(.einsatz-diagramm) {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+#root:has(.einsatz-diagramm) .seite {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.einsatz-diagramm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Der wechselnde Inhalt (Übersicht/Sitzplan) bekommt den Restplatz und skaliert
+   darin, statt die ganze Seite wachsen zu lassen. */
+.einsatz-diagramm > .garage,
+.einsatz-diagramm > :last-child:not(.einsatz-kopf) {
+  min-height: 0;
+}
+
 .einsatz-kopf {
   display: flex;
   justify-content: space-between;
@@ -30,6 +60,11 @@
 
 .garage-aktiv {
   gap: 0.75rem;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .einsatz-uebersicht {
@@ -131,7 +166,7 @@
 .fahrzeug-kasten-flaeche-aktiv {
   aspect-ratio: auto;
   width: 100%;
-  height: min(40vh, 360px);
+  height: clamp(240px, 46vh, 460px);
 }
 
 .fahrzeug-kasten-flaeche-aktiv .sitzplatz {
