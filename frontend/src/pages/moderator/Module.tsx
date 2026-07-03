@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   holeFeatureModule,
   setFeatureModulFlag,
@@ -65,9 +66,9 @@ export function Module() {
     <div>
       <h1>Module</h1>
       <p style={{ color: "var(--farbe-text-mute)" }}>
-        Module ein-/ausschalten und sortieren. Die Reihenfolge gilt für die Kiosk-Kacheln und die
-        Modul-Unterseiten. Deaktivierte Module verschwinden aus der Navigation. Die eigentlichen
-        Einstellungen jedes Moduls liegen auf seiner Unterseite.
+        Module ein-/ausschalten und sortieren. <strong>Auf den Modulnamen klicken</strong>, um die
+        Einstellungen des Moduls (Unterseite) zu öffnen. Die Reihenfolge gilt für die Kiosk-Kacheln
+        und die Navigation. Deaktivierte Module verschwinden aus der Navigation.
       </p>
       {fehler && <p className="fehlertext">{fehler}</p>}
 
@@ -103,7 +104,17 @@ export function Module() {
 
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <strong>{m.name}</strong>
+                <Link
+                  to={`/moderator/module/${m.key}`}
+                  style={{
+                    fontWeight: 700,
+                    color: "var(--farbe-primaer)",
+                    textDecoration: "none",
+                  }}
+                  title="Einstellungen dieses Moduls öffnen"
+                >
+                  {m.name} →
+                </Link>
                 {!m.mitgliederseitig && (
                   <span
                     style={{
