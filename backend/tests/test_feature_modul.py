@@ -17,7 +17,7 @@ async def _admin_token(client, db):
     return login.json()["access_token"]
 
 
-_ALLE = ["einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung", "divera", "personal", "fahrzeuge"]
+_ALLE = ["personal", "fahrzeuge", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung", "divera"]
 
 
 @pytest.mark.asyncio
@@ -82,7 +82,7 @@ async def test_endpoints_auth_und_flow(client, db):
 
     r = await client.get("/api/v1/moderator/feature-module", headers=h)
     assert r.status_code == 200
-    assert [m["key"] for m in r.json()][0] == "einsatztagebuch"
+    assert [m["key"] for m in r.json()][0] == "personal"
 
     # An/Aus umschalten
     r = await client.patch("/api/v1/moderator/feature-module/dienstbuch", json={"aktiv": False}, headers=h)

@@ -28,14 +28,17 @@ class FeatureModulDef:
     immer_aktiv: bool = False
 
 
+# Reihenfolge = Standard-Sortierung für neue Projekte. Die internen, immer aktiven
+# Verwaltungsmodule Personal und Fahrzeuge stehen bewusst oben; sie lassen sich
+# aber wie alle anderen weiterhin händisch verschieben (`modul_reihenfolge`).
 FEATURE_MODULE: list[FeatureModulDef] = [
+    FeatureModulDef("personal", "Personal", False, immer_aktiv=True),
+    FeatureModulDef("fahrzeuge", "Fahrzeuge", False, immer_aktiv=True),
     FeatureModulDef("einsatztagebuch", "Einsatztagebuch", True),
     FeatureModulDef("dienstbuch", "Dienstbuch", True),
     FeatureModulDef("dienststunden", "Dienststunden", True),
     FeatureModulDef("fahrzeugbuchung", "Fahrzeugbuchung", True),
     FeatureModulDef("divera", "Divera 24/7", False),
-    FeatureModulDef("personal", "Personal", False, immer_aktiv=True),
-    FeatureModulDef("fahrzeuge", "Fahrzeuge", False, immer_aktiv=True),
 ]
 
 _BY_KEY = {m.key: m for m in FEATURE_MODULE}

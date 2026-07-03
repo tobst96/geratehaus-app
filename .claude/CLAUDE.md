@@ -64,10 +64,34 @@ Rollenprüfungen erfinden. Reales Rollenmodell: `.claude/docs/permissions.md`.
 
 ## Module
 
-Jedes Modul verhält sich gleich (Backend: Router/Service/Model/Schema; Frontend:
-Kiosk/Mitglied/Moderator; Config: `modul_<name>_aktiv` / `_startseite` /
-`_aussenzugriff`). Neue Module am bestehenden Muster orientieren – Skill
-`new-module`.
+Zwei getrennte Modul-Begriffe – nicht vermischen:
+
+- **Feature-Module** (`feature_modul_service.py`): die vom Admin schaltbaren
+  Funktionsmodule, Zustand vollständig in `app_config`. Registry `FEATURE_MODULE`
+  legt Namen, `mitgliederseitig` und `immer_aktiv` fest; Reihenfolge = Default für
+  neue Projekte (interne, immer aktive Verwaltungsmodule Personal/Fahrzeuge oben),
+  händisch verschiebbar über `modul_reihenfolge`.
+- **Berechtigungs-Module** (`modul_service` / `Modul`-Tabelle): Zugriffssteuerung.
+  Nicht anfassen, wenn es nur um ein Funktionsmodul geht.
+
+Einheitliche Modul-Bereiche – jedes (mitgliederseitige) Modul hat drei Bereiche:
+
+1. **Mitglieder/Kiosk** – Anzeige über `modul_<key>_startseite` (Kiosk) bzw.
+   `modul_<key>_aussenzugriff` (öffentlicher Zugriff).
+2. **Moderator/Gruppenführer** – die eigentliche Modul-Seite (Liste/Verwaltung).
+3. **Admin** – **Modul-Unterseite** unter „Module → <Modul>", die *alle* zum
+   Modul gehörenden Einstellungen und Daten bündelt (nicht zentral in
+   `Einstellungen.tsx` verstreuen). An/Aus, Kiosk-Anzeige und Außenzugriff werden
+   auf der Übersichtsseite „Module" geschaltet.
+
+Config-Keys je Modul: `modul_<key>_aktiv` / `_startseite` / `_aussenzugriff`,
+immer in `config_defaults.py` mit neutralem Default registrieren.
+
+Checkliste neues Modul: Migration + Model + Schema + Service + Router (mit
+`require_modul_aktiv()`) + `FEATURE_MODULE`-Eintrag + `modul_*`-Config-Defaults +
+Frontend (Kiosk/Mitglied/Moderator + **Modul-Unterseite** in `ModulUnterseite.tsx`)
++ Kiosk-/Hub-Kachel + ggf. Benachrichtigungs-Hook + Tests. Neue Module am
+bestehenden Muster orientieren – Skill `new-module` (Detail-Checkliste dort).
 
 ## Tests
 

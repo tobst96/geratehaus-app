@@ -431,10 +431,15 @@ Netzwerkdrucker mit IPP/CUPS im LAN.
 
 ### Einheitliche Modul-Bereiche (Mitglied/Moderator/Admin)
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Mittel
 - Kategorie: Architektur / Dokumentation
 - Skills: planner, geraetehaus-patterns, review
+- Umsetzung (03.07.2026): Durch die Modul-Architektur (Feature-Module + je Modul
+  eine Admin-Unterseite, die alle Einstellungen/Daten bündelt; An/Aus + Kiosk-
+  Anzeige + Außenzugriff auf der „Module"-Übersicht) sind alle Module konform. Die
+  Drei-Bereiche-Konvention (Mitglied/Kiosk, Moderator, Admin) ist in `CLAUDE.md`
+  (Abschnitt „Module") dokumentiert.
 - Beschreibung: Jedes Modul soll drei Bereiche haben: (1) Mitglieder/Kiosk,
   (2) Moderator/Gruppenführer, (3) Admin (Einstellungen; konfigurierbar: Moderator-
   Schreibrechte, Außenzugriff). Bestehende Module auf Konformität prüfen und
@@ -443,10 +448,15 @@ Netzwerkdrucker mit IPP/CUPS im LAN.
 
 ### Modul-Erweiterbarkeit: Checkliste in CLAUDE.md
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Niedrig
 - Kategorie: Dokumentation
 - Skills: knowledge-management
+- Umsetzung (03.07.2026): Kompakte Checkliste für neue Module im Abschnitt
+  „Module" von `CLAUDE.md` ergänzt (Migration/Model/Schema/Service/Router mit
+  `require_modul_aktiv()`, `FEATURE_MODULE`-Eintrag, `modul_*`-Config-Defaults,
+  Frontend inkl. Modul-Unterseite, Kiosk-/Hub-Kachel, Benachrichtigungs-Hook,
+  Tests); Detail-Checkliste bleibt im `new-module`-Skill.
 - Beschreibung: Checkliste für neue Module (Router, Service, Migration,
   `modul_*`-Config-Keys, Frontend-Route, Kiosk-/Hub-Kachel, Benachrichtigungs-Hook)
   in `CLAUDE.md`. Prüfen ob ein eigener Skill sinnvoll ist.
