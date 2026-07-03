@@ -153,29 +153,33 @@ export function EinsatzDetailModerator() {
         </div>
       )}
 
-      <p style={{ marginTop: "1rem", display: "flex", gap: 12, alignItems: "center" }}>
-        <a href={einsatzPdfUrl(einsatz.id)} target="_blank" rel="noreferrer">
+      <div className="einsatz-aktionen">
+        <a
+          className="einsatz-aktion sekundaer"
+          href={einsatzPdfUrl(einsatz.id)}
+          target="_blank"
+          rel="noreferrer"
+        >
           Als PDF exportieren
         </a>
         {einsatz.status === "offen" && (
-          <button className="sekundaer" onClick={abschliessen} disabled={schliesstAb}>
+          <button className="einsatz-aktion sekundaer" onClick={abschliessen} disabled={schliesstAb}>
             {schliesstAb ? "Schließt ab …" : "Einsatz abschließen"}
           </button>
         )}
         {einsatz.status === "abgeschlossen" && (
-          <button className="sekundaer" onClick={wiederOeffnen} disabled={schliesstAb}>
+          <button className="einsatz-aktion sekundaer" onClick={wiederOeffnen} disabled={schliesstAb}>
             {schliesstAb ? "Öffnet …" : "Einsatz wieder öffnen"}
           </button>
         )}
         <button
-          className="sekundaer"
+          className="einsatz-aktion sekundaer gefahr"
           onClick={loeschen}
           disabled={schliesstAb}
-          style={{ color: "#c62828", borderColor: "#c62828" }}
         >
           Einsatz löschen
         </button>
-      </p>
+      </div>
 
       {felder.length > 0 && (
         <div className="karte">

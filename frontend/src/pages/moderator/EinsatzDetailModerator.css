@@ -86,3 +86,50 @@
   background: #e6f7ec;
   color: #1a7a3a;
 }
+
+/* Aktionsleiste unter dem Einsatz: alle Knöpfe gleich groß, gleicher Stil */
+.einsatz-aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 1.25rem;
+}
+
+.einsatz-aktion {
+  flex: 1 1 0;
+  min-width: 160px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  /* der PDF-Link (<a>) erbt keine button-Styles – hier explizit angleichen */
+  padding: 14px 20px;
+  min-height: 48px;
+  border-radius: var(--radius);
+  border: 2px solid var(--farbe-primaer);
+  background: var(--farbe-oberflaeche);
+  color: var(--farbe-primaer);
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.einsatz-aktion:hover:not(:disabled) {
+  background: var(--farbe-oberflaeche-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Gefahr-Variante (Löschen) – gleiche Form wie sekundär, nur rote Akzente */
+.einsatz-aktion.gefahr {
+  color: #c62828;
+  border-color: #c62828;
+}
+
+.einsatz-aktion.gefahr:hover:not(:disabled) {
+  background: #fdecec;
+}
