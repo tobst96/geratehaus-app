@@ -23,6 +23,9 @@ class FeatureModulDef:
     name: str
     # Nur mitgliederseitige Module haben Kiosk-Anzeige und Außenzugriff.
     mitgliederseitig: bool
+    # Interne, immer aktive Module (z. B. Personal, Fahrzeuge) lassen sich nicht
+    # deaktivieren – sie sind reine Verwaltungsbereiche als eigene Modul-Unterseite.
+    immer_aktiv: bool = False
 
 
 FEATURE_MODULE: list[FeatureModulDef] = [
@@ -31,6 +34,8 @@ FEATURE_MODULE: list[FeatureModulDef] = [
     FeatureModulDef("dienststunden", "Dienststunden", True),
     FeatureModulDef("fahrzeugbuchung", "Fahrzeugbuchung", True),
     FeatureModulDef("divera", "Divera 24/7", False),
+    FeatureModulDef("personal", "Personal", False, immer_aktiv=True),
+    FeatureModulDef("fahrzeuge", "Fahrzeuge", False, immer_aktiv=True),
 ]
 
 _BY_KEY = {m.key: m for m in FEATURE_MODULE}
@@ -62,8 +67,10 @@ async def liste(db: AsyncSession) -> list[dict]:
             "key": m.key,
             "name": m.name,
             "mitgliederseitig": m.mitgliederseitig,
+            "immer_aktiv": m.immer_aktiv,
             "reihenfolge": i,
-            "aktiv": bool(await config_service.get(db, f"modul_{key}_aktiv", False)),
+            # Immer-aktive Module sind per Definition aktiv (nicht abschaltbar).
+            "aktiv": True if m.immer_aktiv else bool(await config_service.get(db, f"modul_{key}_aktiv", False)),
             "startseite": None,
             "aussenzugriff": None,
         }
@@ -90,6 +97,9 @@ async def set_flag(db: AsyncSession, key: str, feld: str, wert: bool) -> bool:
         return False
     if feld in ("startseite", "aussenzugriff") and not m.mitgliederseitig:
         return False
+    # Immer-aktive Module lassen sich nicht ein-/ausschalten.
+    if feld == "aktiv" and m.immer_aktiv:
+        return False
     await config_service.set(db, f"modul_{key}_{feld}", wert)
     return True
 
@@ -103,6 +113,9 @@ async def set_reihenfolge(db: AsyncSession, keys: list[str]) -> bool:
 
 
 async def ist_aktiv(db: AsyncSession, key: str) -> bool:
-    if key not in _BY_KEY:
+    m = _BY_KEY.get(key)
+    if m is None:
         return False
+    if m.immer_aktiv:
+        return True
     return bool(await config_service.get(db, f"modul_{key}_aktiv", False))

@@ -17,35 +17,38 @@ async def _admin_token(client, db):
     return login.json()["access_token"]
 
 
+_ALLE = ["einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung", "divera", "personal", "fahrzeuge"]
+
+
 @pytest.mark.asyncio
-async def test_liste_default_reihenfolge_und_divera_ohne_kiosk(db):
+async def test_liste_default_reihenfolge_und_immer_aktiv(db):
     liste = await feature_modul_service.liste(db)
-    assert [m["key"] for m in liste] == [
-        "einsatztagebuch",
-        "dienstbuch",
-        "dienststunden",
-        "fahrzeugbuchung",
-        "divera",
-    ]
+    assert [m["key"] for m in liste] == _ALLE
     divera = next(m for m in liste if m["key"] == "divera")
-    assert divera["mitgliederseitig"] is False
+    assert divera["mitgliederseitig"] is False and divera["immer_aktiv"] is False
     assert divera["startseite"] is None and divera["aussenzugriff"] is None
     et = next(m for m in liste if m["key"] == "einsatztagebuch")
     assert et["mitgliederseitig"] is True
     assert isinstance(et["startseite"], bool)
+    # Personal/Fahrzeuge: intern, immer aktiv
+    for key in ("personal", "fahrzeuge"):
+        m = next(x for x in liste if x["key"] == key)
+        assert m["immer_aktiv"] is True and m["aktiv"] is True and m["mitgliederseitig"] is False
 
 
 @pytest.mark.asyncio
-async def test_set_flag_und_divera_ohne_kiosk_schalter(db):
+async def test_set_flag_und_schalter_regeln(db):
     assert await feature_modul_service.set_flag(db, "dienstbuch", "aktiv", False) is True
     assert (await feature_modul_service.eintrag(db, "dienstbuch"))["aktiv"] is False
     assert await feature_modul_service.set_flag(db, "einsatztagebuch", "startseite", False) is True
     # Divera hat keine Kiosk-/Außenzugriff-Schalter -> abgelehnt
     assert await feature_modul_service.set_flag(db, "divera", "startseite", True) is False
     assert await feature_modul_service.set_flag(db, "divera", "aussenzugriff", True) is False
-    # Divera An/Aus geht sehr wohl
     assert await feature_modul_service.set_flag(db, "divera", "aktiv", True) is True
-    assert await feature_modul_service.ist_aktiv(db, "divera") is True
+    # Immer-aktive Module lassen sich nicht abschalten
+    assert await feature_modul_service.set_flag(db, "personal", "aktiv", False) is False
+    assert await feature_modul_service.set_flag(db, "fahrzeuge", "aktiv", False) is False
+    assert await feature_modul_service.ist_aktiv(db, "personal") is True
     # unbekanntes Modul/Feld
     assert await feature_modul_service.set_flag(db, "gibtsnicht", "aktiv", True) is False
     assert await feature_modul_service.set_flag(db, "dienstbuch", "quatsch", True) is False
@@ -53,14 +56,12 @@ async def test_set_flag_und_divera_ohne_kiosk_schalter(db):
 
 @pytest.mark.asyncio
 async def test_reihenfolge_setzen_und_validierung(db):
-    neu = ["divera", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung"]
+    neu = ["divera", "personal", "fahrzeuge", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung"]
     assert await feature_modul_service.set_reihenfolge(db, neu) is True
     assert [m["key"] for m in await feature_modul_service.liste(db)] == neu
     # unvollständig / unbekannt -> abgelehnt
     assert await feature_modul_service.set_reihenfolge(db, ["divera"]) is False
-    assert await feature_modul_service.set_reihenfolge(
-        db, ["divera", "einsatztagebuch", "dienstbuch", "dienststunden", "fremd"]
-    ) is False
+    assert await feature_modul_service.set_reihenfolge(db, _ALLE[:-1] + ["fremd"]) is False
 
 
 @pytest.mark.asyncio
@@ -91,8 +92,12 @@ async def test_endpoints_auth_und_flow(client, db):
     r = await client.patch("/api/v1/moderator/feature-module/divera", json={"startseite": True}, headers=h)
     assert r.status_code == 400
 
+    # Immer-aktives Modul abschalten -> 400
+    r = await client.patch("/api/v1/moderator/feature-module/personal", json={"aktiv": False}, headers=h)
+    assert r.status_code == 400
+
     # Reihenfolge setzen
-    neu = ["divera", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung"]
+    neu = ["divera", "personal", "fahrzeuge", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung"]
     r = await client.put("/api/v1/moderator/feature-module/reihenfolge", json={"keys": neu}, headers=h)
     assert r.status_code == 200 and [m["key"] for m in r.json()] == neu
 
