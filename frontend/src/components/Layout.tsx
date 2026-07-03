@@ -1,4 +1,4 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useConfig } from "../context/ConfigContext";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../hooks/useTheme";
@@ -6,7 +6,8 @@ import { useTheme } from "../hooks/useTheme";
 function startseite(moderatorAngemeldet: boolean, angezeigterName: string | null): string {
   if (moderatorAngemeldet) return "/moderator/dashboard";
   // Auf einem Kiosk-Tablet führt das Logo zurück zur Kiosk-Startseite, nicht zur
-  // öffentlichen Landing-/Login-Seite.
+  // öffentlichen Landing-/Login-Seite. localStorage wird zum Klickzeitpunkt
+  // gelesen (der Kiosk-Token wird beim Öffnen erst in einem Effect gesetzt).
   const kioskToken = localStorage.getItem("kiosk_token");
   if (kioskToken) return `/kiosk/${kioskToken}`;
   if (angezeigterName) return "/mitglied";
@@ -17,19 +18,32 @@ export function Layout() {
   const { config } = useConfig();
   const { moderatorAngemeldet, angezeigterName } = useAuth();
   const { theme, umschalten } = useTheme();
+  const navigate = useNavigate();
   const logoQuelle =
     theme === "dark" && config?.logo_url_dark ? config.logo_url_dark : config?.logo_url;
 
   return (
     <>
       <header className="kopfzeile">
-        <Link
-          to={startseite(moderatorAngemeldet, angezeigterName)}
-          style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", color: "inherit" }}
+        <button
+          type="button"
+          onClick={() => navigate(startseite(moderatorAngemeldet, angezeigterName))}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            background: "none",
+            border: "none",
+            boxShadow: "none",
+            padding: 0,
+            minHeight: 0,
+            cursor: "pointer",
+            color: "inherit",
+          }}
         >
           {logoQuelle && <img src={logoQuelle} alt="Logo" />}
           <span className="organisation">{config?.organisation_name ?? "Gerätehaus.app"}</span>
-        </Link>
+        </button>
         <button
           type="button"
           className="theme-umschalter"

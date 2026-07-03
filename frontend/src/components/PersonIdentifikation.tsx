@@ -279,11 +279,9 @@ function PersonIdentifikationImpl(
           {treffer.map((p) => (
             <li key={p.id}>
               <button type="button" onClick={() => personWaehlen(p)}>
-                {p.bild_url ? (
-                  <img src={p.bild_url} alt={p.name} className="person-ident-bild-klein" />
-                ) : (
-                  <span className="person-ident-initialen-klein">{initialen(p.name)}</span>
-                )}
+                {/* Kein Foto in der Trefferliste – das Profilbild erscheint erst
+                    nach korrektem PIN. Nur Initialen zur groben Orientierung. */}
+                <span className="person-ident-initialen-klein">{initialen(p.name)}</span>
                 <span>{p.name}</span>
               </button>
             </li>
