@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { KACHEL_ICONS, type KachelModulKey } from "../kachelIcons";
-import "../KioskHome.css";
 
 const MODULE: { key: KachelModulKey; aktivKey: string; aussenKey: string; route: string; label: string }[] = [
   { key: "einsatzbericht", aktivKey: "modul_einsatztagebuch_aktiv", aussenKey: "modul_einsatztagebuch_aussenzugriff", route: "/einsatztagebuch", label: "Einsatzbericht" },
@@ -10,6 +9,16 @@ const MODULE: { key: KachelModulKey; aktivKey: string; aussenKey: string; route:
   { key: "dienststunden", aktivKey: "modul_dienststunden_aktiv", aussenKey: "modul_dienststunden_aussenzugriff", route: "/dienststunden", label: "Dienststunden" },
   { key: "fahrzeugbuchung", aktivKey: "modul_fahrzeugbuchung_aktiv", aussenKey: "modul_fahrzeugbuchung_aussenzugriff", route: "/fahrzeugbuchung", label: "Fahrzeugbuchung" },
 ];
+
+function initialen(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((t) => t.charAt(0))
+    .join("")
+    .toUpperCase();
+}
 
 export function MitgliedHub() {
   const navigate = useNavigate();
@@ -26,41 +35,38 @@ export function MitgliedHub() {
   }
 
   return (
-    <div className="kiosk-container">
-      <div className="kiosk-header">
-        <h1 className="kiosk-title">
-          Willkommen<span className="kiosk-title-accent">{angezeigterName ? `, ${angezeigterName}` : ""}</span>
-        </h1>
-        <p className="kiosk-subtitle">Was möchtest du machen?</p>
-        {angezeigterName && (
-          <button type="button" className="sekundaer" onClick={abmelden} style={{ marginTop: 8 }}>
-            Nicht {angezeigterName}? Abmelden
+    <div className="mitglied-hub">
+      {angezeigterName && (
+        <div className="mitglied-profil">
+          <div className="mitglied-avatar">{initialen(angezeigterName)}</div>
+          <div className="mitglied-profil-name">{angezeigterName}</div>
+          <button type="button" className="mitglied-abmelden-link" onClick={abmelden}>
+            Abmelden
           </button>
-        )}
-      </div>
+        </div>
+      )}
+
+      <h2 className="mitglied-frage">Was möchtest du machen?</h2>
 
       {sichtbar.length === 0 ? (
-        <p style={{ color: "var(--farbe-text-mute)", zIndex: 2 }}>
+        <p style={{ color: "var(--farbe-text-mute)" }}>
           Aktuell sind keine Module für den Mitglieder-Login freigegeben. Bitte den Admin ansprechen.
         </p>
       ) : (
-        <div className="kiosk-grid">
+        <div className="mitglied-grid">
           {sichtbar.map((m) => (
             <button
               key={m.route}
-              className="kiosk-tile"
+              type="button"
+              className="mitglied-tile"
               onClick={() => navigate(m.route, { state: { mitgliedModus: true } })}
             >
-              <div className="kiosk-tile-icon-badge">{KACHEL_ICONS[m.key]}</div>
-              <div className="kiosk-tile-text">{m.label}</div>
+              <span className="mitglied-tile-icon">{KACHEL_ICONS[m.key]}</span>
+              <span className="mitglied-tile-label">{m.label}</span>
             </button>
           ))}
         </div>
       )}
-
-      <svg className="kiosk-wave" viewBox="0 0 1440 140" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,80 C360,160 1080,0 1440,80 L1440,140 L0,140 Z" fill="var(--farbe-primaer)" />
-      </svg>
     </div>
   );
 }

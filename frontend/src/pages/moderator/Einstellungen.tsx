@@ -3,6 +3,7 @@ import {
   holeEinstellungen,
   schreibeEinstellungen,
   ladeLogoHoch,
+  ladeLogoDarkHoch,
   fuehreArchivierungAus,
   holeModeratoren,
   moderatorAnlegen,
@@ -143,6 +144,7 @@ export function Einstellungen() {
   const [organisationName, setOrganisationName] = useState("");
   const [oeffentlicheBasisUrl, setOeffentlicheBasisUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [logoDarkUrl, setLogoDarkUrl] = useState("");
   const [farbePrimaer, setFarbePrimaer] = useState("#FFA633");
   const [farbeAkzent, setFarbeAkzent] = useState("#1A1A1A");
 
@@ -166,6 +168,7 @@ export function Einstellungen() {
       setOrganisationName(String(w.organisation_name ?? ""));
       setOeffentlicheBasisUrl(String(w.oeffentliche_basis_url ?? ""));
       setLogoUrl(String(w.logo_url ?? ""));
+      setLogoDarkUrl(String(w.logo_url_dark ?? ""));
       setFarbePrimaer(String(w.farbe_primaer ?? "#FFA633"));
       setFarbeAkzent(String(w.farbe_akzent ?? "#1A1A1A"));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
@@ -215,6 +218,15 @@ export function Einstellungen() {
       setTimeout(() => setGespeichert(false), 4000);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Einstellungen konnten nicht gespeichert werden.");
+    }
+  }
+
+  async function logoDarkHochladen(datei: File) {
+    try {
+      const { logo_url_dark } = await ladeLogoDarkHoch(datei);
+      setLogoDarkUrl(logo_url_dark);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Logo-Upload fehlgeschlagen.");
     }
   }
 
@@ -314,6 +326,35 @@ export function Einstellungen() {
               accept="image/png,image/svg+xml"
               onChange={(e) => e.target.files?.[0] && logoHochladen(e.target.files[0])}
             />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-logo-dark">Logo für Dark Mode (optional)</label>
+            {logoDarkUrl && (
+              <img
+                src={logoDarkUrl}
+                alt="Logo (Dark Mode)"
+                style={{
+                  height: 50,
+                  width: "auto",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                  alignSelf: "flex-start",
+                  marginBottom: 8,
+                  background: "#1a1a1a",
+                  padding: 4,
+                  borderRadius: 6,
+                }}
+              />
+            )}
+            <input
+              id="e-logo-dark"
+              type="file"
+              accept="image/png,image/svg+xml"
+              onChange={(e) => e.target.files?.[0] && logoDarkHochladen(e.target.files[0])}
+            />
+            <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)", margin: "4px 0 0" }}>
+              Wird im dunklen Design statt des Standard-Logos angezeigt.
+            </p>
           </div>
           <div className="formular-zeile">
             <div className="formular-feld">

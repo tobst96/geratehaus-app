@@ -13,6 +13,8 @@ export function Layout() {
   const { config } = useConfig();
   const { moderatorAngemeldet, angezeigterName } = useAuth();
   const { theme, umschalten } = useTheme();
+  const logoQuelle =
+    theme === "dark" && config?.logo_url_dark ? config.logo_url_dark : config?.logo_url;
 
   return (
     <>
@@ -21,7 +23,7 @@ export function Layout() {
           to={startseite(moderatorAngemeldet, angezeigterName)}
           style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", color: "inherit" }}
         >
-          {config?.logo_url && <img src={config.logo_url} alt="Logo" />}
+          {logoQuelle && <img src={logoQuelle} alt="Logo" />}
           <span className="organisation">{config?.organisation_name ?? "Gerätehaus.app"}</span>
         </Link>
         <button

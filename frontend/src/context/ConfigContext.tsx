@@ -12,6 +12,7 @@ const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   organisation_name: "Meine Feuerwehr",
   oeffentliche_basis_url: "",
   logo_url: "",
+  logo_url_dark: "",
   farbe_primaer: "#FFA633",
   farbe_akzent: "#1A1A1A",
   einsatz_countdown_minuten: 30,

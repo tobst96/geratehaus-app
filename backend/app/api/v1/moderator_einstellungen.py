@@ -43,6 +43,14 @@ async def logo_hochladen(
     return {"logo_url": logo_url}
 
 
+@router.post("/logo-dark")
+async def logo_dark_hochladen(db: DbSession, datei: UploadFile) -> dict[str, str]:
+    """Alternatives Logo für den Dark Mode."""
+    logo_url = await logo_service.logo_speichern(datei, variante="logo-dark")
+    await config_service.set(db, "logo_url_dark", logo_url)
+    return {"logo_url_dark": logo_url}
+
+
 @router.post("/email-testen", status_code=status.HTTP_204_NO_CONTENT)
 async def email_testen(db: DbSession) -> None:
     """Sendet eine Testmail mit der aktuell gespeicherten SMTP-Konfiguration,

@@ -10,6 +10,7 @@ class OeffentlicheKonfiguration(BaseModel):
     organisation_name: str
     oeffentliche_basis_url: str
     logo_url: str
+    logo_url_dark: str
     farbe_primaer: str
     farbe_akzent: str
     einsatz_countdown_minuten: int

@@ -25,15 +25,17 @@ def _icons_generieren(inhalt: bytes, upload_verzeichnis: Path) -> None:
         canvas.save(upload_verzeichnis / f"icon-{groesse}.png")
 
 
-async def logo_speichern(datei: UploadFile) -> str:
-    """Speichert das hochgeladene Logo (PNG/SVG) und gibt die relative URL
-    zurück, die in app_config.logo_url abgelegt wird. Bei PNG-Logos werden
-    zusätzlich PWA-Icons (192/512px) automatisch generiert."""
+async def logo_speichern(datei: UploadFile, variante: str = "logo") -> str:
+    """Speichert das hochgeladene Logo (PNG/SVG) und gibt die relative URL zurück.
+    `variante` = "logo" (Standard) oder "logo-dark" (Dark-Mode-Logo). Nur für das
+    Standardlogo werden zusätzlich PWA-Icons (192/512px) generiert."""
     if datei.content_type not in ERLAUBTE_TYPEN:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Logo muss PNG oder SVG sein.",
         )
+    if variante not in ("logo", "logo-dark"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unbekannte Logo-Variante.")
     inhalt = await datei.read()
     if len(inhalt) > MAX_GROESSE_BYTES:
         raise HTTPException(
@@ -43,11 +45,11 @@ async def logo_speichern(datei: UploadFile) -> str:
 
     upload_verzeichnis = Path(settings.upload_dir)
     upload_verzeichnis.mkdir(parents=True, exist_ok=True)
-    dateiname = f"logo{ERLAUBTE_TYPEN[datei.content_type]}"
+    dateiname = f"{variante}{ERLAUBTE_TYPEN[datei.content_type]}"
     zielpfad = upload_verzeichnis / dateiname
     zielpfad.write_bytes(inhalt)
 
-    if datei.content_type == "image/png":
+    if variante == "logo" and datei.content_type == "image/png":
         _icons_generieren(inhalt, upload_verzeichnis)
 
     return f"/uploads/{dateiname}"

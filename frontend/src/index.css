@@ -607,6 +607,26 @@ table tr:hover {
   flex-shrink: 0;
 }
 
+.personal-detail {
+  flex: 1;
+  /* min-width:0 verhindert horizontalen Overflow, wenn Inhalte (breite Tabellen)
+     im Flex-Kind sonst nicht schrumpfen. */
+  min-width: 0;
+}
+
+.personal-suche {
+  width: 100%;
+  margin-bottom: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+/* Nur auf Mobile sichtbar (Master-Detail einspaltig). */
+.personal-zurueck {
+  display: none;
+}
+
 .person-felder {
   display: flex;
   gap: 8px;
@@ -635,6 +655,16 @@ table tr:hover {
 
   .personal-liste {
     width: 100%;
+  }
+
+  /* Master-Detail: sobald eine Person gewählt ist, nur die Detailansicht zeigen. */
+  .personal-layout--detail .personal-liste {
+    display: none;
+  }
+
+  .personal-zurueck {
+    display: inline-flex;
+    margin-bottom: 12px;
   }
 
   .personal-kopf-buttons {
@@ -728,4 +758,103 @@ table tr:hover {
   font-weight: 700;
   font-size: 0.8rem;
   flex-shrink: 0;
+}
+
+/* === Mitglieder-Hub === */
+.mitglied-hub {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.mitglied-profil {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--farbe-rand);
+  border-radius: 12px;
+  background: var(--farbe-oberflaeche);
+  margin-bottom: 20px;
+}
+.mitglied-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--farbe-primaer) 18%, transparent);
+  color: var(--farbe-primaer);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.mitglied-profil-name {
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mitglied-abmelden-link {
+  background: none;
+  border: none;
+  color: var(--farbe-primaer);
+  cursor: pointer;
+  padding: 4px 6px;
+  font: inherit;
+  text-decoration: underline;
+  flex-shrink: 0;
+}
+.mitglied-frage {
+  font-size: 1.15rem;
+  margin: 0 0 14px;
+}
+.mitglied-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+@media (min-width: 620px) {
+  .mitglied-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.mitglied-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  aspect-ratio: 1 / 1;
+  background: var(--farbe-oberflaeche);
+  border: 1px solid var(--farbe-rand);
+  border-radius: 16px;
+  cursor: pointer;
+  color: inherit;
+  padding: 16px;
+  transition: border-color 0.15s, transform 0.05s;
+}
+.mitglied-tile:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) {
+  .mitglied-tile:hover {
+    border-color: var(--farbe-primaer);
+  }
+}
+.mitglied-tile-icon {
+  width: 46px;
+  height: 46px;
+  color: var(--farbe-primaer);
+  display: inline-flex;
+}
+.mitglied-tile-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.mitglied-tile-label {
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
 }

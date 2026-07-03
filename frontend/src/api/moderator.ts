@@ -25,6 +25,9 @@ export const schreibeEinstellungen = (werte: Record<string, unknown>) =>
 export const ladeLogoHoch = (datei: File) =>
   apiUpload<{ logo_url: string }>("/moderator/einstellungen/logo", datei, "datei");
 
+export const ladeLogoDarkHoch = (datei: File) =>
+  apiUpload<{ logo_url_dark: string }>("/moderator/einstellungen/logo-dark", datei, "datei");
+
 export const fuehreArchivierungAus = () =>
   apiPost<{ einsaetze: number; dienstbuecher: number }>("/moderator/einstellungen/archivierung-ausfuehren");
 

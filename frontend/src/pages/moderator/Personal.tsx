@@ -537,13 +537,13 @@ export function Personal() {
         </div>
       )}
 
-      <div className="personal-layout">
+      <div className={`personal-layout${ausgewaehltePerson ? " personal-layout--detail" : ""}`}>
         <div className="personal-liste">
           <input
+            className="personal-suche"
             placeholder="Suche…"
             value={suche}
             onChange={(e) => setSuche(e.target.value)}
-            style={{ width: "100%", marginBottom: 12 }}
           />
 
           <div
@@ -603,11 +603,21 @@ export function Personal() {
           </ul>
         </div>
 
-        <div style={{ flex: 1 }}>
+        <div className="personal-detail">
           {!ausgewaehltePerson ? (
             <p style={{ color: "var(--farbe-text-mute)" }}>Bitte links eine Person auswählen.</p>
           ) : (
             <div className="karte" key={ausgewaehltePerson.id}>
+              <button
+                type="button"
+                className="sekundaer personal-zurueck"
+                onClick={() => {
+                  setAusgewaehlteId(null);
+                  setTimeline(null);
+                }}
+              >
+                ← Zurück zur Liste
+              </button>
               <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
                 <PersonenAvatar person={ausgewaehltePerson} groesse={64} />
                 <div>

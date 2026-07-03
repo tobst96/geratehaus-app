@@ -36,6 +36,7 @@ DEFAULTS: list[ConfigDefault] = [
         "Profilbild-Upload usw.) statt der aktuellen Browser-Adresse verwendet",
     ),
     ConfigDefault("logo_url", "", ConfigTyp.STR, "URL/Pfad zum hochgeladenen Logo"),
+    ConfigDefault("logo_url_dark", "", ConfigTyp.STR, "Alternatives Logo für den Dark Mode"),
     ConfigDefault("farbe_primaer", "#FFA633", ConfigTyp.STR, "Primärfarbe (Hex)"),
     ConfigDefault("farbe_akzent", "#1A1A1A", ConfigTyp.STR, "Akzentfarbe (Hex)"),
     # Module
