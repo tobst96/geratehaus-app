@@ -344,179 +344,235 @@ table tr:hover {
   background: var(--farbe-hintergrund);
 }
 
-/* === Moderator-Navigation ================================================ */
 
-.moderator-nav {
+/* === Moderator-Navigation (Sidebar) ===================================== */
+
+.mod-shell {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.mod-mobile-toggle,
+.mod-overlay,
+.mod-sidebar-kopf {
+  display: none;
+}
+
+.mod-sidebar {
+  width: 232px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: var(--farbe-oberflaeche);
+  border: 1px solid var(--farbe-rand);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+  overflow-y: auto;
+}
+
+.mod-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.mod-nav-section {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--farbe-text-mute);
+  padding: 14px 12px 6px;
+}
+
+.mod-nav-section--toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--farbe-rand);
-  padding-bottom: 12px;
-}
-
-.moderator-hamburger {
-  display: none;
-  background: transparent;
-  color: var(--farbe-text);
-  border: 1px solid var(--farbe-rand);
-  border-radius: var(--radius);
-  padding: 8px 14px;
-  font-size: 1.1rem;
-  min-height: 40px;
-  line-height: 1;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
   box-shadow: none;
-  flex-shrink: 0;
+  min-height: 0;
+  cursor: pointer;
+}
+.mod-nav-section--toggle:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+  color: var(--farbe-text);
 }
 
-.moderator-hamburger:hover:not(:disabled) {
+.mod-chevron {
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+}
+.mod-chevron.auf {
+  transform: rotate(45deg);
+}
+
+.mod-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  color: var(--farbe-text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.mod-nav-link:hover {
+  background: var(--farbe-oberflaeche-hover);
+  color: var(--farbe-text);
+}
+.mod-nav-link.aktiv {
+  background: color-mix(in srgb, var(--farbe-primaer) 14%, transparent);
+  color: var(--farbe-primaer);
+  font-weight: 600;
+}
+.mod-nav-icon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+.mod-nav-link.aktiv .mod-nav-icon {
+  opacity: 1;
+}
+.mod-nav-link--sub {
+  padding-left: 34px;
+  font-size: 0.9rem;
+}
+.mod-nav-link--sub .mod-nav-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.mod-logout {
+  margin-top: 10px;
+  width: 100%;
+  background: transparent;
+  color: var(--farbe-primaer);
+  border: 1px solid var(--farbe-rand);
+  box-shadow: none;
+  min-height: 42px;
+  font-weight: 600;
+}
+.mod-logout:hover:not(:disabled) {
   transform: none;
   box-shadow: none;
   background: var(--farbe-oberflaeche-hover);
 }
 
-.moderator-nav-links {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
+.mod-content {
   flex: 1;
-}
-
-.moderator-nav-link {
-  font-weight: 400;
-  text-decoration: none;
-  padding: 6px 10px;
-  border-radius: var(--radius);
-  color: var(--farbe-text);
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-
-.moderator-nav-link:hover {
-  background: var(--farbe-oberflaeche-hover);
-  color: var(--farbe-text);
-}
-
-.moderator-nav-link.aktiv {
-  font-weight: 700;
-  color: var(--farbe-primaer);
-}
-
-/* Modul-Unterpunkte unter „Module" – dezent eingerückt/kleiner. */
-.moderator-nav-unterpunkt {
-  padding-left: 1.25rem;
-  font-size: 0.92em;
-  opacity: 0.85;
-}
-
-/* Abschnitts-Überschriften: nur im mobilen Menü sichtbar (Desktop = flache Leiste). */
-.moderator-nav-gruppe-titel {
-  display: none;
-}
-
-/* Abmelden im Menü nur mobil; auf dem Desktop steht die Leisten-Variante rechts. */
-.moderator-abmelden-mobil {
-  display: none;
-}
-
-.moderator-abmelden {
-  flex-shrink: 0;
-  margin-left: auto;
+  min-width: 0;
 }
 
 @media (max-width: 768px) {
-  .moderator-hamburger {
-    display: flex;
+  .mod-shell {
+    display: block;
+  }
+  .mod-mobile-toggle {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-  }
-
-  .moderator-nav {
-    flex-wrap: wrap;
-    gap: 0;
-    padding-bottom: 0;
-  }
-
-  .moderator-abmelden {
-    margin-left: auto;
-  }
-
-  .moderator-nav-links {
-    display: none;
-    order: 3;
-    width: 100%;
-    flex-basis: 100%;
-    flex-direction: column;
-    gap: 2px;
-    padding: 8px 0 12px;
-    border-top: 1px solid var(--farbe-rand);
-    margin-top: 8px;
-  }
-
-  .moderator-nav-links.offen {
-    display: flex;
-  }
-
-  .moderator-nav-link {
-    padding: 10px 12px;
-    border-radius: var(--radius);
-    display: block;
-  }
-
-  /* Abschnittsüberschriften im mobilen Menü. */
-  .moderator-nav-gruppe-titel {
-    display: block;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--farbe-text-mute);
-    padding: 14px 12px 4px;
-  }
-
-  /* Modul-Unterpunkte klar als Unterseiten von „Module": eingerückt mit
-     Verbindungslinie, aktive Zeile bekommt eine farbige Linie. */
-  .moderator-nav-link.moderator-nav-unterpunkt {
-    margin-left: 20px;
-    padding-left: 14px;
-    border-left: 2px solid var(--farbe-rand);
-    border-radius: 0;
-    font-size: 0.95em;
-    opacity: 1;
-  }
-
-  .moderator-nav-link.moderator-nav-unterpunkt.aktiv {
-    border-left-color: var(--farbe-primaer);
-  }
-
-  /* Abmelden: nicht mehr frei in der oberen Leiste, sondern unten im Menü. */
-  .moderator-abmelden {
-    display: none;
-  }
-  .moderator-abmelden-mobil {
-    display: block;
-    width: 100%;
-    margin-top: 12px;
-  }
-
-  /* „Module"-Abschnitt als Aufklapp-Schalter; Unterpunkte standardmäßig zu. */
-  .moderator-nav-gruppe-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    background: transparent;
-    border: none;
+    gap: 10px;
+    margin-bottom: 16px;
+    background: var(--farbe-oberflaeche);
+    color: var(--farbe-text);
+    border: 1px solid var(--farbe-rand);
     box-shadow: none;
-    cursor: pointer;
+    min-height: 44px;
+    font-weight: 600;
   }
-  .moderator-nav-gruppe-toggle:hover:not(:disabled) {
+  .mod-mobile-toggle:hover:not(:disabled) {
     transform: none;
     box-shadow: none;
     background: var(--farbe-oberflaeche-hover);
   }
-  .moderator-nav-links.module-zu .moderator-nav-unterpunkt {
-    display: none;
+  .mod-burger,
+  .mod-burger::before,
+  .mod-burger::after {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+  }
+  .mod-burger {
+    position: relative;
+  }
+  .mod-burger::before,
+  .mod-burger::after {
+    content: "";
+    position: absolute;
+    left: 0;
+  }
+  .mod-burger::before {
+    top: -6px;
+  }
+  .mod-burger::after {
+    top: 6px;
+  }
+
+  .mod-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 60;
+  }
+
+  .mod-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 82%;
+    max-width: 320px;
+    max-height: none;
+    border-radius: 0;
+    border: none;
+    border-right: 1px solid var(--farbe-rand);
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    z-index: 70;
+  }
+  .mod-sidebar.offen {
+    transform: translateX(0);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
+  }
+
+  .mod-sidebar-kopf {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    padding: 4px 6px 12px;
+    border-bottom: 1px solid var(--farbe-rand);
+    margin-bottom: 8px;
+  }
+  .mod-sidebar-close {
+    background: transparent;
+    color: var(--farbe-text);
+    border: none;
+    box-shadow: none;
+    min-height: 0;
+    padding: 4px 8px;
+    font-size: 1.1rem;
+  }
+  .mod-sidebar-close:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
   }
 }
 

@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { holeFeatureModule, type FeatureModul } from "../../api/featureModule";
+import { navIcon } from "./navIcons";
 
 type ModulKey =
   | "modul_einsatztagebuch_aktiv"
@@ -10,7 +11,7 @@ type ModulKey =
   | "modul_dienststunden_aktiv"
   | "modul_fahrzeugbuchung_aktiv";
 
-type NavItem = { pfad: string; titel: string; modulKey?: ModulKey };
+type NavItem = { pfad: string; titel: string; icon: string; modulKey?: ModulKey };
 type NavGruppe = {
   id: string;
   titel: string | null;
@@ -20,30 +21,26 @@ type NavGruppe = {
   listen?: boolean;
 };
 
-// Navigation in logische Gruppen. `titel` ist nur im mobilen Menü als
-// Abschnittsüberschrift sichtbar (auf dem Desktop ausgeblendet). „Module" und
-// „Listen" haben eingerückte Unterpunkte; Unterpunkte/Einträge, deren Modul
-// deaktiviert ist, werden ausgeblendet.
 const NAV_GRUPPEN: NavGruppe[] = [
-  { id: "start", titel: null, admin: false, items: [{ pfad: "/moderator/dashboard", titel: "Dashboard" }] },
+  { id: "start", titel: null, admin: false, items: [{ pfad: "/moderator/dashboard", titel: "Dashboard", icon: "dashboard" }] },
   { id: "listen", titel: "Listen", admin: false, listen: true, items: [] },
   {
     id: "buchungen",
     titel: null,
     admin: false,
-    items: [{ pfad: "/moderator/buchungen", titel: "Buchungen", modulKey: "modul_fahrzeugbuchung_aktiv" }],
+    items: [{ pfad: "/moderator/buchungen", titel: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv" }],
   },
   {
     id: "verwaltung",
     titel: "Verwaltung",
     admin: true,
     items: [
-      { pfad: "/moderator/barcodes", titel: "Barcodes" },
-      { pfad: "/moderator/kiosk-geraete", titel: "Kiosk-Geräte" },
-      { pfad: "/moderator/benachrichtigungen", titel: "Benachrichtigungen" },
-      { pfad: "/moderator/einstellungen", titel: "Einstellungen" },
-      { pfad: "/moderator/berechtigungen", titel: "Berechtigungen" },
-      { pfad: "/moderator/update", titel: "Update" },
+      { pfad: "/moderator/barcodes", titel: "Barcodes", icon: "barcodes" },
+      { pfad: "/moderator/kiosk-geraete", titel: "Kiosk-Geräte", icon: "kiosk" },
+      { pfad: "/moderator/benachrichtigungen", titel: "Benachrichtigungen", icon: "benachrichtigungen" },
+      { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen" },
+      { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen" },
+      { pfad: "/moderator/update", titel: "Update", icon: "update" },
     ],
   },
   {
@@ -51,17 +48,26 @@ const NAV_GRUPPEN: NavGruppe[] = [
     titel: "Module",
     admin: true,
     module: true,
-    items: [{ pfad: "/moderator/module", titel: "Übersicht" }],
+    items: [{ pfad: "/moderator/module", titel: "Übersicht", icon: "module" }],
   },
 ];
 
-// Listen-Unterpunkte je Modul (Tab in der Listen-Seite via ?tab=).
-const LISTEN_UNTERPUNKTE: { tab: string; modulKey: ModulKey }[] = [
-  { tab: "Einsätze", modulKey: "modul_einsatztagebuch_aktiv" },
-  { tab: "Dienstbücher", modulKey: "modul_dienstbuch_aktiv" },
-  { tab: "Dienststunden", modulKey: "modul_dienststunden_aktiv" },
-  { tab: "Buchungen", modulKey: "modul_fahrzeugbuchung_aktiv" },
+const LISTEN_UNTERPUNKTE: { tab: string; icon: string; modulKey: ModulKey }[] = [
+  { tab: "Einsätze", icon: "einsatz", modulKey: "modul_einsatztagebuch_aktiv" },
+  { tab: "Dienstbücher", icon: "dienstbuch", modulKey: "modul_dienstbuch_aktiv" },
+  { tab: "Dienststunden", icon: "dienststunden", modulKey: "modul_dienststunden_aktiv" },
+  { tab: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv" },
 ];
+
+const MODUL_ICON: Record<string, string> = {
+  einsatztagebuch: "einsatz",
+  dienstbuch: "dienstbuch",
+  dienststunden: "dienststunden",
+  fahrzeugbuchung: "fahrzeug",
+  divera: "divera",
+  personal: "personal",
+  fahrzeuge: "fahrzeug",
+};
 
 export function ModeratorLayout() {
   const { moderatorAbmelden, moderatorRolle } = useAuth();
@@ -70,7 +76,7 @@ export function ModeratorLayout() {
   const location = useLocation();
   const istAdmin = moderatorRolle === "admin";
   const sichtbareGruppen = NAV_GRUPPEN.filter((g) => !g.admin || istAdmin);
-  const [menuOffen, setMenuOffen] = useState(false);
+  const [drawerOffen, setDrawerOffen] = useState(false);
   const [moduleOffen, setModuleOffen] = useState(false);
   const [aktiveModule, setAktiveModule] = useState<FeatureModul[]>([]);
 
@@ -81,48 +87,66 @@ export function ModeratorLayout() {
       .catch(() => setAktiveModule([]));
   }, [istAdmin]);
 
+  // Beim Navigieren (Pfadwechsel) den mobilen Drawer schließen.
+  useEffect(() => {
+    setDrawerOffen(false);
+  }, [location.pathname, location.search]);
+
   function abmelden() {
     moderatorAbmelden();
     navigate("/");
   }
 
   const modulAktiv = (key: ModulKey) => config?.[key] !== false;
-  // Aktiver Listen-Tab (für die Hervorhebung der Unterpunkte).
   const listenTab =
     location.pathname === "/moderator/listen"
       ? new URLSearchParams(location.search).get("tab") || "Einsätze"
       : null;
 
+  const linkClass =
+    (istUnter = false) =>
+    ({ isActive }: { isActive: boolean }) =>
+      `mod-nav-link${istUnter ? " mod-nav-link--sub" : ""}${isActive ? " aktiv" : ""}`;
+
   return (
-    <div>
-      <nav className="moderator-nav">
-        <button
-          type="button"
-          className="moderator-hamburger"
-          onClick={() => setMenuOffen((o) => !o)}
-          aria-label="Navigation öffnen"
-          aria-expanded={menuOffen}
-        >
-          {menuOffen ? "✕" : "☰"}
-        </button>
-        <div
-          className={`moderator-nav-links${menuOffen ? " offen" : ""}${moduleOffen ? "" : " module-zu"}`}
-        >
+    <div className="mod-shell">
+      <button
+        type="button"
+        className="mod-mobile-toggle"
+        onClick={() => setDrawerOffen((o) => !o)}
+        aria-label="Menü öffnen"
+        aria-expanded={drawerOffen}
+      >
+        <span className="mod-burger" />
+        Menü
+      </button>
+
+      {drawerOffen && <div className="mod-overlay" onClick={() => setDrawerOffen(false)} />}
+
+      <aside className={`mod-sidebar${drawerOffen ? " offen" : ""}`}>
+        <div className="mod-sidebar-kopf">
+          <span>{config?.organisation_name ?? "Moderator"}</span>
+          <button type="button" className="mod-sidebar-close" onClick={() => setDrawerOffen(false)} aria-label="Schließen">
+            ✕
+          </button>
+        </div>
+
+        <nav className="mod-nav">
           {sichtbareGruppen.map((gruppe) => (
             <Fragment key={gruppe.id}>
               {gruppe.titel &&
                 (gruppe.module ? (
                   <button
                     type="button"
-                    className="moderator-nav-gruppe-titel moderator-nav-gruppe-toggle"
+                    className="mod-nav-section mod-nav-section--toggle"
                     onClick={() => setModuleOffen((o) => !o)}
                     aria-expanded={moduleOffen}
                   >
                     {gruppe.titel}
-                    <span aria-hidden="true">{moduleOffen ? "▾" : "▸"}</span>
+                    <span className={`mod-chevron${moduleOffen ? " auf" : ""}`} aria-hidden="true" />
                   </button>
                 ) : (
-                  <div className="moderator-nav-gruppe-titel">{gruppe.titel}</div>
+                  <div className="mod-nav-section">{gruppe.titel}</div>
                 ))}
 
               {gruppe.items
@@ -132,64 +156,57 @@ export function ModeratorLayout() {
                     key={item.pfad}
                     to={item.pfad}
                     end={item.pfad === "/moderator/module"}
-                    className={({ isActive }) => `moderator-nav-link${isActive ? " aktiv" : ""}`}
-                    onClick={() => setMenuOffen(false)}
+                    className={linkClass(false)}
                   >
-                    {item.titel}
+                    {navIcon(item.icon)}
+                    <span>{item.titel}</span>
                   </NavLink>
                 ))}
 
-              {/* Listen-Unterpunkte (modul-gegated) */}
               {gruppe.listen && (
                 <>
                   {LISTEN_UNTERPUNKTE.filter((u) => modulAktiv(u.modulKey)).map((u) => (
                     <NavLink
                       key={u.tab}
                       to={`/moderator/listen?tab=${encodeURIComponent(u.tab)}`}
-                      className={`moderator-nav-link moderator-nav-unterpunkt${listenTab === u.tab ? " aktiv" : ""}`}
-                      onClick={() => setMenuOffen(false)}
+                      className={`mod-nav-link mod-nav-link--sub${listenTab === u.tab ? " aktiv" : ""}`}
                     >
-                      {u.tab}
+                      {navIcon(u.icon)}
+                      <span>{u.tab}</span>
                     </NavLink>
                   ))}
                   {istAdmin && (
                     <NavLink
                       to="/moderator/listen?tab=Namensabweichungen"
-                      className={`moderator-nav-link moderator-nav-unterpunkt${listenTab === "Namensabweichungen" ? " aktiv" : ""}`}
-                      onClick={() => setMenuOffen(false)}
+                      className={`mod-nav-link mod-nav-link--sub${listenTab === "Namensabweichungen" ? " aktiv" : ""}`}
                     >
-                      Namensabweichungen
+                      {navIcon("warnung")}
+                      <span>Namensabweichungen</span>
                     </NavLink>
                   )}
                 </>
               )}
 
-              {/* Modul-Unterpunkte */}
               {gruppe.module &&
+                moduleOffen &&
                 aktiveModule.map((m) => (
-                  <NavLink
-                    key={m.key}
-                    to={`/moderator/module/${m.key}`}
-                    className={({ isActive }) =>
-                      `moderator-nav-link moderator-nav-unterpunkt${isActive ? " aktiv" : ""}`
-                    }
-                    onClick={() => setMenuOffen(false)}
-                  >
-                    {m.name}
+                  <NavLink key={m.key} to={`/moderator/module/${m.key}`} className={linkClass(true)}>
+                    {navIcon(MODUL_ICON[m.key])}
+                    <span>{m.name}</span>
                   </NavLink>
                 ))}
             </Fragment>
           ))}
+        </nav>
 
-          <button type="button" className="sekundaer moderator-abmelden-mobil" onClick={abmelden}>
-            Abmelden
-          </button>
-        </div>
-        <button className="sekundaer moderator-abmelden" onClick={abmelden}>
+        <button type="button" className="mod-logout" onClick={abmelden}>
           Abmelden
         </button>
-      </nav>
-      <Outlet />
+      </aside>
+
+      <main className="mod-content">
+        <Outlet />
+      </main>
     </div>
   );
 }
