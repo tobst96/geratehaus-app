@@ -1,4 +1,6 @@
-from sqlalchemy import Boolean, ForeignKey, String
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -31,6 +33,9 @@ class Person(Base, TimestampMixin):
     )
     pin_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     pin_gesetzt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Zeitpunkt der letzten PIN-Erinnerungsmail (Person ohne PIN); steuert das
+    # Intervall des Erinnerungs-Jobs. NULL = noch nie erinnert.
+    pin_erinnerung_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     benachrichtigungen_aktiv: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # passive_deletes: überlässt das Entfernen abhängiger Zeilen der

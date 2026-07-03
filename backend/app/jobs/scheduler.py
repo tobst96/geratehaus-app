@@ -15,6 +15,7 @@ from app.services import (
     divera_personal_service,
     divera_service,
     einsatz_service,
+    pin_service,
     stammdaten_service,
 )
 from app.services.config_service import config_service
@@ -157,6 +158,19 @@ async def _dienstbuch_autoschluss_job() -> None:
             logger.warning("dienstbuch_autoschluss_fehlgeschlagen", exc_info=True)
 
 
+async def _pin_erinnerung_job() -> None:
+    """Läuft täglich um 8:00 Uhr; erinnert Personen ohne gesetzten PIN (mit
+    E-Mail) alle X Tage per Self-Service-Mail. Nur aktiv, wenn das Barcode-Modul
+    AUS ist (steuert der Job selbst über pin_service)."""
+    async with AsyncSessionLocal() as db:
+        try:
+            versendet = await pin_service.erinnerungen_versenden(db)
+            if versendet:
+                logger.info("pin_erinnerungen_versendet", anzahl=versendet)
+        except Exception:
+            logger.warning("pin_erinnerung_fehlgeschlagen", exc_info=True)
+
+
 def registriere_jobs() -> None:
     # Immer registriert; ob tatsächlich synchronisiert wird, entscheidet
     # _divera_polling_job anhand der app_config-Werte (Einstellungen-UI),
@@ -241,6 +255,16 @@ def registriere_jobs() -> None:
         "divera_personal_sync_job_registriert",
         uhrzeit=f"{_DIVERA_PERSONAL_SYNC_STUNDE:02d}:{_DIVERA_PERSONAL_SYNC_MINUTE:02d}",
     )
+
+    scheduler.add_job(
+        _pin_erinnerung_job,
+        "cron",
+        hour=8,
+        minute=0,
+        id="pin_erinnerung",
+        replace_existing=True,
+    )
+    logger.info("pin_erinnerung_job_registriert", uhrzeit="08:00")
 
 
 def start() -> None:

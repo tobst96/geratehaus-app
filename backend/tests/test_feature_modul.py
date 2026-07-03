@@ -17,7 +17,16 @@ async def _admin_token(client, db):
     return login.json()["access_token"]
 
 
-_ALLE = ["personal", "fahrzeuge", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung", "divera"]
+_ALLE = [
+    "personal",
+    "fahrzeuge",
+    "einsatztagebuch",
+    "dienstbuch",
+    "dienststunden",
+    "fahrzeugbuchung",
+    "divera",
+    "barcode",
+]
 
 
 @pytest.mark.asyncio
@@ -56,7 +65,7 @@ async def test_set_flag_und_schalter_regeln(db):
 
 @pytest.mark.asyncio
 async def test_reihenfolge_setzen_und_validierung(db):
-    neu = ["divera", "personal", "fahrzeuge", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung"]
+    neu = ["divera", "barcode", "personal", "fahrzeuge", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung"]
     assert await feature_modul_service.set_reihenfolge(db, neu) is True
     assert [m["key"] for m in await feature_modul_service.liste(db)] == neu
     # unvollständig / unbekannt -> abgelehnt
@@ -97,7 +106,7 @@ async def test_endpoints_auth_und_flow(client, db):
     assert r.status_code == 400
 
     # Reihenfolge setzen
-    neu = ["divera", "personal", "fahrzeuge", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung"]
+    neu = ["divera", "barcode", "personal", "fahrzeuge", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung"]
     r = await client.put("/api/v1/moderator/feature-module/reihenfolge", json={"keys": neu}, headers=h)
     assert r.status_code == 200 and [m["key"] for m in r.json()] == neu
 
