@@ -18,7 +18,7 @@ interface Wert {
 
 /** Benachrichtigungskanäle einer Person (Admin-Menü, in der Personal-Detailseite).
  * Selbstständige Komponente – lädt Registry + gespeicherte Kanäle für personId. */
-export function PersonKanaele({ personId }: { personId: number }) {
+export function PersonKanaele({ personId, personEmail }: { personId: number; personEmail?: string | null }) {
   const [typen, setTypen] = useState<KanalTyp[]>([]);
   const [werte, setWerte] = useState<Record<string, Wert>>({});
   const [ereignisTypen, setEreignisTypen] = useState<EreignisTyp[]>([]);
@@ -85,14 +85,22 @@ export function PersonKanaele({ personId }: { personId: number }) {
             style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}
           >
             <span style={{ minWidth: 90 }}>{t.label}</span>
-            <input
-              placeholder={t.zielwert_label}
-              value={w.zielwert}
-              onChange={(e) =>
-                setWerte((m) => ({ ...m, [t.key]: { ...w, zielwert: e.target.value } }))
-              }
-              style={{ width: 200 }}
-            />
+            {t.key === "mail" ? (
+              // Der Mail-Kanal nutzt die E-Mail-Adresse der Person – keine zweite
+              // Adresse mehr pflegen.
+              <span style={{ width: 200, color: "var(--farbe-text-mute)" }}>
+                {personEmail?.trim() ? personEmail : "Keine E-Mail bei der Person hinterlegt"}
+              </span>
+            ) : (
+              <input
+                placeholder={t.zielwert_label}
+                value={w.zielwert}
+                onChange={(e) =>
+                  setWerte((m) => ({ ...m, [t.key]: { ...w, zielwert: e.target.value } }))
+                }
+                style={{ width: 200 }}
+              />
+            )}
             <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <input
                 type="checkbox"

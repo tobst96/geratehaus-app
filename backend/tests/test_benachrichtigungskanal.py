@@ -23,14 +23,22 @@ async def _admin_token(client, db):
 
 async def test_setzen_upsert_und_loeschen(db):
     person = await _person(db)
-    k = await kanal_service.setzen(db, person.id, "mail", "a@b.de", True)
-    assert k is not None and k.zielwert == "a@b.de"
+    k = await kanal_service.setzen(db, person.id, "telegram", "123", True)
+    assert k is not None and k.zielwert == "123"
     # Upsert überschreibt statt zu duplizieren.
-    k2 = await kanal_service.setzen(db, person.id, "mail", "neu@b.de", False)
-    assert k2.zielwert == "neu@b.de" and k2.aktiv is False
+    k2 = await kanal_service.setzen(db, person.id, "telegram", "456", False)
+    assert k2.zielwert == "456" and k2.aktiv is False
     assert len(await kanal_service.liste_fuer_person(db, person.id)) == 1
-    assert await kanal_service.loeschen(db, person.id, "mail") is True
-    assert await kanal_service.loeschen(db, person.id, "mail") is False
+    assert await kanal_service.loeschen(db, person.id, "telegram") is True
+    assert await kanal_service.loeschen(db, person.id, "telegram") is False
+
+
+async def test_mail_kanal_ignoriert_zielwert(db):
+    """Der Mail-Kanal nutzt die E-Mail der Person; ein übergebener Zielwert wird
+    nicht gespeichert (keine doppelte Adresse)."""
+    person = await _person(db)
+    k = await kanal_service.setzen(db, person.id, "mail", "trotzdem@x.de", True)
+    assert k is not None and k.zielwert == ""
 
 
 async def test_setzen_unbekannter_typ(db):

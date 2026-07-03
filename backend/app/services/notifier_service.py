@@ -79,7 +79,11 @@ async def benachrichtige(
                 continue
             try:
                 if kanal.typ == "mail":
-                    await email.send_an(db, kanal.zielwert, betreff, nachricht)
+                    # E-Mail-Kanal nutzt immer die E-Mail-Adresse der Person –
+                    # keine zweite, separat gepflegte Adresse mehr.
+                    ziel = (person.email or "").strip()
+                    if ziel:
+                        await email.send_an(db, ziel, betreff, nachricht)
                 elif kanal.typ == "telegram":
                     await telegram.send_an_chat(db, kanal.zielwert, betreff, nachricht)
             except Exception:

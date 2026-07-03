@@ -67,6 +67,10 @@ async def setzen(
     """Upsert eines Kanals (ein Kanal je person+typ). Gibt None bei unbekanntem Typ."""
     if typ not in _ERLAUBTE_TYPEN:
         return None
+    # Der Mail-Kanal nutzt die E-Mail-Adresse der Person; ein eigener Zielwert
+    # wird nicht mehr gepflegt (keine doppelte Adresse).
+    if typ == "mail":
+        zielwert = ""
     vorhanden = (
         await db.execute(
             select(Benachrichtigungskanal).where(
@@ -163,15 +167,26 @@ async def empfaenger_fuer_ereignis(
     ).scalars().all()
     kanaele_je_person: dict[int, list[Benachrichtigungskanal]] = {}
     for k in kanaele:
-        if k.zielwert.strip():
-            kanaele_je_person.setdefault(k.person_id, []).append(k)
+        kanaele_je_person.setdefault(k.person_id, []).append(k)
     if not kanaele_je_person:
         return []
 
     personen = (
         await db.execute(select(Person).where(Person.id.in_(kanaele_je_person.keys())))
     ).scalars().all()
-    return [(p, kanaele_je_person[p.id]) for p in personen]
+
+    # Zielwert-Prüfung: der Mail-Kanal nutzt die E-Mail der Person (keine zweite
+    # Adresse), alle anderen Kanäle ihren eigenen Zielwert.
+    ergebnis: list[tuple[Person, list[Benachrichtigungskanal]]] = []
+    for p in personen:
+        gueltige = [
+            k
+            for k in kanaele_je_person[p.id]
+            if (k.typ == "mail" and (p.email or "").strip()) or (k.typ != "mail" and k.zielwert.strip())
+        ]
+        if gueltige:
+            ergebnis.append((p, gueltige))
+    return ergebnis
 
 
 async def mail_empfaenger_fuer_ereignis(db: AsyncSession, ereignis: str) -> list[str]:
@@ -179,8 +194,8 @@ async def mail_empfaenger_fuer_ereignis(db: AsyncSession, ereignis: str) -> list
     Für den PDF-Versand bei Einsatz-/Dienstbuch-Abschluss – geht damit nur an die
     Personen, die das Ereignis bei sich abonniert haben."""
     adressen: list[str] = []
-    for _person, kanaele in await empfaenger_fuer_ereignis(db, ereignis):
+    for person, kanaele in await empfaenger_fuer_ereignis(db, ereignis):
         for k in kanaele:
-            if k.typ == "mail" and k.zielwert.strip():
-                adressen.append(k.zielwert.strip())
+            if k.typ == "mail" and (person.email or "").strip():
+                adressen.append(person.email.strip())
     return adressen

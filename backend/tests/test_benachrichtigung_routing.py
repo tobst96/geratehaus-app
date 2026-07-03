@@ -6,8 +6,8 @@ from app.services import notifier_service
 from app.services.notifier.email import EmailNotifier
 
 
-async def _person(db, name):
-    p = Person(name=name)
+async def _person(db, name, email=None):
+    p = Person(name=name, email=email)
     db.add(p)
     await db.commit()
     await db.refresh(p)
@@ -33,14 +33,14 @@ async def test_set_abo_und_lesen(db):
 
 
 async def test_empfaenger_nur_abonnenten_mit_kanal(db):
-    abonnent = await _person(db, "Abonnent")
-    ohne_kanal = await _person(db, "OhneKanal")
-    ohne_abo = await _person(db, "OhneAbo")
+    abonnent = await _person(db, "Abonnent", "abo@x.de")
+    ohne_kanal = await _person(db, "OhneKanal", "ohne@x.de")
+    ohne_abo = await _person(db, "OhneAbo", "nein@x.de")
 
-    await ks.setzen(db, abonnent.id, "mail", "abo@x.de", True)
+    await ks.setzen(db, abonnent.id, "mail", "", True)
     await ks.set_abo(db, abonnent.id, "benachrichtigung_neuer_einsatz", True)
     await ks.set_abo(db, ohne_kanal.id, "benachrichtigung_neuer_einsatz", True)  # kein Kanal
-    await ks.setzen(db, ohne_abo.id, "mail", "nein@x.de", True)  # kein Abo
+    await ks.setzen(db, ohne_abo.id, "mail", "", True)  # kein Abo
 
     empfaenger = await ks.empfaenger_fuer_ereignis(db, "benachrichtigung_neuer_einsatz")
     namen = {p.name for p, _ in empfaenger}
@@ -55,11 +55,11 @@ async def test_benachrichtige_geht_nur_an_abonnenten(db, monkeypatch):
 
     monkeypatch.setattr(EmailNotifier, "send_an", fake_send_an)
 
-    abonnent = await _person(db, "Abonnent")
-    ohne_abo = await _person(db, "OhneAbo")
-    await ks.setzen(db, abonnent.id, "mail", "abo@x.de", True)
+    abonnent = await _person(db, "Abonnent", "abo@x.de")
+    ohne_abo = await _person(db, "OhneAbo", "nein@x.de")
+    await ks.setzen(db, abonnent.id, "mail", "", True)
     await ks.set_abo(db, abonnent.id, "benachrichtigung_neuer_einsatz", True)
-    await ks.setzen(db, ohne_abo.id, "mail", "nein@x.de", True)
+    await ks.setzen(db, ohne_abo.id, "mail", "", True)
 
     await notifier_service.benachrichtige(db, "benachrichtigung_neuer_einsatz", titel="Test")
 
@@ -68,9 +68,9 @@ async def test_benachrichtige_geht_nur_an_abonnenten(db, monkeypatch):
 
 async def test_mail_empfaenger_nur_mail_kanal(db):
     """Für den PDF-Versand: nur Mail-Zielwerte der Abonnenten, keine Telegram."""
-    p_mail = await _person(db, "MailAbo")
-    p_tg = await _person(db, "TelegramAbo")
-    await ks.setzen(db, p_mail.id, "mail", "m@x.de", True)
+    p_mail = await _person(db, "MailAbo", "m@x.de")
+    p_tg = await _person(db, "TelegramAbo", "tg@x.de")
+    await ks.setzen(db, p_mail.id, "mail", "", True)
     await ks.set_abo(db, p_mail.id, "benachrichtigung_neuer_einsatz", True)
     await ks.setzen(db, p_tg.id, "telegram", "999", True)
     await ks.set_abo(db, p_tg.id, "benachrichtigung_neuer_einsatz", True)
@@ -87,8 +87,25 @@ async def test_benachrichtige_inaktiver_kanal_wird_uebersprungen(db, monkeypatch
 
     monkeypatch.setattr(EmailNotifier, "send_an", fake_send_an)
 
-    p = await _person(db, "Inaktiv")
-    await ks.setzen(db, p.id, "mail", "x@x.de", False)  # Kanal inaktiv
+    p = await _person(db, "Inaktiv", "x@x.de")
+    await ks.setzen(db, p.id, "mail", "", False)  # Kanal inaktiv
+    await ks.set_abo(db, p.id, "benachrichtigung_neuer_einsatz", True)
+
+    await notifier_service.benachrichtige(db, "benachrichtigung_neuer_einsatz", titel="Test")
+    assert gesendet == []
+
+
+async def test_mail_kanal_ohne_person_email_kein_versand(db, monkeypatch):
+    """Mail-Kanal aktiv + abonniert, aber Person ohne E-Mail → kein Versand."""
+    gesendet: list[str] = []
+
+    async def fake_send_an(self, db, empfaenger, betreff, nachricht):
+        gesendet.append(empfaenger)
+
+    monkeypatch.setattr(EmailNotifier, "send_an", fake_send_an)
+
+    p = await _person(db, "OhneMail")  # keine E-Mail
+    await ks.setzen(db, p.id, "mail", "", True)
     await ks.set_abo(db, p.id, "benachrichtigung_neuer_einsatz", True)
 
     await notifier_service.benachrichtige(db, "benachrichtigung_neuer_einsatz", titel="Test")

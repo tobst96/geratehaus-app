@@ -766,7 +766,7 @@ export function Personal() {
                 </div>
               )}
 
-              <PersonKanaele personId={ausgewaehltePerson.id} />
+              <PersonKanaele personId={ausgewaehltePerson.id} personEmail={ausgewaehltePerson.email} />
 
               <h3>Timeline</h3>
               {!timeline ? (
