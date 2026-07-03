@@ -799,15 +799,22 @@ table tr:hover {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Wie ein sekundärer Button (weiß mit farbigem Rahmen), nur kompakter, damit er
+   in die Profil-Zeile passt – statt des früheren Text-Links. */
 .mitglied-abmelden-link {
-  background: none;
-  border: none;
+  background: var(--farbe-oberflaeche);
   color: var(--farbe-primaer);
+  border: 2px solid var(--farbe-primaer);
+  border-radius: var(--radius);
   cursor: pointer;
-  padding: 4px 6px;
+  padding: 8px 16px;
   font: inherit;
-  text-decoration: underline;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
+}
+.mitglied-abmelden-link:hover {
+  background: var(--farbe-oberflaeche-hover);
 }
 .mitglied-frage {
   font-size: 1.15rem;
