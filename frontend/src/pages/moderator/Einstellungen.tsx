@@ -149,8 +149,6 @@ export function Einstellungen() {
   const [farbeAkzent, setFarbeAkzent] = useState("#1A1A1A");
 
   const [archivierungszeitraum, setArchivierungszeitraum] = useState(2);
-  const [personenSortierung, setPersonenSortierung] = useState("nachname");
-  const [personenInaktivitaetTage, setPersonenInaktivitaetTage] = useState(90);
 
 
   const [fehlerberichteAktiv, setFehlerberichteAktiv] = useState(false);
@@ -172,8 +170,6 @@ export function Einstellungen() {
       setFarbePrimaer(String(w.farbe_primaer ?? "#FFA633"));
       setFarbeAkzent(String(w.farbe_akzent ?? "#1A1A1A"));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
-      setPersonenSortierung(String(w.personen_sortierung ?? "nachname"));
-      setPersonenInaktivitaetTage(Number(w.personen_inaktivitaet_tage ?? 90));
       setFehlerberichteAktiv(Boolean(w.fehlerberichte_aktiv));
       setBenachrichtigungEinsatz(Boolean(w.benachrichtigung_neuer_einsatz));
       setBenachrichtigungDiveraAlarm(Boolean(w.benachrichtigung_divera_alarm ?? true));
@@ -203,8 +199,6 @@ export function Einstellungen() {
         farbe_primaer: farbePrimaer,
         farbe_akzent: farbeAkzent,
         archivierungszeitraum_jahre: archivierungszeitraum,
-        personen_sortierung: personenSortierung,
-        personen_inaktivitaet_tage: personenInaktivitaetTage,
         fehlerberichte_aktiv: fehlerberichteAktiv,
         benachrichtigung_neuer_einsatz: benachrichtigungEinsatz,
         benachrichtigung_divera_alarm: benachrichtigungDiveraAlarm,
@@ -444,38 +438,6 @@ export function Einstellungen() {
               />{" "}
               Person inaktiv (wird bald gelöscht)
             </label>
-          </div>
-        </div>
-
-        <div className="karte">
-          <h2>Personen</h2>
-          <div className="formular-feld">
-            <label htmlFor="e-personen-sortierung">Sortierung der Personenliste</label>
-            <select
-              id="e-personen-sortierung"
-              value={personenSortierung}
-              onChange={(e) => setPersonenSortierung(e.target.value)}
-            >
-              <option value="nachname">Nach Nachname</option>
-              <option value="gruppe_nachname">Nach Gruppe, dann Nachname</option>
-            </select>
-          </div>
-          <div className="formular-feld">
-            <label htmlFor="e-personen-inaktivitaet">
-              Person löschen nach Inaktivität (Tage ohne neuen Timeline-Eintrag)
-            </label>
-            <input
-              id="e-personen-inaktivitaet"
-              type="number"
-              min={0}
-              value={personenInaktivitaetTage}
-              onChange={(e) => setPersonenInaktivitaetTage(Number(e.target.value))}
-            />
-            <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
-              7 Tage vor der automatischen Löschung wird einmalig eine Benachrichtigung verschickt.
-              Erfolgt in dieser Zeit keine neue Aktivität, wird die Person inkl. aller zugehörigen Daten
-              (Dienststunden, Einsätze, Dienstbücher, Barcodes, Buchungen) endgültig gelöscht. 0 = deaktiviert.
-            </p>
           </div>
         </div>
 
