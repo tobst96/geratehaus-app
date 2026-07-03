@@ -465,7 +465,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   return (
     <div className="einsatz-diagramm">
       <div className="einsatz-kopf">
-        <h2 style={{ margin: 0 }}>{einsatz.titel}</h2>
+        <h2 style={{ margin: 0, fontWeight: 800, fontSize: "1.9rem" }}>{einsatz.titel}</h2>
         <div className="einsatz-kopf-aktionen">
           {!aktivesFahrzeug && detailsAlsPopup && hatLinkeSpalte && (
             <button className="sekundaer" onClick={() => setDetailsOffen(true)}>
@@ -688,7 +688,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
 
                       <div className="formular-feld">
                         <label>
-                          <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
+                          <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} />{" "}
+                          Verdienstausfallbescheinigung
                         </label>
                       </div>
 
@@ -703,7 +704,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                               else if (atemschutzminuten === 0) setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
                             }}
                           />{" "}
-                          Atemschutz
+                          Atemschutz angelegt
                         </label>
                       </div>
 

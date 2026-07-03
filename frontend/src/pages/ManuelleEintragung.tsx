@@ -255,7 +255,8 @@ export function ManuelleEintragung() {
             <>
               <div className="formular-feld">
                 <label>
-                  <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} /> VAB
+                  <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} />{" "}
+                  Verdienstausfallbescheinigung
                 </label>
               </div>
 
@@ -270,7 +271,7 @@ export function ManuelleEintragung() {
                       else if (atemschutzminuten === 0) setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
                     }}
                   />{" "}
-                  Atemschutz
+                  Atemschutz angelegt
                 </label>
               </div>
 

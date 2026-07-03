@@ -544,6 +544,7 @@ export function Personal() {
             placeholder="Suche…"
             value={suche}
             onChange={(e) => setSuche(e.target.value)}
+            autoFocus
           />
 
           <div
@@ -711,18 +712,22 @@ export function Personal() {
                   Bild per QR-Code hochladen
                 </button>
 
-                <button className="sekundaer" onClick={() => barcodeErzeugen(ausgewaehltePerson)}>
-                  Barcode erzeugen
-                </button>
+                {config?.modul_barcode_aktiv && (
+                  <>
+                    <button className="sekundaer" onClick={() => barcodeErzeugen(ausgewaehltePerson)}>
+                      Barcode erzeugen
+                    </button>
 
-                <button
-                  className="sekundaer"
-                  disabled={!ausgewaehltePerson.email}
-                  title={!ausgewaehltePerson.email ? "Erst eine E-Mail-Adresse hinterlegen" : undefined}
-                  onClick={() => barcodePerMailSenden(ausgewaehltePerson)}
-                >
-                  Barcode per Mail senden
-                </button>
+                    <button
+                      className="sekundaer"
+                      disabled={!ausgewaehltePerson.email}
+                      title={!ausgewaehltePerson.email ? "Erst eine E-Mail-Adresse hinterlegen" : undefined}
+                      onClick={() => barcodePerMailSenden(ausgewaehltePerson)}
+                    >
+                      Barcode per Mail senden
+                    </button>
+                  </>
+                )}
 
                 <button className="sekundaer" onClick={() => pinSetzen(ausgewaehltePerson)}>
                   PIN setzen
