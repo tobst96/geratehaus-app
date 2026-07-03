@@ -153,12 +153,6 @@ export function Einstellungen() {
 
   const [fehlerberichteAktiv, setFehlerberichteAktiv] = useState(false);
 
-  const [benachrichtigungEinsatz, setBenachrichtigungEinsatz] = useState(true);
-  const [benachrichtigungDiveraAlarm, setBenachrichtigungDiveraAlarm] = useState(true);
-  const [benachrichtigungDienstbuch, setBenachrichtigungDienstbuch] = useState(true);
-  const [benachrichtigungBuchung, setBenachrichtigungBuchung] = useState(true);
-  const [benachrichtigungSchwellenwert, setBenachrichtigungSchwellenwert] = useState(true);
-  const [benachrichtigungPersonInaktiv, setBenachrichtigungPersonInaktiv] = useState(true);
 
   async function laden() {
     try {
@@ -171,12 +165,6 @@ export function Einstellungen() {
       setFarbeAkzent(String(w.farbe_akzent ?? "#1A1A1A"));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
       setFehlerberichteAktiv(Boolean(w.fehlerberichte_aktiv));
-      setBenachrichtigungEinsatz(Boolean(w.benachrichtigung_neuer_einsatz));
-      setBenachrichtigungDiveraAlarm(Boolean(w.benachrichtigung_divera_alarm ?? true));
-      setBenachrichtigungDienstbuch(Boolean(w.benachrichtigung_neues_dienstbuch));
-      setBenachrichtigungBuchung(Boolean(w.benachrichtigung_buchungsanfrage));
-      setBenachrichtigungSchwellenwert(Boolean(w.benachrichtigung_schwellenwert_ueberschreitung));
-      setBenachrichtigungPersonInaktiv(Boolean(w.benachrichtigung_person_inaktiv));
       setGeladen(true);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Einstellungen konnten nicht geladen werden.");
@@ -200,12 +188,6 @@ export function Einstellungen() {
         farbe_akzent: farbeAkzent,
         archivierungszeitraum_jahre: archivierungszeitraum,
         fehlerberichte_aktiv: fehlerberichteAktiv,
-        benachrichtigung_neuer_einsatz: benachrichtigungEinsatz,
-        benachrichtigung_divera_alarm: benachrichtigungDiveraAlarm,
-        benachrichtigung_neues_dienstbuch: benachrichtigungDienstbuch,
-        benachrichtigung_buchungsanfrage: benachrichtigungBuchung,
-        benachrichtigung_schwellenwert_ueberschreitung: benachrichtigungSchwellenwert,
-        benachrichtigung_person_inaktiv: benachrichtigungPersonInaktiv,
       });
       neuLaden();
       setGespeichert(true);
@@ -377,69 +359,6 @@ export function Einstellungen() {
           </div>
         </div>
 
-        <div className="karte">
-          <h2>Benachrichtigungen</h2>
-          <div className="formular-feld">
-            <label>
-              <input
-                type="checkbox"
-                checked={benachrichtigungEinsatz}
-                onChange={(e) => setBenachrichtigungEinsatz(e.target.checked)}
-              />{" "}
-              Einsatz abgeschlossen
-            </label>
-          </div>
-          <div className="formular-feld">
-            <label>
-              <input
-                type="checkbox"
-                checked={benachrichtigungDiveraAlarm}
-                onChange={(e) => setBenachrichtigungDiveraAlarm(e.target.checked)}
-              />{" "}
-              Neuer Einsatz via Divera angelegt
-            </label>
-          </div>
-          <div className="formular-feld">
-            <label>
-              <input
-                type="checkbox"
-                checked={benachrichtigungDienstbuch}
-                onChange={(e) => setBenachrichtigungDienstbuch(e.target.checked)}
-              />{" "}
-              Neues Dienstbuch
-            </label>
-          </div>
-          <div className="formular-feld">
-            <label>
-              <input
-                type="checkbox"
-                checked={benachrichtigungBuchung}
-                onChange={(e) => setBenachrichtigungBuchung(e.target.checked)}
-              />{" "}
-              Neue Buchungsanfrage
-            </label>
-          </div>
-          <div className="formular-feld">
-            <label>
-              <input
-                type="checkbox"
-                checked={benachrichtigungSchwellenwert}
-                onChange={(e) => setBenachrichtigungSchwellenwert(e.target.checked)}
-              />{" "}
-              Schwellenwert-Überschreitung
-            </label>
-          </div>
-          <div className="formular-feld">
-            <label>
-              <input
-                type="checkbox"
-                checked={benachrichtigungPersonInaktiv}
-                onChange={(e) => setBenachrichtigungPersonInaktiv(e.target.checked)}
-              />{" "}
-              Person inaktiv (wird bald gelöscht)
-            </label>
-          </div>
-        </div>
 
         <div className="karte">
           <h2>Fehlerberichte</h2>

@@ -22,7 +22,22 @@ interface NotifierConfig {
   webpush_vapid_public: string;
   webpush_vapid_private: string;
   webpush_vapid_subject: string;
+  ereignis_neuer_einsatz: boolean;
+  ereignis_divera_alarm: boolean;
+  ereignis_neues_dienstbuch: boolean;
+  ereignis_buchungsanfrage: boolean;
+  ereignis_schwellenwert: boolean;
+  ereignis_person_inaktiv: boolean;
 }
+
+const EREIGNISSE: { feld: keyof NotifierConfig; label: string }[] = [
+  { feld: "ereignis_neuer_einsatz", label: "Einsatz abgeschlossen" },
+  { feld: "ereignis_divera_alarm", label: "Neuer Einsatz via Divera angelegt" },
+  { feld: "ereignis_neues_dienstbuch", label: "Neues Dienstbuch" },
+  { feld: "ereignis_buchungsanfrage", label: "Neue Buchungsanfrage" },
+  { feld: "ereignis_schwellenwert", label: "Schwellenwert-Überschreitung" },
+  { feld: "ereignis_person_inaktiv", label: "Person inaktiv (wird bald gelöscht)" },
+];
 
 export function NotifierEinstellungen() {
   const [config, setConfig] = useState<NotifierConfig | null>(null);
@@ -54,6 +69,12 @@ export function NotifierEinstellungen() {
           webpush_vapid_public: String(w.notifier_webpush_vapid_public_key ?? ""),
           webpush_vapid_private: String(w.notifier_webpush_vapid_private_key ?? ""),
           webpush_vapid_subject: String(w.notifier_webpush_vapid_subject ?? ""),
+          ereignis_neuer_einsatz: Boolean(w.benachrichtigung_neuer_einsatz),
+          ereignis_divera_alarm: Boolean(w.benachrichtigung_divera_alarm ?? true),
+          ereignis_neues_dienstbuch: Boolean(w.benachrichtigung_neues_dienstbuch),
+          ereignis_buchungsanfrage: Boolean(w.benachrichtigung_buchungsanfrage),
+          ereignis_schwellenwert: Boolean(w.benachrichtigung_schwellenwert_ueberschreitung),
+          ereignis_person_inaktiv: Boolean(w.benachrichtigung_person_inaktiv),
         });
       } catch (err) {
         setFehler(err instanceof ApiError ? String(err.detail) : "Fehler beim Laden");
@@ -87,6 +108,12 @@ export function NotifierEinstellungen() {
         notifier_webpush_vapid_public_key: config.webpush_vapid_public,
         notifier_webpush_vapid_private_key: config.webpush_vapid_private,
         notifier_webpush_vapid_subject: config.webpush_vapid_subject,
+        benachrichtigung_neuer_einsatz: config.ereignis_neuer_einsatz,
+        benachrichtigung_divera_alarm: config.ereignis_divera_alarm,
+        benachrichtigung_neues_dienstbuch: config.ereignis_neues_dienstbuch,
+        benachrichtigung_buchungsanfrage: config.ereignis_buchungsanfrage,
+        benachrichtigung_schwellenwert_ueberschreitung: config.ereignis_schwellenwert,
+        benachrichtigung_person_inaktiv: config.ereignis_person_inaktiv,
       });
       setGespeichert(true);
       setTimeout(() => setGespeichert(false), 4000);
@@ -355,6 +382,25 @@ export function NotifierEinstellungen() {
               Generiere Keys mit: <code>webpush generate-vapid-keys</code>
             </p>
           </div>
+        </div>
+
+        <div className="karte">
+          <h2>🔔 Welche Ereignisse benachrichtigen?</h2>
+          <p style={{ color: "var(--farbe-text-mute)" }}>
+            Legt fest, bei welchen Ereignissen überhaupt eine Benachrichtigung verschickt wird.
+          </p>
+          {EREIGNISSE.map((e) => (
+            <div className="formular-feld" key={e.feld}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={Boolean(config[e.feld])}
+                  onChange={(ev) => setConfig({ ...config, [e.feld]: ev.target.checked })}
+                />{" "}
+                {e.label}
+              </label>
+            </div>
+          ))}
         </div>
 
         <button type="submit" disabled={loading}>
