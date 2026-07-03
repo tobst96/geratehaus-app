@@ -5,8 +5,11 @@ import random
 from datetime import datetime
 
 import structlog
+from zoneinfo import ZoneInfo
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from app.core import zeit
 from app.db.session import AsyncSessionLocal
 from app.services import (
     archive_service,
@@ -24,7 +27,9 @@ logger = structlog.get_logger(__name__)
 
 DIVERA_POLL_INTERVALL_SEKUNDEN = 300
 
-scheduler = AsyncIOScheduler()
+# Cron-Jobs (Archivierung, Barcode-Erneuerung, PIN-Erinnerung usw.) sollen zur
+# lokalen Uhrzeit feuern, unabhängig von der Container-Zeit (i. d. R. UTC).
+scheduler = AsyncIOScheduler(timezone=ZoneInfo(zeit.STANDARD_ZEITZONE))
 
 # Einmal pro Prozessstart zufällig gewählte Uhrzeit (Nachtstunden) für den
 # täglichen Divera-Personal-Sync – "zufällig einmal am Tag" statt einer für
@@ -81,7 +86,7 @@ async def _einsatz_autoabschluss_job() -> None:
     async with AsyncSessionLocal() as db:
         try:
             stunde = await config_service.get(db, "einsatz_autoabschluss_stunde", 4)
-            if datetime.now().hour != int(stunde):
+            if await zeit.lokale_stunde(db) != int(stunde):
                 return
             inaktivitaet_stunden = await config_service.get(
                 db, "einsatz_autoabschluss_inaktivitaet_stunden", 4
@@ -147,7 +152,7 @@ async def _dienstbuch_autoschluss_job() -> None:
     async with AsyncSessionLocal() as db:
         try:
             stunde = await config_service.get(db, "dienstbuch_autoschluss_stunde", 4)
-            if datetime.now().hour != int(stunde):
+            if await zeit.lokale_stunde(db) != int(stunde):
                 return
             dienstbuecher = await dienstbuch_service.offene_dienstbuecher(db)
             for dienstbuch in dienstbuecher:

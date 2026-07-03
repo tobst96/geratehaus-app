@@ -35,6 +35,7 @@ DEFAULTS: list[ConfigDefault] = [
         "Öffentliche Basis-URL der App, wird für alle QR-Code-Links (Barcode vergessen, "
         "Profilbild-Upload usw.) statt der aktuellen Browser-Adresse verwendet",
     ),
+    ConfigDefault("zeitzone", "Europe/Berlin", ConfigTyp.STR, "Zeitzone für Anzeigen und Uhrzeit-Vergleiche"),
     ConfigDefault("logo_url", "", ConfigTyp.STR, "URL/Pfad zum hochgeladenen Logo"),
     ConfigDefault("logo_url_dark", "", ConfigTyp.STR, "Alternatives Logo für den Dark Mode"),
     ConfigDefault("farbe_primaer", "#FFA633", ConfigTyp.STR, "Primärfarbe (Hex)"),
