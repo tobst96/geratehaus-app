@@ -31,6 +31,13 @@ const NAV_GRUPPEN: NavGruppe[] = [
     items: [{ pfad: "/moderator/buchungen", titel: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv" }],
   },
   {
+    id: "module",
+    titel: "Module",
+    admin: true,
+    module: true,
+    items: [{ pfad: "/moderator/module", titel: "Übersicht", icon: "module" }],
+  },
+  {
     id: "verwaltung",
     titel: "Verwaltung",
     admin: true,
@@ -41,13 +48,6 @@ const NAV_GRUPPEN: NavGruppe[] = [
       { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen" },
       { pfad: "/moderator/update", titel: "Update", icon: "update" },
     ],
-  },
-  {
-    id: "module",
-    titel: "Module",
-    admin: true,
-    module: true,
-    items: [{ pfad: "/moderator/module", titel: "Übersicht", icon: "module" }],
   },
 ];
 

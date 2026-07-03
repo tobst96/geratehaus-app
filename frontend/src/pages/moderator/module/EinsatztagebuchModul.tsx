@@ -60,7 +60,7 @@ export function EinsatztagebuchModul() {
       </p>
       <h1>Einsatztagebuch</h1>
 
-      <div className="karte" style={{ maxWidth: 640 }}>
+      <div className="karte">
         <h2>Ablauf &amp; Abschluss</h2>
         <div className="formular-feld">
           <label htmlFor="et-countdown">Einsatz-Countdown im Gerätehaus (Minuten)</label>

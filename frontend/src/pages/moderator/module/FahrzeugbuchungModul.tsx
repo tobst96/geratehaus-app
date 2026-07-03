@@ -8,7 +8,7 @@ export function FahrzeugbuchungModul() {
       </p>
       <h1>Fahrzeugbuchung</h1>
 
-      <div className="karte" style={{ maxWidth: 640 }}>
+      <div className="karte">
         <h2>Fahrzeuge</h2>
         <p style={{ color: "var(--farbe-text-mute)" }}>
           Welche Fahrzeuge buchbar sind, wird im Modul{" "}

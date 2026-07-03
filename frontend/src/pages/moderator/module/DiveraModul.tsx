@@ -98,7 +98,7 @@ export function DiveraModul() {
       </p>
       <h1>Divera 24/7</h1>
 
-      <div className="karte" style={{ maxWidth: 640 }}>
+      <div className="karte">
         <h2>Anbindung</h2>
         <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
           Ersetzt die frühere .env-Konfiguration – Änderungen wirken ohne Neustart.
@@ -149,7 +149,7 @@ export function DiveraModul() {
         {fehler && <p className="fehlertext">{fehler}</p>}
       </div>
 
-      <div className="karte" style={{ maxWidth: 640, marginTop: 16 }}>
+      <div className="karte" style={{ marginTop: 16 }}>
         <h2>Einsätze nachholen</h2>
         <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
           Holt vergangene Alarme aus der Divera-Historie und legt fehlende Einsätze an.
@@ -169,7 +169,7 @@ export function DiveraModul() {
         )}
       </div>
 
-      <div className="karte" style={{ maxWidth: 640, marginTop: 16 }}>
+      <div className="karte" style={{ marginTop: 16 }}>
         <h2>Personen-Vorschlag</h2>
         <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
           Gleicht das Divera-Personal mit dem System ab und schlägt neue Personen bzw.

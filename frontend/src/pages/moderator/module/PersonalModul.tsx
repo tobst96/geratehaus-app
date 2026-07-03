@@ -51,7 +51,7 @@ export function PersonalModul() {
         <GruppenVerwaltung />
       </div>
 
-      <div className="karte" style={{ marginTop: 24, maxWidth: 640 }}>
+      <div className="karte" style={{ marginTop: 24 }}>
         <h2>PIN-Erinnerung</h2>
         <p style={{ color: "var(--farbe-text-mute)" }}>
           Ist das Barcode-Modul deaktiviert, melden sich Personen per Namen und PIN an. Personen ohne

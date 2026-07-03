@@ -57,7 +57,7 @@ export function Update() {
     <div>
       <h1>Update</h1>
 
-      <div className="karte" style={{ maxWidth: 560 }}>
+      <div className="karte">
         <h2>Update-Kanal</h2>
         <p style={{ color: "var(--farbe-text-mute)" }}>
           "Stable" zeigt nur fertige Veröffentlichungen an, "Beta" auch Vorabversionen. Ist eine
@@ -90,7 +90,7 @@ export function Update() {
         </div>
       </div>
 
-      <div className="karte" style={{ maxWidth: 560, marginTop: 16 }}>
+      <div className="karte" style={{ marginTop: 16 }}>
         <h2>Versionsstatus</h2>
         {fehler && <p className="fehlertext">{fehler}</p>}
         {status.fehler && <p className="fehlertext">{status.fehler}</p>}
