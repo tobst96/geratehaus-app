@@ -20,6 +20,7 @@ const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   modul_dienstbuch_aktiv: true,
   modul_dienststunden_aktiv: true,
   modul_fahrzeugbuchung_aktiv: true,
+  modul_barcode_aktiv: false,
   modul_einsatztagebuch_startseite: true,
   modul_dienstbuch_startseite: true,
   modul_dienststunden_startseite: true,

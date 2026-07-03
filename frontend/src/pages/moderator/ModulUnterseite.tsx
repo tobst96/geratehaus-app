@@ -6,6 +6,7 @@ import { DienststundenModul } from "./module/DienststundenModul";
 import { FahrzeugbuchungModul } from "./module/FahrzeugbuchungModul";
 import { FahrzeugeModul } from "./module/FahrzeugeModul";
 import { PersonalModul } from "./module/PersonalModul";
+import { BarcodeModul } from "./module/BarcodeModul";
 
 export function ModulUnterseite() {
   const { key } = useParams<{ key: string }>();
@@ -25,6 +26,8 @@ export function ModulUnterseite() {
       return <PersonalModul />;
     case "fahrzeuge":
       return <FahrzeugeModul />;
+    case "barcode":
+      return <BarcodeModul />;
     default:
       return (
         <div>

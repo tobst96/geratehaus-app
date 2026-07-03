@@ -6,14 +6,16 @@ import {
   teilnehmerEintragen,
 } from "../../api/dienstbuecher";
 import { holeDienstbuchReservierung } from "../../api/dienstbuchReservierungen";
-import { barcodeVorschau, holeMeinProfil, type BarcodeVorschau } from "../../api/auth";
+import { holeMeinProfil } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
-import { BarcodeEingabe } from "../../components/BarcodeEingabe";
+import {
+  PersonIdentifikation,
+  type PersonIdentifikationHandle,
+} from "../../components/PersonIdentifikation";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
-import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 import type { DienstbuchOut, Gruppe, TeilnehmerOut } from "../../api/types";
 import "./DienstbuchDiagramm.css";
 
@@ -38,12 +40,11 @@ const AGT_MAX_MINUTEN = 35;
 const AGT_DEFAULT_MINUTEN = 30;
 
 export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCancel }: DienstbuchDiagrammProps) {
-  const { barcodeEinscannenEinmalig, kioskScanBeenden } = useAuth();
+  const { kioskScanBeenden } = useAuth();
   const { config } = useConfig();
+  const barcodeModus = config?.modul_barcode_aktiv !== false;
   const mitgliedModus = useMitgliedModus();
-  const { spieleErkannt, spieleFehler } = useBarcodeSound();
-  const [barcode, setBarcode] = useState("");
-  const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
+  const identRef = useRef<PersonIdentifikationHandle>(null);
   const [gruppeId, setGruppeId] = useState<number | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
@@ -70,40 +71,8 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mitgliedModus.aktiv]);
 
-  // Live-Vorschau (Name + Bild) während des Scannens, debounced, damit nicht
-  // bei jedem Tastendruck ein Request raus geht.
-  useEffect(() => {
-    const wert = barcode.trim();
-    if (!wert) {
-      setVorschau(null);
-      letzteVorschauName.current = null;
-      return;
-    }
-    const timeout = setTimeout(() => {
-      barcodeVorschau(wert)
-        .then((ergebnis) => {
-          setVorschau(ergebnis);
-          // Gruppe nur beim erstmaligen Auflösen einer Person vorschlagen,
-          // damit eine manuelle Änderung nicht bei jedem Debounce überschrieben wird.
-          if (letzteVorschauName.current !== ergebnis.name) {
-            letzteVorschauName.current = ergebnis.name;
-            setGruppeId(ergebnis.gruppe_id);
-          }
-          spieleErkannt();
-        })
-        .catch(() => {
-          setVorschau(null);
-          letzteVorschauName.current = null;
-          spieleFehler();
-        });
-    }, 250);
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [barcode]);
-
   function zuruecksetzen() {
-    setBarcode("");
-    setVorschau(null);
+    identRef.current?.zuruecksetzen();
     setGruppeId(null);
     letzteVorschauName.current = null;
   }
@@ -164,15 +133,11 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
 
   async function eintragen(e: FormEvent) {
     e.preventDefault();
-    if (!mitgliedModus.aktiv && !barcode.trim()) {
-      setFehler("Barcode erforderlich");
-      return;
-    }
     setLaeuft(true);
     setFehler(null);
     try {
       if (!mitgliedModus.aktiv) {
-        await barcodeEinscannenEinmalig(barcode.trim());
+        await identRef.current!.identifiziere();
       }
       await teilnehmerEintragen(dienstbuch.id, {
         gruppe_id: gruppeId,
@@ -266,17 +231,6 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
               </div>
             ) : (
               <div className="dienstbuch-scan-layout">
-                {!mitgliedModus.aktiv && vorschau && (
-                  <div className="dienstbuch-scan-vorschau">
-                    {vorschau.bild_url ? (
-                      <img src={vorschau.bild_url} alt={vorschau.name} className="dienstbuch-scan-bild" />
-                    ) : (
-                      <div className="dienstbuch-scan-initialen">{initialenAus(vorschau.name)}</div>
-                    )}
-                    <div className="dienstbuch-scan-name">{vorschau.name}</div>
-                  </div>
-                )}
-
                 <div className="dienstbuch-scan-felder">
                   <div className="formular-feld">
                     {mitgliedModus.aktiv ? (
@@ -284,18 +238,16 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
                         Eingeloggt als <strong>{mitgliedModus.name}</strong>
                       </p>
                     ) : (
-                      <>
-                        <label htmlFor="db-barcode">Barcode einscannen</label>
-                        <BarcodeEingabe
-                          id="db-barcode"
-                          type="text"
-                          value={barcode}
-                          onChange={setBarcode}
-                          placeholder="Barcode scannen oder eingeben"
-                          autoFocus
-                          required
-                        />
-                      </>
+                      <PersonIdentifikation
+                        ref={identRef}
+                        autoFocus
+                        onPersonInfo={(info) => {
+                          if (letzteVorschauName.current !== info?.name) {
+                            letzteVorschauName.current = info?.name ?? null;
+                            if (info) setGruppeId(info.gruppe_id);
+                          }
+                        }}
+                      />
                     )}
                   </div>
 
@@ -322,7 +274,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
                     <button type="submit" disabled={laeuft}>
                       {laeuft ? "Wird gespeichert…" : "Eintragen"}
                     </button>
-                    {!mitgliedModus.aktiv && (
+                    {!mitgliedModus.aktiv && barcodeModus && (
                       <button
                         type="button"
                         className="sekundaer"

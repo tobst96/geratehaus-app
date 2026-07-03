@@ -9,14 +9,15 @@ import {
   teilnahmeEintragen,
 } from "../../api/einsaetze";
 import { holeReservierung } from "../../api/reservierungen";
-import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
-import { BarcodeEingabe } from "../../components/BarcodeEingabe";
+import {
+  PersonIdentifikation,
+  type PersonIdentifikationHandle,
+} from "../../components/PersonIdentifikation";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
-import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 import type { EinsatzFeldDefinition, EinsatzOut, Fahrzeug, FunktionEinsatz, TeilnahmeOut } from "../../api/types";
 import "./EinsatzDiagramm.css";
 
@@ -56,14 +57,13 @@ const AGT_MAX_MINUTEN = 35;
 const AGT_DEFAULT_MINUTEN = 30;
 
 export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert, onCancel }: EinsatzDiagrammProps) {
-  const { barcodeEinscannenEinmalig, kioskScanBeenden } = useAuth();
+  const { kioskScanBeenden } = useAuth();
   const mitgliedModus = useMitgliedModus();
-  const { spieleErkannt, spieleFehler } = useBarcodeSound();
   const { config } = useConfig();
+  const barcodeModus = config?.modul_barcode_aktiv !== false;
+  const identRef = useRef<PersonIdentifikationHandle>(null);
   const [aktivesFahrzeugId, setAktivesFahrzeugId] = useState<number | null>(null);
   const [ausgewaehlteAktion, setAusgewaehlteAktion] = useState<AusgewaehlteAktion | null>(null);
-  const [barcode, setBarcode] = useState("");
-  const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
   const [vab, setVab] = useState(false);
   const [funktionId, setFunktionId] = useState<number | null>(null);
   const [atemschutzAktiv, setAtemschutzAktiv] = useState(false);
@@ -107,29 +107,6 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     setFeldWerte(einsatz.zusatzfelder);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [einsatz.id]);
-
-  // Live-Vorschau (Name + Bild) während des Scannens, debounced, damit nicht
-  // bei jedem Tastendruck ein Request raus geht.
-  useEffect(() => {
-    const wert = barcode.trim();
-    if (!wert) {
-      setVorschau(null);
-      return;
-    }
-    const timeout = setTimeout(() => {
-      barcodeVorschau(wert)
-        .then((ergebnis) => {
-          setVorschau(ergebnis);
-          spieleErkannt();
-        })
-        .catch(() => {
-          setVorschau(null);
-          spieleFehler();
-        });
-    }, 250);
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [barcode]);
 
   // Countdown läuft unabhängig vom Render-Zyklus runter und schließt die
   // Garage-Ansicht automatisch, wenn er abläuft.
@@ -223,8 +200,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
 
   function sitzKlick(fahrzeug: Fahrzeug, sitzplatzId: string, bezeichnung: string, funktionId: number | null) {
     setAusgewaehlteAktion({ fahrzeug, sitzplatzId, bezeichnung, nurGeraetehaus: false, aufAnfahrt: false });
-    setBarcode("");
-    setVorschau(null);
+    identRef.current?.zuruecksetzen();
     qrAnsichtZuruecksetzen();
     setQrFehler(null);
     setVab(false);
@@ -243,8 +219,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
       nurGeraetehaus: true,
       aufAnfahrt: false,
     });
-    setBarcode("");
-    setVorschau(null);
+    identRef.current?.zuruecksetzen();
     qrAnsichtZuruecksetzen();
     setQrFehler(null);
     setVab(false);
@@ -263,8 +238,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
       nurGeraetehaus: false,
       aufAnfahrt: true,
     });
-    setBarcode("");
-    setVorschau(null);
+    identRef.current?.zuruecksetzen();
     qrAnsichtZuruecksetzen();
     setQrFehler(null);
     setVab(false);
@@ -277,15 +251,15 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
 
   async function eintragen(e: FormEvent) {
     e.preventDefault();
-    if (!ausgewaehlteAktion || (!mitgliedModus.aktiv && !barcode.trim())) {
-      setFehler("Barcode erforderlich");
+    if (!ausgewaehlteAktion) {
+      setFehler("Bitte eine Aktion wählen.");
       return;
     }
     setLaeuft(true);
     setFehler(null);
     try {
       if (!mitgliedModus.aktiv) {
-        await barcodeEinscannenEinmalig(barcode.trim());
+        await identRef.current!.identifiziere();
       }
       await teilnahmeEintragen(einsatz.id, {
         fahrzeug_id: ausgewaehlteAktion.fahrzeug?.id ?? null,
@@ -627,17 +601,6 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
               </div>
             ) : (
               <div className="sitzplatz-scan-layout">
-                {!mitgliedModus.aktiv && vorschau && (
-                  <div className="sitzplatz-scan-vorschau">
-                    {vorschau.bild_url ? (
-                      <img src={vorschau.bild_url} alt={vorschau.name} className="sitzplatz-scan-bild" />
-                    ) : (
-                      <div className="sitzplatz-scan-initialen">{initialenAus(vorschau.name)}</div>
-                    )}
-                    <div className="sitzplatz-scan-name">{vorschau.name}</div>
-                  </div>
-                )}
-
                 <div className="sitzplatz-scan-felder">
                   <div className="formular-feld">
                     {mitgliedModus.aktiv ? (
@@ -645,18 +608,13 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                         Eingeloggt als <strong>{mitgliedModus.name}</strong>
                       </p>
                     ) : (
-                      <>
-                        <label htmlFor="ed-barcode">Barcode einscannen</label>
-                        <BarcodeEingabe
-                          id="ed-barcode"
-                          type="text"
-                          value={barcode}
-                          onChange={setBarcode}
-                          placeholder="Barcode scannen oder eingeben"
-                          autoFocus
-                          required
-                        />
-                      </>
+                      <PersonIdentifikation
+                        ref={identRef}
+                        autoFocus
+                        onPersonInfo={(info) => {
+                          if (info?.funktion_id) setFunktionId(info.funktion_id);
+                        }}
+                      />
                     )}
                   </div>
 
@@ -737,7 +695,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                     <button type="submit" disabled={laeuft}>
                       {laeuft ? "Wird gespeichert…" : "Eintragen"}
                     </button>
-                    {!mitgliedModus.aktiv && (
+                    {!mitgliedModus.aktiv && barcodeModus && (
                       <button
                         type="button"
                         className="sekundaer"

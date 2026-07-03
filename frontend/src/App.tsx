@@ -37,6 +37,8 @@ import { DienstbuchManuelleEintragung } from "./pages/DienstbuchManuelleEintragu
 import { DienststundenManuelleEintragung } from "./pages/DienststundenManuelleEintragung";
 import { FahrzeugbuchungManuelleEintragung } from "./pages/FahrzeugbuchungManuelleEintragung";
 import { PersonBildHochladen } from "./pages/PersonBildHochladen";
+import { PinSetzen } from "./pages/PinSetzen";
+import { PersonFreigabe } from "./pages/PersonFreigabe";
 
 export function App() {
   return (
@@ -86,6 +88,8 @@ export function App() {
             element={<DienststundenManuelleEintragung />}
           />
           <Route path="/person-bild/:token" element={<PersonBildHochladen />} />
+          <Route path="/pin-setzen/:token" element={<PinSetzen />} />
+          <Route path="/person-freigabe/:token" element={<PersonFreigabe />} />
           <Route
             path="/eintragen-fahrzeugbuchung/:token"
             element={<FahrzeugbuchungManuelleEintragung />}

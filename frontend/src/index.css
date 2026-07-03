@@ -654,3 +654,78 @@ table tr:hover {
     flex: 1 1 calc(50% - 4px);
   }
 }
+
+/* === Personen-Identifikation (Barcode oder Name+PIN) === */
+.person-ident {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.person-ident-vorschau {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.person-ident-bild,
+.person-ident-initialen {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.person-ident-initialen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--farbe-primaer) 18%, transparent);
+  color: var(--farbe-primaer);
+  font-weight: 700;
+}
+.person-ident-name {
+  font-weight: 600;
+}
+.person-ident-treffer {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  border: 1px solid var(--farbe-rand);
+  border-radius: var(--radius, 8px);
+  overflow: hidden;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.person-ident-treffer li + li {
+  border-top: 1px solid var(--farbe-rand);
+}
+.person-ident-treffer button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+.person-ident-treffer button:hover {
+  background: color-mix(in srgb, var(--farbe-primaer) 10%, transparent);
+}
+.person-ident-bild-klein,
+.person-ident-initialen-klein {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--farbe-primaer) 18%, transparent);
+  color: var(--farbe-primaer);
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
