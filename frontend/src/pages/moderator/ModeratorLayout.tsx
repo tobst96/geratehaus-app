@@ -23,13 +23,13 @@ type NavGruppe = {
 
 const NAV_GRUPPEN: NavGruppe[] = [
   { id: "start", titel: null, admin: false, items: [{ pfad: "/moderator/dashboard", titel: "Dashboard", icon: "dashboard" }] },
-  { id: "listen", titel: "Listen", admin: false, listen: true, items: [] },
   {
     id: "buchungen",
     titel: null,
     admin: false,
     items: [{ pfad: "/moderator/buchungen", titel: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv" }],
   },
+  { id: "listen", titel: "Listen", admin: false, listen: true, items: [] },
   {
     id: "module",
     titel: "Module",
@@ -44,9 +44,9 @@ const NAV_GRUPPEN: NavGruppe[] = [
     items: [
       { pfad: "/moderator/kiosk-geraete", titel: "Kiosk-Geräte", icon: "kiosk" },
       { pfad: "/moderator/benachrichtigungen", titel: "Benachrichtigungen", icon: "benachrichtigungen" },
-      { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen" },
       { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen" },
       { pfad: "/moderator/update", titel: "Update", icon: "update" },
+      { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen" },
     ],
   },
 ];
