@@ -186,6 +186,14 @@ async def einsatz_wieder_oeffnen(db: AsyncSession, einsatz: Einsatz) -> Einsatz:
     return geladen
 
 
+async def einsatz_loeschen(db: AsyncSession, einsatz: Einsatz) -> None:
+    """Löscht einen Einsatz vollständig. Teilnahmen, Timeline-Ereignisse und
+    Sitzplatz-Reservierungen werden über die FK-CASCADE (ondelete=CASCADE) bzw.
+    das ORM-Cascade automatisch mit entfernt."""
+    await db.delete(einsatz)
+    await db.commit()
+
+
 async def einsatz_abschluss_planen(db: AsyncSession, einsatz: Einsatz, minuten: int) -> Einsatz:
     """'Alle eingetragen' im Gerätehaus: schließt den Einsatz nicht sofort,
     sondern plant den Abschluss für in `minuten` Minuten ein, damit

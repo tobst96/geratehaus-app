@@ -150,6 +150,16 @@ async def einsatz_wieder_oeffnen(
     return await einsatz_service.einsatz_wieder_oeffnen(db, einsatz)
 
 
+@router.delete("/{einsatz_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def einsatz_loeschen(db: DbSession, _moderator: CurrentModerator, einsatz_id: int) -> None:
+    """Löscht einen Einsatz unwiderruflich inkl. aller Teilnahmen, Timeline-
+    Einträge und Reservierungen. Nur für Moderatoren/Admins."""
+    einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
+    if einsatz is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
+    await einsatz_service.einsatz_loeschen(db, einsatz)
+
+
 @router.post("/{einsatz_id}/alle-eingetragen", response_model=EinsatzOut, dependencies=[])
 async def einsatz_alle_eingetragen(db: DbSession, einsatz_id: int) -> EinsatzOut:
     """Plant den Abschluss des Einsatzes für in einigen Minuten ein (statt

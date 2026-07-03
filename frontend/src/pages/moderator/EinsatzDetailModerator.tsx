@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   holeEinsatz,
   holeEinsatzFelder,
   holeEinsatzTimeline,
   einsatzAbschliessen,
   einsatzWiederOeffnen,
+  einsatzLoeschen,
   einsatzPdfUrl,
 } from "../../api/einsaetze";
 import { holeFahrzeuge } from "../../api/stammdaten";
@@ -27,6 +28,7 @@ const EREIGNIS_ICON: Record<string, string> = {
 
 export function EinsatzDetailModerator() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [einsatz, setEinsatz] = useState<EinsatzOut | null>(null);
   const [felder, setFelder] = useState<EinsatzFeldDefinition[]>([]);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
@@ -81,6 +83,24 @@ export function EinsatzDetailModerator() {
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Wieder öffnen fehlgeschlagen.");
     } finally {
+      setSchliesstAb(false);
+    }
+  }
+
+  async function loeschen() {
+    if (!einsatz) return;
+    if (
+      !confirm(
+        `Einsatz "${einsatz.titel}" wirklich unwiderruflich löschen? Alle Teilnahmen und Timeline-Einträge werden mit entfernt.`
+      )
+    )
+      return;
+    setSchliesstAb(true);
+    try {
+      await einsatzLoeschen(einsatz.id);
+      navigate("/moderator/listen?tab=Eins%C3%A4tze");
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Löschen fehlgeschlagen.");
       setSchliesstAb(false);
     }
   }
@@ -142,6 +162,14 @@ export function EinsatzDetailModerator() {
             {schliesstAb ? "Öffnet …" : "Einsatz wieder öffnen"}
           </button>
         )}
+        <button
+          className="sekundaer"
+          onClick={loeschen}
+          disabled={schliesstAb}
+          style={{ color: "#c62828", borderColor: "#c62828" }}
+        >
+          Einsatz löschen
+        </button>
       </p>
 
       {felder.length > 0 && (

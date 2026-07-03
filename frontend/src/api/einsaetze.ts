@@ -1,4 +1,4 @@
-import { apiGet, apiPatch, apiPost } from "./client";
+import { apiGet, apiPatch, apiPost, apiDelete } from "./client";
 import type { EinsatzEreignis, EinsatzFeldDefinition, EinsatzOut, TeilnahmeOut } from "./types";
 
 export const holeEinsaetze = () =>
@@ -43,6 +43,9 @@ export const einsatzAbschliessen = (id: number) =>
 
 export const einsatzWiederOeffnen = (id: number) =>
   apiPost<EinsatzOut>(`/einsaetze/${id}/wieder-oeffnen`);
+
+export const einsatzLoeschen = (id: number) =>
+  apiDelete<void>(`/einsaetze/${id}`);
 
 export const einsatzAlleEingetragen = (id: number) =>
   apiPost<EinsatzOut>(`/einsaetze/${id}/alle-eingetragen`);
