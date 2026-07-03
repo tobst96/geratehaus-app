@@ -43,6 +43,10 @@ def _alarm_normalisieren(roh: dict[str, Any]) -> dict[str, Any] | None:
     text = roh.get("text") or None
     meldung = text if text and text != str(titel) else None
 
+    # Einsatznummer der Leitstelle – je nach Divera-Tarif in unterschiedlichen
+    # Feldern (foreign_id ist die externe Referenz der Leitstelle).
+    einsatznummer = roh.get("foreign_id") or roh.get("number") or roh.get("einsatznummer") or None
+
     return {
         "divera_id": str(divera_id),
         "titel": str(titel),
@@ -50,6 +54,7 @@ def _alarm_normalisieren(roh: dict[str, Any]) -> dict[str, Any] | None:
         "geschlossen": geschlossen,
         "adresse": str(adresse) if adresse else None,
         "meldung": str(meldung) if meldung else None,
+        "einsatznummer": str(einsatznummer) if einsatznummer else None,
     }
 
 
@@ -77,6 +82,7 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
         zeitpunkt=alarm["zeitpunkt"],
         adresse=alarm["adresse"],
         meldung=alarm["meldung"],
+        einsatznummer=alarm["einsatznummer"],
         status="abgeschlossen" if geschlossen else "offen",
     )
     db.add(einsatz)

@@ -51,6 +51,7 @@ class EinsatzOut(BaseModel):
     zeitpunkt: datetime
     adresse: str | None = None
     meldung: str | None = None
+    einsatznummer: str | None = None
     status: str
     archiviert: bool
     geplanter_abschluss_am: datetime | None

@@ -185,8 +185,23 @@ class EmailNotifier(Notifier):
         # HTML-Alternative im Design der eingestellten Website (Logo, Farben) –
         # Plaintext-Teil bleibt als Fallback erhalten (manche Clients/Spamfilter
         # bevorzugen ihn weiterhin), wird also ergänzt statt ersetzt.
-        html = await email_template_service.render_html(db, betreff, nachricht, aktionen=aktionen)
+        # Das Logo wird – falls als lokales PNG vorhanden – inline eingebettet
+        # (CID), damit es auch bei blockierten externen Bildern angezeigt wird.
+        logo_url = await config_service.get(db, "logo_url", "")
+        logo_bytes = email_template_service.lokales_logo_png(logo_url)
+        html = await email_template_service.render_html(
+            db,
+            betreff,
+            nachricht,
+            aktionen=aktionen,
+            logo_ref=f"cid:{email_template_service.LOGO_CID}" if logo_bytes else None,
+        )
         message.add_alternative(html, subtype="html")
+        if logo_bytes is not None:
+            html_teil = message.get_payload()[-1]
+            html_teil.add_related(
+                logo_bytes, maintype="image", subtype="png", cid=f"<{email_template_service.LOGO_CID}>"
+            )
         if anhang is not None:
             dateiname, inhalt, maintype, subtype = anhang
             message.add_attachment(inhalt, maintype=maintype, subtype=subtype, filename=dateiname)

@@ -152,6 +152,7 @@ export interface EinsatzOut {
   zeitpunkt: string;
   adresse: string | null;
   meldung: string | null;
+  einsatznummer: string | null;
   status: string;
   archiviert: boolean;
   geplanter_abschluss_am: string | null;

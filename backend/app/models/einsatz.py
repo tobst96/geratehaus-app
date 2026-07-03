@@ -23,6 +23,8 @@ class Einsatz(Base, TimestampMixin):
     # Einsatzadresse und ausführlicher Meldungstext (z. B. aus Divera: address / text).
     adresse: Mapped[str | None] = mapped_column(String(512), nullable=True)
     meldung: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Einsatznummer der Leitstelle (z. B. aus Divera: foreign_id / number).
+    einsatznummer: Mapped[str | None] = mapped_column(String(64), nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="offen", nullable=False)
     archiviert: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Gesetzt durch "Alle eingetragen" im Gerätehaus; der Autoabschluss-Job

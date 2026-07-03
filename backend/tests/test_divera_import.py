@@ -52,6 +52,23 @@ async def test_importiere_alarm_uebernimmt_adresse_und_meldung(db: AsyncSession)
 
 
 @pytest.mark.asyncio
+async def test_importiere_alarm_uebernimmt_einsatznummer(db: AsyncSession):
+    einsatz = await divera_service.importiere_alarm(
+        db,
+        {"id": 720, "title": "H2", "foreign_id": "2026-04711", "date": 1719439900},
+    )
+    assert einsatz is not None
+    assert einsatz.einsatznummer == "2026-04711"
+
+    # ohne Nummer bleibt das Feld leer
+    ohne = await divera_service.importiere_alarm(
+        db, {"id": 721, "title": "H1", "date": 1719439900}
+    )
+    assert ohne is not None
+    assert ohne.einsatznummer is None
+
+
+@pytest.mark.asyncio
 async def test_importiere_alarm_ohne_zusatzinfos_laesst_felder_leer(db: AsyncSession):
     # titel == text -> keine redundante Meldung; keine Adresse vorhanden
     einsatz = await divera_service.importiere_alarm(

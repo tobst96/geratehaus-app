@@ -133,8 +133,13 @@ export function EinsatzDetailModerator() {
         {einsatz.archiviert && <span className="einsatz-status-badge">archiviert</span>}
       </div>
 
-      {(einsatz.adresse || einsatz.meldung) && (
+      {(einsatz.adresse || einsatz.meldung || einsatz.einsatznummer) && (
         <div className="karte" style={{ marginTop: "1rem" }}>
+          {einsatz.einsatznummer && (
+            <p style={{ margin: "0 0 0.25rem" }}>
+              <strong>Einsatznummer:</strong> {einsatz.einsatznummer}
+            </p>
+          )}
           {einsatz.adresse && (
             <p style={{ margin: "0 0 0.25rem" }}>
               <strong>Adresse:</strong> {einsatz.adresse}
