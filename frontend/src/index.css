@@ -372,7 +372,7 @@ table tr:hover {
   border-radius: 14px;
   padding: 12px;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .mod-nav {
@@ -380,6 +380,8 @@ table tr:hover {
   flex-direction: column;
   gap: 2px;
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .mod-nav-section {
@@ -537,6 +539,7 @@ table tr:hover {
     top: 0;
     left: 0;
     height: 100vh;
+    height: 100dvh;
     width: 82%;
     max-width: 320px;
     max-height: none;
