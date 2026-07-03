@@ -375,13 +375,30 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     <div className="einsatz-diagramm">
       <div className="einsatz-kopf">
         <h2 style={{ margin: 0 }}>{einsatz.titel}</h2>
-        <span
-          className={`einsatz-countdown ${restSekunden <= 60 ? "einsatz-countdown-warnung" : ""}`}
-          title="Zeit bis die Garage-Ansicht automatisch schließt"
-        >
-          {formatiereCountdown(restSekunden)}
-        </span>
+        <div className="einsatz-kopf-aktionen">
+          {!aktivesFahrzeug && (
+            <>
+              <button className="sekundaer" onClick={zurueckKlick}>
+                Zurück
+              </button>
+              <button onClick={alleEingetragenKlick} disabled={alleEingetragenLaeuft}>
+                {alleEingetragenLaeuft ? "Wird eingeplant …" : "Alle eingetragen"}
+              </button>
+            </>
+          )}
+          <span
+            className={`einsatz-countdown ${restSekunden <= 60 ? "einsatz-countdown-warnung" : ""}`}
+            title="Zeit bis die Garage-Ansicht automatisch schließt"
+          >
+            {formatiereCountdown(restSekunden)}
+          </span>
+        </div>
       </div>
+      {!aktivesFahrzeug && alleEingetragenFehler && (
+        <p className="fehlertext" style={{ margin: 0 }}>
+          {alleEingetragenFehler}
+        </p>
+      )}
 
       {!aktivesFahrzeug && (einsatz.adresse || einsatz.meldung) && (
         <div className="karte" style={{ marginTop: "0.5rem" }}>
@@ -485,15 +502,6 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
             </div>
           </div>
 
-          <div style={{ marginTop: "1.5rem", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <button className="sekundaer" onClick={zurueckKlick}>
-              Zurück
-            </button>
-            <button onClick={alleEingetragenKlick} disabled={alleEingetragenLaeuft}>
-              {alleEingetragenLaeuft ? "Wird eingeplant …" : "Alle eingetragen"}
-            </button>
-            {alleEingetragenFehler && <span className="fehlertext">{alleEingetragenFehler}</span>}
-          </div>
         </>
       )}
 

@@ -38,6 +38,15 @@
   flex-wrap: wrap;
 }
 
+/* Aktionen (Zurück / Alle eingetragen) + Countdown rechts neben dem Titel –
+   spart die separate Aktionsleiste unten und damit vertikalen Platz. */
+.einsatz-kopf-aktionen {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .einsatz-countdown {
   font-family: monospace;
   font-size: 1.3rem;
