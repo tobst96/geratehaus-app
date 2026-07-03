@@ -1,9 +1,23 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { holeKioskTokens, kioskTokenAnlegen, kioskTokenLoeschen, type KioskTokenOut } from "../../api/moderator";
+import {
+  holeKioskTokens,
+  kioskTokenAnlegen,
+  kioskTokenLoeschen,
+  setzeKioskStartseiteModule,
+  type KioskTokenOut,
+} from "../../api/moderator";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+
+// Module, die als Kachel auf der Kiosk-Startseite erscheinen können.
+const STARTSEITE_MODULE: { key: string; label: string }[] = [
+  { key: "einsatztagebuch", label: "Einsatzbericht" },
+  { key: "dienstbuch", label: "Dienstbuch" },
+  { key: "dienststunden", label: "Dienststunden" },
+  { key: "fahrzeugbuchung", label: "Fahrzeugbuchung" },
+];
 
 export function KioskGeraete() {
   const { config } = useConfig();
@@ -57,6 +71,28 @@ export function KioskGeraete() {
     }
   }
 
+  // Global aktivierte Startseiten-Module (Fallback, wenn ein Kiosk keine eigene
+  // Auswahl hat).
+  function globalDefaults(): string[] {
+    const c = config as Record<string, unknown> | null;
+    return STARTSEITE_MODULE.filter((m) => c?.[`modul_${m.key}_startseite`]).map((m) => m.key);
+  }
+
+  async function moduleSetzen(id: number, keys: string[] | null) {
+    try {
+      await setzeKioskStartseiteModule(id, keys);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Speichern fehlgeschlagen.");
+    }
+  }
+
+  function toggleModul(g: KioskTokenOut, key: string) {
+    const aktuell = g.startseite_module ?? globalDefaults();
+    const neu = aktuell.includes(key) ? aktuell.filter((k) => k !== key) : [...aktuell, key];
+    moduleSetzen(g.id, neu);
+  }
+
   if (fehler) return <p className="fehlertext">{fehler}</p>;
   if (!geraete) return <Ladeanzeige />;
 
@@ -81,18 +117,54 @@ export function KioskGeraete() {
       {geraete.length === 0 && <p>Noch keine Kiosk-Geräte angelegt.</p>}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {geraete.map((g) => (
-          <div key={g.id} className="karte" style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-            <strong style={{ flex: 1 }}>{g.bezeichnung}</strong>
-            <input readOnly value={linkFuer(g.token)} style={{ width: 360, fontSize: "0.8rem" }} />
-            <button type="button" className="sekundaer" onClick={() => kopieren(linkFuer(g.token))}>
-              Kopieren
-            </button>
-            <button type="button" className="sekundaer" onClick={() => loeschen(g.id)}>
-              Löschen
-            </button>
-          </div>
-        ))}
+        {geraete.map((g) => {
+          const individuell = g.startseite_module !== null;
+          const sichtbar = g.startseite_module ?? globalDefaults();
+          return (
+            <div key={g.id} className="karte" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <strong style={{ flex: 1 }}>{g.bezeichnung}</strong>
+                <input readOnly value={linkFuer(g.token)} style={{ width: 360, fontSize: "0.8rem" }} />
+                <button type="button" className="sekundaer" onClick={() => kopieren(linkFuer(g.token))}>
+                  Kopieren
+                </button>
+                <button type="button" className="sekundaer" onClick={() => loeschen(g.id)}>
+                  Löschen
+                </button>
+              </div>
+
+              <div>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}>
+                  <input
+                    type="checkbox"
+                    checked={individuell}
+                    onChange={(e) => moduleSetzen(g.id, e.target.checked ? globalDefaults() : null)}
+                  />
+                  Auf Kiosk anzeigen individuell festlegen
+                </label>
+                <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem", margin: "4px 0 8px" }}>
+                  {individuell
+                    ? "Nur die angehakten Module erscheinen auf diesem Kiosk."
+                    : "Nutzt die globale Startseiten-Einstellung der Module."}
+                </p>
+                {individuell && (
+                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                    {STARTSEITE_MODULE.map((m) => (
+                      <label key={m.key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <input
+                          type="checkbox"
+                          checked={sichtbar.includes(m.key)}
+                          onChange={() => toggleModul(g, m.key)}
+                        />
+                        {m.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

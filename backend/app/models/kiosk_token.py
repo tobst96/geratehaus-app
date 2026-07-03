@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 
 from app.db.base import Base
 
@@ -18,6 +19,9 @@ class KioskToken(Base):
     token = Column(String(50), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_used_at = Column(DateTime, nullable=True)
+    # Liste von Feature-Modul-Keys, die auf DIESER Kiosk-Startseite erscheinen.
+    # NULL = globale Einstellung `modul_<key>_startseite` verwenden.
+    startseite_module = Column(JSONB, nullable=True)
 
     def __repr__(self):
         return f"<KioskToken(id={self.id}, bezeichnung={self.bezeichnung!r}, token={self.token[:8]}...)>"

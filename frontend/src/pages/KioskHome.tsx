@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useConfig } from "../context/ConfigContext";
 import { KACHEL_ICONS, type KachelModulKey } from "./kachelIcons";
 import "./KioskHome.css";
 
@@ -12,20 +11,20 @@ const ACTIONS: Record<ActionKey, { label: string; route: string; icon: JSX.Eleme
   fahrzeugbuchung: { label: "Fahrzeugbuchung", route: "/fahrzeugbuchung", icon: KACHEL_ICONS.fahrzeugbuchung },
 };
 
-function startseiteFlags(config: ReturnType<typeof useConfig>["config"]) {
-  return {
-    einsatzbericht: config?.modul_einsatztagebuch_aktiv && config?.modul_einsatztagebuch_startseite,
-    dienstbuch: config?.modul_dienstbuch_aktiv && config?.modul_dienstbuch_startseite,
-    dienststunden: config?.modul_dienststunden_aktiv && config?.modul_dienststunden_startseite,
-    fahrzeugbuchung: config?.modul_fahrzeugbuchung_aktiv && config?.modul_fahrzeugbuchung_startseite,
-  };
-}
+// Der Server liefert Feature-Modul-Keys; das Einsatztagebuch heißt als Kachel
+// „einsatzbericht".
+const MODUL_KEY_ZU_ACTION: Record<string, ActionKey> = {
+  einsatztagebuch: "einsatzbericht",
+  dienstbuch: "dienstbuch",
+  dienststunden: "dienststunden",
+  fahrzeugbuchung: "fahrzeugbuchung",
+};
 
-export function KioskHome() {
+export function KioskHome({ module }: { module: string[] }) {
   const navigate = useNavigate();
-  const { config } = useConfig();
-  const flags = startseiteFlags(config);
-  const sichtbareAktionen = (Object.keys(ACTIONS) as ActionKey[]).filter((key) => flags[key]);
+  const sichtbareAktionen = module
+    .map((k) => MODUL_KEY_ZU_ACTION[k])
+    .filter((a): a is ActionKey => Boolean(a));
 
   return (
     <div className="kiosk-container">

@@ -22,7 +22,8 @@ async def kiosk_token_validieren(db: DbSession, token: str) -> KioskTokenValidie
     if kiosk_token is None:
         return KioskTokenValidierung(gueltig=False)
     await kiosk_token_service.markiere_genutzt(db, kiosk_token)
-    return KioskTokenValidierung(gueltig=True)
+    module = await kiosk_token_service.effektive_startseite_module(db, kiosk_token)
+    return KioskTokenValidierung(gueltig=True, startseite_module=module)
 
 
 @router.get("/oeffentliche-konfiguration", response_model=OeffentlicheKonfiguration)

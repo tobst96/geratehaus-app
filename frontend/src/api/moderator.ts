@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from "./client";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut, apiUpload } from "./client";
 import type {
   BuchungOut,
   DienstbuchOut,
@@ -332,6 +332,8 @@ export interface KioskTokenOut {
   id: number;
   bezeichnung: string;
   token: string;
+  // null = globale Startseiten-Einstellung, sonst die pro-Kiosk gewählten Keys.
+  startseite_module: string[] | null;
 }
 
 export const holeKioskTokens = () => apiGet<KioskTokenOut[]>("/moderator/barcodes/kiosk");
@@ -339,6 +341,8 @@ export const kioskTokenAnlegen = (bezeichnung: string) =>
   apiPost<KioskTokenOut>("/moderator/barcodes/kiosk", { bezeichnung });
 export const kioskTokenLoeschen = (id: number) =>
   apiDelete<void>(`/moderator/barcodes/kiosk/${id}`);
+export const setzeKioskStartseiteModule = (id: number, keys: string[] | null) =>
+  apiPatch<KioskTokenOut>(`/moderator/barcodes/kiosk/${id}`, { startseite_module: keys });
 
 // --- Buchungsmanagement -----------------------------------------------------
 

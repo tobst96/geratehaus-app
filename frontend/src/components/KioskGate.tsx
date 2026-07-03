@@ -7,15 +7,19 @@ import { Ladeanzeige } from "./Ladeanzeige";
 export function KioskGate() {
   const { token } = useParams<{ token: string }>();
   const [gueltig, setGueltig] = useState<boolean | null>(null);
+  const [module, setModule] = useState<string[]>([]);
 
   useEffect(() => {
     if (!token) {
       setGueltig(false);
       return;
     }
-    apiGet<{ gueltig: boolean }>(`/kiosk-tokens/${encodeURIComponent(token)}/validieren`)
+    apiGet<{ gueltig: boolean; startseite_module: string[] }>(
+      `/kiosk-tokens/${encodeURIComponent(token)}/validieren`
+    )
       .then((r) => {
         setGueltig(r.gueltig);
+        setModule(r.startseite_module ?? []);
         // Kiosk-Token merken, damit das Logo zurück zur Kiosk-Startseite führt
         // (statt zur öffentlichen Landing-/Login-Seite).
         if (r.gueltig) localStorage.setItem("kiosk_token", token);
@@ -39,5 +43,5 @@ export function KioskGate() {
     );
   }
 
-  return <KioskHome />;
+  return <KioskHome module={module} />;
 }
