@@ -22,6 +22,7 @@ export interface PersonInfo {
   name: string;
   funktion_id: number | null;
   gruppe_id: number | null;
+  bild_url: string | null;
 }
 
 export interface PersonIdentifikationHandle {
@@ -35,6 +36,9 @@ interface Props {
   autoFocus?: boolean;
   /** Meldet die erkannte Person (für Vorauswahl von Funktion/Gruppe). */
   onPersonInfo?: (info: PersonInfo | null) => void;
+  /** Unterdrückt die eingebaute Bildvorschau – der Aufrufer zeigt sie selbst
+   * (z. B. groß links im Sitzplatz-Popup). */
+  ohneVorschau?: boolean;
 }
 
 function initialen(name: string): string {
@@ -48,7 +52,7 @@ function initialen(name: string): string {
 }
 
 function PersonIdentifikationImpl(
-  { autoFocus, onPersonInfo }: Props,
+  { autoFocus, onPersonInfo, ohneVorschau }: Props,
   ref: Ref<PersonIdentifikationHandle>
 ) {
   const { config } = useConfig();
@@ -81,7 +85,7 @@ function PersonIdentifikationImpl(
       barcodeVorschau(wert)
         .then((v) => {
           setVorschau(v);
-          onPersonInfo?.({ name: v.name, funktion_id: v.funktion_id, gruppe_id: v.gruppe_id });
+          onPersonInfo?.({ name: v.name, funktion_id: v.funktion_id, gruppe_id: v.gruppe_id, bild_url: v.bild_url });
           spieleErkannt();
         })
         .catch(() => {
@@ -127,7 +131,7 @@ function PersonIdentifikationImpl(
     setSuche(p.name);
     setPin("");
     setMeldung(null);
-    onPersonInfo?.({ name: p.name, funktion_id: null, gruppe_id: null });
+    onPersonInfo?.({ name: p.name, funktion_id: null, gruppe_id: null, bild_url: p.bild_url });
   }
 
   async function pinLinkAnfordern() {
@@ -175,7 +179,7 @@ function PersonIdentifikationImpl(
   if (barcodeModus) {
     return (
       <div className="person-ident">
-        {vorschau && (
+        {vorschau && !ohneVorschau && (
           <div className="person-ident-vorschau">
             {vorschau.bild_url ? (
               <img src={vorschau.bild_url} alt={vorschau.name} className="person-ident-bild" />
@@ -234,7 +238,7 @@ function PersonIdentifikationImpl(
         </ul>
       )}
 
-      {gewaehlt && (
+      {gewaehlt && !ohneVorschau && (
         <div className="person-ident-vorschau">
           {gewaehlt.bild_url ? (
             <img src={gewaehlt.bild_url} alt={gewaehlt.name} className="person-ident-bild" />

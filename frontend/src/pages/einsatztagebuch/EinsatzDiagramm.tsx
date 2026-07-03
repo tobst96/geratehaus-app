@@ -86,6 +86,24 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   const [alleEingetragenLaeuft, setAlleEingetragenLaeuft] = useState(false);
   const [alleEingetragenFehler, setAlleEingetragenFehler] = useState<string | null>(null);
 
+  // Im Scan-Popup identifizierte Person (Name+PIN oder Barcode) – für die große
+  // Bildvorschau links.
+  const [identPerson, setIdentPerson] = useState<{ name: string; bildUrl: string | null } | null>(null);
+  // Beim Öffnen/Schließen eines Sitzplatz-Popups die Bildvorschau zurücksetzen.
+  useEffect(() => {
+    setIdentPerson(null);
+  }, [ausgewaehlteAktion]);
+
+  // Passt die Übersicht nicht auf den Bildschirm (Scrollbalken), werden nur die
+  // Fahrzeuge angezeigt und die Einsatzdetails wandern in ein Popup.
+  const uebersichtRef = useRef<HTMLDivElement>(null);
+  const [detailsAlsPopup, setDetailsAlsPopup] = useState(false);
+  const [detailsOffen, setDetailsOffen] = useState(false);
+  useEffect(() => {
+    setDetailsAlsPopup(false);
+    setDetailsOffen(false);
+  }, [einsatz.id]);
+
   const [felder, setFelder] = useState<EinsatzFeldDefinition[] | null>(null);
   const [feldWerte, setFeldWerte] = useState<Record<string, string | boolean>>(einsatz.zusatzfelder);
   const [felderSpeichern, setFelderSpeichern] = useState(false);
@@ -371,11 +389,89 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   const aktivesFahrzeug = aktiveFahrzeuge.find((f) => f.id === aktivesFahrzeugId) ?? null;
   const hatLinkeSpalte = (felder && felder.length > 0) || geraetehausTeilnehmer.length > 0;
 
+  useEffect(() => {
+    if (aktivesFahrzeug || detailsAlsPopup || !hatLinkeSpalte) return;
+    const el = uebersichtRef.current;
+    if (!el) return;
+    const pruefe = () => {
+      if (el.scrollHeight > el.clientHeight + 4) setDetailsAlsPopup(true);
+    };
+    pruefe();
+    const ro = new ResizeObserver(pruefe);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [aktivesFahrzeug, detailsAlsPopup, hatLinkeSpalte, felder, feldWerte]);
+
+  const detailsInhalt = (
+    <>
+      {felder && felder.length > 0 && (
+        <div className="karte">
+          <h3>Einsatzdetails</h3>
+          {felder.map((f) => (
+            <div key={f.schluessel} style={{ marginBottom: "0.75rem" }}>
+              {f.typ === "checkbox" ? (
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(feldWerte[f.schluessel])}
+                    onChange={(e) => feldWertAendern(f.schluessel, e.target.checked)}
+                  />{" "}
+                  {f.label}
+                </label>
+              ) : (
+                <>
+                  <label htmlFor={`feld-${f.schluessel}`}>{f.label}</label>
+                  {f.typ === "mehrzeilig" ? (
+                    <textarea
+                      id={`feld-${f.schluessel}`}
+                      rows={3}
+                      value={String(feldWerte[f.schluessel] ?? "")}
+                      onChange={(e) => feldWertAendern(f.schluessel, e.target.value)}
+                    />
+                  ) : (
+                    <input
+                      id={`feld-${f.schluessel}`}
+                      type="text"
+                      value={String(feldWerte[f.schluessel] ?? "")}
+                      onChange={(e) => feldWertAendern(f.schluessel, e.target.value)}
+                    />
+                  )}
+                </>
+              )}
+            </div>
+          ))}
+          <button onClick={felderSpeichernKlick} disabled={felderSpeichern}>
+            {felderSpeichern ? "Speichert …" : "Einsatzdetails speichern"}
+          </button>
+        </div>
+      )}
+
+      {geraetehausTeilnehmer.length > 0 && (
+        <div className="karte">
+          <h3>Einsatzbereit im Feuerwehrhaus</h3>
+          <ul>
+            {geraetehausTeilnehmer.map((t) => (
+              <li key={t.id}>
+                {t.person_name}
+                {t.bemerkung ? ` – ${t.bemerkung}` : ""}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="einsatz-diagramm">
       <div className="einsatz-kopf">
         <h2 style={{ margin: 0 }}>{einsatz.titel}</h2>
         <div className="einsatz-kopf-aktionen">
+          {!aktivesFahrzeug && detailsAlsPopup && hatLinkeSpalte && (
+            <button className="sekundaer" onClick={() => setDetailsOffen(true)}>
+              Einsatzdetails
+            </button>
+          )}
           {!aktivesFahrzeug && (
             <>
               <button className="sekundaer" onClick={zurueckKlick}>
@@ -402,66 +498,9 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
 
       {!aktivesFahrzeug && (
         <>
-          <div className="einsatz-uebersicht">
-            {hatLinkeSpalte && (
-            <div className="einsatz-uebersicht-spalte">
-              {felder && felder.length > 0 && (
-                <div className="karte">
-                  <h3>Einsatzdetails</h3>
-                  {felder.map((f) => (
-                    <div key={f.schluessel} style={{ marginBottom: "0.75rem" }}>
-                      {f.typ === "checkbox" ? (
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={Boolean(feldWerte[f.schluessel])}
-                            onChange={(e) => feldWertAendern(f.schluessel, e.target.checked)}
-                          />{" "}
-                          {f.label}
-                        </label>
-                      ) : (
-                        <>
-                          <label htmlFor={`feld-${f.schluessel}`}>{f.label}</label>
-                          {f.typ === "mehrzeilig" ? (
-                            <textarea
-                              id={`feld-${f.schluessel}`}
-                              rows={3}
-                              value={String(feldWerte[f.schluessel] ?? "")}
-                              onChange={(e) => feldWertAendern(f.schluessel, e.target.value)}
-                            />
-                          ) : (
-                            <input
-                              id={`feld-${f.schluessel}`}
-                              type="text"
-                              value={String(feldWerte[f.schluessel] ?? "")}
-                              onChange={(e) => feldWertAendern(f.schluessel, e.target.value)}
-                            />
-                          )}
-                        </>
-                      )}
-                    </div>
-                  ))}
-                  <button onClick={felderSpeichernKlick} disabled={felderSpeichern}>
-                    {felderSpeichern ? "Speichert …" : "Einsatzdetails speichern"}
-                  </button>
-                </div>
-              )}
-
-              {geraetehausTeilnehmer.length > 0 && (
-                <div className="karte">
-                  <h3>Einsatzbereit im Feuerwehrhaus</h3>
-                  <ul>
-                    {geraetehausTeilnehmer.map((t) => (
-                      <li key={t.id}>
-                        {t.person_name}
-                        {t.bemerkung ? ` – ${t.bemerkung}` : ""}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-            </div>
+          <div className="einsatz-uebersicht" ref={uebersichtRef}>
+            {hatLinkeSpalte && !detailsAlsPopup && (
+              <div className="einsatz-uebersicht-spalte">{detailsInhalt}</div>
             )}
 
             <div className="einsatz-uebersicht-spalte">
@@ -594,6 +633,20 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
               </div>
             ) : (
               <div className="sitzplatz-scan-layout">
+                {identPerson && (
+                  <div className="sitzplatz-scan-vorschau">
+                    {identPerson.bildUrl ? (
+                      <img
+                        src={identPerson.bildUrl}
+                        alt={identPerson.name}
+                        className="sitzplatz-scan-bild"
+                      />
+                    ) : (
+                      <div className="sitzplatz-scan-initialen">{initialenAus(identPerson.name)}</div>
+                    )}
+                    <div className="sitzplatz-scan-name">{identPerson.name}</div>
+                  </div>
+                )}
                 <div className="sitzplatz-scan-felder">
                   <div className="formular-feld">
                     {mitgliedModus.aktiv ? (
@@ -604,8 +657,10 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                       <PersonIdentifikation
                         ref={identRef}
                         autoFocus
+                        ohneVorschau
                         onPersonInfo={(info) => {
                           if (info?.funktion_id) setFunktionId(info.funktion_id);
+                          setIdentPerson(info ? { name: info.name, bildUrl: info.bild_url } : null);
                         }}
                       />
                     )}
@@ -706,6 +761,19 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
               </div>
             )}
           </form>
+        </div>
+      )}
+
+      {detailsOffen && (
+        <div className="sitzplatz-scan-overlay" onClick={() => setDetailsOffen(false)}>
+          <div className="karte sitzplatz-scan-karte" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.5rem" }}>
+              <button type="button" className="sekundaer" onClick={() => setDetailsOffen(false)}>
+                Schließen
+              </button>
+            </div>
+            {detailsInhalt}
+          </div>
         </div>
       )}
     </div>
