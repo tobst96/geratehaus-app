@@ -383,7 +383,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         </span>
       </div>
 
-      {(einsatz.adresse || einsatz.meldung) && (
+      {!aktivesFahrzeug && (einsatz.adresse || einsatz.meldung) && (
         <div className="karte" style={{ marginTop: "0.5rem" }}>
           {einsatz.adresse && (
             <p style={{ margin: "0 0 0.25rem" }}>

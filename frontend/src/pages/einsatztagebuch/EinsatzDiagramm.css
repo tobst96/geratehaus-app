@@ -176,10 +176,17 @@
   transition: all 0.2s ease;
 }
 
-.sitzplatz-frei:hover {
+/* Höhere Spezifität als die globale button:hover/:active-Regel, sonst überschreibt
+   deren transform:translateY() die zentrierende translate(-50%,-50%) und der
+   Sitzplatz springt zur Seite. */
+.sitzplatz.sitzplatz-frei:hover {
   background: var(--farbe-primaer);
   color: #fff;
   transform: translate(-50%, -50%) scale(1.08);
+  box-shadow: none;
+}
+.sitzplatz.sitzplatz-frei:active:not(:disabled) {
+  transform: translate(-50%, -50%) scale(1.02);
 }
 
 .sitzplatz-belegt {

@@ -234,6 +234,17 @@ function PersonIdentifikationImpl(
         </ul>
       )}
 
+      {gewaehlt && (
+        <div className="person-ident-vorschau">
+          {gewaehlt.bild_url ? (
+            <img src={gewaehlt.bild_url} alt={gewaehlt.name} className="person-ident-bild" />
+          ) : (
+            <div className="person-ident-initialen">{initialen(gewaehlt.name)}</div>
+          )}
+          <div className="person-ident-name">{gewaehlt.name}</div>
+        </div>
+      )}
+
       {gewaehlt && gewaehlt.pin_gesetzt && (
         <div className="formular-feld" style={{ marginTop: 8 }}>
           <label htmlFor="ident-pin">PIN</label>
