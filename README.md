@@ -39,21 +39,44 @@ freigeschaltete Module auch von außerhalb – z. B. vom eigenen Smartphone – 
 
 ## 📸 Screenshots
 
-<!--
-  Screenshots hier einbinden, sobald sie unter docs/screenshots/ liegen, z. B.:
+<div align="center">
 
-  <div align="center">
-    <img src="docs/screenshots/kiosk.png"        alt="Kiosk-Startseite"   width="45%">
-    <img src="docs/screenshots/einsatz.png"      alt="Einsatz-Garage"     width="45%">
-    <img src="docs/screenshots/dashboard.png"    alt="Moderator-Dashboard" width="45%">
-    <img src="docs/screenshots/mitglied.png"     alt="Mitglieder-Hub"     width="45%">
-  </div>
+**Kiosk-Startseite** – große Modul-Kacheln am Gerätehaus-Tablet
 
-  Hinweis: keine echten Personendaten (Namen, Adressen) veröffentlichen –
-  am besten eine Demo-Instanz ohne reale Mitglieder verwenden.
--->
+<img src="docs/screenshots/kiosk.png" alt="Kiosk-Startseite mit Modul-Kacheln" width="88%">
 
-_Screenshots folgen._ 🖼️
+</div>
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**Einsatz-Garage**
+Fahrzeuge mit Sitzplätzen, belegte Plätze in Grün, Countdown.
+
+<img src="docs/screenshots/einsatz.png" alt="Einsatz-Garage mit belegten Sitzplätzen">
+
+</td>
+<td width="50%" valign="top">
+
+**Moderator-Dashboard**
+Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
+
+<img src="docs/screenshots/dashboard.png" alt="Moderator-Dashboard">
+
+</td>
+</tr>
+</table>
+
+<div align="center">
+
+**Mitglieder-Login (mobil)** – Zugriff vom eigenen Smartphone
+
+<img src="docs/screenshots/landing.png" alt="Mitglieder-Login am Smartphone" width="32%">
+
+</div>
+
+<sub>Screenshots einer Demo-Instanz mit Beispieldaten – keine echten Personendaten.</sub>
 
 ## ✨ Funktionen
 
