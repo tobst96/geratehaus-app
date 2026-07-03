@@ -140,7 +140,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Logo-Vorschau verzerrt Seitenverhältnis (Screenshot-Befund)
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Niedrig
 - Kategorie: Bug / Frontend / Design
 - Skills: bugfix, review

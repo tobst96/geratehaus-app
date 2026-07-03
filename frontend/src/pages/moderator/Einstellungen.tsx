@@ -386,7 +386,18 @@ export function Einstellungen() {
           <div className="formular-feld">
             <label htmlFor="e-logo">Logo</label>
             {logoUrl && (
-              <img src={logoUrl} alt="Logo" style={{ height: 50, marginBottom: 8 }} />
+              <img
+                src={logoUrl}
+                alt="Logo"
+                style={{
+                  height: 50,
+                  width: "auto",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                  alignSelf: "flex-start",
+                  marginBottom: 8,
+                }}
+              />
             )}
             <input
               id="e-logo"

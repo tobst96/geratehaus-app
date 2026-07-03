@@ -97,7 +97,20 @@ export function SetupWizard() {
               onChange={(e) => e.target.files?.[0] && logoAuswaehlen(e.target.files[0])}
             />
             {logoLadevorgang && <p>Wird hochgeladen …</p>}
-            {logoUrl && <img src={logoUrl} alt="Hochgeladenes Logo" style={{ height: 60, marginTop: 12 }} />}
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt="Hochgeladenes Logo"
+                style={{
+                  height: 60,
+                  width: "auto",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                  alignSelf: "flex-start",
+                  marginTop: 12,
+                }}
+              />
+            )}
           </>
         )}
 
