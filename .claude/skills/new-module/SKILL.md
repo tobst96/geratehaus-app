@@ -39,17 +39,47 @@ Ein neues Modul benötigt je nach Funktion:
 
 Vorhandene UI-Komponenten und CSS-Patterns wiederverwenden.
 
+## Modul-Unterseite (Feature-Module)
+
+Ein neues **Feature-Modul** (ein vom Admin schaltbares Funktionsmodul wie
+Einsatztagebuch, Dienstbuch, Divera) braucht zwingend eine **eigene Unterseite
+unter „Module"**. Modul-spezifische Einstellungen/Parameter gehören dorthin –
+**nicht** in die zentrale `Einstellungen.tsx`.
+
+Schritte:
+
+- Modul in `backend/app/services/feature_modul_service.py` in `FEATURE_MODULE`
+  registrieren (`key`, `name`, `mitgliederseitig`). `mitgliederseitig=True` nur,
+  wenn es Kiosk-Anzeige und Außenzugriff haben soll (dann existieren
+  `modul_<key>_startseite` / `_aussenzugriff`).
+- Frontend: eigene Komponente unter
+  `frontend/src/pages/moderator/module/<Name>Modul.tsx` anlegen, die die
+  Einstellungen des Moduls bündelt (Laden/Speichern der Config-Keys über
+  `holeEinstellungen` / `schreibeEinstellungen`).
+- Diese Komponente in `frontend/src/pages/moderator/ModulUnterseite.tsx`
+  (Dispatch per `:key`) einhängen. Die Route `/moderator/module/:key` besteht
+  bereits.
+- Übersicht (`Module.tsx`) und Nav-Untermenü (`ModeratorLayout.tsx`) zeigen aktive
+  Module automatisch aus `feature_modul_service` – hier nichts hart kodieren.
+- Die Sortierung liegt in `modul_reihenfolge`; deaktivierte Module verschwinden
+  automatisch aus Navigation und Unterseiten-Liste.
+
+Hinweis: Die **Berechtigungs-Module** (`modul_service` / `Modul`-Tabelle,
+Rechte-Matrix) sind ein getrenntes Konzept – nicht mit den Feature-Modulen
+vermischen.
+
 ## Konfiguration
 
 Neue Module erhalten passende Config-Keys.
 
 Typische Keys:
 
-- `modul_<name>_aktiv`
-- `modul_<name>_startseite`
-- `modul_<name>_aussenzugriff`
+- `modul_<name>_aktiv` (immer)
+- `modul_<name>_startseite` (nur mitgliederseitige Module – Kiosk-Kachel)
+- `modul_<name>_aussenzugriff` (nur mitgliederseitige Module – Mitglieder-Login)
 
-Neue Config-Keys in `app/services/config_defaults.py` registrieren.
+Neue Config-Keys in `app/services/config_defaults.py` registrieren. Modul-Reihenfolge
+liegt zentral in `modul_reihenfolge`.
 
 Config immer über `ConfigService` lesen.
 
@@ -82,14 +112,14 @@ Falls das Modul Benachrichtigungen auslöst:
 - `notifier_service.benachrichtige()` verwenden
 - vorhandene Benachrichtigungs-Patterns übernehmen
 
-## Punkte und Timeline
+## Timeline
 
 Vor der Umsetzung prüfen:
 
-- Sind Punkte relevant?
-- Muss eine Punktevergabe erfolgen?
 - Ist ein Timeline-Eintrag erforderlich?
-- Gibt es Personenbezug?
+- Gibt es Personenbezug (relevante Änderungen als `PersonEreignis` protokollieren)?
+
+(Ein Punktesystem existiert nicht mehr – siehe Migration 0039.)
 
 ## Tests
 
@@ -114,6 +144,7 @@ Nach der Umsetzung prüfen:
 
 - Backend folgt bestehendem Pattern.
 - Frontend folgt bestehendem Pattern.
+- Bei Feature-Modulen: Modul-Unterseite angelegt und in `feature_modul_service` + `ModulUnterseite.tsx` eingehängt.
 - Config ist registriert.
 - Berechtigungen sind geklärt.
 - Tests sind vorhanden.
