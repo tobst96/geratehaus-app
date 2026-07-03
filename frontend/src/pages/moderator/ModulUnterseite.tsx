@@ -1,8 +1,8 @@
 import { Link, useParams } from "react-router-dom";
+import { DiveraModul } from "./module/DiveraModul";
 
 // Titel je Feature-Modul (Quelle der Wahrheit ist das Backend; hier nur fürs
-// Rendern der Überschrift). Der eigentliche Einstellungs-Inhalt je Modul wird
-// in Phase 4 hier eingezogen.
+// Rendern der Platzhalter-Überschrift).
 const MODUL_TITEL: Record<string, string> = {
   einsatztagebuch: "Einsatztagebuch",
   dienstbuch: "Dienstbuch",
@@ -11,21 +11,7 @@ const MODUL_TITEL: Record<string, string> = {
   divera: "Divera 24/7",
 };
 
-export function ModulUnterseite() {
-  const { key } = useParams<{ key: string }>();
-  const titel = key ? MODUL_TITEL[key] : undefined;
-
-  if (!titel) {
-    return (
-      <div>
-        <p>
-          <Link to="/moderator/module">← Zurück zu den Modulen</Link>
-        </p>
-        <p className="fehlertext">Unbekanntes Modul.</p>
-      </div>
-    );
-  }
-
+function Platzhalter({ titel }: { titel: string }) {
   return (
     <div>
       <p>
@@ -37,4 +23,23 @@ export function ModulUnterseite() {
       </p>
     </div>
   );
+}
+
+export function ModulUnterseite() {
+  const { key } = useParams<{ key: string }>();
+
+  if (key === "divera") return <DiveraModul />;
+
+  const titel = key ? MODUL_TITEL[key] : undefined;
+  if (!titel) {
+    return (
+      <div>
+        <p>
+          <Link to="/moderator/module">← Zurück zu den Modulen</Link>
+        </p>
+        <p className="fehlertext">Unbekanntes Modul.</p>
+      </div>
+    );
+  }
+  return <Platzhalter titel={titel} />;
 }

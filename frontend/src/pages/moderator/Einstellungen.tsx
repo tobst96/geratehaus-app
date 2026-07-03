@@ -8,7 +8,6 @@ import {
   moderatorAnlegen,
   moderatorPasswortAendern,
   moderatorLoeschen,
-  diveraEinsaetzeNachholen,
   type ModeratorKonto,
 } from "../../api/moderator";
 import { setupErneutAusfuehren } from "../../api/setup";
@@ -172,13 +171,6 @@ export function Einstellungen() {
   const [personenSortierung, setPersonenSortierung] = useState("nachname");
   const [personenInaktivitaetTage, setPersonenInaktivitaetTage] = useState(90);
 
-  const [diveraAktiv, setDiveraAktiv] = useState(false);
-  const [diveraApiKey, setDiveraApiKey] = useState("");
-  const [diveraModus, setDiveraModus] = useState("polling");
-  const [diveraLetzterSync, setDiveraLetzterSync] = useState("");
-  const [diveraLetzterSyncAnzahl, setDiveraLetzterSyncAnzahl] = useState(0);
-  const [diveraHolenLaeuft, setDiveraHolenLaeuft] = useState(false);
-  const [diveraHolenErgebnis, setDiveraHolenErgebnis] = useState<string | null>(null);
 
   const [fehlerberichteAktiv, setFehlerberichteAktiv] = useState(false);
 
@@ -218,11 +210,6 @@ export function Einstellungen() {
       setAutoabschlussInaktivitaetStunden(Number(w.einsatz_autoabschluss_inaktivitaet_stunden ?? 4));
       setPersonenSortierung(String(w.personen_sortierung ?? "nachname"));
       setPersonenInaktivitaetTage(Number(w.personen_inaktivitaet_tage ?? 90));
-      setDiveraAktiv(Boolean(w.divera_aktiv));
-      setDiveraApiKey(String(w.divera_api_key ?? ""));
-      setDiveraModus(String(w.divera_modus ?? "polling"));
-      setDiveraLetzterSync(String(w.divera_letzter_sync ?? ""));
-      setDiveraLetzterSyncAnzahl(Number(w.divera_letzter_sync_anzahl ?? 0));
       setFehlerberichteAktiv(Boolean(w.fehlerberichte_aktiv));
       setBenachrichtigungEinsatz(Boolean(w.benachrichtigung_neuer_einsatz));
       setBenachrichtigungDiveraAlarm(Boolean(w.benachrichtigung_divera_alarm ?? true));
@@ -272,9 +259,6 @@ export function Einstellungen() {
         einsatz_autoabschluss_inaktivitaet_stunden: autoabschlussInaktivitaetStunden,
         personen_sortierung: personenSortierung,
         personen_inaktivitaet_tage: personenInaktivitaetTage,
-        divera_aktiv: diveraAktiv,
-        divera_api_key: diveraApiKey,
-        divera_modus: diveraModus,
         fehlerberichte_aktiv: fehlerberichteAktiv,
         benachrichtigung_neuer_einsatz: benachrichtigungEinsatz,
         benachrichtigung_divera_alarm: benachrichtigungDiveraAlarm,
@@ -298,24 +282,6 @@ export function Einstellungen() {
       neuLaden();
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Logo-Upload fehlgeschlagen.");
-    }
-  }
-
-  async function diveraEinsaetzeHolen(tage: number) {
-    setDiveraHolenLaeuft(true);
-    setDiveraHolenErgebnis(null);
-    try {
-      const { anzahl_gefunden, anzahl_neu } = await diveraEinsaetzeNachholen(tage);
-      const zeitraum = tage === 1 ? "24 Stunden" : `${tage} Tagen`;
-      setDiveraHolenErgebnis(
-        anzahl_gefunden === 0
-          ? `Keine Alarme in den letzten ${zeitraum} gefunden.`
-          : `${anzahl_gefunden} Alarm${anzahl_gefunden !== 1 ? "e" : ""} gefunden, ${anzahl_neu} neu importiert.`
-      );
-    } catch (err) {
-      setDiveraHolenErgebnis(err instanceof ApiError ? String(err.detail) : "Abruf fehlgeschlagen.");
-    } finally {
-      setDiveraHolenLaeuft(false);
     }
   }
 
@@ -717,76 +683,6 @@ export function Einstellungen() {
               (Dienststunden, Einsätze, Dienstbücher, Barcodes, Buchungen) endgültig gelöscht. 0 = deaktiviert.
             </p>
           </div>
-        </div>
-
-        <div className="karte">
-          <h2>Divera 24/7</h2>
-          <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
-            Ersetzt die frühere .env-Konfiguration – Änderungen wirken ohne Neustart.
-          </p>
-          <div className="formular-feld">
-            <label>
-              <input type="checkbox" checked={diveraAktiv} onChange={(e) => setDiveraAktiv(e.target.checked)} />{" "}
-              Divera-Anbindung aktiv
-            </label>
-          </div>
-          <div className="formular-feld">
-            <label htmlFor="e-divera-modus">Modus</label>
-            <select id="e-divera-modus" value={diveraModus} onChange={(e) => setDiveraModus(e.target.value)}>
-              <option value="polling">Polling (alle 5 Minuten abfragen)</option>
-              <option value="webhook">Webhook (Divera sendet aktiv)</option>
-            </select>
-          </div>
-          <div className="formular-feld">
-            <label htmlFor="e-divera-key">API-Key / Accesskey</label>
-            <input
-              id="e-divera-key"
-              type="password"
-              value={diveraApiKey}
-              onChange={(e) => setDiveraApiKey(e.target.value)}
-              placeholder="Accesskey aus Divera"
-              autoComplete="off"
-            />
-          </div>
-          {diveraLetzterSync ? (
-            <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
-              Letzter Polling-Abruf:{" "}
-              {new Date(diveraLetzterSync).toLocaleString("de-DE")} &middot;{" "}
-              {diveraLetzterSyncAnzahl} Alarm{diveraLetzterSyncAnzahl !== 1 ? "e" : ""} abgerufen
-            </p>
-          ) : (
-            diveraAktiv && diveraModus === "polling" && (
-              <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
-                Noch kein Polling-Abruf seit dem letzten Start.
-              </p>
-            )
-          )}
-          {diveraAktiv && (
-            <div style={{ marginTop: "1rem" }}>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  onClick={() => diveraEinsaetzeHolen(1)}
-                  disabled={diveraHolenLaeuft}
-                >
-                  {diveraHolenLaeuft ? "Wird abgerufen…" : "Einsätze letzte 24 Stunden holen"}
-                </button>
-                <button
-                  type="button"
-                  className="sekundaer"
-                  onClick={() => diveraEinsaetzeHolen(7)}
-                  disabled={diveraHolenLaeuft}
-                >
-                  {diveraHolenLaeuft ? "Wird abgerufen…" : "Einsätze letzte 7 Tage holen"}
-                </button>
-              </div>
-              {diveraHolenErgebnis && (
-                <p style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
-                  {diveraHolenErgebnis}
-                </p>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="karte">
