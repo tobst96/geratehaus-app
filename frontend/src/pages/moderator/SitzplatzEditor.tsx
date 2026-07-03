@@ -8,40 +8,56 @@ interface PresetDefinition {
   sitzplaetze: Omit<Sitzplatz, "id" | "funktion_id">[];
 }
 
-// Standard-Besatzungen nach DIN 14502 / FwDV: Trupp (1+2), Staffel (1+5), Gruppe (1+8).
-// Layout: Fahrer + Gruppenführer vorne, Rest in zwei Bankreihen dahinter.
+// Standard-Besatzungen nach FwDV 3 / DIN 14502. Positionen sind schematisch
+// (x/y in %); Reihenfolge/Benennung nach deutscher Sitzordnung. „(PA)" markiert
+// Sitze mit Pressluftatmer im Rückenlehnenhalter.
 const PRESETS: Record<string, PresetDefinition> = {
   trupp: {
+    // Alle in einer Reihe, Truppmann mittig.
     label: "Trupp (1+2)",
     sitzplaetze: [
-      { bezeichnung: "Fahrer", x: 25, y: 20 },
-      { bezeichnung: "Truppführer", x: 75, y: 20 },
-      { bezeichnung: "Truppmann", x: 75, y: 70 },
+      { bezeichnung: "Fahrer", x: 22, y: 50 },
+      { bezeichnung: "Truppmann", x: 50, y: 50 },
+      { bezeichnung: "Truppführer", x: 78, y: 50 },
     ],
   },
   staffel: {
     label: "Staffel (1+5)",
     sitzplaetze: [
-      { bezeichnung: "Fahrer", x: 25, y: 15 },
-      { bezeichnung: "Gruppenführer", x: 75, y: 15 },
-      { bezeichnung: "Truppführer 1", x: 15, y: 55 },
-      { bezeichnung: "Truppmann 1", x: 50, y: 55 },
-      { bezeichnung: "Truppführer 2", x: 15, y: 85 },
-      { bezeichnung: "Truppmann 2", x: 50, y: 85 },
+      { bezeichnung: "Maschinist", x: 30, y: 15 },
+      { bezeichnung: "Gruppenführer", x: 70, y: 15 },
+      { bezeichnung: "Angriffstruppführer", x: 30, y: 55 },
+      { bezeichnung: "Angriffstruppmann", x: 70, y: 55 },
+      { bezeichnung: "Wassertruppführer", x: 30, y: 85 },
+      { bezeichnung: "Wassertruppmann", x: 70, y: 85 },
     ],
   },
-  gruppe: {
-    label: "Gruppe (1+8)",
+  gruppe_2pa: {
+    label: "Gruppe (1+8, 2 PA)",
     sitzplaetze: [
-      { bezeichnung: "Fahrer", x: 20, y: 12 },
-      { bezeichnung: "Gruppenführer", x: 80, y: 12 },
-      { bezeichnung: "Truppführer 1", x: 12, y: 45 },
-      { bezeichnung: "Truppmann 1", x: 38, y: 45 },
-      { bezeichnung: "Truppführer 2", x: 62, y: 45 },
-      { bezeichnung: "Truppmann 2", x: 88, y: 45 },
-      { bezeichnung: "Melder", x: 12, y: 80 },
-      { bezeichnung: "Maschinist", x: 50, y: 80 },
-      { bezeichnung: "Truppmann 3", x: 88, y: 80 },
+      { bezeichnung: "Maschinist", x: 30, y: 12 },
+      { bezeichnung: "Gruppenführer", x: 70, y: 12 },
+      { bezeichnung: "Angriffstruppmann (PA)", x: 20, y: 45 },
+      { bezeichnung: "Angriffstruppführer (PA)", x: 45, y: 45 },
+      { bezeichnung: "Melder", x: 78, y: 45 },
+      { bezeichnung: "Wassertruppmann", x: 14, y: 82 },
+      { bezeichnung: "Wassertruppführer", x: 38, y: 82 },
+      { bezeichnung: "Schlauchtruppführer", x: 62, y: 82 },
+      { bezeichnung: "Schlauchtruppmann", x: 86, y: 82 },
+    ],
+  },
+  gruppe_4pa: {
+    label: "Gruppe (1+8, 4 PA)",
+    sitzplaetze: [
+      { bezeichnung: "Maschinist", x: 30, y: 12 },
+      { bezeichnung: "Gruppenführer", x: 70, y: 12 },
+      { bezeichnung: "Angriffstruppmann (PA)", x: 20, y: 45 },
+      { bezeichnung: "Angriffstruppführer (PA)", x: 45, y: 45 },
+      { bezeichnung: "Melder", x: 78, y: 45 },
+      { bezeichnung: "Wassertruppmann (PA)", x: 14, y: 82 },
+      { bezeichnung: "Wassertruppführer (PA)", x: 38, y: 82 },
+      { bezeichnung: "Schlauchtruppführer", x: 62, y: 82 },
+      { bezeichnung: "Schlauchtruppmann", x: 86, y: 82 },
     ],
   },
 };
