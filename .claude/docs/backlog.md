@@ -95,14 +95,19 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Moderator-Navigationsmenü optisch aufwerten (Screenshot-Befund)
 
-- Status: Erledigt (Grundstruktur; Icons optional)
+- Status: Erledigt
 - Priorität: Niedrig
 - Kategorie: Frontend / Design / UX
 - Skills: geraetehaus-patterns, review
-- Umsetzung (03.07.2026): Nav in Gruppen gegliedert (Übersicht / Verwaltung /
-  Module) mit Abschnittsüberschriften im mobilen Menü; Modul-Unterseiten klar als
-  eingerückte Unterpunkte unter „Module" (Verbindungslinie, aktive Linie farbig).
-  Offen als optionale Erweiterung: Icons je Eintrag.
+- Umsetzung (03.07.2026): Komplett neu als moderne **Sidebar** umgesetzt
+  (`ModeratorLayout.tsx` + `navIcons.tsx`, Styles in `index.css`). Gruppen mit
+  Zwischenüberschriften (Listen / Verwaltung / Module); je Eintrag ein Line-Icon
+  (Feather-Stil). „Listen" und „Module" sind auf-/zuklappbar; deren Unterpunkte
+  (Modul-Unterseiten bzw. Listen-Tabs) hängen eingerückt darunter und werden bei
+  deaktiviertem Modul ausgeblendet. Aktiver Punkt mit farbiger Fläche/Tint.
+  Mobil als Off-Canvas-Drawer mit Overlay + Schließen-Button; „Abmelden" fest am
+  unteren Sidebar-Rand verankert, Nav-Liste scrollt (Button bleibt erreichbar,
+  `100dvh` für die mobile Browserleiste).
 - Beschreibung: Das ausklappbare Moderator-Menü ist aktuell nur eine schmucklose,
   lange Textliste (Dashboard, Listen, Buchungen, Punkte, Personal, Stammdaten,
   Barcodes, Kiosk-Geräte, Benachrichtigungen, Einstellungen, Module,
