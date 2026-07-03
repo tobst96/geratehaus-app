@@ -7,8 +7,8 @@ export const holeReservierung = (token: string) =>
 export const holeReservierungPersonen = (token: string) =>
   apiGet<Person[]>(`/reservierungen/${encodeURIComponent(token)}/personen`);
 
-export const reservierungVorschauSetzen = (token: string, personId: number) =>
-  apiPut<void>(`/reservierungen/${encodeURIComponent(token)}/vorschau`, { person_id: personId });
+export const reservierungVorschauSetzen = (token: string, personId: number, pin: string) =>
+  apiPut<void>(`/reservierungen/${encodeURIComponent(token)}/vorschau`, { person_id: personId, pin });
 
 export interface ReservierungEinloesen {
   person_id: number;

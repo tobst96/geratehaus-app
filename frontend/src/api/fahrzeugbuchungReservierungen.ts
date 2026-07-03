@@ -7,9 +7,10 @@ export const holeFahrzeugbuchungReservierung = (token: string) =>
 export const holeFahrzeugbuchungReservierungPersonen = (token: string) =>
   apiGet<Person[]>(`/fahrzeugbuchung-reservierungen/${encodeURIComponent(token)}/personen`);
 
-export const fahrzeugbuchungReservierungVorschauSetzen = (token: string, personId: number) =>
+export const fahrzeugbuchungReservierungVorschauSetzen = (token: string, personId: number, pin: string) =>
   apiPut<void>(`/fahrzeugbuchung-reservierungen/${encodeURIComponent(token)}/vorschau`, {
     person_id: personId,
+    pin,
   });
 
 export interface FahrzeugbuchungReservierungEinloesen {

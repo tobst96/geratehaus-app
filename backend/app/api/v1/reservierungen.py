@@ -110,5 +110,7 @@ async def reservierung_einloesen(
             ip=_client_ip(request),
             user_agent=request.headers.get("user-agent"),
         )
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

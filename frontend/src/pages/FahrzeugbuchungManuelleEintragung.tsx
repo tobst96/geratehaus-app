@@ -36,6 +36,7 @@ export function FahrzeugbuchungManuelleEintragung() {
 
   const [suche, setSuche] = useState("");
   const [ausgewaehltePerson, setAusgewaehltePerson] = useState<Person | null>(null);
+  const [pin, setPin] = useState("");
   const [fahrzeugId, setFahrzeugId] = useState("");
   const [von, setVon] = useState(jetztAlsDatetimeLocal());
   const [bis, setBis] = useState(jetztAlsDatetimeLocal(120));
@@ -68,14 +69,11 @@ export function FahrzeugbuchungManuelleEintragung() {
       ? []
       : personen.filter((p) => p.name.toLowerCase().includes(suche.trim().toLowerCase())).slice(0, 8);
 
-  async function personAuswaehlen(p: Person) {
+  function personAuswaehlen(p: Person) {
     setAusgewaehltePerson(p);
     setSuche("");
-    try {
-      if (token) await fahrzeugbuchungReservierungVorschauSetzen(token, p.id);
-    } catch {
-      // Best effort – die Vorschau am Gerätehaus ist nur ein Komfortfeature.
-    }
+    setPin("");
+    setFehler(null);
   }
 
   async function absenden(e: FormEvent) {
@@ -84,6 +82,7 @@ export function FahrzeugbuchungManuelleEintragung() {
     setLaeuft(true);
     setFehler(null);
     try {
+      await fahrzeugbuchungReservierungVorschauSetzen(token, ausgewaehltePerson.id, pin);
       await fahrzeugbuchungReservierungEinloesen(token, {
         person_id: ausgewaehltePerson.id,
         fahrzeug_id: Number(fahrzeugId),
@@ -220,6 +219,26 @@ export function FahrzeugbuchungManuelleEintragung() {
           )}
           </div>
 
+          {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
+            <p className="fehlertext">
+              Für dich ist kein PIN hinterlegt. Eine Selbst-Buchung ohne PIN ist nicht möglich –
+              bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
+            </p>
+          )}
+          {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
+            <div className="formular-feld">
+              <label htmlFor="fbme-pin">Dein PIN</label>
+              <input
+                id="fbme-pin"
+                type="password"
+                inputMode="numeric"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
           <div className="formular-feld">
             <label htmlFor="fbme-fahrzeug">Fahrzeug</label>
             <select
@@ -265,7 +284,10 @@ export function FahrzeugbuchungManuelleEintragung() {
 
           {fehler && <p className="fehlertext">{fehler}</p>}
 
-          <button type="submit" disabled={laeuft || !ausgewaehltePerson}>
+          <button
+            type="submit"
+            disabled={laeuft || !ausgewaehltePerson || !ausgewaehltePerson.pin_gesetzt || !pin}
+          >
             {laeuft ? "Wird gestellt…" : "Anfrage stellen"}
           </button>
         </form>
