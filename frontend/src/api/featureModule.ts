@@ -4,6 +4,7 @@ export interface FeatureModul {
   key: string;
   name: string;
   mitgliederseitig: boolean;
+  immer_aktiv: boolean;
   reihenfolge: number;
   aktiv: boolean;
   startseite: boolean | null;

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { holeEinstellungen, schreibeEinstellungen } from "../../../api/moderator";
 import { ApiError } from "../../../api/client";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";
+import { FunktionenEinsatzVerwaltung } from "../verwaltung/FunktionenEinsatzVerwaltung";
+import { EinsatzFelderVerwaltung } from "../verwaltung/EinsatzFelderVerwaltung";
 
 export function EinsatztagebuchModul() {
   const [geladen, setGeladen] = useState(false);
@@ -112,12 +114,14 @@ export function EinsatztagebuchModul() {
         {fehler && <p className="fehlertext">{fehler}</p>}
       </div>
 
-      <div className="karte" style={{ maxWidth: 640, marginTop: 16 }}>
+      <div className="karte" style={{ marginTop: 16 }}>
+        <h2>Einsatz-Funktionen</h2>
+        <FunktionenEinsatzVerwaltung />
+      </div>
+
+      <div className="karte" style={{ marginTop: 16 }}>
         <h2>Zusatzfelder</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
-          Frei konfigurierbare Einsatz-Zusatzfelder werden unter{" "}
-          <Link to="/moderator/stammdaten">Stammdaten → Einsatz-Felder</Link> verwaltet.
-        </p>
+        <EinsatzFelderVerwaltung />
       </div>
     </div>
   );

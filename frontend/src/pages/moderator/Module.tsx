@@ -131,14 +131,20 @@ export function Module() {
               </div>
 
               <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 8 }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <input
-                    type="checkbox"
-                    checked={m.aktiv}
-                    onChange={(e) => flagSetzen(m, "aktiv", e.target.checked)}
-                  />
-                  Aktiv
-                </label>
+                {m.immer_aktiv ? (
+                  <span style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+                    immer aktiv
+                  </span>
+                ) : (
+                  <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <input
+                      type="checkbox"
+                      checked={m.aktiv}
+                      onChange={(e) => flagSetzen(m, "aktiv", e.target.checked)}
+                    />
+                    Aktiv
+                  </label>
+                )}
                 {m.mitgliederseitig && (
                   <>
                     <label

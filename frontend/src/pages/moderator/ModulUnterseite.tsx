@@ -4,6 +4,8 @@ import { EinsatztagebuchModul } from "./module/EinsatztagebuchModul";
 import { DienstbuchModul } from "./module/DienstbuchModul";
 import { DienststundenModul } from "./module/DienststundenModul";
 import { FahrzeugbuchungModul } from "./module/FahrzeugbuchungModul";
+import { FahrzeugeModul } from "./module/FahrzeugeModul";
+import { PersonalModul } from "./module/PersonalModul";
 
 export function ModulUnterseite() {
   const { key } = useParams<{ key: string }>();
@@ -19,6 +21,10 @@ export function ModulUnterseite() {
       return <FahrzeugbuchungModul />;
     case "divera":
       return <DiveraModul />;
+    case "personal":
+      return <PersonalModul />;
+    case "fahrzeuge":
+      return <FahrzeugeModul />;
     default:
       return (
         <div>
