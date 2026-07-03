@@ -70,10 +70,14 @@ async def synchronisiere_personal(db: AsyncSession) -> int:
     """Pollt die Divera-API und legt neue DiveraVorschlag-Einträge an (neue
     Personen und E-Mail-Abweichungen). Gibt die Anzahl neu erzeugter
     Vorschläge zurück. Bereits entschiedene/offene Vorschläge für dieselbe
-    divera_user_id+Art werden nicht erneut erzeugt."""
-    divera_aktiv = await config_service.get(db, "divera_aktiv", False)
+    divera_user_id+Art werden nicht erneut erzeugt.
+
+    Braucht nur das aktive Divera-Modul + einen API-Key – NICHT das automatische
+    Polling (divera_aktiv). So lässt sich der Personen-Vorschlag manuell nutzen,
+    auch wenn kein automatischer Sync läuft."""
+    modul_aktiv = await config_service.get(db, "modul_divera_aktiv", False)
     api_key = await config_service.get(db, "divera_api_key", "")
-    if not divera_aktiv or not api_key:
+    if not modul_aktiv or not api_key:
         return 0
 
     rohdaten = await divera_client.hole_personal(api_key)

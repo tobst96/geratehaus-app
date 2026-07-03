@@ -49,10 +49,12 @@ async def einsaetze_nachholen(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Zeitraum muss zwischen 1 und 31 Tagen liegen."
         )
-    divera_aktiv = await config_service.get(db, "divera_aktiv", False)
+    # Manuelles Nachholen braucht nur das aktive Modul + API-Key, nicht das
+    # automatische Polling.
+    modul_aktiv = await config_service.get(db, "modul_divera_aktiv", False)
     api_key = await config_service.get(db, "divera_api_key", "")
-    if not divera_aktiv or not api_key:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Divera ist nicht aktiv oder kein API-Key konfiguriert.")
+    if not modul_aktiv or not api_key:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Divera-Modul ist nicht aktiv oder kein API-Key konfiguriert.")
 
     alarme = await divera_client.hole_alarme_historie(api_key, tage=tage)
 

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { holeFeatureModule, type FeatureModul } from "../../api/featureModule";
 
 // "admin: false" = auch für Gruppenführer sichtbar (Einsatzberichte,
 // Dienstbucheinträge, Fahrzeugreservierungen). "admin: true" = nur Admin
@@ -26,6 +27,16 @@ export function ModeratorLayout() {
   const istAdmin = moderatorRolle === "admin";
   const sichtbareNavItems = NAV_ITEMS.filter((item) => !item.admin || istAdmin);
   const [menuOffen, setMenuOffen] = useState(false);
+  const [aktiveModule, setAktiveModule] = useState<FeatureModul[]>([]);
+
+  // Aktive Feature-Module als Unterpunkte unter „Module" (nur für Admins, die den
+  // Modul-Bereich sehen). Reihenfolge kommt aus der Modul-Verwaltung.
+  useEffect(() => {
+    if (!istAdmin) return;
+    holeFeatureModule()
+      .then((m) => setAktiveModule(m.filter((x) => x.aktiv)))
+      .catch(() => setAktiveModule([]));
+  }, [istAdmin]);
 
   function abmelden() {
     moderatorAbmelden();
@@ -46,14 +57,29 @@ export function ModeratorLayout() {
         </button>
         <div className={`moderator-nav-links${menuOffen ? " offen" : ""}`}>
           {sichtbareNavItems.map((item) => (
-            <NavLink
-              key={item.pfad}
-              to={item.pfad}
-              className={({ isActive }) => `moderator-nav-link${isActive ? " aktiv" : ""}`}
-              onClick={() => setMenuOffen(false)}
-            >
-              {item.titel}
-            </NavLink>
+            <Fragment key={item.pfad}>
+              <NavLink
+                to={item.pfad}
+                end={item.pfad === "/moderator/module"}
+                className={({ isActive }) => `moderator-nav-link${isActive ? " aktiv" : ""}`}
+                onClick={() => setMenuOffen(false)}
+              >
+                {item.titel}
+              </NavLink>
+              {item.pfad === "/moderator/module" &&
+                aktiveModule.map((m) => (
+                  <NavLink
+                    key={m.key}
+                    to={`/moderator/module/${m.key}`}
+                    className={({ isActive }) =>
+                      `moderator-nav-link moderator-nav-unterpunkt${isActive ? " aktiv" : ""}`
+                    }
+                    onClick={() => setMenuOffen(false)}
+                  >
+                    {m.name}
+                  </NavLink>
+                ))}
+            </Fragment>
           ))}
         </div>
         <button className="sekundaer moderator-abmelden" onClick={abmelden}>

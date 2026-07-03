@@ -24,6 +24,7 @@ from app.api.v1 import (
     moderator_dashboard,
     moderator_einstellungen,
     moderator_listen,
+    moderator_feature_module,
     moderator_module,
     moderator_person_kanaele,
     moderator_stammdaten,
@@ -52,6 +53,13 @@ async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as db:
         await config_service.ensure_defaults(db)
         await modul_service.ensure_module(db)
+        # Einmalige Übernahme: bestehende Divera-Instanzen (divera_aktiv=true) sollen
+        # das neue Divera-Feature-Modul aktiv haben, damit die Divera-Unterseite und
+        # -Funktionen weiterhin erreichbar bleiben.
+        if not await config_service.get(db, "modul_divera_migration_done", False):
+            if await config_service.get(db, "divera_aktiv", False):
+                await config_service.set(db, "modul_divera_aktiv", True)
+            await config_service.set(db, "modul_divera_migration_done", True)
         init_sentry_wenn_aktiviert(await config_service.get(db, "fehlerberichte_aktiv", False))
     scheduler.start()
     yield
@@ -97,6 +105,7 @@ app.include_router(person_bild_reservierungen.router, prefix="/api/v1")
 app.include_router(moderator_dashboard.router, prefix="/api/v1")
 app.include_router(moderator_listen.router, prefix="/api/v1")
 app.include_router(moderator_module.router, prefix="/api/v1")
+app.include_router(moderator_feature_module.router, prefix="/api/v1")
 app.include_router(moderator_berechtigungen.router, prefix="/api/v1")
 app.include_router(moderator_person_kanaele.router, prefix="/api/v1")
 app.include_router(moderator_buchungen.router, prefix="/api/v1")

@@ -15,8 +15,22 @@ from app.services.config_service import config_service
 
 
 async def _divera_aktivieren(db: AsyncSession) -> None:
-    await config_service.set(db, "divera_aktiv", True)
+    # Personen-Vorschlag braucht nur das aktive Modul + API-Key, KEIN Polling.
+    await config_service.set(db, "modul_divera_aktiv", True)
     await config_service.set(db, "divera_api_key", "test-key")
+
+
+@pytest.mark.asyncio
+async def test_vorschlag_ohne_polling_aber_mit_modul(db: AsyncSession):
+    """Personen-Vorschlag funktioniert bei aktivem Divera-Modul + API-Key, auch
+    wenn divera_aktiv (Polling) aus ist."""
+    await config_service.set(db, "modul_divera_aktiv", True)
+    await config_service.set(db, "divera_aktiv", False)
+    await config_service.set(db, "divera_api_key", "test-key")
+    roh = [{"id": 1, "firstname": "A", "lastname": "B"}]
+    with patch("app.services.divera_client.hole_personal", new=AsyncMock(return_value=roh)):
+        anzahl = await divera_personal_service.synchronisiere_personal(db)
+    assert anzahl == 1
 
 
 @pytest.mark.asyncio
