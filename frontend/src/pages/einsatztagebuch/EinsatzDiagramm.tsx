@@ -400,21 +400,6 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         </p>
       )}
 
-      {!aktivesFahrzeug && (einsatz.adresse || einsatz.meldung) && (
-        <div className="karte" style={{ marginTop: "0.5rem" }}>
-          {einsatz.adresse && (
-            <p style={{ margin: "0 0 0.25rem" }}>
-              <strong>📍 {einsatz.adresse}</strong>
-            </p>
-          )}
-          {einsatz.meldung && (
-            <p style={{ margin: 0, whiteSpace: "pre-wrap", color: "var(--farbe-text-mute)" }}>
-              {einsatz.meldung}
-            </p>
-          )}
-        </div>
-      )}
-
       {!aktivesFahrzeug && (
         <>
           <div className="einsatz-uebersicht">
