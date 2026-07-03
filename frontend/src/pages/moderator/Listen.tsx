@@ -15,22 +15,46 @@ import { ApiError } from "../../api/client";
 import type { BuchungOut, DienstbuchOut, EinsatzOut } from "../../api/types";
 import type { DienststundenEintragOut } from "../../api/dienststunden";
 import { useAuth } from "../../context/AuthContext";
+import { useConfig } from "../../context/ConfigContext";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 const TABS_BASIS = ["Einsätze", "Dienstbücher", "Dienststunden", "Buchungen"] as const;
 const TAB_NAMENSABWEICHUNGEN = "Namensabweichungen" as const;
 type Tab = (typeof TABS_BASIS)[number] | typeof TAB_NAMENSABWEICHUNGEN;
 
+// Zuordnung Listen-Tab -> Modul-Config-Key. Ist das Modul deaktiviert, wird der
+// Tab (und Nav-Unterpunkt) ausgeblendet.
+const TAB_MODUL: Record<(typeof TABS_BASIS)[number], string> = {
+  "Einsätze": "modul_einsatztagebuch_aktiv",
+  "Dienstbücher": "modul_dienstbuch_aktiv",
+  "Dienststunden": "modul_dienststunden_aktiv",
+  "Buchungen": "modul_fahrzeugbuchung_aktiv",
+};
+
 export function Listen() {
   const { moderatorRolle } = useAuth();
+  const { config } = useConfig();
   const [searchParams] = useSearchParams();
   const istAdmin = moderatorRolle === "admin";
-  const TABS: Tab[] = istAdmin ? [...TABS_BASIS, TAB_NAMENSABWEICHUNGEN] : [...TABS_BASIS];
-  const [tab, setTab] = useState<Tab>(() => {
+
+  const configWerte = config as Record<string, unknown> | null;
+  const sichtbareBasis = TABS_BASIS.filter((t) => configWerte?.[TAB_MODUL[t]] !== false);
+  const TABS: Tab[] = istAdmin ? [...sichtbareBasis, TAB_NAMENSABWEICHUNGEN] : [...sichtbareBasis];
+
+  const [tab, setTab] = useState<Tab>(TABS[0] ?? "Einsätze");
+
+  // Tab aus der URL übernehmen (Nav-Unterpunkte verlinken mit ?tab=…) und auf
+  // sichtbare Tabs beschränken; ist der aktuelle Tab (nicht mehr) verfügbar,
+  // auf den ersten sichtbaren zurückfallen.
+  useEffect(() => {
     const urlTab = searchParams.get("tab");
-    if (urlTab && ([...TABS_BASIS] as string[]).includes(urlTab)) return urlTab as Tab;
-    return "Einsätze";
-  });
+    if (urlTab && (TABS as string[]).includes(urlTab)) {
+      setTab(urlTab as Tab);
+    } else if (!(TABS as string[]).includes(tab)) {
+      setTab(TABS[0] ?? "Einsätze");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, config]);
 
   return (
     <div>
