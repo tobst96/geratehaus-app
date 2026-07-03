@@ -20,6 +20,7 @@ import { DienstbuchDetailModerator } from "./pages/moderator/DienstbuchDetailMod
 import { Einstellungen } from "./pages/moderator/Einstellungen";
 import { Update } from "./pages/moderator/Update";
 import { Module } from "./pages/moderator/Module";
+import { ModulUnterseite } from "./pages/moderator/ModulUnterseite";
 import { Berechtigungen } from "./pages/moderator/Berechtigungen";
 import { BarcodeGenerator } from "./pages/moderator/BarcodeGenerator";
 import { NotifierEinstellungen } from "./pages/moderator/NotifierEinstellungen";
@@ -69,6 +70,7 @@ export function App() {
                 <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />
                 <Route path="einstellungen" element={<Einstellungen />} />
                 <Route path="module" element={<Module />} />
+                <Route path="module/:key" element={<ModulUnterseite />} />
                 <Route path="berechtigungen" element={<Berechtigungen />} />
                 <Route path="update" element={<Update />} />
               </Route>
