@@ -78,6 +78,7 @@ export function ModeratorLayout() {
   const sichtbareGruppen = NAV_GRUPPEN.filter((g) => !g.admin || istAdmin);
   const [drawerOffen, setDrawerOffen] = useState(false);
   const [moduleOffen, setModuleOffen] = useState(false);
+  const [listenOffen, setListenOffen] = useState(true);
   const [aktiveModule, setAktiveModule] = useState<FeatureModul[]>([]);
 
   useEffect(() => {
@@ -135,15 +136,18 @@ export function ModeratorLayout() {
           {sichtbareGruppen.map((gruppe) => (
             <Fragment key={gruppe.id}>
               {gruppe.titel &&
-                (gruppe.module ? (
+                (gruppe.module || gruppe.listen ? (
                   <button
                     type="button"
                     className="mod-nav-section mod-nav-section--toggle"
-                    onClick={() => setModuleOffen((o) => !o)}
-                    aria-expanded={moduleOffen}
+                    onClick={() => (gruppe.module ? setModuleOffen((o) => !o) : setListenOffen((o) => !o))}
+                    aria-expanded={gruppe.module ? moduleOffen : listenOffen}
                   >
                     {gruppe.titel}
-                    <span className={`mod-chevron${moduleOffen ? " auf" : ""}`} aria-hidden="true" />
+                    <span
+                      className={`mod-chevron${(gruppe.module ? moduleOffen : listenOffen) ? " auf" : ""}`}
+                      aria-hidden="true"
+                    />
                   </button>
                 ) : (
                   <div className="mod-nav-section">{gruppe.titel}</div>
@@ -163,7 +167,7 @@ export function ModeratorLayout() {
                   </NavLink>
                 ))}
 
-              {gruppe.listen && (
+              {gruppe.listen && listenOffen && (
                 <>
                   {LISTEN_UNTERPUNKTE.filter((u) => modulAktiv(u.modulKey)).map((u) => (
                     <NavLink
