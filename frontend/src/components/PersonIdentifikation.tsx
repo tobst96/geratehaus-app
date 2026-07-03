@@ -128,6 +128,14 @@ function PersonIdentifikationImpl(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suche, gewaehlt, barcodeModus]);
 
+  // Profilbild schon bei der Namensauswahl in den Browser-Cache vorladen, damit
+  // es nach korrektem PIN sofort (ohne Ladeverzögerung) eingeblendet wird.
+  useEffect(() => {
+    if (barcodeModus || !gewaehlt?.bild_url) return;
+    const img = new Image();
+    img.src = gewaehlt.bild_url;
+  }, [gewaehlt, barcodeModus]);
+
   // Live-PIN-Prüfung: das Profilbild erscheint erst, wenn der korrekte PIN
   // eingegeben wurde (nicht schon bei der Namensauswahl).
   useEffect(() => {
