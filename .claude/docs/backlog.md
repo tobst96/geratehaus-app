@@ -563,6 +563,27 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Routine-Kommandos (pytest, `npm run build`, `git`, `docker compose`) ergänzen.
 - Akzeptanzkriterien: Häufige Kommandos ohne wiederholte Nachfrage nutzbar.
 
+### Frontend-Container-Healthcheck meldet „unhealthy" (IPv4/IPv6)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Bug / Wartung / Deployment
+- Skills: bugfix, review
+- Beschreibung: Der Frontend-Container wird dauerhaft als „unhealthy" gemeldet,
+  obwohl die App normal ausgeliefert wird (extern HTTP 200 auf Port 9112).
+  Ursache: Der `HEALTHCHECK` in `frontend/Dockerfile` nutzt
+  `wget -q -O- http://localhost:80/`. `localhost` löst im Container zuerst auf
+  IPv6 (`::1`) auf, nginx lauscht laut `frontend/nginx.conf` aber nur auf IPv4
+  (`listen 80;`) → „Connection refused" → Healthcheck schlägt fehl. Rein
+  kosmetisch/Monitoring, da nichts über `depends_on: service_healthy` vom
+  Frontend abhängt.
+- Akzeptanzkriterien: Frontend-Container meldet `healthy`; App weiterhin normal
+  erreichbar. Regressionsarm (kein funktionaler Eingriff in die Auslieferung).
+- Notizen: Zwei mögliche Fixes – (a) Healthcheck auf `http://127.0.0.1:80/`
+  umstellen (IPv4 erzwingen), oder (b) nginx zusätzlich auf IPv6 lauschen lassen
+  (`listen [::]:80;` in `frontend/nginx.conf`). Variante (a) ist der kleinere
+  Eingriff. Nach Änderung Container neu bauen und `docker inspect` prüfen.
+
 ---
 
 ## Einsatztagebuch
