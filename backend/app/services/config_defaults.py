@@ -43,6 +43,19 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("modul_dienstbuch_aktiv", "true", ConfigTyp.BOOL, "Dienstbuch aktiv"),
     ConfigDefault("modul_dienststunden_aktiv", "true", ConfigTyp.BOOL, "Dienststunden aktiv"),
     ConfigDefault("modul_fahrzeugbuchung_aktiv", "true", ConfigTyp.BOOL, "Fahrzeugbuchung aktiv"),
+    # Divera ist ein Feature-Modul (An/Aus), aber nicht mitgliederseitig – daher
+    # keine _startseite/_aussenzugriff-Keys. Steuert, ob der Divera-Bereich
+    # (Unterseite + Polling/Personal-Sync) überhaupt verfügbar ist.
+    ConfigDefault("modul_divera_aktiv", "false", ConfigTyp.BOOL, "Divera-Modul aktiv"),
+    # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
+    # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
+    # anhand der Registry ergänzt bzw. ignoriert.
+    ConfigDefault(
+        "modul_reihenfolge",
+        "einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,divera",
+        ConfigTyp.STR,
+        "Reihenfolge der Feature-Module (kommagetrennte Keys)",
+    ),
     # Sichtbarkeit der Kachel auf der Kiosk-Startseite (unabhängig von "aktiv",
     # das nur steuert, ob das Modul überhaupt erreichbar ist)
     ConfigDefault(
