@@ -589,7 +589,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Frontend-Container-Healthcheck meldet „unhealthy" (IPv4/IPv6)
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Niedrig
 - Kategorie: Bug / Wartung / Deployment
 - Skills: bugfix, review
@@ -607,6 +607,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   umstellen (IPv4 erzwingen), oder (b) nginx zusätzlich auf IPv6 lauschen lassen
   (`listen [::]:80;` in `frontend/nginx.conf`). Variante (a) ist der kleinere
   Eingriff. Nach Änderung Container neu bauen und `docker inspect` prüfen.
+- Erledigt (03.07.2026): Variante (a) umgesetzt – Healthcheck nutzt jetzt
+  `http://127.0.0.1:80/` (IPv4 erzwungen). Container meldet nach Rebuild `healthy`.
 
 ---
 
