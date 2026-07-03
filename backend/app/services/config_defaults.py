@@ -66,7 +66,7 @@ DEFAULTS: list[ConfigDefault] = [
     # anhand der Registry ergänzt bzw. ignoriert.
     ConfigDefault(
         "modul_reihenfolge",
-        "personal,fahrzeuge,einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,divera,barcode",
+        "personal,fahrzeuge,benachrichtigungen,kiosk,einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,divera,barcode",
         ConfigTyp.STR,
         "Reihenfolge der Feature-Module (kommagetrennte Keys)",
     ),

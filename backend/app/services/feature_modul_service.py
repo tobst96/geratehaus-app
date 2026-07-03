@@ -34,6 +34,9 @@ class FeatureModulDef:
 FEATURE_MODULE: list[FeatureModulDef] = [
     FeatureModulDef("personal", "Personal", False, immer_aktiv=True),
     FeatureModulDef("fahrzeuge", "Fahrzeuge", False, immer_aktiv=True),
+    # Interne, immer aktive Verwaltungsbereiche als eigene Modul-Unterseite.
+    FeatureModulDef("benachrichtigungen", "Benachrichtigungen", False, immer_aktiv=True),
+    FeatureModulDef("kiosk", "Kiosk", False, immer_aktiv=True),
     FeatureModulDef("einsatztagebuch", "Einsatztagebuch", True),
     FeatureModulDef("dienstbuch", "Dienstbuch", True),
     FeatureModulDef("dienststunden", "Dienststunden", True),

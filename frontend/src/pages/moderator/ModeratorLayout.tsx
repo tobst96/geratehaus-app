@@ -42,8 +42,6 @@ const NAV_GRUPPEN: NavGruppe[] = [
     titel: "Verwaltung",
     admin: true,
     items: [
-      { pfad: "/moderator/kiosk-geraete", titel: "Kiosk-Geräte", icon: "kiosk" },
-      { pfad: "/moderator/benachrichtigungen", titel: "Benachrichtigungen", icon: "benachrichtigungen" },
       { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen" },
       { pfad: "/moderator/update", titel: "Update", icon: "update" },
       { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen" },
@@ -67,6 +65,8 @@ const MODUL_ICON: Record<string, string> = {
   personal: "personal",
   fahrzeuge: "fahrzeug",
   barcode: "barcodes",
+  benachrichtigungen: "benachrichtigungen",
+  kiosk: "kiosk",
 };
 
 export function ModeratorLayout() {

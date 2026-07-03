@@ -7,6 +7,8 @@ import { FahrzeugbuchungModul } from "./module/FahrzeugbuchungModul";
 import { FahrzeugeModul } from "./module/FahrzeugeModul";
 import { PersonalModul } from "./module/PersonalModul";
 import { BarcodeModul } from "./module/BarcodeModul";
+import { BenachrichtigungenModul } from "./module/BenachrichtigungenModul";
+import { KioskModul } from "./module/KioskModul";
 
 export function ModulUnterseite() {
   const { key } = useParams<{ key: string }>();
@@ -28,6 +30,10 @@ export function ModulUnterseite() {
       return <FahrzeugeModul />;
     case "barcode":
       return <BarcodeModul />;
+    case "benachrichtigungen":
+      return <BenachrichtigungenModul />;
+    case "kiosk":
+      return <KioskModul />;
     default:
       return (
         <div>
