@@ -58,14 +58,7 @@ export function Listen() {
 
   return (
     <div>
-      <h1>Listen</h1>
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-        {TABS.map((t) => (
-          <button key={t} className={t === tab ? "" : "sekundaer"} onClick={() => setTab(t)}>
-            {t}
-          </button>
-        ))}
-      </div>
+      <h1>{tab}</h1>
       {tab === "Einsätze" && <EinsaetzeTab />}
       {tab === "Dienstbücher" && <DienstbuecherTab />}
       {tab === "Dienststunden" && <DienststundenTab />}
