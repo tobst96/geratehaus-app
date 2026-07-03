@@ -65,6 +65,44 @@ async def test_name_pin_login(client, db):
 
 
 @pytest.mark.asyncio
+async def test_personen_auswahl_liefert_gruppe(client, db):
+    """Die Namensauswahl liefert gruppe_id/funktion_id, damit die Gruppe im
+    Dienstbuch sofort vorgewählt werden kann."""
+    from app.models.gruppe import Gruppe
+
+    gruppe = Gruppe(name="Zug 1")
+    db.add(gruppe)
+    await db.commit()
+    await db.refresh(gruppe)
+    person = await _person(db, "Gerd Gruppe", pin="1234")
+    person.gruppe_id = gruppe.id
+    await db.commit()
+
+    r = await client.get("/api/v1/auth/personen?suche=Gerd")
+    assert r.status_code == 200
+    eintrag = next(p for p in r.json() if p["name"] == "Gerd Gruppe")
+    assert eintrag["gruppe_id"] == gruppe.id
+
+
+@pytest.mark.asyncio
+async def test_name_pin_pruefen_ohne_cookie(client, db):
+    """Die PIN-Vorschau prüft den PIN und liefert Name/Bild, setzt aber KEINEN
+    Cookie (nur für die Bildvorschau, kein Login)."""
+    person = await _person(db, "Vera Vorschau", pin="4711")
+
+    ok = await client.post(
+        "/api/v1/auth/name-pin/pruefen", json={"person_id": person.id, "pin": "4711"}
+    )
+    assert ok.status_code == 200 and ok.json()["name"] == "Vera Vorschau"
+    assert "geraetehaus_name" not in ok.cookies
+
+    falsch = await client.post(
+        "/api/v1/auth/name-pin/pruefen", json={"person_id": person.id, "pin": "0000"}
+    )
+    assert falsch.status_code == 401
+
+
+@pytest.mark.asyncio
 async def test_name_pin_ohne_pin_gesetzt(client, db):
     person = await _person(db, "Cem Test")  # kein PIN
     r = await client.post("/api/v1/auth/name-pin", json={"person_id": person.id, "pin": None})

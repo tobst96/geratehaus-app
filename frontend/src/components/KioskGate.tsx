@@ -14,7 +14,12 @@ export function KioskGate() {
       return;
     }
     apiGet<{ gueltig: boolean }>(`/kiosk-tokens/${encodeURIComponent(token)}/validieren`)
-      .then((r) => setGueltig(r.gueltig))
+      .then((r) => {
+        setGueltig(r.gueltig);
+        // Kiosk-Token merken, damit das Logo zurück zur Kiosk-Startseite führt
+        // (statt zur öffentlichen Landing-/Login-Seite).
+        if (r.gueltig) localStorage.setItem("kiosk_token", token);
+      })
       .catch(() => setGueltig(false));
   }, [token]);
 

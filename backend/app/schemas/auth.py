@@ -27,11 +27,20 @@ class PersonAuswahl(BaseModel):
     name: str
     bild_url: str | None
     pin_gesetzt: bool
+    funktion_id: int | None
+    gruppe_id: int | None
 
 
 class NamePinLogin(BaseModel):
     person_id: int
     pin: str | None = Field(default=None, max_length=64)
+
+
+class NamePinVorschau(BaseModel):
+    """Bildvorschau nach korrektem PIN – ohne Login/Cookie."""
+
+    name: str
+    bild_url: str | None
 
 
 class PinAnfordern(BaseModel):

@@ -30,6 +30,13 @@ export interface PersonAuswahl {
   name: string;
   bild_url: string | null;
   pin_gesetzt: boolean;
+  funktion_id: number | null;
+  gruppe_id: number | null;
+}
+
+export interface NamePinVorschau {
+  name: string;
+  bild_url: string | null;
 }
 
 export const barcodeEinscannen = (token: string) =>
@@ -43,6 +50,11 @@ export const personenAuswahl = (suche: string) =>
  * noch keinen PIN gesetzt hat – dann „PIN anfordern" anbieten. */
 export const namePinLogin = (personId: number, pin: string) =>
   apiPost<BarcodeIdentitaet>("/auth/name-pin", { person_id: personId, pin });
+
+/** Prüft den PIN ohne einzuloggen – für die Bildvorschau am Kiosk, sobald der
+ * korrekte PIN eingegeben wurde. Wirft ApiError(401) bei falschem PIN. */
+export const namePinPruefen = (personId: number, pin: string) =>
+  apiPost<NamePinVorschau>("/auth/name-pin/pruefen", { person_id: personId, pin });
 
 /** Stößt für eine Person ohne PIN den passenden Weg an (Self-Service-Mail oder
  * Moderator-Freigabe). Gibt {weg: "mail" | "freigabe"} zurück. */

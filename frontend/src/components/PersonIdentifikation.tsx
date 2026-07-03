@@ -7,6 +7,7 @@ import {
 } from "react";
 import {
   barcodeVorschau,
+  namePinPruefen,
   personenAuswahl,
   pinAnfordern,
   type BarcodeVorschau,
@@ -34,8 +35,12 @@ export interface PersonIdentifikationHandle {
 
 interface Props {
   autoFocus?: boolean;
-  /** Meldet die erkannte Person (für Vorauswahl von Funktion/Gruppe). */
+  /** Meldet die erkannte Person (für Vorauswahl von Funktion/Gruppe). Feuert im
+   * Namen-Modus bereits bei der Auswahl (für die Gruppen-/Funktionsvorwahl). */
   onPersonInfo?: (info: PersonInfo | null) => void;
+  /** Meldet die *bestätigte* Person für eine große Bildvorschau – im Barcode-Modus
+   * beim Scan, im Namen-Modus erst nach korrektem PIN. */
+  onVorschau?: (person: { name: string; bild_url: string | null } | null) => void;
   /** Unterdrückt die eingebaute Bildvorschau – der Aufrufer zeigt sie selbst
    * (z. B. groß links im Sitzplatz-Popup). */
   ohneVorschau?: boolean;
@@ -52,7 +57,7 @@ function initialen(name: string): string {
 }
 
 function PersonIdentifikationImpl(
-  { autoFocus, onPersonInfo, ohneVorschau }: Props,
+  { autoFocus, onPersonInfo, onVorschau, ohneVorschau }: Props,
   ref: Ref<PersonIdentifikationHandle>
 ) {
   const { config } = useConfig();
@@ -71,6 +76,10 @@ function PersonIdentifikationImpl(
   const [pin, setPin] = useState("");
   const [meldung, setMeldung] = useState<string | null>(null);
   const [anfordernLaeuft, setAnfordernLaeuft] = useState(false);
+  // Erst nach korrektem PIN bestätigte Person (für die Bildvorschau).
+  const [pinBestaetigt, setPinBestaetigt] = useState<{ name: string; bild_url: string | null } | null>(
+    null
+  );
 
   // Barcode-Live-Vorschau
   useEffect(() => {
@@ -79,6 +88,7 @@ function PersonIdentifikationImpl(
     if (!wert) {
       setVorschau(null);
       onPersonInfo?.(null);
+      onVorschau?.(null);
       return;
     }
     const timeout = setTimeout(() => {
@@ -86,11 +96,14 @@ function PersonIdentifikationImpl(
         .then((v) => {
           setVorschau(v);
           onPersonInfo?.({ name: v.name, funktion_id: v.funktion_id, gruppe_id: v.gruppe_id, bild_url: v.bild_url });
+          // Barcode selbst ist der Nachweis – Bildvorschau direkt melden.
+          onVorschau?.({ name: v.name, bild_url: v.bild_url });
           spieleErkannt();
         })
         .catch(() => {
           setVorschau(null);
           onPersonInfo?.(null);
+          onVorschau?.(null);
           spieleFehler();
         });
     }, 250);
@@ -115,6 +128,31 @@ function PersonIdentifikationImpl(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suche, gewaehlt, barcodeModus]);
 
+  // Live-PIN-Prüfung: das Profilbild erscheint erst, wenn der korrekte PIN
+  // eingegeben wurde (nicht schon bei der Namensauswahl).
+  useEffect(() => {
+    if (barcodeModus || !gewaehlt || !gewaehlt.pin_gesetzt || !pin) {
+      setPinBestaetigt(null);
+      onVorschau?.(null);
+      return;
+    }
+    const person = gewaehlt;
+    const eingabe = pin;
+    const timeout = setTimeout(() => {
+      namePinPruefen(person.id, eingabe)
+        .then((v) => {
+          setPinBestaetigt(v);
+          onVorschau?.(v);
+        })
+        .catch(() => {
+          setPinBestaetigt(null);
+          onVorschau?.(null);
+        });
+    }, 400);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pin, gewaehlt, barcodeModus]);
+
   function zuruecksetzen() {
     setBarcode("");
     setVorschau(null);
@@ -123,6 +161,8 @@ function PersonIdentifikationImpl(
     setGewaehlt(null);
     setPin("");
     setMeldung(null);
+    setPinBestaetigt(null);
+    onVorschau?.(null);
   }
 
   function personWaehlen(p: PersonAuswahl) {
@@ -131,7 +171,10 @@ function PersonIdentifikationImpl(
     setSuche(p.name);
     setPin("");
     setMeldung(null);
-    onPersonInfo?.({ name: p.name, funktion_id: null, gruppe_id: null, bild_url: p.bild_url });
+    setPinBestaetigt(null);
+    onVorschau?.(null);
+    // Gruppe/Funktion sofort vorwählen (Bild kommt erst nach korrektem PIN).
+    onPersonInfo?.({ name: p.name, funktion_id: p.funktion_id, gruppe_id: p.gruppe_id, bild_url: p.bild_url });
   }
 
   async function pinLinkAnfordern() {
@@ -217,7 +260,9 @@ function PersonIdentifikationImpl(
             setGewaehlt(null);
             setPin("");
             setMeldung(null);
+            setPinBestaetigt(null);
             onPersonInfo?.(null);
+            onVorschau?.(null);
           }
         }}
       />
@@ -238,14 +283,14 @@ function PersonIdentifikationImpl(
         </ul>
       )}
 
-      {gewaehlt && !ohneVorschau && (
+      {pinBestaetigt && !ohneVorschau && (
         <div className="person-ident-vorschau">
-          {gewaehlt.bild_url ? (
-            <img src={gewaehlt.bild_url} alt={gewaehlt.name} className="person-ident-bild" />
+          {pinBestaetigt.bild_url ? (
+            <img src={pinBestaetigt.bild_url} alt={pinBestaetigt.name} className="person-ident-bild" />
           ) : (
-            <div className="person-ident-initialen">{initialen(gewaehlt.name)}</div>
+            <div className="person-ident-initialen">{initialen(pinBestaetigt.name)}</div>
           )}
-          <div className="person-ident-name">{gewaehlt.name}</div>
+          <div className="person-ident-name">{pinBestaetigt.name}</div>
         </div>
       )}
 

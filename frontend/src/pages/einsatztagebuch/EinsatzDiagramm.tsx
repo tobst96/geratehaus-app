@@ -660,8 +660,10 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                         ohneVorschau
                         onPersonInfo={(info) => {
                           if (info?.funktion_id) setFunktionId(info.funktion_id);
-                          setIdentPerson(info ? { name: info.name, bildUrl: info.bild_url } : null);
                         }}
+                        onVorschau={(p) =>
+                          setIdentPerson(p ? { name: p.name, bildUrl: p.bild_url } : null)
+                        }
                       />
                     )}
                   </div>

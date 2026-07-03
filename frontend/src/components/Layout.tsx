@@ -5,6 +5,10 @@ import { useTheme } from "../hooks/useTheme";
 
 function startseite(moderatorAngemeldet: boolean, angezeigterName: string | null): string {
   if (moderatorAngemeldet) return "/moderator/dashboard";
+  // Auf einem Kiosk-Tablet führt das Logo zurück zur Kiosk-Startseite, nicht zur
+  // öffentlichen Landing-/Login-Seite.
+  const kioskToken = localStorage.getItem("kiosk_token");
+  if (kioskToken) return `/kiosk/${kioskToken}`;
   if (angezeigterName) return "/mitglied";
   return "/";
 }

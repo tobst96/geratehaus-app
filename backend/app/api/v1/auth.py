@@ -19,6 +19,7 @@ from app.schemas.auth import (
     ModeratorToken,
     NameEintragen,
     NamePinLogin,
+    NamePinVorschau,
     PersonAuswahl,
     PinAnfordern,
 )
@@ -208,9 +209,32 @@ async def personen_auswahl(db: DbSession, suche: str = "") -> list[PersonAuswahl
         query = query.where(Person.name.ilike(f"%{begriff}%"))
     personen = (await db.execute(query.limit(50))).scalars().all()
     return [
-        PersonAuswahl(id=p.id, name=p.name, bild_url=p.bild_url, pin_gesetzt=p.pin_gesetzt)
+        PersonAuswahl(
+            id=p.id,
+            name=p.name,
+            bild_url=p.bild_url,
+            pin_gesetzt=p.pin_gesetzt,
+            funktion_id=p.funktion_id,
+            gruppe_id=p.gruppe_id,
+        )
         for p in personen
     ]
+
+
+@router.post(
+    "/name-pin/pruefen",
+    response_model=NamePinVorschau,
+    dependencies=[Depends(rate_limit(20, 60))],
+)
+async def name_pin_pruefen(db: DbSession, daten: NamePinLogin) -> NamePinVorschau:
+    """Prüft den PIN, OHNE einzuloggen (kein Cookie) – nur für die Bildvorschau am
+    Kiosk, sobald der korrekte PIN eingegeben wurde. Bei falschem/fehlendem PIN 401."""
+    person = await stammdaten_service.get_person(db, daten.person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    if not person.pin_gesetzt or not stammdaten_service.person_pin_korrekt(person, daten.pin):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="PIN falsch.")
+    return NamePinVorschau(name=person.name, bild_url=person.bild_url)
 
 
 @router.post(
