@@ -64,5 +64,7 @@ class ModeratorToken(BaseModel):
 
 
 class MeinProfil(BaseModel):
+    name: str
+    bild_url: str | None
     gruppe_id: int | None
     funktion_id: int | None

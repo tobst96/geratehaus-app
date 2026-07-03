@@ -37,7 +37,7 @@ export function PersonKanaele({ personId, personEmail }: { personId: number; per
         if (abbruch) return;
         setTypen(typenR);
         const map: Record<string, Wert> = {};
-        for (const t of typenR) map[t.key] = { zielwert: "", aktiv: true };
+        for (const t of typenR) map[t.key] = { zielwert: "", aktiv: false };
         for (const k of kanaeleR) map[k.typ] = { zielwert: k.zielwert, aktiv: k.aktiv };
         setWerte(map);
         setEreignisTypen(ereignisR);
@@ -64,7 +64,7 @@ export function PersonKanaele({ personId, personEmail }: { personId: number; per
   }
 
   async function speichern(typ: string) {
-    const w = werte[typ] ?? { zielwert: "", aktiv: true };
+    const w = werte[typ] ?? { zielwert: "", aktiv: false };
     try {
       await setzePersonKanal(personId, typ, w.zielwert, w.aktiv);
       setHinweis("Gespeichert.");
@@ -78,7 +78,7 @@ export function PersonKanaele({ personId, personEmail }: { personId: number; per
     <div>
       <h3>Benachrichtigungskanäle</h3>
       {typen.map((t) => {
-        const w = werte[t.key] ?? { zielwert: "", aktiv: true };
+        const w = werte[t.key] ?? { zielwert: "", aktiv: false };
         return (
           <div
             key={t.key}

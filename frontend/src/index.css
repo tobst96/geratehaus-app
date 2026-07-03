@@ -788,6 +788,9 @@ table tr:hover {
   font-weight: 700;
   flex-shrink: 0;
 }
+.mitglied-avatar-bild {
+  object-fit: cover;
+}
 .mitglied-profil-name {
   font-weight: 600;
   flex: 1;

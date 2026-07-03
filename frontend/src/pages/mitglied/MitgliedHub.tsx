@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
+import { holeMeinProfil } from "../../api/auth";
 import { KACHEL_ICONS, type KachelModulKey } from "../kachelIcons";
 
 const MODULE: { key: KachelModulKey; aktivKey: string; aussenKey: string; route: string; label: string }[] = [
@@ -24,6 +26,20 @@ export function MitgliedHub() {
   const navigate = useNavigate();
   const { angezeigterName, mitgliedAbmelden } = useAuth();
   const { config } = useConfig();
+  const [bildUrl, setBildUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!angezeigterName) return;
+    let abbruch = false;
+    holeMeinProfil()
+      .then((p) => {
+        if (!abbruch) setBildUrl(p.bild_url);
+      })
+      .catch(() => {});
+    return () => {
+      abbruch = true;
+    };
+  }, [angezeigterName]);
 
   const sichtbar = MODULE.filter(
     (m) => (config as Record<string, unknown> | null)?.[m.aktivKey] && (config as Record<string, unknown> | null)?.[m.aussenKey]
@@ -38,7 +54,11 @@ export function MitgliedHub() {
     <div className="mitglied-hub">
       {angezeigterName && (
         <div className="mitglied-profil">
-          <div className="mitglied-avatar">{initialen(angezeigterName)}</div>
+          {bildUrl ? (
+            <img src={bildUrl} alt={angezeigterName} className="mitglied-avatar mitglied-avatar-bild" />
+          ) : (
+            <div className="mitglied-avatar">{initialen(angezeigterName)}</div>
+          )}
           <div className="mitglied-profil-name">{angezeigterName}</div>
           <button type="button" className="mitglied-abmelden-link" onClick={abmelden}>
             Abmelden

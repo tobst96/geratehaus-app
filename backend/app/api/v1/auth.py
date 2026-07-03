@@ -49,7 +49,12 @@ async def abmelden(response: Response) -> None:
 
 @router.get("/mein-profil", response_model=MeinProfil)
 async def mein_profil(person: CurrentPerson) -> MeinProfil:
-    return MeinProfil(gruppe_id=person.gruppe_id, funktion_id=person.funktion_id)
+    return MeinProfil(
+        name=person.name,
+        bild_url=person.bild_url,
+        gruppe_id=person.gruppe_id,
+        funktion_id=person.funktion_id,
+    )
 
 
 @router.post("/name", status_code=status.HTTP_204_NO_CONTENT)
