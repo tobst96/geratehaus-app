@@ -38,11 +38,26 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
-        <h2>PIN für den Außenzugriff</h2>
+        <h2>Anmeldung per Name &amp; PIN</h2>
         <p>
-          Wenn du einen PIN einrichtest, wird dieser ausschließlich als Hash (nicht im Klartext) in
-          der Datenbank gespeichert. Der PIN ermöglicht dir, von außerhalb des Gerätehauses auf den
-          Fahrzeugkalender und deine eigenen Dienststunden zuzugreifen.
+          Standardmäßig identifizierst du dich – am Kiosk-Tablet im Gerätehaus ebenso wie beim
+          Zugriff von außerhalb (Mitglieder-Login) – über die Auswahl deines Namens und deinen
+          persönlichen PIN. Der PIN wird ausschließlich als Hash (nicht im Klartext) in der
+          Datenbank gespeichert und dient dazu, dir deine Eintragungen und den Zugriff auf
+          freigegebene Module (z. B. Fahrzeugkalender, eigene Dienststunden) eindeutig zuzuordnen.
+        </p>
+        <p>
+          Hast du noch keinen PIN gesetzt, kannst du dir einen Link zum Setzen deines PINs an deine
+          hinterlegte E-Mail-Adresse schicken lassen. Ist keine E-Mail hinterlegt, wird stattdessen
+          eine Freigabe-Anfrage an die Moderatoren deiner Organisation gesendet, die daraufhin eine
+          E-Mail-Adresse (und auf Wunsch direkt einen PIN) für dich hinterlegen können. Solange kein
+          PIN gesetzt ist, kann an eine hinterlegte E-Mail-Adresse in einstellbaren Abständen eine
+          Erinnerung zum Setzen des PINs versendet werden.
+        </p>
+        <p>
+          Alternativ kann deine Organisation die Identifikation per persönlichem <strong>Barcode</strong>
+          aktivieren; in diesem Fall identifizierst du dich am Kiosk durch Scannen deines Barcodes
+          statt per Name und PIN.
         </p>
       </div>
 

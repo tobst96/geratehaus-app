@@ -567,6 +567,11 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   gegen aktuellen Stand geprüft und nachgezogen (Punktesystem entfernt, Module/
   Berechtigungen, Divera-Adresse/Meldung/Personal, Updater, Hintergrundjobs). Ein
   eigenständiges **Stable-Release** (Nicht-Prerelease) steht weiterhin aus.
+- Notiz (Stand 03.07.2026): Nach dem Merge des Barcode-/Namen+PIN-Logins die
+  Datenschutz-Seite (`Datenschutz.tsx`) erneut nachgezogen: PIN ist jetzt der
+  Standard-Login (Namensauswahl + PIN am Kiosk und beim Außenzugriff), inkl. der
+  neuen E-Mail-Verarbeitung (PIN-Self-Service-Link, Moderator-Freigabe,
+  Erinnerungsmails) und Barcode als optionale Alternative.
 
 ---
 
