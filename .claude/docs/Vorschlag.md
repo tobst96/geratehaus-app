@@ -39,7 +39,23 @@ Empfohlene Reihenfolge (alle Punkte vom Nutzer gewünscht):
    das E-Mail-Konto des Nutzers; Passkey ist deutlich stärker, aber nicht auf jedem
    Gerät verfügbar → beide anbieten, E-Mail-OTP als Fallback.
 5. **Audit-Log** `⭐⭐ · M` — protokolliert **Löschungen, Freigaben und
-   Rechteänderungen** (wer/wann/was), modulübergreifend, im Admin einsehbar.
+   Rechteänderungen** (wer/wann/was), modulübergreifend, **nur für Admin** einsehbar.
+
+### Beschlossene Detail-Entscheidungen (05.07.2026)
+
+- **2FA:** für **Admin + Moderator**. **E-Mail-Code (OTP)** als Standard,
+  **Passkey/WebAuthn** als optionale starke Alternative. Abfrage **nur bei neuem/
+  unbekanntem Gerät** (Trusted-Device für 30 Tage merken).
+- **PIN-Brute-Force:** **5 Fehlversuche → 15 Min Sperre pro Person** + **Rate-Limit
+  pro IP**. Nach 15 Min automatisch frei; **Moderator kann manuell entsperren**.
+  Sperre als `PersonEreignis` protokollieren.
+- **Geschützte Datei-Auslieferung:** **kurzlebige, signierte Token-Links** je Datei
+  (kein dauerhaft öffentlicher `/uploads`-Pfad). Upload zusätzlich Magic-Bytes-Prüfung
+  + EXIF entfernen.
+- **Audit-Log:** **nur Admin** einsehbar; **1 Jahr in der DB, danach automatisch
+  löschen**; **Admin-Export (CSV/JSON)** für manuelle Langzeit-Sicherung. Bewusst
+  **keine MinIO-Archivierung** (bei dieser Größe Over-Engineering; die Frist ist
+  Datenminimierung; die Tabelle liegt ohnehin im Voll-Backup).
 
 > Weil jetzt **öffentlich über HTTPS**: **Web-Push wird nutzbar** → der fehlende
 > Frontend-Abo-Flow (siehe „Benachrichtigungen") lohnt sich jetzt konkret.
