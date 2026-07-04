@@ -55,6 +55,14 @@ async def _rendern(db: AsyncSession, template_name: str, **kontext: Any) -> byte
     return await asyncio.to_thread(_render_pdf_sync, html_text)
 
 
+async def _archiviere(db: AsyncSession, schluessel: str, pdf_bytes: bytes) -> None:
+    """Optionales PDF-Archiv im Objektspeicher (S3/MinIO). Late import wegen
+    Modul-Reihenfolge; best-effort (wirft nie)."""
+    from app.services import backup_service
+
+    await backup_service.archiviere_pdf(db, schluessel, pdf_bytes)
+
+
 async def einsatz_pdf(db: AsyncSession, einsatz: Any) -> bytes:
     felder = await stammdaten_service.liste_einsatz_felder(db, nur_aktive=True)
     zusatzfelder_anzeige = []
@@ -63,14 +71,23 @@ async def einsatz_pdf(db: AsyncSession, einsatz: Any) -> bytes:
         if wert in (None, "", False):
             continue
         zusatzfelder_anzeige.append({"label": f.label, "wert": "Ja" if wert is True else wert})
-    return await _rendern(db, "einsatz.html", einsatz=einsatz, zusatzfelder_anzeige=zusatzfelder_anzeige)
+    pdf = await _rendern(db, "einsatz.html", einsatz=einsatz, zusatzfelder_anzeige=zusatzfelder_anzeige)
+    await _archiviere(db, f"einsaetze/einsatz-{getattr(einsatz, 'id', 'x')}.pdf", pdf)
+    return pdf
 
 
 async def dienstbuch_pdf(db: AsyncSession, dienstbuch: Any) -> bytes:
-    return await _rendern(db, "dienstbuch.html", dienstbuch=dienstbuch)
+    pdf = await _rendern(db, "dienstbuch.html", dienstbuch=dienstbuch)
+    await _archiviere(db, f"dienstbuecher/dienstbuch-{getattr(dienstbuch, 'id', 'x')}.pdf", pdf)
+    return pdf
 
 
 async def liste_pdf(
     db: AsyncSession, titel: str, spalten: list[dict[str, str]], zeilen: list[dict[str, Any]]
 ) -> bytes:
-    return await _rendern(db, "liste.html", titel=titel, spalten=spalten, zeilen=zeilen)
+    from datetime import datetime, timezone
+
+    pdf = await _rendern(db, "liste.html", titel=titel, spalten=spalten, zeilen=zeilen)
+    stempel = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    await _archiviere(db, f"listen/{titel.lower()}-{stempel}.pdf", pdf)
+    return pdf

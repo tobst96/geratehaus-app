@@ -44,7 +44,28 @@ services:
       backend:
         condition: service_healthy
 
+  # Optionaler, lokal mitgelieferter S3-Speicher (MinIO). Startet NUR mit
+  # `docker compose --profile minio up -d`. Danach im Modul „Backup" als
+  # S3-Ziel eintragen: Endpoint http://minio:9000, Access/Secret = die
+  # MINIO_ROOT_*-Werte, Bucket vorher in der Konsole (Port 9101) anlegen.
+  # WICHTIG: MinIO auf DEMSELBEN Host ist KEIN Off-Site-Backup – zusätzlich
+  # ein externes Ziel (WebDAV/SFTP/externes S3) nutzen.
+  minio:
+    image: minio/minio:latest
+    profiles: ["minio"]
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-geratehaus}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-bitte-aendern}"
+    ports:
+      - "${MINIO_API_PORT:-9100}:9000"
+      - "${MINIO_CONSOLE_PORT:-9101}:9001"
+    volumes:
+      - minio_data:/data
+
 volumes:
   postgres_data:
   uploads:
   backups:
+  minio_data:

@@ -43,6 +43,22 @@ async def einstellungen_lesen(db: DbSession, _admin: CurrentAdmin) -> BackupEins
         webdav_passwort_gesetzt=bool(str(await g(db, "backup_webdav_passwort", ""))),
         webdav_pfad=str(await g(db, "backup_webdav_pfad", "geratehaus-backups")),
         fehler_mail_aktiv=bool(await g(db, "backup_fehler_mail_aktiv", False)),
+        s3_aktiv=bool(await g(db, "backup_s3_aktiv", False)),
+        s3_endpoint=str(await g(db, "backup_s3_endpoint", "")),
+        s3_region=str(await g(db, "backup_s3_region", "us-east-1")),
+        s3_bucket=str(await g(db, "backup_s3_bucket", "")),
+        s3_access_key=str(await g(db, "backup_s3_access_key", "")),
+        s3_secret_gesetzt=bool(str(await g(db, "backup_s3_secret_key", ""))),
+        s3_pfad=str(await g(db, "backup_s3_pfad", "backups")),
+        sftp_aktiv=bool(await g(db, "backup_sftp_aktiv", False)),
+        sftp_host=str(await g(db, "backup_sftp_host", "")),
+        sftp_port=int(await g(db, "backup_sftp_port", 22)),
+        sftp_user=str(await g(db, "backup_sftp_user", "")),
+        sftp_passwort_gesetzt=bool(str(await g(db, "backup_sftp_passwort", ""))),
+        sftp_pfad=str(await g(db, "backup_sftp_pfad", "geratehaus-backups")),
+        email_aktiv=bool(await g(db, "backup_email_aktiv", False)),
+        pdf_archiv_aktiv=bool(await g(db, "backup_pdf_archiv_aktiv", False)),
+        pdf_archiv_pfad=str(await g(db, "backup_pdf_archiv_pfad", "pdfs")),
     )
 
 
@@ -77,6 +93,18 @@ async def einstellungen_setzen(
         await s(db, "backup_webdav_pfad", daten.webdav_pfad)
     if daten.fehler_mail_aktiv is not None:
         await s(db, "backup_fehler_mail_aktiv", daten.fehler_mail_aktiv)
+    for feld, key in [
+        (daten.s3_aktiv, "backup_s3_aktiv"), (daten.s3_endpoint, "backup_s3_endpoint"),
+        (daten.s3_region, "backup_s3_region"), (daten.s3_bucket, "backup_s3_bucket"),
+        (daten.s3_access_key, "backup_s3_access_key"), (daten.s3_secret_key, "backup_s3_secret_key"),
+        (daten.s3_pfad, "backup_s3_pfad"), (daten.sftp_aktiv, "backup_sftp_aktiv"),
+        (daten.sftp_host, "backup_sftp_host"), (daten.sftp_port, "backup_sftp_port"),
+        (daten.sftp_user, "backup_sftp_user"), (daten.sftp_passwort, "backup_sftp_passwort"),
+        (daten.sftp_pfad, "backup_sftp_pfad"), (daten.email_aktiv, "backup_email_aktiv"),
+        (daten.pdf_archiv_aktiv, "backup_pdf_archiv_aktiv"), (daten.pdf_archiv_pfad, "backup_pdf_archiv_pfad"),
+    ]:
+        if feld is not None:
+            await s(db, key, feld)
     return await einstellungen_lesen(db, _admin)
 
 

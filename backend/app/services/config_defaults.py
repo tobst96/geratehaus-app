@@ -334,4 +334,24 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("backup_webdav_passwort", "", ConfigTyp.STR, "WebDAV-Passwort/App-Token"),
     ConfigDefault("backup_webdav_pfad", "geratehaus-backups", ConfigTyp.STR, "WebDAV-Unterordner für Backups"),
     ConfigDefault("backup_fehler_mail_aktiv", "false", ConfigTyp.BOOL, "Bei fehlgeschlagenem Backup Admins per Mail benachrichtigen"),
+    # Backup-Ziel: S3-kompatibel (AWS S3, MinIO, Backblaze B2 …)
+    ConfigDefault("backup_s3_aktiv", "false", ConfigTyp.BOOL, "Backup-Ziel: S3-kompatibel aktiv"),
+    ConfigDefault("backup_s3_endpoint", "", ConfigTyp.STR, "S3-Endpoint-URL (leer = AWS; für MinIO z. B. http://minio:9000)"),
+    ConfigDefault("backup_s3_region", "us-east-1", ConfigTyp.STR, "S3-Region"),
+    ConfigDefault("backup_s3_bucket", "", ConfigTyp.STR, "S3-Bucket"),
+    ConfigDefault("backup_s3_access_key", "", ConfigTyp.STR, "S3 Access Key"),
+    ConfigDefault("backup_s3_secret_key", "", ConfigTyp.STR, "S3 Secret Key"),
+    ConfigDefault("backup_s3_pfad", "backups", ConfigTyp.STR, "S3-Präfix (Ordner) für Backups"),
+    # Backup-Ziel: SFTP/SSH
+    ConfigDefault("backup_sftp_aktiv", "false", ConfigTyp.BOOL, "Backup-Ziel: SFTP aktiv"),
+    ConfigDefault("backup_sftp_host", "", ConfigTyp.STR, "SFTP-Host"),
+    ConfigDefault("backup_sftp_port", "22", ConfigTyp.INT, "SFTP-Port"),
+    ConfigDefault("backup_sftp_user", "", ConfigTyp.STR, "SFTP-Benutzer"),
+    ConfigDefault("backup_sftp_passwort", "", ConfigTyp.STR, "SFTP-Passwort"),
+    ConfigDefault("backup_sftp_pfad", "geratehaus-backups", ConfigTyp.STR, "SFTP-Zielverzeichnis"),
+    # Backup-Ziel: E-Mail-Versand (Backup als Anhang an die Benachrichtigungs-Empfänger)
+    ConfigDefault("backup_email_aktiv", "false", ConfigTyp.BOOL, "Backup-Ziel: als E-Mail-Anhang versenden"),
+    # PDF-Archiv im Objektspeicher (S3/MinIO): alle erzeugten PDFs zusätzlich sichern
+    ConfigDefault("backup_pdf_archiv_aktiv", "false", ConfigTyp.BOOL, "Erzeugte PDFs zusätzlich im S3-Objektspeicher archivieren"),
+    ConfigDefault("backup_pdf_archiv_pfad", "pdfs", ConfigTyp.STR, "S3-Präfix (Ordner) für das PDF-Archiv"),
 ]

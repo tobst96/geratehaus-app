@@ -28,6 +28,8 @@ export function BackupModul() {
   const [einst, setEinst] = useState<BackupEinstellungen | null>(null);
   const [passphrase, setPassphrase] = useState("");
   const [webdavPw, setWebdavPw] = useState("");
+  const [s3Secret, setS3Secret] = useState("");
+  const [sftpPw, setSftpPw] = useState("");
   const [backups, setBackups] = useState<BackupOut[]>([]);
   const [meldung, setMeldung] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -85,11 +87,29 @@ export function BackupModul() {
         webdav_user: einst.webdav_user,
         webdav_pfad: einst.webdav_pfad,
         fehler_mail_aktiv: einst.fehler_mail_aktiv,
+        s3_aktiv: einst.s3_aktiv,
+        s3_endpoint: einst.s3_endpoint,
+        s3_region: einst.s3_region,
+        s3_bucket: einst.s3_bucket,
+        s3_access_key: einst.s3_access_key,
+        s3_pfad: einst.s3_pfad,
+        sftp_aktiv: einst.sftp_aktiv,
+        sftp_host: einst.sftp_host,
+        sftp_port: einst.sftp_port,
+        sftp_user: einst.sftp_user,
+        sftp_pfad: einst.sftp_pfad,
+        email_aktiv: einst.email_aktiv,
+        pdf_archiv_aktiv: einst.pdf_archiv_aktiv,
+        pdf_archiv_pfad: einst.pdf_archiv_pfad,
         ...(passphrase ? { passphrase } : {}),
         ...(webdavPw ? { webdav_passwort: webdavPw } : {}),
+        ...(s3Secret ? { s3_secret_key: s3Secret } : {}),
+        ...(sftpPw ? { sftp_passwort: sftpPw } : {}),
       });
       setPassphrase("");
       setWebdavPw("");
+      setS3Secret("");
+      setSftpPw("");
       setMeldung("Einstellungen gespeichert.");
       await laden();
     } catch (err) {
@@ -168,7 +188,12 @@ export function BackupModul() {
       <p>
         <Link to="/moderator/module">← Zurück zu den Modulen</Link>
       </p>
-      <h1>Backup</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0 }}>Backup</h1>
+        <button onClick={sichern} disabled={laeuft}>
+          {laeuft ? "Sichert …" : "Jetzt Backup erstellen"}
+        </button>
+      </div>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {meldung && <p style={{ color: "var(--farbe-text-mute)" }}>{meldung}</p>}
 
@@ -287,6 +312,104 @@ export function BackupModul() {
           <label htmlFor="wp">Unterordner</label>
           <input id="wp" value={einst.webdav_pfad} onChange={(e) => feld("webdav_pfad", e.target.value)} />
         </div>
+
+        <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12 }}>
+          <input type="checkbox" checked={einst.s3_aktiv} onChange={(e) => feld("s3_aktiv", e.target.checked)} />
+          S3-kompatibel (AWS S3, MinIO, Backblaze B2 …)
+        </label>
+        <div className="formular-feld">
+          <label htmlFor="s3e">Endpoint (leer = AWS; MinIO z. B. http://minio:9000)</label>
+          <input id="s3e" value={einst.s3_endpoint} onChange={(e) => feld("s3_endpoint", e.target.value)} />
+        </div>
+        <div className="formular-feld">
+          <label htmlFor="s3b">Bucket</label>
+          <input id="s3b" value={einst.s3_bucket} onChange={(e) => feld("s3_bucket", e.target.value)} />
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="formular-feld" style={{ flex: 1, minWidth: 160 }}>
+            <label htmlFor="s3r">Region</label>
+            <input id="s3r" value={einst.s3_region} onChange={(e) => feld("s3_region", e.target.value)} />
+          </div>
+          <div className="formular-feld" style={{ flex: 1, minWidth: 160 }}>
+            <label htmlFor="s3p">Präfix/Ordner</label>
+            <input id="s3p" value={einst.s3_pfad} onChange={(e) => feld("s3_pfad", e.target.value)} />
+          </div>
+        </div>
+        <div className="formular-feld">
+          <label htmlFor="s3a">Access Key</label>
+          <input id="s3a" value={einst.s3_access_key} onChange={(e) => feld("s3_access_key", e.target.value)} />
+        </div>
+        <div className="formular-feld">
+          <label htmlFor="s3s">Secret Key</label>
+          <input
+            id="s3s"
+            type="password"
+            value={s3Secret}
+            onChange={(e) => setS3Secret(e.target.value)}
+            placeholder={einst.s3_secret_gesetzt ? "•••••• (gesetzt)" : ""}
+            autoComplete="new-password"
+          />
+        </div>
+
+        <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12 }}>
+          <input type="checkbox" checked={einst.sftp_aktiv} onChange={(e) => feld("sftp_aktiv", e.target.checked)} />
+          SFTP / SSH
+        </label>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="formular-feld" style={{ flex: 2, minWidth: 200 }}>
+            <label htmlFor="sfh">Host</label>
+            <input id="sfh" value={einst.sftp_host} onChange={(e) => feld("sftp_host", e.target.value)} />
+          </div>
+          <div className="formular-feld" style={{ flex: 1, minWidth: 100 }}>
+            <label htmlFor="sfpo">Port</label>
+            <input id="sfpo" type="number" value={einst.sftp_port} onChange={(e) => feld("sftp_port", Number(e.target.value))} />
+          </div>
+        </div>
+        <div className="formular-feld">
+          <label htmlFor="sfu">Benutzer</label>
+          <input id="sfu" value={einst.sftp_user} onChange={(e) => feld("sftp_user", e.target.value)} />
+        </div>
+        <div className="formular-feld">
+          <label htmlFor="sfpw">Passwort</label>
+          <input
+            id="sfpw"
+            type="password"
+            value={sftpPw}
+            onChange={(e) => setSftpPw(e.target.value)}
+            placeholder={einst.sftp_passwort_gesetzt ? "•••••• (gesetzt)" : ""}
+            autoComplete="new-password"
+          />
+        </div>
+        <div className="formular-feld">
+          <label htmlFor="sfp">Zielverzeichnis</label>
+          <input id="sfp" value={einst.sftp_pfad} onChange={(e) => feld("sftp_pfad", e.target.value)} />
+        </div>
+
+        <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12 }}>
+          <input type="checkbox" checked={einst.email_aktiv} onChange={(e) => feld("email_aktiv", e.target.checked)} />
+          Als E-Mail-Anhang an die Benachrichtigungs-Empfänger (nur für kleine Instanzen)
+        </label>
+      </div>
+
+      {/* --- PDF-Archiv --- */}
+      <div className="karte">
+        <h2>PDF-Archiv (Objektspeicher)</h2>
+        <p style={{ color: "var(--farbe-text-mute)" }}>
+          Legt jede erzeugte PDF (Einsatz-/Dienstbuch-Abschluss, Listen-Exporte) zusätzlich im
+          S3-Objektspeicher ab. Benötigt ein aktives S3-Ziel (siehe oben).
+        </p>
+        <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <input
+            type="checkbox"
+            checked={einst.pdf_archiv_aktiv}
+            onChange={(e) => feld("pdf_archiv_aktiv", e.target.checked)}
+          />
+          Erzeugte PDFs im S3-Objektspeicher archivieren
+        </label>
+        <div className="formular-feld">
+          <label htmlFor="pdfp">Präfix/Ordner</label>
+          <input id="pdfp" value={einst.pdf_archiv_pfad} onChange={(e) => feld("pdf_archiv_pfad", e.target.value)} />
+        </div>
       </div>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
@@ -294,7 +417,7 @@ export function BackupModul() {
           {laeuft ? "Speichert …" : "Einstellungen speichern"}
         </button>
         <button className="sekundaer" onClick={sichern} disabled={laeuft}>
-          Jetzt sichern
+          Jetzt Backup erstellen
         </button>
       </div>
 

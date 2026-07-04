@@ -37,6 +37,26 @@ class BackupEinstellungen(BaseModel):
     webdav_passwort_gesetzt: bool
     webdav_pfad: str
     fehler_mail_aktiv: bool
+    # S3-kompatibel (PR 2)
+    s3_aktiv: bool
+    s3_endpoint: str
+    s3_region: str
+    s3_bucket: str
+    s3_access_key: str
+    s3_secret_gesetzt: bool
+    s3_pfad: str
+    # SFTP (PR 2)
+    sftp_aktiv: bool
+    sftp_host: str
+    sftp_port: int
+    sftp_user: str
+    sftp_passwort_gesetzt: bool
+    sftp_pfad: str
+    # E-Mail-Versand (PR 2)
+    email_aktiv: bool
+    # PDF-Archiv (PR 2)
+    pdf_archiv_aktiv: bool
+    pdf_archiv_pfad: str
 
 
 class BackupEinstellungenUpdate(BaseModel):
@@ -54,6 +74,22 @@ class BackupEinstellungenUpdate(BaseModel):
     webdav_passwort: str | None = None
     webdav_pfad: str | None = None
     fehler_mail_aktiv: bool | None = None
+    s3_aktiv: bool | None = None
+    s3_endpoint: str | None = None
+    s3_region: str | None = None
+    s3_bucket: str | None = None
+    s3_access_key: str | None = None
+    s3_secret_key: str | None = None
+    s3_pfad: str | None = None
+    sftp_aktiv: bool | None = None
+    sftp_host: str | None = None
+    sftp_port: int | None = None
+    sftp_user: str | None = None
+    sftp_passwort: str | None = None
+    sftp_pfad: str | None = None
+    email_aktiv: bool | None = None
+    pdf_archiv_aktiv: bool | None = None
+    pdf_archiv_pfad: str | None = None
 
 
 class BackupKategorie(BaseModel):
