@@ -9,6 +9,7 @@ import { PersonalModul } from "./module/PersonalModul";
 import { BarcodeModul } from "./module/BarcodeModul";
 import { BenachrichtigungenModul } from "./module/BenachrichtigungenModul";
 import { KioskModul } from "./module/KioskModul";
+import { BackupModul } from "./module/BackupModul";
 
 export function ModulUnterseite() {
   const { key } = useParams<{ key: string }>();
@@ -34,6 +35,8 @@ export function ModulUnterseite() {
       return <BenachrichtigungenModul />;
     case "kiosk":
       return <KioskModul />;
+    case "backup":
+      return <BackupModul />;
     default:
       return (
         <div>

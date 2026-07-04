@@ -37,6 +37,7 @@ FEATURE_MODULE: list[FeatureModulDef] = [
     # Interne, immer aktive Verwaltungsbereiche als eigene Modul-Unterseite.
     FeatureModulDef("benachrichtigungen", "Benachrichtigungen", False, immer_aktiv=True),
     FeatureModulDef("kiosk", "Kiosk", False, immer_aktiv=True),
+    FeatureModulDef("backup", "Backup", False, immer_aktiv=True),
     FeatureModulDef("einsatztagebuch", "Einsatztagebuch", True),
     FeatureModulDef("dienstbuch", "Dienstbuch", True),
     FeatureModulDef("dienststunden", "Dienststunden", True),

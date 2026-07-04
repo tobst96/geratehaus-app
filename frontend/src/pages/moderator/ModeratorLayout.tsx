@@ -67,6 +67,7 @@ const MODUL_ICON: Record<string, string> = {
   barcode: "barcodes",
   benachrichtigungen: "benachrichtigungen",
   kiosk: "kiosk",
+  backup: "backup",
 };
 
 export function ModeratorLayout() {

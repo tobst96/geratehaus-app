@@ -66,7 +66,7 @@ DEFAULTS: list[ConfigDefault] = [
     # anhand der Registry ergänzt bzw. ignoriert.
     ConfigDefault(
         "modul_reihenfolge",
-        "personal,fahrzeuge,benachrichtigungen,kiosk,einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,divera,barcode",
+        "personal,fahrzeuge,benachrichtigungen,kiosk,backup,einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,divera,barcode",
         ConfigTyp.STR,
         "Reihenfolge der Feature-Module (kommagetrennte Keys)",
     ),
@@ -317,4 +317,21 @@ DEFAULTS: list[ConfigDefault] = [
     ),
     # Setup
     ConfigDefault("setup_abgeschlossen", "false", ConfigTyp.BOOL, "Setup-Wizard abgeschlossen"),
+    # Backup-Modul
+    ConfigDefault("backup_zeit_stunde", "3", ConfigTyp.INT, "Uhrzeit (Stunde) für automatische Backups"),
+    ConfigDefault("backup_zeit_minute", "0", ConfigTyp.INT, "Uhrzeit (Minute) für automatische Backups"),
+    ConfigDefault(
+        "backup_wochentage", "0,1,2,3,4,5,6", ConfigTyp.STR,
+        "Wochentage für automatische Backups (0=Mo … 6=So, kommagetrennt; leer = aus)",
+    ),
+    ConfigDefault("backup_max_anzahl", "7", ConfigTyp.INT, "Maximale Anzahl aufbewahrter Backups je Ziel"),
+    ConfigDefault("backup_passphrase", "", ConfigTyp.STR, "Passphrase zur Verschlüsselung der Backups"),
+    ConfigDefault("backup_lokal_aktiv", "true", ConfigTyp.BOOL, "Backup-Ziel: lokaler Ordner/Mount aktiv"),
+    ConfigDefault("backup_lokal_pfad", "/app/backups", ConfigTyp.STR, "Backup-Ziel: lokaler Ordner-Pfad"),
+    ConfigDefault("backup_webdav_aktiv", "false", ConfigTyp.BOOL, "Backup-Ziel: WebDAV aktiv"),
+    ConfigDefault("backup_webdav_url", "", ConfigTyp.STR, "WebDAV-Basis-URL (z. B. https://cloud/remote.php/dav/files/user)"),
+    ConfigDefault("backup_webdav_user", "", ConfigTyp.STR, "WebDAV-Benutzer"),
+    ConfigDefault("backup_webdav_passwort", "", ConfigTyp.STR, "WebDAV-Passwort/App-Token"),
+    ConfigDefault("backup_webdav_pfad", "geratehaus-backups", ConfigTyp.STR, "WebDAV-Unterordner für Backups"),
+    ConfigDefault("backup_fehler_mail_aktiv", "false", ConfigTyp.BOOL, "Bei fehlgeschlagenem Backup Admins per Mail benachrichtigen"),
 ]

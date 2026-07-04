@@ -2,17 +2,20 @@
 (Divera-Polling, Archivierung). Wird im FastAPI-Lifespan gestartet/gestoppt."""
 
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 
 import structlog
 from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from sqlalchemy import func, select
 
 from app.core import zeit
 from app.db.session import AsyncSessionLocal
+from app.models.backup import Backup
 from app.services import (
     archive_service,
+    backup_service,
     barcode_service,
     dienstbuch_service,
     divera_personal_service,
@@ -176,6 +179,40 @@ async def _pin_erinnerung_job() -> None:
             logger.warning("pin_erinnerung_fehlgeschlagen", exc_info=True)
 
 
+async def _backup_job() -> None:
+    """Läuft alle 15 min; erstellt höchstens EIN Backup pro Tag zur konfigurierten
+    Uhrzeit an den gewählten Wochentagen (mit Nachhol-Logik nach Ausfall)."""
+    async with AsyncSessionLocal() as db:
+        try:
+            wochentage = {
+                int(x)
+                for x in str(await config_service.get(db, "backup_wochentage", "")).split(",")
+                if x.strip().isdigit()
+            }
+            if not wochentage:
+                return
+            jetzt = await zeit.jetzt_lokal(db)
+            if jetzt.weekday() not in wochentage:
+                return
+            stunde = int(await config_service.get(db, "backup_zeit_stunde", 3))
+            minute = int(await config_service.get(db, "backup_zeit_minute", 0))
+            if (jetzt.hour, jetzt.minute) < (stunde, minute):
+                return
+            tages_start_utc = jetzt.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc)
+            bereits = (
+                await db.execute(
+                    select(func.count())
+                    .select_from(Backup)
+                    .where(Backup.status == "ok", Backup.erstellt_am >= tages_start_utc)
+                )
+            ).scalar() or 0
+            if bereits:
+                return
+            await backup_service.erstelle_backup(db, ausloeser="geplant")
+        except Exception:
+            logger.warning("backup_job_fehlgeschlagen", exc_info=True)
+
+
 def registriere_jobs() -> None:
     # Immer registriert; ob tatsächlich synchronisiert wird, entscheidet
     # _divera_polling_job anhand der app_config-Werte (Einstellungen-UI),
@@ -270,6 +307,17 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("pin_erinnerung_job_registriert", uhrzeit="08:00")
+
+    # Alle 15 min; ob/ wann tatsächlich gesichert wird, entscheidet der Job anhand
+    # der konfigurierten Uhrzeit/Wochentage (einmal pro Tag, mit Nachhol-Logik).
+    scheduler.add_job(
+        _backup_job,
+        "interval",
+        minutes=15,
+        id="backup",
+        replace_existing=True,
+    )
+    logger.info("backup_job_registriert")
 
 
 def start() -> None:

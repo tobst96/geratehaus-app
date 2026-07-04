@@ -24,6 +24,9 @@ services:
       UPLOAD_DIR: /app/uploads
     volumes:
       - uploads:/app/uploads
+      # Backup-Zielordner. Für Sicherung außerhalb des Containers hier stattdessen
+      # einen Host-Bind-Mount eintragen, z. B.: - /pfad/auf/host/backups:/app/backups
+      - backups:/app/backups
       # Geteilter Ordner fürs Update-Signal: Die Update-Seite schreibt hier eine
       # Markerdatei; das Host-Skript scripts/updater.sh beobachtet denselben Ordner
       # auf dem Host und führt git pull + docker compose up -d --build aus.
@@ -44,3 +47,4 @@ services:
 volumes:
   postgres_data:
   uploads:
+  backups:
