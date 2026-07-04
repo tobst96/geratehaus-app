@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPatch, apiPost } from "./client";
+import { apiDelete, apiGet, apiPatch, apiPost, apiUpload } from "./client";
 
 export interface MinioEinstellungen {
   endpoint: string;
@@ -50,6 +50,9 @@ export const browseMinio = (bucket: string, prefix: string) =>
   );
 export const loescheMinioObjekt = (bucket: string, key: string) =>
   apiDelete<void>(`/moderator/minio/object?bucket=${encodeURIComponent(bucket)}&key=${encodeURIComponent(key)}`);
+
+export const uploadMinioObjekt = (bucket: string, prefix: string, datei: File) =>
+  apiUpload<{ key: string }>("/moderator/minio/upload", datei, "datei", { bucket, prefix });
 
 export async function ladeMinioObjekt(bucket: string, key: string): Promise<void> {
   const blob = await apiGet<Blob>(

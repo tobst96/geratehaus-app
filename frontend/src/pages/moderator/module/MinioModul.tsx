@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   browseMinio,
@@ -8,6 +8,7 @@ import {
   loescheMinioObjekt,
   setzeMinioEinstellungen,
   testeMinioVerbindung,
+  uploadMinioObjekt,
   type MinioBrowse,
   type MinioEinstellungen,
 } from "../../../api/minio";
@@ -39,6 +40,7 @@ export function MinioModul() {
   const [prefix, setPrefix] = useState("");
   const [inhalt, setInhalt] = useState<MinioBrowse | null>(null);
   const [browserFehler, setBrowserFehler] = useState<string | null>(null);
+  const uploadInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     holeMinioEinstellungen()
@@ -60,6 +62,16 @@ export function MinioModul() {
     } catch (err) {
       setInhalt(null);
       setBrowserFehler(err instanceof ApiError ? String(err.detail) : "Ordner nicht ladbar.");
+    }
+  }
+
+  async function hochladen(datei: File) {
+    setBrowserFehler(null);
+    try {
+      await uploadMinioObjekt(bucket, prefix, datei);
+      await oeffne(bucket, prefix);
+    } catch (err) {
+      setBrowserFehler(err instanceof ApiError ? String(err.detail) : "Upload fehlgeschlagen.");
     }
   }
 
@@ -136,6 +148,125 @@ export function MinioModul() {
       </p>
       {fehler && <p className="fehlertext">{fehler}</p>}
       {meldung && <p style={{ color: "var(--farbe-text-mute)" }}>{meldung}</p>}
+
+      {/* --- Dateibrowser (läuft über die App, kein Port-Öffnen nötig) --- */}
+      <div className="karte">
+        <h2>Dateibrowser</h2>
+        <p style={{ color: "var(--farbe-text-mute)" }}>
+          Buckets und Dateien direkt hier ansehen, hoch- und herunterladen – ohne den MinIO-Port zu
+          öffnen.
+        </p>
+        {browserFehler && <p className="fehlertext">{browserFehler}</p>}
+
+        <div className="formular-feld" style={{ maxWidth: 320 }}>
+          <label htmlFor="bucketsel">Bucket</label>
+          <select
+            id="bucketsel"
+            value={bucket}
+            onChange={(e) => (e.target.value ? oeffne(e.target.value, "") : setBucket(""))}
+          >
+            <option value="">– Bucket wählen –</option>
+            {buckets.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {bucket && (
+          <>
+            {/* Breadcrumb */}
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
+              <button type="button" className="sekundaer" onClick={() => oeffne(bucket, "")}>
+                {bucket}
+              </button>
+              {segmente.map((seg, i) => {
+                const p = segmente.slice(0, i + 1).join("/") + "/";
+                return (
+                  <span key={p} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    /
+                    <button type="button" className="sekundaer" onClick={() => oeffne(bucket, p)}>
+                      {seg}
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+
+            {/* Upload in den aktuellen Ordner */}
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}>
+              <input
+                ref={uploadInput}
+                type="file"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) hochladen(f);
+                  e.target.value = "";
+                }}
+              />
+              <button type="button" onClick={() => uploadInput.current?.click()}>
+                Datei hochladen
+              </button>
+              <span style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+                lädt in den aktuellen Ordner ({prefix || "Wurzel"})
+              </span>
+            </div>
+
+            {inhalt && (
+              <div className="tabelle-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Größe</th>
+                      <th>Geändert</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inhalt.ordner.map((o) => (
+                      <tr key={o}>
+                        <td>
+                          <button type="button" className="sekundaer" onClick={() => oeffne(bucket, o)}>
+                            📁 {basisname(o)}
+                          </button>
+                        </td>
+                        <td>–</td>
+                        <td>–</td>
+                        <td></td>
+                      </tr>
+                    ))}
+                    {inhalt.dateien.map((d) => (
+                      <tr key={d.key}>
+                        <td>📄 {basisname(d.key)}</td>
+                        <td>{groesse(d.groesse)}</td>
+                        <td>{new Date(d.geaendert).toLocaleString("de-DE")}</td>
+                        <td style={{ whiteSpace: "nowrap" }}>
+                          <button type="button" className="sekundaer" onClick={() => ladeMinioObjekt(bucket, d.key)}>
+                            Download
+                          </button>{" "}
+                          <button type="button" className="sekundaer" onClick={() => objektLoeschen(d.key)}>
+                            Löschen
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {inhalt.ordner.length === 0 && inhalt.dateien.length === 0 && (
+                      <tr>
+                        <td colSpan={4} style={{ color: "var(--farbe-text-mute)" }}>
+                          Leer.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       <div className="karte">
         <h2>Verbindung</h2>
@@ -224,103 +355,6 @@ export function MinioModul() {
         nicht möglich.
       </p>
 
-      {/* --- Dateibrowser (läuft über die App, kein Port-Öffnen nötig) --- */}
-      <div className="karte">
-        <h2>Dateibrowser</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
-          Buckets und Dateien direkt hier ansehen und herunterladen – ohne den MinIO-Port zu öffnen.
-        </p>
-        {browserFehler && <p className="fehlertext">{browserFehler}</p>}
-
-        <div className="formular-feld" style={{ maxWidth: 320 }}>
-          <label htmlFor="bucketsel">Bucket</label>
-          <select
-            id="bucketsel"
-            value={bucket}
-            onChange={(e) => (e.target.value ? oeffne(e.target.value, "") : setBucket(""))}
-          >
-            <option value="">– Bucket wählen –</option>
-            {buckets.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {bucket && (
-          <>
-            {/* Breadcrumb */}
-            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
-              <button type="button" className="sekundaer" onClick={() => oeffne(bucket, "")}>
-                {bucket}
-              </button>
-              {segmente.map((seg, i) => {
-                const p = segmente.slice(0, i + 1).join("/") + "/";
-                return (
-                  <span key={p} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    /
-                    <button type="button" className="sekundaer" onClick={() => oeffne(bucket, p)}>
-                      {seg}
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
-
-            {inhalt && (
-              <div className="tabelle-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Größe</th>
-                      <th>Geändert</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {inhalt.ordner.map((o) => (
-                      <tr key={o}>
-                        <td>
-                          <button type="button" className="sekundaer" onClick={() => oeffne(bucket, o)}>
-                            📁 {basisname(o)}
-                          </button>
-                        </td>
-                        <td>–</td>
-                        <td>–</td>
-                        <td></td>
-                      </tr>
-                    ))}
-                    {inhalt.dateien.map((d) => (
-                      <tr key={d.key}>
-                        <td>📄 {basisname(d.key)}</td>
-                        <td>{groesse(d.groesse)}</td>
-                        <td>{new Date(d.geaendert).toLocaleString("de-DE")}</td>
-                        <td style={{ whiteSpace: "nowrap" }}>
-                          <button type="button" className="sekundaer" onClick={() => ladeMinioObjekt(bucket, d.key)}>
-                            Download
-                          </button>{" "}
-                          <button type="button" className="sekundaer" onClick={() => objektLoeschen(d.key)}>
-                            Löschen
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {inhalt.ordner.length === 0 && inhalt.dateien.length === 0 && (
-                      <tr>
-                        <td colSpan={4} style={{ color: "var(--farbe-text-mute)" }}>
-                          Leer.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </>
-        )}
-      </div>
     </div>
   );
 }

@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, Response, status
+from typing import Annotated
+
+from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile, status
 
 from app.api.deps import CurrentAdmin, DbSession
 from app.schemas.minio import (
@@ -93,6 +95,27 @@ async def download(db: DbSession, _admin: CurrentAdmin, bucket: str, key: str) -
         media_type="application/octet-stream",
         headers={"Content-Disposition": f'attachment; filename="{name}"'},
     )
+
+
+@router.post("/upload", status_code=status.HTTP_201_CREATED)
+async def upload(
+    db: DbSession,
+    _admin: CurrentAdmin,
+    datei: Annotated[UploadFile, File()],
+    bucket: Annotated[str, Form()],
+    prefix: Annotated[str, Form()] = "",
+) -> dict:
+    """Lädt eine Datei in den aktuellen Ordner (prefix) eines Buckets hoch."""
+    await _pruefe_aktiv(db)
+    p = prefix if (not prefix or prefix.endswith("/")) else prefix + "/"
+    key = f"{p}{datei.filename}"
+    try:
+        await minio_service.put_bytes(
+            db, bucket, key, await datei.read(), datei.content_type or "application/octet-stream"
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc))
+    return {"key": key}
 
 
 @router.delete("/object", status_code=status.HTTP_204_NO_CONTENT)
