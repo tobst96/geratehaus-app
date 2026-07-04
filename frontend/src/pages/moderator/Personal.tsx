@@ -16,6 +16,12 @@ import {
   holeAlleFunktionenDienststunden,
 } from "../../api/moderator";
 import { holePersonBildReservierung } from "../../api/personBildReservierungen";
+import {
+  holeBenachrichtigungsUebersicht,
+  holeEreignisTypen,
+  type EreignisTyp,
+  type PersonBenachrichtigung,
+} from "../../api/personKanaele";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
@@ -125,6 +131,9 @@ export function Personal() {
   const [filterKeineMail, setFilterKeineMail] = useState(false);
   const [filterKeinBild, setFilterKeinBild] = useState(false);
   const [filterBenachrichtigung, setFilterBenachrichtigung] = useState<"alle" | "an" | "aus">("alle");
+  const [ereignisTypen, setEreignisTypen] = useState<EreignisTyp[]>([]);
+  const [aboUebersicht, setAboUebersicht] = useState<Record<number, PersonBenachrichtigung>>({});
+  const [filterAbo, setFilterAbo] = useState("");
   const [ausgewaehlteId, setAusgewaehlteId] = useState<number | null>(null);
   const bildInputRef = useRef<HTMLInputElement>(null);
 
@@ -156,10 +165,23 @@ export function Personal() {
     }
   }
 
+  async function ladeAboUebersicht() {
+    try {
+      const rows = await holeBenachrichtigungsUebersicht();
+      const map: Record<number, PersonBenachrichtigung> = {};
+      for (const r of rows) map[r.person_id] = r;
+      setAboUebersicht(map);
+    } catch {
+      setAboUebersicht({});
+    }
+  }
+
   useEffect(() => {
     laden();
+    ladeAboUebersicht();
     holeAlleGruppen().then(setGruppen).catch(() => setGruppen([]));
     holeAlleFunktionenDienststunden().then(setFunktionen).catch(() => setFunktionen([]));
+    holeEreignisTypen().then(setEreignisTypen).catch(() => setEreignisTypen([]));
   }, []);
 
   async function timelineLaden(personId: number) {
@@ -356,6 +378,7 @@ export function Personal() {
     if (filterKeinBild && p.bild_url) return false;
     if (filterBenachrichtigung === "an" && !p.benachrichtigungen_aktiv) return false;
     if (filterBenachrichtigung === "aus" && p.benachrichtigungen_aktiv) return false;
+    if (filterAbo && !(aboUebersicht[p.id]?.ereignisse.includes(filterAbo))) return false;
     return true;
   });
   const ausgewaehltePerson = liste.find((p) => p.id === ausgewaehlteId) ?? null;
@@ -577,6 +600,22 @@ export function Personal() {
                 <option value="aus">nicht erlaubt</option>
               </select>
             </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              Abonniert Ereignis:
+              <select value={filterAbo} onChange={(e) => setFilterAbo(e.target.value)}>
+                <option value="">– beliebig –</option>
+                {ereignisTypen.map((e) => (
+                  <option key={e.key} value={e.key}>
+                    {e.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {filterAbo && (
+              <span style={{ color: "var(--farbe-text-mute)" }}>
+                📧 = aktiver Mail-Kanal mit hinterlegter E-Mail
+              </span>
+            )}
           </div>
 
           <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px 0" }}>
@@ -597,6 +636,9 @@ export function Personal() {
                 >
                   <PersonenAvatar person={p} groesse={32} />
                   <span style={{ flex: 1 }}>{p.name}</span>
+                  {filterAbo && aboUebersicht[p.id]?.mail_aktiv && (
+                    <span title="Aktiver Mail-Kanal mit hinterlegter E-Mail">📧</span>
+                  )}
                 </button>
               </li>
             ))}

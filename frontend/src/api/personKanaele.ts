@@ -38,3 +38,13 @@ export const holePersonAbos = (personId: number) =>
 
 export const setzePersonAbo = (personId: number, ereignis: string, aktiv: boolean) =>
   apiPut<void>(`/moderator/personen/${personId}/abos/${encodeURIComponent(ereignis)}`, { aktiv });
+
+export interface PersonBenachrichtigung {
+  person_id: number;
+  ereignisse: string[];
+  mail_aktiv: boolean;
+}
+
+/** Gebündelte Abo-/Mail-Übersicht aller Personen (für den Personal-Filter). */
+export const holeBenachrichtigungsUebersicht = () =>
+  apiGet<PersonBenachrichtigung[]>("/moderator/personen/benachrichtigungs-uebersicht");

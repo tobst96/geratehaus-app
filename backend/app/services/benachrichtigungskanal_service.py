@@ -111,6 +111,40 @@ async def loeschen(db: AsyncSession, person_id: int, typ: str) -> bool:
 # --- Ereignis-Abos pro Person -------------------------------------------------
 
 
+async def benachrichtigungs_uebersicht(db: AsyncSession) -> dict[int, dict]:
+    """Gebündelte Übersicht für die Personal-Liste: je Person die abonnierten
+    Ereignisse und ob ein aktiver Mail-Kanal MIT hinterlegter Personen-E-Mail
+    besteht (dann kommen Mails tatsächlich an). Nur Personen mit Abos oder
+    aktivem Mail-Kanal sind enthalten."""
+    abos: dict[int, list[str]] = {}
+    for pid, ereignis in (
+        await db.execute(select(PersonEreignisAbo.person_id, PersonEreignisAbo.ereignis))
+    ).all():
+        abos.setdefault(pid, []).append(ereignis)
+
+    mail_ids = set(
+        (
+            await db.execute(
+                select(Benachrichtigungskanal.person_id).where(
+                    Benachrichtigungskanal.typ == "mail",
+                    Benachrichtigungskanal.aktiv.is_(True),
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    emails = dict((await db.execute(select(Person.id, Person.email))).all())
+
+    ergebnis: dict[int, dict] = {}
+    for pid in set(abos) | mail_ids:
+        ergebnis[pid] = {
+            "ereignisse": abos.get(pid, []),
+            "mail_aktiv": pid in mail_ids and bool((emails.get(pid) or "").strip()),
+        }
+    return ergebnis
+
+
 async def abos_fuer_person(db: AsyncSession, person_id: int) -> list[str]:
     result = await db.execute(
         select(PersonEreignisAbo.ereignis).where(PersonEreignisAbo.person_id == person_id)

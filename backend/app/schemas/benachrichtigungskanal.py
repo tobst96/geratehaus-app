@@ -27,3 +27,9 @@ class EreignisTypOut(BaseModel):
 
 class AboSetzen(BaseModel):
     aktiv: bool
+
+
+class PersonBenachrichtigungOut(BaseModel):
+    person_id: int
+    ereignisse: list[str]
+    mail_aktiv: bool

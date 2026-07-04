@@ -647,7 +647,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Personal-Filter nach Benachrichtigungs-Freigaben
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Niedrig
 - Kategorie: Feature / Frontend
 - Skills: geraetehaus-patterns, review
@@ -661,6 +661,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Mail-Kanal hinterlegt ist.
 - Notizen: Backend liefert die Abos ggf. gebündelt (neuer Übersichts-Endpunkt oder pro
   Person), damit die Liste nicht viele Einzelabfragen macht.
+- Erledigt (04.07.2026): Gebündelter Endpunkt
+  `GET /moderator/personen/benachrichtigungs-uebersicht`
+  (`benachrichtigungskanal_service.benachrichtigungs_uebersicht`) liefert je Person
+  Abos + `mail_aktiv` (aktiver Mail-Kanal UND hinterlegte Personen-E-Mail). In
+  `Personal.tsx` neuer Filter „Abonniert Ereignis"; Personen mit aktivem Mail-Kanal
+  bekommen ein 📧-Badge. Tests: Service + Endpunkt.
 
 ### Web Push nutzbar machen (Frontend-Abo-Flow)
 

@@ -23,6 +23,40 @@ async def _admin_token(client, db):
     return login.json()["access_token"]
 
 
+async def test_benachrichtigungs_uebersicht(db):
+    """Gebündelte Übersicht: Abos je Person; mail_aktiv nur bei aktivem Mail-Kanal
+    UND hinterlegter E-Mail."""
+    mit_mail = await _person(db, "MitMail", "a@x.de")
+    ohne_mail = await _person(db, "OhneMail")  # Abo, aber keine E-Mail → mail_aktiv False
+    await _person(db, "Ohne")  # weder Abo noch Kanal → nicht enthalten
+
+    await ks.setzen(db, mit_mail.id, "mail", "", True)
+    await ks.set_abo(db, mit_mail.id, "benachrichtigung_neuer_einsatz", True)
+    await ks.setzen(db, ohne_mail.id, "mail", "", True)
+    await ks.set_abo(db, ohne_mail.id, "benachrichtigung_neuer_einsatz", True)
+
+    uebersicht = await ks.benachrichtigungs_uebersicht(db)
+    assert uebersicht[mit_mail.id]["mail_aktiv"] is True
+    assert "benachrichtigung_neuer_einsatz" in uebersicht[mit_mail.id]["ereignisse"]
+    assert uebersicht[ohne_mail.id]["mail_aktiv"] is False
+
+
+async def test_benachrichtigungs_uebersicht_endpoint(client, db):
+    person = await _person(db, "Abo Endpoint", "e@x.de")
+    await ks.setzen(db, person.id, "mail", "", True)
+    await ks.set_abo(db, person.id, "benachrichtigung_neues_dienstbuch", True)
+    token = await _admin_token(client, db)
+
+    r = await client.get(
+        "/api/v1/moderator/personen/benachrichtigungs-uebersicht",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert r.status_code == 200
+    eintrag = next(e for e in r.json() if e["person_id"] == person.id)
+    assert eintrag["mail_aktiv"] is True
+    assert "benachrichtigung_neues_dienstbuch" in eintrag["ereignisse"]
+
+
 async def test_set_abo_und_lesen(db):
     p = await _person(db, "Abo")
     assert await ks.set_abo(db, p.id, "benachrichtigung_neuer_einsatz", True) is True

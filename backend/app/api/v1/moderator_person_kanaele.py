@@ -9,6 +9,7 @@ from app.schemas.benachrichtigungskanal import (
     KanalOut,
     KanalSetzen,
     KanalTypOut,
+    PersonBenachrichtigungOut,
 )
 from app.services import benachrichtigungskanal_service as kanal_service
 
@@ -68,6 +69,18 @@ async def kanal_loeschen(db: DbSession, person_id: int, typ: str) -> None:
 async def ereignis_typen() -> list[EreignisTypOut]:
     """Abonnierbare Ereignistypen (Registry) für die Abo-UI."""
     return [EreignisTypOut(key=e.key, label=e.label) for e in kanal_service.EREIGNIS_TYPEN]
+
+
+@router.get("/personen/benachrichtigungs-uebersicht", response_model=list[PersonBenachrichtigungOut])
+async def benachrichtigungs_uebersicht(db: DbSession) -> list[PersonBenachrichtigungOut]:
+    """Gebündelt je Person: abonnierte Ereignisse + ob ein aktiver Mail-Kanal mit
+    hinterlegter E-Mail besteht. Für den Filter „wer bekommt welche Mails" in der
+    Personal-Liste (eine Abfrage statt vieler Einzelabfragen)."""
+    uebersicht = await kanal_service.benachrichtigungs_uebersicht(db)
+    return [
+        PersonBenachrichtigungOut(person_id=pid, ereignisse=d["ereignisse"], mail_aktiv=d["mail_aktiv"])
+        for pid, d in uebersicht.items()
+    ]
 
 
 @router.get("/personen/{person_id}/abos", response_model=list[str])
