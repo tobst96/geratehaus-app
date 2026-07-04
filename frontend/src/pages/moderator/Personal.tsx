@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import QRCode from "qrcode";
 import {
   holeAllePersonen,
@@ -171,6 +171,7 @@ export function Personal() {
 
   const [timeline, setTimeline] = useState<PersonEreignis[] | null>(null);
   const [barcode, setBarcode] = useState<{ token: string; ablaufAm: string | null } | null>(null);
+  const [detailTab, setDetailTab] = useState("stammdaten");
 
 
 
@@ -224,6 +225,7 @@ export function Personal() {
   function auswaehlen(personId: number) {
     setAusgewaehlteId(personId);
     setBarcode(null);
+    setDetailTab("stammdaten");
     timelineLaden(personId);
   }
 
@@ -724,193 +726,297 @@ export function Personal() {
               </button>
               <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
                 <PersonenAvatar person={ausgewaehltePerson} groesse={64} />
-                <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <h2 style={{ margin: 0 }}>{ausgewaehltePerson.name}</h2>
-                </div>
-              </div>
-
-              <div className="person-felder">
-                <input
-                  defaultValue={ausgewaehltePerson.vorname ?? ""}
-                  placeholder="Vorname"
-                  onBlur={(e) => feldAendern(ausgewaehltePerson, "vorname", e.target.value)}
-                />
-                <input
-                  defaultValue={ausgewaehltePerson.zwischenname ?? ""}
-                  placeholder="Zwischenname"
-                  onBlur={(e) => feldAendern(ausgewaehltePerson, "zwischenname", e.target.value)}
-                />
-                <input
-                  defaultValue={ausgewaehltePerson.nachname ?? ""}
-                  placeholder="Nachname"
-                  onBlur={(e) => feldAendern(ausgewaehltePerson, "nachname", e.target.value)}
-                />
-                <input
-                  defaultValue={ausgewaehltePerson.email ?? ""}
-                  placeholder="E-Mail"
-                  type="email"
-                  onBlur={(e) => feldAendern(ausgewaehltePerson, "email", e.target.value)}
-                />
-                <label
-                  style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.9rem" }}
-                  title={
-                    !ausgewaehltePerson.email
-                      ? "Erst eine E-Mail-Adresse hinterlegen, sonst kommen keine Benachrichtigungen an"
-                      : undefined
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    checked={ausgewaehltePerson.benachrichtigungen_aktiv}
-                    onChange={(e) => benachrichtigungenAendern(ausgewaehltePerson, e.target.checked)}
-                  />
-                  Benachrichtigungen aktiv
-                </label>
-                <label
-                  style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  title="Inaktive Personen erhalten keine Aktivitäts-Ampel und keine Ampel-Benachrichtigung. Die automatische Inaktivitäts-Löschung bleibt davon unberührt."
-                >
-                  <input
-                    type="checkbox"
-                    checked={ausgewaehltePerson.inaktiv}
-                    onChange={(e) => inaktivAendern(ausgewaehltePerson, e.target.checked)}
-                  />
-                  Inaktiv (von der Aktivitäts-Ampel ausnehmen)
-                </label>
-                <select
-                  value={ausgewaehltePerson.gruppe_id ?? ""}
-                  onChange={(e) =>
-                    gruppeFeldAendern(ausgewaehltePerson, e.target.value ? Number(e.target.value) : null)
-                  }
-                >
-                  <option value="">– keine Gruppe –</option>
-                  {gruppen.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={ausgewaehltePerson.funktion_id ?? ""}
-                  onChange={(e) =>
-                    funktionFeldAendern(ausgewaehltePerson, e.target.value ? Number(e.target.value) : null)
-                  }
-                  title="Default-Funktion für Dienststunden"
-                >
-                  <option value="">– keine Funktion –</option>
-                  {funktionen.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="person-aktionen">
-                <input
-                  ref={bildInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg"
-                  style={{ display: "none" }}
-                  onChange={(e) => {
-                    const datei = e.target.files?.[0];
-                    if (datei) bildHochladen(ausgewaehltePerson, datei);
-                    e.target.value = "";
-                  }}
-                />
-                <button className="sekundaer" onClick={() => bildInputRef.current?.click()}>
-                  Bild hochladen
-                </button>
-
-                <button className="sekundaer" onClick={() => bildQrStandaloneOeffnen(ausgewaehltePerson)}>
-                  Bild per QR-Code hochladen
-                </button>
-
-                {config?.modul_barcode_aktiv && (
-                  <>
-                    <button className="sekundaer" onClick={() => barcodeErzeugen(ausgewaehltePerson)}>
-                      Barcode erzeugen
-                    </button>
-
-                    <button
-                      className="sekundaer"
-                      disabled={!ausgewaehltePerson.email}
-                      title={!ausgewaehltePerson.email ? "Erst eine E-Mail-Adresse hinterlegen" : undefined}
-                      onClick={() => barcodePerMailSenden(ausgewaehltePerson)}
+                  {ampelMap[ausgewaehltePerson.id] === "inaktiv" ? (
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--farbe-text-mute)",
+                        border: "1px solid var(--farbe-rand)",
+                        borderRadius: 999,
+                        padding: "1px 8px",
+                      }}
                     >
-                      Barcode per Mail senden
-                    </button>
-                  </>
-                )}
-
-                <button className="sekundaer" onClick={() => pinSetzen(ausgewaehltePerson)}>
-                  PIN setzen
-                </button>
-                <span style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
-                  {ausgewaehltePerson.pin_gesetzt ? "🔒 PIN gesetzt" : "Kein PIN gesetzt"}
-                </span>
-
-                <button className="sekundaer" onClick={() => loeschen(ausgewaehltePerson.id)}>
-                  Löschen
-                </button>
-              </div>
-
-              {barcode && (
-                <div style={{ textAlign: "center", marginBottom: 16 }}>
-                  <div style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: 4 }}>
-                    {ausgewaehltePerson.name}
-                  </div>
-                  <img src={barcodeBildUrl(barcode.token)} alt="Barcode" style={{ height: 50 }} />
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4, justifyContent: "center" }}>
-                    <input
-                      readOnly
-                      value={barcode.token}
-                      onFocus={(e) => e.target.select()}
-                      style={{ width: 140, fontSize: "0.75rem", fontFamily: "monospace" }}
-                    />
-                    <button
-                      type="button"
-                      className="sekundaer"
-                      style={{ padding: "0.2rem 0.5rem" }}
-                      onClick={(e) => tokenKopieren(barcode.token, e.currentTarget)}
-                    >
-                      Kopieren
-                    </button>
-                  </div>
-                  {barcode.ablaufAm && (
-                    <div style={{ fontSize: "0.7rem", color: "var(--farbe-text-mute)" }}>
-                      Gültig bis {new Date(barcode.ablaufAm).toLocaleDateString("de-DE")}
-                    </div>
+                      inaktiv
+                    </span>
+                  ) : (
+                    (ampelMap[ausgewaehltePerson.id] === "gelb" ||
+                      ampelMap[ausgewaehltePerson.id] === "rot") && (
+                      <span
+                        title={ampelTitel(ampelMap[ausgewaehltePerson.id])}
+                        style={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: "50%",
+                          background: ampelMap[ausgewaehltePerson.id] === "rot" ? "#d64545" : "#e0a500",
+                          flexShrink: 0,
+                        }}
+                      />
+                    )
                   )}
                 </div>
-              )}
+              </div>
 
-              <PersonKanaele personId={ausgewaehltePerson.id} personEmail={ausgewaehltePerson.email} />
+              {(() => {
+                // Datengetriebene Tab-Liste: jeder Tab kann über `sichtbar` an eine
+                // Modul-/Config-Bedingung gekoppelt werden. So können künftige Module
+                // hier eigene Tabs (z. B. Dienststunden) beisteuern, ohne das Layout
+                // umzubauen – einfach einen weiteren Eintrag mit `sichtbar` ergänzen.
+                const person = ausgewaehltePerson;
+                const tabs: { key: string; label: string; sichtbar?: boolean; inhalt: ReactNode }[] = [
+                  {
+                    key: "stammdaten",
+                    label: "Stammdaten",
+                    inhalt: (
+                      <>
+                        <div className="person-felder">
+                          <input
+                            defaultValue={person.vorname ?? ""}
+                            placeholder="Vorname"
+                            onBlur={(e) => feldAendern(person, "vorname", e.target.value)}
+                          />
+                          <input
+                            defaultValue={person.zwischenname ?? ""}
+                            placeholder="Zwischenname"
+                            onBlur={(e) => feldAendern(person, "zwischenname", e.target.value)}
+                          />
+                          <input
+                            defaultValue={person.nachname ?? ""}
+                            placeholder="Nachname"
+                            onBlur={(e) => feldAendern(person, "nachname", e.target.value)}
+                          />
+                          <input
+                            defaultValue={person.email ?? ""}
+                            placeholder="E-Mail"
+                            type="email"
+                            onBlur={(e) => feldAendern(person, "email", e.target.value)}
+                          />
+                          <select
+                            value={person.gruppe_id ?? ""}
+                            onChange={(e) =>
+                              gruppeFeldAendern(person, e.target.value ? Number(e.target.value) : null)
+                            }
+                          >
+                            <option value="">– keine Gruppe –</option>
+                            {gruppen.map((g) => (
+                              <option key={g.id} value={g.id}>
+                                {g.name}
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            value={person.funktion_id ?? ""}
+                            onChange={(e) =>
+                              funktionFeldAendern(person, e.target.value ? Number(e.target.value) : null)
+                            }
+                            title="Default-Funktion für Dienststunden"
+                          >
+                            <option value="">– keine Funktion –</option>
+                            {funktionen.map((f) => (
+                              <option key={f.id} value={f.id}>
+                                {f.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
 
-              <h3>Timeline</h3>
-              {!timeline ? (
-                <Ladeanzeige />
-              ) : timeline.length === 0 ? (
-                <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Ereignisse.</p>
-              ) : (
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                  {timeline
-                    .slice()
-                    .reverse()
-                    .map((ereignis) => (
-                      <li
-                        key={ereignis.id}
-                        style={{ display: "flex", gap: 8, alignItems: "baseline", padding: "4px 0" }}
-                      >
-                        <span>{PERSON_EREIGNIS_ICON[ereignis.typ] ?? "•"}</span>
-                        <span style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)", minWidth: 130 }}>
-                          {new Date(ereignis.zeitpunkt).toLocaleString("de-DE")}
-                        </span>
-                        <span>{ereignis.beschreibung}</span>
-                      </li>
-                    ))}
-                </ul>
-              )}
+                        <div className="person-aktionen">
+                          <input
+                            ref={bildInputRef}
+                            type="file"
+                            accept="image/png,image/jpeg"
+                            style={{ display: "none" }}
+                            onChange={(e) => {
+                              const datei = e.target.files?.[0];
+                              if (datei) bildHochladen(person, datei);
+                              e.target.value = "";
+                            }}
+                          />
+                          <button className="sekundaer" onClick={() => bildInputRef.current?.click()}>
+                            Bild hochladen
+                          </button>
+                          <button className="sekundaer" onClick={() => bildQrStandaloneOeffnen(person)}>
+                            Bild per QR-Code hochladen
+                          </button>
+                        </div>
+
+                        <div style={{ marginTop: 24, textAlign: "right" }}>
+                          <button
+                            className="sekundaer"
+                            style={{ color: "#d64545" }}
+                            onClick={() => loeschen(person.id)}
+                          >
+                            Person löschen
+                          </button>
+                        </div>
+                      </>
+                    ),
+                  },
+                  {
+                    key: "zugang",
+                    label: "Zugang",
+                    inhalt: (
+                      <>
+                        <div className="person-aktionen">
+                          <button className="sekundaer" onClick={() => pinSetzen(person)}>
+                            PIN setzen
+                          </button>
+                          <span style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+                            {person.pin_gesetzt ? "🔒 PIN gesetzt" : "Kein PIN gesetzt"}
+                          </span>
+                        </div>
+
+                        {config?.modul_barcode_aktiv ? (
+                          <>
+                            <div className="person-aktionen">
+                              <button className="sekundaer" onClick={() => barcodeErzeugen(person)}>
+                                Barcode erzeugen
+                              </button>
+                              <button
+                                className="sekundaer"
+                                disabled={!person.email}
+                                title={!person.email ? "Erst eine E-Mail-Adresse hinterlegen" : undefined}
+                                onClick={() => barcodePerMailSenden(person)}
+                              >
+                                Barcode per Mail senden
+                              </button>
+                            </div>
+                            {barcode && (
+                              <div style={{ textAlign: "center", marginBottom: 16 }}>
+                                <div style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: 4 }}>
+                                  {person.name}
+                                </div>
+                                <img src={barcodeBildUrl(barcode.token)} alt="Barcode" style={{ height: 50 }} />
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 4,
+                                    marginTop: 4,
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  <input
+                                    readOnly
+                                    value={barcode.token}
+                                    onFocus={(e) => e.target.select()}
+                                    style={{ width: 140, fontSize: "0.75rem", fontFamily: "monospace" }}
+                                  />
+                                  <button
+                                    type="button"
+                                    className="sekundaer"
+                                    style={{ padding: "0.2rem 0.5rem" }}
+                                    onClick={(e) => tokenKopieren(barcode.token, e.currentTarget)}
+                                  >
+                                    Kopieren
+                                  </button>
+                                </div>
+                                {barcode.ablaufAm && (
+                                  <div style={{ fontSize: "0.7rem", color: "var(--farbe-text-mute)" }}>
+                                    Gültig bis {new Date(barcode.ablaufAm).toLocaleDateString("de-DE")}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+                            Das Barcode-Modul ist deaktiviert – die Anmeldung erfolgt über Name + PIN.
+                          </p>
+                        )}
+                      </>
+                    ),
+                  },
+                  {
+                    key: "benachrichtigungen",
+                    label: "Benachrichtigungen",
+                    inhalt: (
+                      <>
+                        <label
+                          style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}
+                          title={
+                            !person.email
+                              ? "Erst eine E-Mail-Adresse hinterlegen, sonst kommen keine Benachrichtigungen an"
+                              : undefined
+                          }
+                        >
+                          <input
+                            type="checkbox"
+                            checked={person.benachrichtigungen_aktiv}
+                            onChange={(e) => benachrichtigungenAendern(person, e.target.checked)}
+                          />
+                          Benachrichtigungen aktiv
+                        </label>
+                        <label
+                          style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}
+                          title="Inaktive Personen erhalten keine Aktivitäts-Ampel und keine Ampel-Benachrichtigung. Die automatische Inaktivitäts-Löschung bleibt davon unberührt."
+                        >
+                          <input
+                            type="checkbox"
+                            checked={person.inaktiv}
+                            onChange={(e) => inaktivAendern(person, e.target.checked)}
+                          />
+                          Inaktiv (von der Aktivitäts-Ampel ausnehmen)
+                        </label>
+                        <PersonKanaele personId={person.id} personEmail={person.email} />
+                      </>
+                    ),
+                  },
+                  {
+                    key: "verlauf",
+                    label: "Verlauf",
+                    inhalt: !timeline ? (
+                      <Ladeanzeige />
+                    ) : timeline.length === 0 ? (
+                      <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Ereignisse.</p>
+                    ) : (
+                      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                        {timeline
+                          .slice()
+                          .reverse()
+                          .map((ereignis) => (
+                            <li
+                              key={ereignis.id}
+                              style={{ display: "flex", gap: 8, alignItems: "baseline", padding: "4px 0" }}
+                            >
+                              <span>{PERSON_EREIGNIS_ICON[ereignis.typ] ?? "•"}</span>
+                              <span
+                                style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)", minWidth: 130 }}
+                              >
+                                {new Date(ereignis.zeitpunkt).toLocaleString("de-DE")}
+                              </span>
+                              <span>{ereignis.beschreibung}</span>
+                            </li>
+                          ))}
+                      </ul>
+                    ),
+                  },
+                ];
+                const sichtbareTabs = tabs.filter((t) => t.sichtbar !== false);
+                const aktiverTab = sichtbareTabs.some((t) => t.key === detailTab)
+                  ? detailTab
+                  : sichtbareTabs[0].key;
+                return (
+                  <>
+                    <div className="person-tabs" role="tablist">
+                      {sichtbareTabs.map((t) => (
+                        <button
+                          key={t.key}
+                          type="button"
+                          role="tab"
+                          aria-selected={t.key === aktiverTab}
+                          className={`person-tab${t.key === aktiverTab ? " aktiv" : ""}`}
+                          onClick={() => setDetailTab(t.key)}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                    {sichtbareTabs.find((t) => t.key === aktiverTab)?.inhalt}
+                  </>
+                );
+              })()}
             </div>
           )}
         </div>

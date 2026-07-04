@@ -634,6 +634,38 @@ table tr:hover {
   display: none;
 }
 
+/* Reiter/Tabs in der Personen-Detailansicht. Datengetrieben aufgebaut, damit
+   künftig auch Module eigene Tabs beisteuern können (siehe Personal.tsx). */
+.person-tabs {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--farbe-rand);
+  margin-bottom: 16px;
+}
+
+.person-tab {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 8px 14px;
+  margin-bottom: -1px;
+  cursor: pointer;
+  color: var(--farbe-text-mute);
+  border-bottom: 2px solid transparent;
+  font-size: 0.95rem;
+}
+
+.person-tab:hover {
+  color: var(--farbe-text);
+}
+
+.person-tab.aktiv {
+  color: var(--farbe-text);
+  border-bottom-color: var(--farbe-primaer);
+  font-weight: 600;
+}
+
 .person-felder {
   display: flex;
   gap: 8px;
