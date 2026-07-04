@@ -281,6 +281,8 @@ Keys, Bucket-Namen) und legt bei aktivem Modul erzeugte Dokumente automatisch ab
 schon bei Anlage), **Dienstbücher** flach (`dienstbuecher/dienstbuch-<id>.pdf`). Das Backup-Modul kann
 diese Verbindung über die Checkbox **„MinIO Backup"** mitnutzen.
 
+📖 Ausführliche Anleitungen: **[docs/backup.md](docs/backup.md)** und **[docs/minio.md](docs/minio.md)**.
+
 ## 💻 Lokale Entwicklung (ohne Docker)
 
 **Voraussetzungen:** Python 3.12+, Node.js 18+ und npm, PostgreSQL 14+.
