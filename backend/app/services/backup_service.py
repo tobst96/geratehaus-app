@@ -567,7 +567,14 @@ async def erstelle_backup(db: AsyncSession, ausloeser: str = "manuell") -> Backu
         logger.info("backup_erstellt", dateiname=dateiname, ziele=geschrieben, fehler=fehler_je_ziel)
         # Teilfehler (einige Ziele fehlgeschlagen) optional per Mail melden.
         if fehler_je_ziel and await config_service.get(db, "backup_fehler_mail_aktiv", False):
-            await _fehler_mail(db, f"Backup {dateiname} teilweise fehlgeschlagen:\n{fehlermeldung}")
+            erfolg = ", ".join(geschrieben) or "keine"
+            fehl = "\n".join(f"  • {n}: {m}" for n, m in fehler_je_ziel.items())
+            kern = (
+                "Das Backup wurde erstellt, aber NICHT an alle Ziele geschrieben.\n\n"
+                f"Erfolgreich gesichert: {erfolg}\n"
+                f"Fehlgeschlagene Ziele:\n{fehl}"
+            )
+            await _fehler_mail(db, "Backup: einige Ziele fehlgeschlagen", await _mail_detailtext(db, dateiname, kern))
         return backup
     except Exception as exc:  # noqa: BLE001
         await db.rollback()
@@ -577,12 +584,32 @@ async def erstelle_backup(db: AsyncSession, ausloeser: str = "manuell") -> Backu
         db.add(backup)
         await db.commit()
         if await config_service.get(db, "backup_fehler_mail_aktiv", False):
-            await _fehler_mail(db, str(exc))
+            kern = f"Das Backup konnte nicht erstellt werden.\n\nFehler: {exc}"
+            await _fehler_mail(db, "Backup fehlgeschlagen", await _mail_detailtext(db, dateiname, kern))
         logger.warning("backup_fehlgeschlagen", dateiname=dateiname, fehler=str(exc))
         raise BackupFehler(str(exc)) from exc
 
 
-async def _fehler_mail(db: AsyncSession, fehler: str) -> None:
+async def _mail_detailtext(db: AsyncSession, dateiname: str, kern: str) -> str:
+    """Ergänzt die Kern-Meldung um technische Details (Datei, Zeit, Version, Host)."""
+    import socket
+
+    from app.core import zeit
+
+    jetzt = await zeit.jetzt_lokal(db)
+    return (
+        f"{kern}\n\n"
+        f"— Details —\n"
+        f"Backup-Datei: {dateiname}\n"
+        f"Zeitpunkt: {jetzt:%d.%m.%Y %H:%M} Uhr\n"
+        f"App-Version: {_app_version()}\n"
+        f"Server: {socket.gethostname()}\n\n"
+        f"Hinweis: Ist unter Einstellungen die Option Fehlerberichte aktiviert, werden echte "
+        f"Code-/Serverfehler zusätzlich automatisch an das Monitoring (Sentry) gemeldet.\n"
+    )
+
+
+async def _fehler_mail(db: AsyncSession, betreff: str, text: str) -> None:
     empfaenger_roh = str(await config_service.get(db, "notifier_email_recipients", ""))
     empfaenger = [e.strip() for e in empfaenger_roh.split(",") if e.strip()]
     if not empfaenger:
@@ -590,7 +617,7 @@ async def _fehler_mail(db: AsyncSession, fehler: str) -> None:
     notifier = EmailNotifier()
     for addr in empfaenger:
         try:
-            await notifier.send_an(db, addr, "Backup fehlgeschlagen", f"Das automatische Backup ist fehlgeschlagen:\n\n{fehler}")
+            await notifier.send_an(db, addr, betreff, text)
         except Exception:  # noqa: BLE001
             logger.warning("backup_fehler_mail_fehlgeschlagen", empfaenger=addr)
 
