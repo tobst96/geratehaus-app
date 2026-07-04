@@ -268,6 +268,13 @@ Containers** den lokalen Zielordner als Host-Bind-Mount einhängen, z. B. in `do
 `- /pfad/auf/host/backups:/app/backups`. Passphrase im Modul hinterlegen – ohne sie ist kein Import
 eines verschlüsselten Backups möglich.
 
+Weitere Ziele: **S3-kompatibel** (AWS S3, MinIO, Backblaze B2 …), **SFTP/SSH** und **E-Mail-Versand**.
+Optional lässt sich ein lokaler **MinIO** mitliefern: `docker compose --profile minio up -d` (Konsole
+auf Port 9101, Bucket dort anlegen), im Modul als S3-Ziel `http://minio:9000` eintragen. **Hinweis:**
+MinIO auf demselben Host ist kein Off-Site-Backup – zusätzlich ein externes Ziel wählen. Außerdem
+können **alle erzeugten PDFs** (Einsatz-/Dienstbuch-Abschluss, Listen-Exporte) optional zusätzlich im
+S3-Objektspeicher archiviert werden (PDF-Archiv).
+
 ## 💻 Lokale Entwicklung (ohne Docker)
 
 **Voraussetzungen:** Python 3.12+, Node.js 18+ und npm, PostgreSQL 14+.

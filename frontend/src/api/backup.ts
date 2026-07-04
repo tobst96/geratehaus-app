@@ -14,6 +14,22 @@ export interface BackupEinstellungen {
   webdav_passwort_gesetzt: boolean;
   webdav_pfad: string;
   fehler_mail_aktiv: boolean;
+  s3_aktiv: boolean;
+  s3_endpoint: string;
+  s3_region: string;
+  s3_bucket: string;
+  s3_access_key: string;
+  s3_secret_gesetzt: boolean;
+  s3_pfad: string;
+  sftp_aktiv: boolean;
+  sftp_host: string;
+  sftp_port: number;
+  sftp_user: string;
+  sftp_passwort_gesetzt: boolean;
+  sftp_pfad: string;
+  email_aktiv: boolean;
+  pdf_archiv_aktiv: boolean;
+  pdf_archiv_pfad: string;
 }
 
 export type BackupEinstellungenUpdate = Partial<{
@@ -30,6 +46,22 @@ export type BackupEinstellungenUpdate = Partial<{
   webdav_passwort: string;
   webdav_pfad: string;
   fehler_mail_aktiv: boolean;
+  s3_aktiv: boolean;
+  s3_endpoint: string;
+  s3_region: string;
+  s3_bucket: string;
+  s3_access_key: string;
+  s3_secret_key: string;
+  s3_pfad: string;
+  sftp_aktiv: boolean;
+  sftp_host: string;
+  sftp_port: number;
+  sftp_user: string;
+  sftp_passwort: string;
+  sftp_pfad: string;
+  email_aktiv: boolean;
+  pdf_archiv_aktiv: boolean;
+  pdf_archiv_pfad: string;
 }>;
 
 export interface BackupOut {

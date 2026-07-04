@@ -7,6 +7,7 @@ automatisch mitgesichert. Die Kategorien (KATEGORIEN) bündeln Tabellen für den
 selektiven Import; jede Tabelle (außer `backups`) gehört genau zu einer Kategorie.
 """
 
+import asyncio
 import base64
 import io
 import json
@@ -275,6 +276,172 @@ class WebDavZiel:
             await client.delete(self._url(dateiname))
 
 
+class S3Ziel:
+    """S3-kompatibles Ziel (AWS S3, MinIO, Backblaze B2 …). boto3 wird lazy
+    importiert, damit das Modul auch ohne installiertes boto3 ladbar bleibt."""
+
+    name = "s3"
+
+    def __init__(self, endpoint, region, bucket, access, secret, prefix):
+        self.endpoint = endpoint or None
+        self.region = region or "us-east-1"
+        self.bucket = bucket
+        self.access = access
+        self.secret = secret
+        self.prefix = (prefix or "").strip("/")
+
+    def _client(self):
+        import boto3  # lazy
+
+        return boto3.client(
+            "s3",
+            endpoint_url=self.endpoint,
+            region_name=self.region,
+            aws_access_key_id=self.access,
+            aws_secret_access_key=self.secret,
+        )
+
+    def _key(self, dateiname: str) -> str:
+        return f"{self.prefix}/{dateiname}" if self.prefix else dateiname
+
+    async def speichern(self, dateiname: str, daten: bytes) -> None:
+        def _put():
+            self._client().put_object(Bucket=self.bucket, Key=self._key(dateiname), Body=daten)
+
+        await asyncio.to_thread(_put)
+
+    async def liste(self) -> list[str]:
+        def _list():
+            client = self._client()
+            praefix = f"{self.prefix}/" if self.prefix else ""
+            namen: list[str] = []
+            paginator = client.get_paginator("list_objects_v2")
+            for page in paginator.paginate(Bucket=self.bucket, Prefix=praefix):
+                for obj in page.get("Contents", []):
+                    base = obj["Key"].rsplit("/", 1)[-1]
+                    if base.endswith(DATEI_ENDUNG):
+                        namen.append(base)
+            return sorted(namen)
+
+        return await asyncio.to_thread(_list)
+
+    async def lese(self, dateiname: str) -> bytes:
+        def _get():
+            r = self._client().get_object(Bucket=self.bucket, Key=self._key(dateiname))
+            return r["Body"].read()
+
+        return await asyncio.to_thread(_get)
+
+    async def loeschen(self, dateiname: str) -> None:
+        def _del():
+            self._client().delete_object(Bucket=self.bucket, Key=self._key(dateiname))
+
+        await asyncio.to_thread(_del)
+
+
+class SftpZiel:
+    """SFTP/SSH-Ziel (asyncssh lazy importiert)."""
+
+    name = "sftp"
+
+    def __init__(self, host, port, user, passwort, pfad):
+        self.host = host
+        self.port = int(port or 22)
+        self.user = user
+        self.passwort = passwort
+        self.pfad = (pfad or "").rstrip("/")
+
+    async def _sftp(self):
+        import asyncssh  # lazy
+
+        conn = await asyncssh.connect(
+            self.host, port=self.port, username=self.user, password=self.passwort, known_hosts=None
+        )
+        return conn
+
+    async def speichern(self, dateiname: str, daten: bytes) -> None:
+        async with await self._sftp() as conn:
+            async with conn.start_sftp_client() as sftp:
+                try:
+                    await sftp.makedirs(self.pfad, exist_ok=True)
+                except Exception:  # noqa: BLE001
+                    pass
+                async with sftp.open(f"{self.pfad}/{dateiname}", "wb") as f:
+                    await f.write(daten)
+
+    async def liste(self) -> list[str]:
+        async with await self._sftp() as conn:
+            async with conn.start_sftp_client() as sftp:
+                try:
+                    namen = await sftp.listdir(self.pfad)
+                except Exception:  # noqa: BLE001
+                    return []
+                return sorted(n for n in namen if n.endswith(DATEI_ENDUNG))
+
+    async def lese(self, dateiname: str) -> bytes:
+        async with await self._sftp() as conn:
+            async with conn.start_sftp_client() as sftp:
+                async with sftp.open(f"{self.pfad}/{dateiname}", "rb") as f:
+                    return await f.read()
+
+    async def loeschen(self, dateiname: str) -> None:
+        async with await self._sftp() as conn:
+            async with conn.start_sftp_client() as sftp:
+                try:
+                    await sftp.remove(f"{self.pfad}/{dateiname}")
+                except Exception:  # noqa: BLE001
+                    pass
+
+
+class EmailZiel:
+    """Versendet das Backup als E-Mail-Anhang an die Benachrichtigungs-Empfänger.
+    Kein liste/lese/loeschen (Retention greift hier nicht)."""
+
+    name = "email"
+
+    def __init__(self, db: AsyncSession, empfaenger: list[str]):
+        self.db = db
+        self.empfaenger = empfaenger
+
+    async def speichern(self, dateiname: str, daten: bytes) -> None:
+        if not self.empfaenger:
+            raise BackupFehler("E-Mail-Ziel aktiv, aber keine Empfänger (notifier_email_recipients).")
+        notifier = EmailNotifier()
+        for addr in self.empfaenger:
+            await notifier.send_an_mit_anhang(
+                self.db, addr, "Gerätehaus-Backup", f"Im Anhang das Backup {dateiname}.",
+                dateiname, daten, "application", "octet-stream",
+            )
+
+    async def liste(self) -> list[str]:
+        return []
+
+    async def loeschen(self, dateiname: str) -> None:  # pragma: no cover - nicht anwendbar
+        pass
+
+
+def _s3_ziel_konfig(werte: dict, prefix: str):
+    """Baut ein S3Ziel aus bereits gelesenen Config-Werten (oder None)."""
+    if not werte.get("aktiv") or not werte.get("bucket"):
+        return None
+    return S3Ziel(
+        werte.get("endpoint", ""), werte.get("region", "us-east-1"), werte["bucket"],
+        werte.get("access", ""), werte.get("secret", ""), prefix,
+    )
+
+
+async def _s3_basis(db: AsyncSession) -> dict:
+    g = config_service.get
+    return {
+        "aktiv": bool(await g(db, "backup_s3_aktiv", False)),
+        "endpoint": str(await g(db, "backup_s3_endpoint", "")),
+        "region": str(await g(db, "backup_s3_region", "us-east-1")),
+        "bucket": str(await g(db, "backup_s3_bucket", "")),
+        "access": str(await g(db, "backup_s3_access_key", "")),
+        "secret": str(await g(db, "backup_s3_secret_key", "")),
+    }
+
+
 async def _aktive_ziele(db: AsyncSession) -> list:
     ziele: list = []
     if await config_service.get(db, "backup_lokal_aktiv", True):
@@ -290,7 +457,42 @@ async def _aktive_ziele(db: AsyncSession) -> list:
                     str(await config_service.get(db, "backup_webdav_pfad", "geratehaus-backups")),
                 )
             )
+    s3 = _s3_ziel_konfig(await _s3_basis(db), str(await config_service.get(db, "backup_s3_pfad", "backups")))
+    if s3 is not None:
+        ziele.append(s3)
+    if await config_service.get(db, "backup_sftp_aktiv", False):
+        host = str(await config_service.get(db, "backup_sftp_host", ""))
+        if host:
+            ziele.append(
+                SftpZiel(
+                    host,
+                    int(await config_service.get(db, "backup_sftp_port", 22)),
+                    str(await config_service.get(db, "backup_sftp_user", "")),
+                    str(await config_service.get(db, "backup_sftp_passwort", "")),
+                    str(await config_service.get(db, "backup_sftp_pfad", "geratehaus-backups")),
+                )
+            )
+    if await config_service.get(db, "backup_email_aktiv", False):
+        empf_roh = str(await config_service.get(db, "notifier_email_recipients", ""))
+        ziele.append(EmailZiel(db, [e.strip() for e in empf_roh.split(",") if e.strip()]))
     return ziele
+
+
+async def archiviere_pdf(db: AsyncSession, schluessel: str, pdf_bytes: bytes) -> None:
+    """Legt eine erzeugte PDF zusätzlich im S3-Objektspeicher ab – nur wenn das
+    PDF-Archiv aktiv UND ein S3-Ziel konfiguriert ist. Best-effort: Fehler werden
+    geloggt, aber nie an den Aufrufer (PDF-Download/-Versand) weitergereicht."""
+    try:
+        if not await config_service.get(db, "backup_pdf_archiv_aktiv", False):
+            return
+        ziel = _s3_ziel_konfig(
+            await _s3_basis(db), str(await config_service.get(db, "backup_pdf_archiv_pfad", "pdfs"))
+        )
+        if ziel is None:
+            return
+        await ziel.speichern(schluessel, pdf_bytes)
+    except Exception:  # noqa: BLE001
+        logger.warning("pdf_archiv_fehlgeschlagen", schluessel=schluessel, exc_info=True)
 
 
 async def _retention(db: AsyncSession, ziel) -> None:
