@@ -102,8 +102,14 @@ export const apiPatch = <T>(pfad: string, body?: unknown) => anfrage<T>(pfad, { 
 
 export const apiDelete = <T>(pfad: string) => anfrage<T>(pfad, { method: "DELETE" });
 
-export const apiUpload = <T>(pfad: string, datei: File, feldname = "datei") => {
+export const apiUpload = <T>(
+  pfad: string,
+  datei: File,
+  feldname = "datei",
+  felder?: Record<string, string>,
+) => {
   const formData = new FormData();
   formData.append(feldname, datei);
+  for (const [k, v] of Object.entries(felder ?? {})) formData.append(k, v);
   return anfrage<T>(pfad, { method: "POST", body: formData, isFormData: true });
 };

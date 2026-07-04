@@ -257,6 +257,17 @@ den Webhook-Modus die URL
 `https://<deine-instanz>/api/v1/divera/webhook?accesskey=<dein-Accesskey>` bei Divera hinterlegen.
 Änderungen wirken ohne Neustart.
 
+### Backup
+
+Internes Modul **Module → Backup**: erstellt vollständige, **verschlüsselte** Backups (gesamte
+Datenbank + alle Dateien wie Logo/Bilder) als `.ghb`-Datei – geplant (Uhrzeit + Wochentage) oder per
+Klick. Aufbewahrung als „max. Anzahl" (älteste wird gelöscht), Backup-Browser mit Download/Löschen,
+und **Import** per Datei-Upload mit Auswahl, welche Bereiche (oder alles) ersetzt bzw. zusammengeführt
+werden. Ziele: lokaler Ordner und WebDAV (Nextcloud/ownCloud). Für eine Sicherung **außerhalb des
+Containers** den lokalen Zielordner als Host-Bind-Mount einhängen, z. B. in `docker-compose.yml`:
+`- /pfad/auf/host/backups:/app/backups`. Passphrase im Modul hinterlegen – ohne sie ist kein Import
+eines verschlüsselten Backups möglich.
+
 ## 💻 Lokale Entwicklung (ohne Docker)
 
 **Voraussetzungen:** Python 3.12+, Node.js 18+ und npm, PostgreSQL 14+.

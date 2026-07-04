@@ -18,6 +18,7 @@ from app.api.v1 import (
     fahrzeugbuchung_reservierungen,
     manifest,
     mitglied_login_reservierungen,
+    moderator_backup,
     moderator_barcodes,
     moderator_berechtigungen,
     moderator_buchungen,
@@ -118,6 +119,7 @@ app.include_router(fahrzeugbuchung_reservierungen.router, prefix="/api/v1")
 app.include_router(buchungen.router, prefix="/api/v1")
 app.include_router(buchung_aktionen.router, prefix="/api/v1")
 app.include_router(moderator_barcodes.router, prefix="/api/v1")
+app.include_router(moderator_backup.router, prefix="/api/v1")
 app.include_router(moderator_einstellungen.router, prefix="/api/v1")
 app.include_router(moderator_stammdaten.router, prefix="/api/v1")
 app.include_router(person_bild_reservierungen.router, prefix="/api/v1")
