@@ -699,6 +699,30 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ---
 
+## Modul Formular
+
+### Neues Modul „Formular" (Formular-Builder + Einreichungen)
+
+- Status: Erledigt
+- Priorität: Mittel
+- Kategorie: Neues Modul / Feature / Datenbank / Backend / Frontend
+- Skills: planner, new-module, geraetehaus-patterns, tests, review
+- Beschreibung: Konfigurierbare Formulare (Feldtypen Text/Mehrzeilig/Checkbox/
+  Sterne/Dropdown/Dropdown-Mehrfach, Pflichtfelder), öffentlich oder mit
+  Mitglieder-Login absendbar, formularspezifischer E-Mail-Empfänger, Einreichungen
+  gespeichert und auswertbar (Admin immer, Moderator je Formular freigebbar).
+- Erledigt (04.07.2026, Feature-Branch `feature/formular-modul` → PR nach `beta`):
+  Migration 0049 (formulare/formular_felder/formular_einreichungen); Models/Schemas/
+  Service (Validierung + Snapshot + `EmailNotifier.send_an`); Router
+  `moderator_formular` (Admin) + öffentlicher `formulare` (require_modul_aktiv,
+  Rate-Limit, Login-Gate); Feature-Modul `formular` (mitgliederseitig) +
+  `modul_formular_*`-Config + öffentliche Config. Frontend: Admin-Unterseite
+  `FormularModul`, öffentliche `FormularListe`/`FormularAusfuellen`, Kiosk-/Hub-Kachel,
+  Moderator-Tab „Listen → Formulare". Tests `test_formular.py` (6); volle Suite 199
+  grün; `npm run build` grün. Doku `docs/formular.md` + Datenschutz ergänzt.
+
+---
+
 ## Personal
 
 ### Aktivitäts-Ampel für Personal

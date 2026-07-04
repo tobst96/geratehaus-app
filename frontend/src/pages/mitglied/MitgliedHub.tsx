@@ -10,6 +10,7 @@ const MODULE: { key: KachelModulKey; aktivKey: string; aussenKey: string; route:
   { key: "dienstbuch", aktivKey: "modul_dienstbuch_aktiv", aussenKey: "modul_dienstbuch_aussenzugriff", route: "/dienstbuch", label: "Dienstbuch" },
   { key: "dienststunden", aktivKey: "modul_dienststunden_aktiv", aussenKey: "modul_dienststunden_aussenzugriff", route: "/dienststunden", label: "Dienststunden" },
   { key: "fahrzeugbuchung", aktivKey: "modul_fahrzeugbuchung_aktiv", aussenKey: "modul_fahrzeugbuchung_aussenzugriff", route: "/fahrzeugbuchung", label: "Fahrzeugbuchung" },
+  { key: "formulare", aktivKey: "modul_formular_aktiv", aussenKey: "modul_formular_aussenzugriff", route: "/formulare", label: "Formulare" },
 ];
 
 function initialen(name: string): string {

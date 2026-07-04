@@ -16,9 +16,11 @@ from app.api.v1 import (
     divera,
     einsaetze,
     fahrzeugbuchung_reservierungen,
+    formulare,
     manifest,
     mitglied_login_reservierungen,
     moderator_backup,
+    moderator_formular,
     moderator_barcodes,
     moderator_minio,
     moderator_berechtigungen,
@@ -140,6 +142,8 @@ app.include_router(oeffentlich.router, prefix="/api/v1")
 app.include_router(pin.router, prefix="/api/v1")
 app.include_router(reservierungen.router, prefix="/api/v1")
 app.include_router(mitglied_login_reservierungen.router, prefix="/api/v1")
+app.include_router(formulare.router, prefix="/api/v1")
+app.include_router(moderator_formular.router, prefix="/api/v1")
 app.include_router(manifest.router, prefix="/api/v1")
 app.include_router(moderator_update.router, prefix="/api/v1")
 

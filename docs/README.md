@@ -21,6 +21,7 @@ Version.
 - [Dienstbuch](dienstbuch.md)
 - [Dienststunden](dienststunden.md)
 - [Fahrzeugbuchung](fahrzeugbuchung.md)
+- [Formular](formular.md) – konfigurierbare Formulare & Einreichungen
 
 ---
 

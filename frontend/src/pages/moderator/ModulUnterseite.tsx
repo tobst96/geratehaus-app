@@ -11,6 +11,7 @@ import { BenachrichtigungenModul } from "./module/BenachrichtigungenModul";
 import { KioskModul } from "./module/KioskModul";
 import { BackupModul } from "./module/BackupModul";
 import { MinioModul } from "./module/MinioModul";
+import { FormularModul } from "./module/FormularModul";
 
 export function ModulUnterseite() {
   const { key } = useParams<{ key: string }>();
@@ -40,6 +41,8 @@ export function ModulUnterseite() {
       return <BackupModul />;
     case "minio":
       return <MinioModul />;
+    case "formular":
+      return <FormularModul />;
     default:
       return (
         <div>

@@ -9,6 +9,7 @@ const ACTIONS: Record<ActionKey, { label: string; route: string; icon: JSX.Eleme
   dienstbuch: { label: "Dienstbuch", route: "/dienstbuch", icon: KACHEL_ICONS.dienstbuch },
   dienststunden: { label: "Dienststunden", route: "/dienststunden", icon: KACHEL_ICONS.dienststunden },
   fahrzeugbuchung: { label: "Fahrzeugbuchung", route: "/fahrzeugbuchung", icon: KACHEL_ICONS.fahrzeugbuchung },
+  formulare: { label: "Formulare", route: "/formulare", icon: KACHEL_ICONS.formulare },
 };
 
 // Der Server liefert Feature-Modul-Keys; das Einsatztagebuch heißt als Kachel
@@ -18,6 +19,7 @@ const MODUL_KEY_ZU_ACTION: Record<string, ActionKey> = {
   dienstbuch: "dienstbuch",
   dienststunden: "dienststunden",
   fahrzeugbuchung: "fahrzeugbuchung",
+  formular: "formulare",
 };
 
 export function KioskHome({ module }: { module: string[] }) {
