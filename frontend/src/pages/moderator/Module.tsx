@@ -47,16 +47,22 @@ export function Module() {
     }
   }
 
-  async function verschieben(index: number, richtung: -1 | 1) {
+  // Verschiebt ein Modul innerhalb SEINER Gruppe (intern/mitgliederseitig); die
+  // globale Reihenfolge bleibt dabei gültig (es werden zwei Module derselben Gruppe
+  // getauscht).
+  async function verschiebeInGruppe(m: FeatureModul, gruppe: FeatureModul[], richtung: -1 | 1) {
     if (!module) return;
-    const ziel = index + richtung;
-    if (ziel < 0 || ziel >= module.length) return;
+    const gi = gruppe.findIndex((x) => x.key === m.key);
+    const nachbar = gruppe[gi + richtung];
+    if (!nachbar) return;
     const neu = [...module];
-    [neu[index], neu[ziel]] = [neu[ziel], neu[index]];
+    const a = neu.findIndex((x) => x.key === m.key);
+    const b = neu.findIndex((x) => x.key === nachbar.key);
+    [neu[a], neu[b]] = [neu[b], neu[a]];
     setBusy(true);
     setFehler(null);
     try {
-      setModule(await setFeatureModulReihenfolge(neu.map((m) => m.key)));
+      setModule(await setFeatureModulReihenfolge(neu.map((x) => x.key)));
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Reihenfolge konnte nicht gespeichert werden.");
     } finally {
@@ -77,8 +83,15 @@ export function Module() {
       </p>
       {fehler && <p className="fehlertext">{fehler}</p>}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 640 }}>
-        {module.map((m, i) => (
+      {[
+        { titel: "Interne Module", hinweis: "Verwaltung & Technik – nicht für Mitglieder sichtbar.", liste: module.filter((m) => !m.mitgliederseitig) },
+        { titel: "Mitglieder-Module", hinweis: "Erscheinen als Kacheln am Kiosk / im Mitglieder-Login.", liste: module.filter((m) => m.mitgliederseitig) },
+      ].map((gruppe) => (
+        <div key={gruppe.titel} style={{ marginBottom: 20 }}>
+          <h2 style={{ marginBottom: 2 }}>{gruppe.titel}</h2>
+          <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem", marginTop: 0 }}>{gruppe.hinweis}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 640 }}>
+            {gruppe.liste.map((m, gi) => (
           <div
             key={m.key}
             className="karte"
@@ -89,8 +102,8 @@ export function Module() {
                 type="button"
                 className="sekundaer"
                 aria-label="Nach oben"
-                disabled={busy || i === 0}
-                onClick={() => verschieben(i, -1)}
+                disabled={busy || gi === 0}
+                onClick={() => verschiebeInGruppe(m, gruppe.liste, -1)}
                 style={{ padding: "2px 8px", lineHeight: 1 }}
               >
                 ▲
@@ -99,8 +112,8 @@ export function Module() {
                 type="button"
                 className="sekundaer"
                 aria-label="Nach unten"
-                disabled={busy || i === module.length - 1}
-                onClick={() => verschieben(i, 1)}
+                disabled={busy || gi === gruppe.liste.length - 1}
+                onClick={() => verschiebeInGruppe(m, gruppe.liste, 1)}
                 style={{ padding: "2px 8px", lineHeight: 1 }}
               >
                 ▼
@@ -200,8 +213,10 @@ export function Module() {
               </div>
             </div>
           </div>
-        ))}
-      </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

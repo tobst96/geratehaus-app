@@ -73,7 +73,7 @@ const MODUL_ICON: Record<string, string> = {
 
 export function ModeratorLayout() {
   const { moderatorAbmelden, moderatorRolle } = useAuth();
-  const { config } = useConfig();
+  const { config, neuLaden } = useConfig();
   const navigate = useNavigate();
   const location = useLocation();
   const istAdmin = moderatorRolle === "admin";
@@ -83,12 +83,18 @@ export function ModeratorLayout() {
   const [listenOffen, setListenOffen] = useState(true);
   const [aktiveModule, setAktiveModule] = useState<FeatureModul[]>([]);
 
+  // Aktive Module + Config bei jedem Seitenwechsel neu laden, damit ein gerade
+  // deaktiviertes Modul (auf der Modul-Seite umgeschaltet) auch aus der Navigation
+  // verschwindet.
   useEffect(() => {
-    if (!istAdmin) return;
-    holeFeatureModule()
-      .then((m) => setAktiveModule(m.filter((x) => x.aktiv)))
-      .catch(() => setAktiveModule([]));
-  }, [istAdmin]);
+    if (istAdmin) {
+      holeFeatureModule()
+        .then((m) => setAktiveModule(m.filter((x) => x.aktiv)))
+        .catch(() => setAktiveModule([]));
+    }
+    neuLaden();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, istAdmin]);
 
   // Beim Navigieren (Pfadwechsel) den mobilen Drawer schließen.
   useEffect(() => {
