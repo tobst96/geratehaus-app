@@ -313,10 +313,34 @@ export function BackupModul() {
           <input id="wp" value={einst.webdav_pfad} onChange={(e) => feld("webdav_pfad", e.target.value)} />
         </div>
 
-        <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12 }}>
-          <input type="checkbox" checked={einst.s3_aktiv} onChange={(e) => feld("s3_aktiv", e.target.checked)} />
-          S3-kompatibel (AWS S3, MinIO, Backblaze B2 …)
-        </label>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, flexWrap: "wrap" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input type="checkbox" checked={einst.s3_aktiv} onChange={(e) => feld("s3_aktiv", e.target.checked)} />
+            S3-kompatibel (AWS S3, MinIO, Backblaze B2 …)
+          </label>
+          <button
+            type="button"
+            className="sekundaer"
+            onClick={() =>
+              setEinst((e) =>
+                e
+                  ? {
+                      ...e,
+                      s3_aktiv: true,
+                      s3_endpoint: "http://minio:9000",
+                      s3_region: "us-east-1",
+                      s3_bucket: e.s3_bucket || "geratehaus-backups",
+                      s3_pfad: e.s3_pfad || "backups",
+                      s3_access_key: e.s3_access_key || "geratehaus",
+                    }
+                  : e,
+              )
+            }
+            title="Füllt Endpoint/Region/Bucket/Präfix für das mitgelieferte MinIO. Danach nur noch den Secret Key eintragen und speichern."
+          >
+            MinIO-Vorlage einfügen
+          </button>
+        </div>
         <div className="formular-feld">
           <label htmlFor="s3e">Endpoint (leer = AWS; MinIO z. B. http://minio:9000)</label>
           <input id="s3e" value={einst.s3_endpoint} onChange={(e) => feld("s3_endpoint", e.target.value)} />
