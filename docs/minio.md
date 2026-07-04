@@ -109,17 +109,23 @@ Ablauf nie ab):
 **Einsätze** → Bucket `einsaetze`:
 ```
 einsatz-12/
-├─ einsatz.json     (aktueller Stand: Titel, Zeit, Adresse, Meldung,
-│                     Einsatznummer, Status, Zusatzfelder, Teilnehmer)
-└─ bericht.pdf      (bei Erzeugung/Abschluss – überschreibt = aktuellster Stand)
+├─ einsatz.json                     (aktueller Stand: Titel, Zeit, Adresse,
+│                                     Meldung, Einsatznummer, Status,
+│                                     Zusatzfelder, Teilnehmer)
+├─ 2026_06_04_17Uhr55_Bericht.pdf   (Ablage vom 04.06.2026 17:55 Uhr)
+└─ 2026_06_04_18Uhr10_Bericht.pdf   (spätere Ablage – bleibt als eigener Stand)
 ```
 - Der **Ordner wird schon beim Anlegen** des Einsatzes erstellt (auch bei
   Divera‑Import), damit die Struktur von Anfang an existiert.
-- `einsatz.json` wird bei Anlage und bei jeder PDF‑Erzeugung aktualisiert.
+- `einsatz.json` wird bei Anlage und bei jeder PDF‑Erzeugung aktualisiert
+  (überschreibt = aktuellster Stand).
+- **Jede** PDF‑Ablage bekommt **Datum + Uhrzeit** in den Dateinamen
+  (`<JJJJ_MM_TT_HHUhrMM>_Bericht.pdf`), damit unterschiedliche Stände
+  nebeneinander erhalten bleiben und nichts überschrieben wird.
 
-**Dienstbücher** → Bucket `dienstbuecher`, flach:
+**Dienstbücher** → Bucket `dienstbuecher`, flach (ebenfalls mit Zeitstempel):
 ```
-dienstbuch-7.pdf
+2026_06_04_17Uhr55_Dienstbuch-7.pdf
 ```
 
 > Für **künftige Module** ist dieses Muster gedacht: eigener Bucket, bei

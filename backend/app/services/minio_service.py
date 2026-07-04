@@ -4,8 +4,12 @@ darauf aufbauend die automatische Ablage erzeugter Dokumente.
 Ist das Modul „minio" aktiv und konfiguriert, werden Dokumente automatisch in die
 konfigurierten Buckets gelegt:
 - Einsätze: Bucket `minio_bucket_einsaetze`, ein **Ordner je Einsatz**
-  (`einsatz-<id>/`) mit `einsatz.json` (aktueller Stand) und `bericht.pdf`.
-- Dienstbücher: Bucket `minio_bucket_dienstbuecher`, **flach** (`dienstbuch-<id>.pdf`).
+  (`einsatz-<id>/`) mit `einsatz.json` (aktueller Stand) und je Ablage einer
+  eigenen, mit Datum+Uhrzeit versehenen PDF (`<YYYY_MM_DD_HHUhrMM>_Bericht.pdf`,
+  z. B. `2026_06_04_17Uhr55_Bericht.pdf`) – so bleiben unterschiedliche Stände
+  nebeneinander erhalten.
+- Dienstbücher: Bucket `minio_bucket_dienstbuecher`, **flach**, ebenfalls mit
+  Zeitstempel (`<YYYY_MM_DD_HHUhrMM>_Dienstbuch-<id>.pdf`).
 
 Weitere Module hängen sich am selben Muster ein (eigener Bucket, optional Ordner
 je Objekt). boto3 wird lazy importiert.
@@ -18,6 +22,7 @@ from typing import Any
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import zeit
 from app.services import feature_modul_service
 from app.services.config_service import config_service
 
@@ -197,6 +202,13 @@ def _einsatz_zu_dict(einsatz: Any) -> dict:
     }
 
 
+async def _zeitstempel(db: AsyncSession) -> str:
+    """Datum+Uhrzeit-Präfix für in MinIO abgelegte Dateien (lokale Zeitzone),
+    z. B. "2026_06_04_17Uhr55" – damit jede Ablage einen eigenen Dateinamen
+    bekommt und unterschiedliche Stände nebeneinander erhalten bleiben."""
+    return (await zeit.jetzt_lokal(db)).strftime("%Y_%m_%d_%HUhr%M")
+
+
 async def einsatz_dokumente(db: AsyncSession, einsatz: Any, pdf: bytes | None = None) -> None:
     """Legt Ordner + aktuelle einsatz.json (+ optional bericht.pdf) für einen
     Einsatz ab. Best-effort – Fehler brechen den Aufrufer nie ab."""
@@ -214,7 +226,8 @@ async def einsatz_dokumente(db: AsyncSession, einsatz: Any, pdf: bytes | None = 
             "application/json",
         )
         if pdf is not None:
-            await put_bytes(db, bucket, f"{ordner}/bericht.pdf", pdf, "application/pdf")
+            stempel = await _zeitstempel(db)
+            await put_bytes(db, bucket, f"{ordner}/{stempel}_Bericht.pdf", pdf, "application/pdf")
     except Exception:  # noqa: BLE001
         logger.warning("minio_einsatz_ablage_fehlgeschlagen", einsatz_id=getattr(einsatz, "id", None), exc_info=True)
 
@@ -225,6 +238,9 @@ async def dienstbuch_dokument(db: AsyncSession, dienstbuch_id: int, pdf: bytes) 
         if not await aktiv(db):
             return
         cfg = await config(db)
-        await put_bytes(db, cfg["bucket_dienstbuecher"], f"dienstbuch-{dienstbuch_id}.pdf", pdf, "application/pdf")
+        stempel = await _zeitstempel(db)
+        await put_bytes(
+            db, cfg["bucket_dienstbuecher"], f"{stempel}_Dienstbuch-{dienstbuch_id}.pdf", pdf, "application/pdf"
+        )
     except Exception:  # noqa: BLE001
         logger.warning("minio_dienstbuch_ablage_fehlgeschlagen", dienstbuch_id=dienstbuch_id, exc_info=True)
