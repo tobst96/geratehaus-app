@@ -1,18 +1,26 @@
-import { apiDelete, apiGet, apiPost, apiPut } from "./client";
+import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from "./client";
 
 export type FormularFeldTyp =
   | "text"
   | "mehrzeilig"
   | "checkbox"
   | "sterne"
+  | "skala"
   | "dropdown"
-  | "dropdown_mehrfach";
+  | "dropdown_mehrfach"
+  | "datum"
+  | "zahl"
+  | "email"
+  | "telefon"
+  | "ja_nein"
+  | "datei";
 
 export interface FormularFeld {
   id: number;
   label: string;
   typ: FormularFeldTyp;
   pflicht: boolean;
+  hinweis: string | null;
   optionen: string[];
   max_sterne: number;
   reihenfolge: number;
@@ -27,7 +35,14 @@ export interface Formular {
   login_erforderlich: boolean;
   email_empfaenger: string | null;
   moderator_sichtbar: boolean;
+  start_am: string | null;
   ablauf_am: string | null;
+  max_einreichungen: number | null;
+  aufbewahrung_tage: number | null;
+  danke_text: string | null;
+  ergebnis_oeffentlich: boolean;
+  einwilligung_text: string | null;
+  mehrfach_verhindern: boolean;
   reihenfolge: number;
   felder: FormularFeld[];
 }
@@ -55,6 +70,9 @@ export interface FormularOeffentlich {
   name: string;
   beschreibung: string | null;
   login_erforderlich: boolean;
+  danke_text: string | null;
+  einwilligung_text: string | null;
+  ergebnis_oeffentlich: boolean;
   felder: FormularFeld[];
 }
 
@@ -100,11 +118,26 @@ export const holeZusammenfassung = (formularId: number) =>
   apiGet<Zusammenfassung>(`/moderator/formulare/${formularId}/zusammenfassung`);
 export const holeSichtbareFormulare = () =>
   apiGet<Formular[]>("/moderator/formulare/sichtbar");
+export const formularDuplizieren = (id: number) =>
+  apiPost<Formular>(`/moderator/formulare/${id}/duplizieren`);
+export const formularExportUrl = (id: number) => `/api/v1/moderator/formulare/${id}/export.csv`;
 
 // --- Öffentlich / Mitglied ---------------------------------------------------
 
 export const holeOeffentlicheFormulare = () => apiGet<FormularOeffentlich[]>("/formulare");
 export const holeOeffentlichesFormular = (id: number) =>
   apiGet<FormularOeffentlich>(`/formulare/${id}`);
-export const formularEinreichen = (id: number, antworten: Record<string, unknown>) =>
-  apiPost<{ ok: boolean; einreichung_id: number }>(`/formulare/${id}/einreichen`, { antworten });
+export const holeOeffentlichesErgebnis = (id: number) =>
+  apiGet<Zusammenfassung>(`/formulare/${id}/ergebnis`);
+export const formularDateiHochladen = (id: number, datei: File) =>
+  apiUpload<{ referenz: string }>(`/formulare/${id}/datei`, datei);
+export const formularEinreichen = (
+  id: number,
+  antworten: Record<string, unknown>,
+  extra?: { einwilligung?: boolean; hp?: string }
+) =>
+  apiPost<{ ok: boolean; einreichung_id: number }>(`/formulare/${id}/einreichen`, {
+    antworten,
+    einwilligung: extra?.einwilligung ?? false,
+    hp: extra?.hp ?? "",
+  });

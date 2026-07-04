@@ -111,9 +111,11 @@ export function Datenschutz() {
           Beim Absenden werden die eingegebenen Antworten gespeichert; je nach Formular kann eine
           Anmeldung erforderlich sein, wodurch die Einreichung der jeweiligen Person zugeordnet wird.
           Die Inhalte können personenbezogene Daten enthalten – abhängig davon, welche Angaben das
-          jeweilige Formular abfragt. Zu jedem Formular kann eine E-Mail-Benachrichtigung mit den
-          übermittelten Antworten an eine hinterlegte Adresse versendet werden. Zugriff auf die
-          Einreichungen haben nur Administratoren bzw. ausdrücklich freigegebene Moderatoren.
+          jeweilige Formular abfragt (inkl. optionaler Datei-Uploads). Zu jedem Formular kann eine
+          E-Mail-Benachrichtigung mit den übermittelten Antworten an eine hinterlegte Adresse versendet
+          werden. Formulare können zudem eine ausdrückliche Einwilligung vor dem Absenden verlangen und
+          eine Aufbewahrungsfrist haben, nach der die Einreichungen automatisch gelöscht werden. Zugriff
+          auf die Einreichungen haben nur Administratoren bzw. ausdrücklich freigegebene Moderatoren.
         </p>
       </div>
 

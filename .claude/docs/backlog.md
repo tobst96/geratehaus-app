@@ -726,6 +726,15 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   **Zwischenstand/Auswertung** (Ø/Verteilung/Freitexte) im Admin- und Moderator-
   Bereich (`GET …/zusammenfassung`); **Ablauf-Job** (alle 15 min) schickt bei Ablauf
   eine Auswertung an den E-Mail-Empfänger. Tests erweitert; volle Suite 202 grün.
+- Ausbaupaket (04.07.2026, Branch `feature/formular-ausbau` → PR nach `beta`,
+  Migration 0051): neue Feldtypen (datum/zahl/email/telefon/ja_nein/skala/datei) +
+  Feld-Hilfetext; **Startdatum**, **Kapazität** (ausgebucht), **Aufbewahrungsfrist**
+  (Auto-Löschung, Tagesjob), **Danke-Text**, **öffentliches Ergebnis** (ohne Freitext),
+  **DSGVO-Einwilligung** (Pflichthäkchen), **Mehrfach-Schutz** (Login: serverseitig;
+  anonym: Honeypot + Browser-Marker), **QR-Code** + **CSV-Export** + **Duplizieren**,
+  Datei-Upload (`/uploads/formulare`, 10 MB, Bild/PDF). Tests (`test_formular.py`, 20);
+  volle Suite 213 grün; `npm run build` grün. Bewusst ausgelassen: Warteliste (nur
+  hartes Limit), PDF-Export (nur CSV), MinIO-Archivierung der Uploads.
 
 ---
 

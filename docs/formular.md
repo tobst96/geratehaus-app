@@ -12,9 +12,11 @@ Admin an-/abschalten kann.
   **„Formulare"**. Sie listet alle **aktiven** Formulare auf.
 - Ein Formular wird über `/formular/<id>` ausgefüllt und abgesendet. Jedes Formular
   ist zusätzlich direkt über diesen Link teilbar.
-- Feldtypen: **Textfeld (einzeilig)**, **Textfeld (mehrzeilig)**, **Checkbox**,
-  **Sternebewertung** (max. Sternzahl je Feld einstellbar), **Dropdown** und
-  **Dropdown mit Mehrfachauswahl**.
+- Feldtypen: **Text (einzeilig/mehrzeilig)**, **Checkbox**, **Ja/Nein**,
+  **Sternebewertung** und **Skala** (Maximum je Feld einstellbar), **Zahl**,
+  **Datum**, **E-Mail**, **Telefon**, **Dropdown** und **Dropdown mit
+  Mehrfachauswahl** sowie **Datei-Upload** (Bild/PDF, max. 10 MB).
+- Je Feld optional ein **Hilfetext/Platzhalter**.
 - **Pflichtfelder** müssen vor dem Absenden ausgefüllt werden; fehlende Pflichtfelder
   werden verständlich am Feld angezeigt.
 
@@ -25,15 +27,27 @@ Anmeldung** (Mitglieder-Login per Name + PIN, am Kiosk per Barcode/PIN) abgesend
 werden darf. Bei angemeldeten Personen wird die Einreichung der Person zugeordnet;
 öffentliche Formulare können anonym ausgefüllt werden.
 
-## Teilbarer Link & Ablauf
+## Teilbarer Link, QR-Code & Zeitfenster
 
-- Zu jedem Formular gibt es einen **teilbaren Link** (`…/formular/<id>`), den man in
-  der Modul-Unterseite direkt kopieren kann – z. B. um eine Umfrage in einer
-  WhatsApp-Gruppe zu teilen. Der Link funktioniert, sobald das Formular **aktiv** ist.
-- Optional lässt sich ein **Ablaufdatum** setzen (leer = dauerhaft gültig). Nach
-  Ablauf ist das Formular nicht mehr absendbar und verschwindet aus der Liste.
+- Zu jedem Formular gibt es einen **teilbaren Link** (`…/formular/<id>`) plus
+  **QR-Code**, beides in der Modul-Unterseite direkt kopier-/nutzbar – z. B. um eine
+  Umfrage in einer WhatsApp-Gruppe zu teilen oder als Plakat aufzuhängen. Der Link
+  funktioniert, sobald das Formular **aktiv** ist.
+- Optional **Startdatum** („aktiv ab") und **Ablaufdatum** (leer = dauerhaft gültig).
+  Außerhalb des Fensters ist das Formular nicht absendbar und nicht gelistet.
 - Ist bei Ablauf ein **E-Mail-Empfänger** hinterlegt, wird automatisch eine
   **Auswertung** (Zusammenfassung aller Antworten) an diese Adresse gesendet.
+
+## Umfrage-/Anmelde-Optionen
+
+- **Maximale Anzahl Einreichungen** (Kapazität): danach „ausgebucht".
+- **Mehrfach-Absenden verhindern**: bei Anmeldepflicht serverseitig pro Person
+  erzwungen; bei anonymen Formularen weicher Schutz über den Browser (plus
+  Bot-/Spam-Schutz per Honeypot und Rate-Limit).
+- **Einwilligungstext** (DSGVO): erzwingt ein Pflicht-Häkchen vor dem Absenden.
+- **Danke-Text** nach dem Absenden; optional **Ergebnis öffentlich anzeigen**
+  (aggregiert, ohne Freitexte).
+- **Automatische Löschung** der Einreichungen nach X Tagen (Aufbewahrungsfrist).
 
 ## E-Mail-Benachrichtigung
 
@@ -51,9 +65,11 @@ E-Mail-Versand ist in den Benachrichtigungen konfiguriert.)
   Moderatoren** sichtbar sind. Wenn aktiviert, erscheinen sie unter
   **Listen → Formulare**; sonst bleiben sie admin-intern.
 - **Zwischenstand/Auswertung**: Neben den Einzel-Einreichungen gibt es eine
-  aggregierte Auswertung (Ø bei Sternebewertung, Anzahl je Dropdown-Option/Ja-Nein,
+  aggregierte Auswertung (Ø bei Sterne/Skala/Zahl, Anzahl je Dropdown-Option/Ja-Nein,
   Freitext-Antworten) – jederzeit im Admin- und (bei Freigabe) Moderator-Bereich
   einsehbar.
+- **CSV-Export** der Einreichungen (Excel-freundlich) und **Formular duplizieren**
+  (als Vorlage) auf der Modul-Unterseite.
 
 ## Admin (Modul-Unterseite)
 

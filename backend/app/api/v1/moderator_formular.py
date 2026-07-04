@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Response, status
 
 from app.api.deps import CurrentAdmin, CurrentModerator, DbSession
 from app.schemas.formular import (
@@ -64,6 +64,14 @@ async def formular_loeschen(db: DbSession, _admin: CurrentAdmin, formular_id: in
     await formular_service.formular_loeschen(db, formular)
 
 
+@router.post("/{formular_id}/duplizieren", response_model=FormularOut, status_code=status.HTTP_201_CREATED)
+async def formular_duplizieren(db: DbSession, _admin: CurrentAdmin, formular_id: int) -> FormularOut:
+    formular = await formular_service.get_formular(db, formular_id)
+    if formular is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Formular nicht gefunden.")
+    return await formular_service.formular_duplizieren(db, formular)
+
+
 # --- Felder ------------------------------------------------------------------
 
 
@@ -127,3 +135,24 @@ async def zusammenfassung(
             detail="Für dieses Formular ist die Auswertung nicht freigegeben.",
         )
     return await formular_service.zusammenfassung(db, formular)
+
+
+@router.get("/{formular_id}/export.csv")
+async def einreichungen_export(
+    db: DbSession, moderator: CurrentModerator, formular_id: int
+) -> Response:
+    formular = await formular_service.get_formular(db, formular_id)
+    if formular is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Formular nicht gefunden.")
+    if moderator.rolle != "admin" and not formular.moderator_sichtbar:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Für dieses Formular ist der Export nicht freigegeben.",
+        )
+    einreichungen = await formular_service.einreichungen_fuer(db, formular_id)
+    csv_text = formular_service.csv_export(formular, einreichungen)
+    return Response(
+        content="﻿" + csv_text,  # BOM → deutsches Excel erkennt UTF-8/Umlaute
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="formular-{formular_id}.csv"'},
+    )
