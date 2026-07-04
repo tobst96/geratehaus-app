@@ -102,6 +102,39 @@ async def test_pdf_service_ruft_archiv(db, monkeypatch):
     assert gerufen == ["listen/test.pdf"]
 
 
+class FailZiel:
+    name = "webdav"
+
+    async def speichern(self, dateiname, daten):
+        raise Exception("404")
+
+    async def liste(self):
+        return []
+
+    async def loeschen(self, dateiname):
+        pass
+
+
+@pytest.mark.asyncio
+async def test_backup_teilfehler_bleibt_ok(db, tmp_path, monkeypatch):
+    """Ein fehlerhaftes Ziel (WebDAV 404) darf die anderen nicht blockieren:
+    Backup ist ok, das gute Ziel wurde geschrieben, der Fehler vermerkt."""
+    monkeypatch.setattr(backup_service.settings, "upload_dir", str(tmp_path / "u"))
+    lokal = backup_service.LokalesZiel(str(tmp_path / "b"))
+
+    async def fake_ziele(_db):
+        return [lokal, FailZiel()]
+
+    monkeypatch.setattr(backup_service, "_aktive_ziele", fake_ziele)
+    await config_service.set(db, "backup_passphrase", "geheim123")
+    await config_service.set(db, "backup_fehler_mail_aktiv", False)
+
+    b = await backup_service.erstelle_backup(db)
+    assert b.status == "ok"
+    assert "lokal" in b.ziele and "webdav" not in b.ziele
+    assert b.fehlermeldung and "404" in b.fehlermeldung
+
+
 @pytest.mark.asyncio
 async def test_email_ziel_versendet(db, monkeypatch):
     gesendet: list[str] = []

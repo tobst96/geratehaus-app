@@ -240,7 +240,9 @@ class WebDavZiel:
     name = "webdav"
 
     def __init__(self, basis_url: str, user: str, passwort: str, unterordner: str):
-        self.basis = basis_url.rstrip("/") + "/" + unterordner.strip("/")
+        self.url = basis_url.rstrip("/")
+        self.segmente = [s for s in unterordner.strip("/").split("/") if s]
+        self.basis = self.url + ("/" + "/".join(self.segmente) if self.segmente else "")
         self.auth = (user, passwort)
 
     def _url(self, dateiname: str) -> str:
@@ -248,7 +250,12 @@ class WebDavZiel:
 
     async def speichern(self, dateiname: str, daten: bytes) -> None:
         async with httpx.AsyncClient(auth=self.auth, timeout=120) as client:
-            await client.request("MKCOL", self.basis)  # Ordner sicherstellen (409 wenn vorhanden – ok)
+            # Verschachtelte Ordner Schritt für Schritt anlegen (MKCOL legt nur die
+            # letzte Ebene an; 405/409 = existiert bereits – ok).
+            pfad = self.url
+            for seg in self.segmente:
+                pfad = f"{pfad}/{seg}"
+                await client.request("MKCOL", pfad)
             r = await client.put(self._url(dateiname), content=daten)
             if r.status_code >= 400:
                 raise BackupFehler(f"WebDAV-Upload fehlgeschlagen ({r.status_code}).")
@@ -521,25 +528,46 @@ async def erstelle_backup(db: AsyncSession, ausloeser: str = "manuell") -> Backu
         ziele = await _aktive_ziele(db)
         if not ziele:
             raise BackupFehler("Kein Backup-Ziel aktiv.")
-        geschrieben: list[str] = []
-        for ziel in ziele:
-            await ziel.speichern(dateiname, daten)
-            await _retention(db, ziel)
-            geschrieben.append(ziel.name)
 
+        # Jedes Ziel unabhängig versuchen – ein fehlerhaftes Ziel (z. B. falsche
+        # WebDAV-URL) darf die anderen (S3/lokal) nicht blockieren.
+        geschrieben: list[str] = []
+        fehler_je_ziel: dict[str, str] = {}
+        for ziel in ziele:
+            try:
+                await ziel.speichern(dateiname, daten)
+                await _retention(db, ziel)
+                geschrieben.append(ziel.name)
+            except Exception as ziel_exc:  # noqa: BLE001
+                fehler_je_ziel[ziel.name] = str(ziel_exc)
+                logger.warning("backup_ziel_fehlgeschlagen", ziel=ziel.name, fehler=str(ziel_exc))
+
+        if not geschrieben:
+            raise BackupFehler(
+                "Alle Ziele fehlgeschlagen: "
+                + "; ".join(f"{n}: {m}" for n, m in fehler_je_ziel.items())
+            )
+
+        fehlermeldung = (
+            "; ".join(f"{n}: {m}" for n, m in fehler_je_ziel.items()) or None
+        ) if fehler_je_ziel else None
         backup = Backup(
             dateiname=dateiname,
             groesse_bytes=len(daten),
             ziele=",".join(geschrieben),
             ausloeser=ausloeser,
             status="ok",
+            fehlermeldung=fehlermeldung,
             verschluesselt=verschluesselt,
             zusammenfassung=zusammenfassung,
         )
         db.add(backup)
         await db.commit()
         await db.refresh(backup)
-        logger.info("backup_erstellt", dateiname=dateiname, ziele=geschrieben, ausloeser=ausloeser)
+        logger.info("backup_erstellt", dateiname=dateiname, ziele=geschrieben, fehler=fehler_je_ziel)
+        # Teilfehler (einige Ziele fehlgeschlagen) optional per Mail melden.
+        if fehler_je_ziel and await config_service.get(db, "backup_fehler_mail_aktiv", False):
+            await _fehler_mail(db, f"Backup {dateiname} teilweise fehlgeschlagen:\n{fehlermeldung}")
         return backup
     except Exception as exc:  # noqa: BLE001
         await db.rollback()
