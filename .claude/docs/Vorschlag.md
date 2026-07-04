@@ -165,10 +165,24 @@ Parallel zur Sicherheits-Roadmap (alle vom Nutzer bestätigt):
 - **⭐⭐ · M – Fahrzeug-Zusatzdaten & Prüftermine:** Kennzeichen, Funkrufname (ISSI ist
   da), TÜV/UVV/Beladungsprüfung mit **Erinnerung** vor Ablauf (Benachrichtigung).
   Häufiger Wunsch und gut ins bestehende Notifier-System integrierbar.
-- **⭐⭐ · S – Sitzplan-UX:** Raster-Snap/Ausrichten im Editor, Sitzplan-Vorschau
-  drucken/als PDF; „Beladung/Ausrüstung je Sitzplatz" als Notiz.
-- **⭐ · S – Fahrzeugstatus (1–6 / einsatzbereit):** einfacher Status je Fahrzeug,
-  am Kiosk/Dashboard sichtbar; optional später FMS-Anbindung.
+- **⭐⭐ · S – Sitzplan-UX:** **Raster-Snap/Ausrichten** im Editor *[gewählt
+  05.07.2026]*. (Sitzplan-PDF/Druck und „Beladung je Sitzplatz" vorerst **nicht**
+  gewählt.)
+- **⭐⭐⭐ · L – Funkstatus + Live-Position (quellen-agnostisch)** *[gewählt
+  05.07.2026]*: je Fahrzeug **Funkstatus (FMS 1–6)** und **Position** (Koordinaten
+  lat/lon **+ Timestamp**). Wichtig: **generisches Ingest-/Provider-Interface**, damit
+  Quellen wie **Traccar** (Open-Source-GPS-Server, Webhook/API), **Divera** oder
+  andere **einfach angebunden** werden können – **kein Hardcoding** auf eine Quelle.
+  - **Datenmodell:** letzte Position/Status am Fahrzeug + optionale **Positions-
+    Historie** (mit Aufbewahrungsfrist); Mapping „Quellen-ID → Fahrzeug".
+  - **Frontend:** Karte (z. B. Leaflet + OpenStreetMap-Tiles) mit Fahrzeug-Markern,
+    Status-Badge, „zuletzt gesehen"; am Dashboard sichtbar.
+  - **Sicherheit/DSGVO (öffentliche Instanz!):** Ingest-Endpunkt per **Token/HMAC**
+    absichern; Ansicht nur **Admin/Moderator**; Positions-Historie mit **Löschfrist**;
+    Zweckbindung dokumentieren. Steht in gewisser Spannung zum Grundsatz „kein
+    Alarmierungssystem" → dient der **Lageübersicht/Fahrzeugsuche**, nicht der Alarmierung.
+  - **Vorgehen:** eigener Feature-Branch + PR; **zuerst den ersten Connector** wählen
+    (Traccar als naheliegender Start), Interface daran ausrichten.
 
 ## 3. Einsatztagebuch
 
