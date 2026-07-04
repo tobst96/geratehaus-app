@@ -111,6 +111,27 @@ export function Datenschutz() {
           automatisch archiviert. Archivierte Einträge bleiben für Moderatoren einsehbar, werden
           Kameraden aber nicht mehr in den laufenden Listen angezeigt.
         </p>
+
+        <h2>Datensicherung (Backups)</h2>
+        <p>
+          Zur Ausfallsicherung kann die Organisation regelmäßige Backups erstellen. Ein Backup enthält
+          <strong> alle Daten der Anwendung</strong> – einschließlich personenbezogener Daten (Namen,
+          E-Mail-Adressen, Profilbilder sowie die als Hash gespeicherten Zugangs-/PIN-Daten). Backups
+          werden <strong>verschlüsselt</strong> und können – je nach Konfiguration der Organisation –
+          zusätzlich an einem externen Ort gespeichert werden (z. B. WebDAV/Nextcloud, S3-kompatibler
+          Speicher, SFTP oder als E-Mail-Anhang an die Administratoren). Sofern dabei externe
+          Dienstleister genutzt werden, geschieht dies im Auftrag der verantwortlichen Stelle.
+        </p>
+
+        <h2>Objektspeicher für Dokumente (optional)</h2>
+        <p>
+          Nutzt die Organisation das optionale Objektspeicher-Modul, werden erzeugte Dokumente
+          automatisch dort abgelegt: je Einsatz ein Ordner mit den Einsatzdaten und dem Einsatzbericht
+          (PDF), Dienstbücher als PDF. Diese Dokumente können personenbezogene Daten enthalten (z. B.
+          Namen der Teilnehmenden). Der Objektspeicher kann lokal betrieben oder – je nach Konfiguration
+          – bei einem externen Anbieter geführt werden; externe Anbieter handeln als Auftragsverarbeiter
+          der verantwortlichen Stelle.
+        </p>
       </div>
     </div>
   );
