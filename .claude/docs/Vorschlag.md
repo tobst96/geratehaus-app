@@ -17,6 +17,28 @@
 Fokus: **Sicherheit/Berechtigungen, UX/Mobile/Kiosk, Stabilität/Betrieb**
 (Statistik & Mandantenfähigkeit vorerst nachrangig). Keine akuten Bugs – proaktiv.
 
+### ⚠ SOFORT / höchste Priorität – Öffentliche API absichern (05.07.2026)
+
+**Befund (vom Nutzer über Swagger entdeckt):** Mehrere **daten-sensible Endpunkte
+sind ohne Authentifizierung** erreichbar. `require_modul_aktiv` prüft **nur**, ob das
+Modul aktiv ist – **keine Auth**. Auf der öffentlichen Instanz ist das ein **Datenleck**:
+- `GET /einsaetze`, `/einsaetze/{id}`, `/{id}/pdf`, `/{id}/timeline`,
+  `/einsaetze/feld-definitionen` – **public**; und **`PATCH /einsaetze/{id}/zusatzfelder`
+  = öffentlicher Schreibzugriff** (Datenmanipulation!).
+- `GET /dienstbuecher/letzte`, `/dienstbuecher/{id}`, `/dienstbuecher/{id}/pdf` – public.
+- `GET /buchungen` (alle Fahrzeugbuchungen inkl. Namen) – public.
+- `GET /stammdaten/fahrzeuge | /gruppen | /funktionen-*` – public (geringere Sensitivität).
+
+**Fix (Auth-weit → eigener Feature-Branch + PR; Kiosk darf NICHT kaputtgehen):** neue
+Dependency **`require_kiosk_oder_person`**, die durchlässt bei **gültigem Kiosk-Token**
+(Frontend hat ihn bereits: `localStorage 'kiosk_token'`, gesetzt in `KioskGate.tsx` –
+künftig als Header `X-Kiosk-Token` bei allen API-Aufrufen mitsenden) **ODER**
+angemeldeter Person (Namens-Cookie) **ODER** Moderator. Auf **alle** o. g. offenen
+Daten-Endpunkte anwenden, `PATCH zusatzfelder` mindestens gaten. **Wirklich öffentlich
+bleiben:** Setup, `oeffentliche-konfiguration` (Theming), Kiosk-Token-Validierung,
+Login, token-basiertes Einlösen/Reservierung, Formular-Absenden. **Danach OpenAPI/
+Swagger erneut durchgehen**, dass nichts Sensibles mehr offen ist.
+
 Empfohlene Reihenfolge (alle Punkte vom Nutzer gewünscht):
 
 1. **PIN-Brute-Force-Schutz** `⭐⭐⭐ · M` — Fehlversuchs-Zähler + temporäre Sperre
