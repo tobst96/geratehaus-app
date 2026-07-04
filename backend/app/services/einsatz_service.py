@@ -65,6 +65,10 @@ async def einsatz_anlegen(db: AsyncSession, daten: EinsatzAnlegen, quelle: str =
     )
     geladen = await get_einsatz(db, einsatz.id)
     assert geladen is not None
+    # MinIO-Modul: Einsatz-Ordner sofort bei Anlage erstellen (mit JSON).
+    from app.services import minio_service
+
+    await minio_service.einsatz_dokumente(db, geladen)
     return geladen
 
 

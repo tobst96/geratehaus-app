@@ -68,6 +68,7 @@ const MODUL_ICON: Record<string, string> = {
   benachrichtigungen: "benachrichtigungen",
   kiosk: "kiosk",
   backup: "backup",
+  minio: "backup",
 };
 
 export function ModeratorLayout() {

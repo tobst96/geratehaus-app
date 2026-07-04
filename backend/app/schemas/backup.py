@@ -57,6 +57,9 @@ class BackupEinstellungen(BaseModel):
     # PDF-Archiv (PR 2)
     pdf_archiv_aktiv: bool
     pdf_archiv_pfad: str
+    # MinIO-Backup (nutzt das MinIO-Modul)
+    minio_aktiv: bool
+    minio_modul_aktiv: bool  # ob das MinIO-Modul aktiviert ist (Checkbox nur dann sinnvoll)
 
 
 class BackupEinstellungenUpdate(BaseModel):
@@ -90,6 +93,7 @@ class BackupEinstellungenUpdate(BaseModel):
     email_aktiv: bool | None = None
     pdf_archiv_aktiv: bool | None = None
     pdf_archiv_pfad: str | None = None
+    minio_aktiv: bool | None = None
 
 
 class BackupKategorie(BaseModel):

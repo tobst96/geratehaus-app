@@ -30,6 +30,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.base import Base
 from app.models.backup import Backup
+from app.services import minio_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -346,6 +347,13 @@ class S3Ziel:
         await asyncio.to_thread(_del)
 
 
+class MinioBackupZiel(S3Ziel):
+    """Backup-Ziel über die Verbindung des MinIO-Moduls (eigener Name für
+    Retention/Reporting, sonst identisch zu S3Ziel)."""
+
+    name = "minio"
+
+
 class SftpZiel:
     """SFTP/SSH-Ziel (asyncssh lazy importiert)."""
 
@@ -467,6 +475,11 @@ async def _aktive_ziele(db: AsyncSession) -> list:
     s3 = _s3_ziel_konfig(await _s3_basis(db), str(await config_service.get(db, "backup_s3_pfad", "backups")))
     if s3 is not None:
         ziele.append(s3)
+    # MinIO-Ziel: nutzt die Verbindung des MinIO-Moduls (nur wenn Modul aktiv +
+    # Checkbox „MinIO Backup" gesetzt).
+    if await config_service.get(db, "backup_minio_aktiv", False) and await minio_service.aktiv(db):
+        m = await minio_service.config(db)
+        ziele.append(MinioBackupZiel(m["endpoint"], m["region"], m["bucket_backups"], m["access"], m["secret"], ""))
     if await config_service.get(db, "backup_sftp_aktiv", False):
         host = str(await config_service.get(db, "backup_sftp_host", ""))
         if host:

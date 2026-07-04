@@ -132,7 +132,13 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
     # Benachrichtigung – die würde für alte Alarme fälschlich Alarm auslösen.
     if not geschlossen:
         await notifier_service.benachrichtige(db, "benachrichtigung_divera_alarm", titel=alarm["titel"])
-    return await einsatz_service.get_einsatz(db, einsatz.id)
+    geladen = await einsatz_service.get_einsatz(db, einsatz.id)
+    # MinIO-Modul: Einsatz-Ordner sofort anlegen (mit JSON).
+    from app.services import minio_service
+
+    if geladen is not None:
+        await minio_service.einsatz_dokumente(db, geladen)
+    return geladen
 
 
 async def synchronisiere(db: AsyncSession) -> int:

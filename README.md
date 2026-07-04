@@ -275,6 +275,12 @@ MinIO auf demselben Host ist kein Off-Site-Backup – zusätzlich ein externes Z
 können **alle erzeugten PDFs** (Einsatz-/Dienstbuch-Abschluss, Listen-Exporte) optional zusätzlich im
 S3-Objektspeicher archiviert werden (PDF-Archiv).
 
+**MinIO-Modul** (unter **Module**, an-/abschaltbar): bündelt die Objektspeicher-Verbindung (Endpoint,
+Keys, Bucket-Namen) und legt bei aktivem Modul erzeugte Dokumente automatisch ab – **Einsätze** als
+**Ordner je Einsatz** (`einsaetze/einsatz-<id>/` mit aktueller `einsatz.json` und `bericht.pdf`, Ordner
+schon bei Anlage), **Dienstbücher** flach (`dienstbuecher/dienstbuch-<id>.pdf`). Das Backup-Modul kann
+diese Verbindung über die Checkbox **„MinIO Backup"** mitnutzen.
+
 ## 💻 Lokale Entwicklung (ohne Docker)
 
 **Voraussetzungen:** Python 3.12+, Node.js 18+ und npm, PostgreSQL 14+.
