@@ -259,16 +259,33 @@ Parallel zur Sicherheits-Roadmap (alle vom Nutzer bestätigt):
 
 *Stand: Kanäle E-Mail/Telegram/WebPush, Ereignis-Schalter, Abos pro Person, „drei Ebenen".*
 
-- **⭐⭐⭐ · M – Web-Push-Abo-Flow im Frontend** (Backlog): Backend ist fertig, aber es
-  fehlt der `pushManager.subscribe()`-Flow + „Benachrichtigungen aktivieren"-Button →
-  aktuell empfängt niemand Push. **Jetzt konkret nutzbar, da die Instanz öffentlich
-  über HTTPS läuft** (secure context ist gegeben).
+> **Grundsatz (Nutzer 05.07.2026): Kein Alarmierungssystem.** Die App meldet keine
+> Alarme/Einsätze **aktiv** raus (kein Ersatz für Divera/Melder). Divera-Alarme werden
+> nur zur **Dokumentation** als Einsatz übernommen. → **Zu prüfen:** die bestehende
+> Sofort-Benachrichtigung „Neuer Einsatz (Divera-Alarm)" ggf. standardmäßig **aus**
+> bzw. entfernen, damit die Positionierung eindeutig bleibt. Ruhezeiten sind damit
+> unkritisch (es gibt keine „immer durchzulassenden" Alarme).
+
+- **⭐⭐ · M – Web-Push-Abo-Flow im Frontend** *(Nutzer: mittlere Priorität)*: Backend
+  ist fertig, aber es fehlt der `pushManager.subscribe()`-Flow + „Benachrichtigungen
+  aktivieren"-Button → aktuell empfängt niemand Push. Technisch nutzbar, da öffentlich
+  über HTTPS (secure context gegeben) – aber nicht vordringlich.
 - **⭐⭐ · M – Pro-Empfänger statt global** (Backlog Etappe G): E-Mail pro
   Moderatoren-Zugang + Ereignis-Abos je Zugang statt zentraler Empfängerliste.
 - **⭐⭐ · S – „Digest"/Zusammenfassungen:** tägliche/wöchentliche Sammelmail statt
   Einzelmails (v. a. bei vielen Einsätzen), pro Abonnent wählbar.
-- **⭐⭐ · S – Zustell-Log & Testversand je Kanal/Ereignis:** sichtbar machen, ob/wann
-  etwas rausging (heute nur Sentry/Logs). Reduziert Support.
+- **⭐⭐ · S – Zustell-Log & Testversand je Kanal/Ereignis** *[gewählt 05.07.2026]*:
+  sichtbar machen, ob/wann/an wen etwas rausging (heute nur Sentry/Logs); jedes
+  Ereignis testweise auslösbar. Reduziert Support.
+- **⭐⭐ · M – Eskalation bei offenen Anfragen** *[gewählt 05.07.2026]*: bleibt eine
+  **Buchungsanfrage** (o. Ä.) länger als X Stunden unbeantwortet → automatische
+  Erinnerung an die Moderatoren. Nutzt einen Scheduler-Job (Muster wie
+  `_formular_ablauf_job`).
+- **⭐⭐ · M – Bevorzugter Kanal + Fallback je Person** *[gewählt 05.07.2026]*: Person
+  wählt einen **Wunschkanal** (Mail/Telegram/Push); schlägt er fehl (z. B. Mail
+  bounced), greift eine **Fallback-Reihenfolge**. Ersetzt „an alle aktiven Kanäle".
+  Baut auf `Benachrichtigungskanal` + `benachrichtige()` auf (dort Zustell-Ergebnis
+  auswerten).
 - **⭐ · S – Telegram-Gruppen/Chat-Verwaltung** komfortabler (Bot-Setup-Assistent).
 
 ## 9. Kiosk
