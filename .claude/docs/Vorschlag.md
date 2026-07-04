@@ -46,6 +46,9 @@ Empfohlene Reihenfolge (alle Punkte vom Nutzer gewünscht):
 - **2FA:** für **Admin + Moderator**. **E-Mail-Code (OTP)** als Standard,
   **Passkey/WebAuthn** als optionale starke Alternative. Abfrage **nur bei neuem/
   unbekanntem Gerät** (Trusted-Device für 30 Tage merken).
+  **Notfall/Recovery:** **Recovery-Codes bei der Einrichtung** *und* ein **zweiter
+  Admin kann 2FA zurücksetzen** (doppeltes Netz). ⚠ Voraussetzung: mindestens
+  **2 Admin-Zugänge** – sonst Aussperr-Risiko (im Setup/Doku darauf hinweisen).
 - **PIN-Brute-Force:** **5 Fehlversuche → 15 Min Sperre pro Person** + **Rate-Limit
   pro IP**. Nach 15 Min automatisch frei; **Moderator kann manuell entsperren**.
   Sperre als `PersonEreignis` protokollieren.
@@ -59,6 +62,30 @@ Empfohlene Reihenfolge (alle Punkte vom Nutzer gewünscht):
 
 > Weil jetzt **öffentlich über HTTPS**: **Web-Push wird nutzbar** → der fehlende
 > Frontend-Abo-Flow (siehe „Benachrichtigungen") lohnt sich jetzt konkret.
+
+### Gewünschte Ausbaupunkte – UX/Kiosk & Stabilität (05.07.2026)
+
+Parallel zur Sicherheits-Roadmap (alle vom Nutzer bestätigt):
+
+**UX / Mobile / Kiosk**
+- **Kiosk-Autolock / Inaktivitäts-Reset** – nach X Sekunden zurück zur Startseite.
+- **Mobile-Overflow beheben** – abgeschnittene Karten/Kacheln + horizontales Scrollen
+  auf schmalen Screens (Moderator-Seiten + Mitglieder-Hub). *(auch als Bugs in
+  Etappe D/E im Backlog)*
+- **Barrierefreiheit** – Fokusringe, Tastaturbedienung, `aria`-Labels, Screenreader
+  (v. a. Sterne-/Skala-Auswahl, Kiosk-Kacheln).
+- **Einheitliche Fehler-/Ladezustände** – gemeinsames Toast/Alert-Muster +
+  „Erneut versuchen" statt roher `err.detail`-Texte.
+
+**Stabilität / Betrieb**
+- **CI bei jedem PR** – GitHub Actions: `pytest` (gegen Postgres-Service) + `npm run
+  build` (+ Frontend-Tests, sobald vorhanden).
+- **Erste Frontend-Tests** – Vitest + Testing Library für kritische Flows
+  (Kiosk-Eintragung, Formular ausfüllen, Login).
+- **Automatischer Backup-Restore-Test** – Backup regelmäßig in eine Wegwerf-DB
+  zurückspielen + verifizieren; Reporting „letztes Backup ok".
+- **System-Statuspanel im Admin** – DB/SMTP/MinIO/Divera + letzte Job-Läufe auf
+  einen Blick.
 
 ---
 
