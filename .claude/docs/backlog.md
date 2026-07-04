@@ -699,6 +699,29 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ---
 
+## Personal
+
+### Aktivitäts-Ampel für Personal
+
+- Status: Erledigt
+- Priorität: Mittel
+- Kategorie: Feature / Datenbank / Backend / Frontend
+- Skills: planner, geraetehaus-patterns, tests, review
+- Beschreibung: Zwei in Tagen konfigurierbare Schwellen (gelb/rot). Personen ohne
+  Eintrag in Einsatz/Dienstbuch/Dienststunden (nur aktive Module) überschreiten die
+  Schwelle → Personen-Kachel wird gelb/rot umrandet. Personen als „inaktiv"
+  markierbar (keine Ampel/Benachrichtigung/Auto-Löschung). Zwei neue, abonnierbare
+  Benachrichtigungen (Ampel gelb/rot), einmalig beim Überschreiten.
+- Erledigt (04.07.2026, Feature-Branch `feature/personal-ampel` → PR nach `beta`):
+  Migration 0048 (`personen.inaktiv`, `ampel_gemeldet`); `ampel_service`
+  (Bulk-Übersicht + Tagesjob mit Zustandswechsel-Logik); Endpunkt
+  `GET /moderator/stammdaten/personen/ampel`; 2 Ereignisse verdrahtet
+  (`benachrichtigung_person_ampel_gelb/_rot`); Schwellen+Toggles auf der
+  Personal-Modul-Unterseite; Rahmenfarbe + Inaktiv-Checkbox + Legende in
+  `Personal.tsx`; Tagesjob 7:15 Uhr. Die `inaktiv`-Markierung steuert nur die
+  Ampel; die separate Inaktivitäts-Auto-Löschung bleibt davon unberührt (auf
+  Wunsch). Tests `test_ampel.py` (7); volle Suite 193 grün; `npm run build` grün.
+
 ## Berechtigungsverwaltung & Modul-System
 
 ### Granulare, individuelle Berechtigungsverwaltung als eigenständiges Modul

@@ -14,6 +14,7 @@ from app.core import zeit
 from app.db.session import AsyncSessionLocal
 from app.models.backup import Backup
 from app.services import (
+    ampel_service,
     archive_service,
     backup_service,
     barcode_service,
@@ -179,6 +180,18 @@ async def _pin_erinnerung_job() -> None:
             logger.warning("pin_erinnerung_fehlgeschlagen", exc_info=True)
 
 
+async def _personal_ampel_job() -> None:
+    """Läuft täglich um 7:15 Uhr; meldet Personen, die neu die gelbe bzw. rote
+    Aktivitäts-Ampel überschritten haben (einmalig je Schwelle)."""
+    async with AsyncSessionLocal() as db:
+        try:
+            gesendet = await ampel_service.ampel_benachrichtigungen_versenden(db)
+            if gesendet:
+                logger.info("personal_ampel_benachrichtigungen", anzahl=gesendet)
+        except Exception:
+            logger.warning("personal_ampel_job_fehlgeschlagen", exc_info=True)
+
+
 async def _backup_job() -> None:
     """Läuft alle 15 min; erstellt höchstens EIN Backup pro Tag zur konfigurierten
     Uhrzeit an den gewählten Wochentagen (mit Nachhol-Logik nach Ausfall)."""
@@ -307,6 +320,16 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("pin_erinnerung_job_registriert", uhrzeit="08:00")
+
+    scheduler.add_job(
+        _personal_ampel_job,
+        "cron",
+        hour=7,
+        minute=15,
+        id="personal_ampel",
+        replace_existing=True,
+    )
+    logger.info("personal_ampel_job_registriert", uhrzeit="07:15")
 
     # Alle 15 min; ob/ wann tatsächlich gesichert wird, entscheidet der Job anhand
     # der konfigurierten Uhrzeit/Wochentage (einmal pro Tag, mit Nachhol-Logik).

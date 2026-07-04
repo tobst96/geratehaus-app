@@ -17,6 +17,12 @@ bzw. über die Navigation (Admin/Gruppenführer mit Freigabe).
   Benachrichtigungskanäle und Ereignis-Abos (siehe
   [benachrichtigungen.md](benachrichtigungen.md)).
 - **Timeline**: relevante Änderungen je Person werden protokolliert.
+- **Aktivitäts-Ampel**: Personen-Kacheln werden **gelb** bzw. **rot** umrandet, wenn
+  sie seit den eingestellten Tagen keinen Einsatz, Dienst oder keine Dienststunden
+  mehr hatten (nur aktive Module zählen; ohne Eintrag zählt das Anlagedatum).
+  Personen lassen sich als **inaktiv** markieren (Checkbox in der Detailansicht) –
+  dann keine Ampel und keine Ampel-Benachrichtigung. Die separate automatische
+  Inaktivitäts-Löschung bleibt davon unberührt.
 
 ## Liste, Suche, Filter
 
@@ -32,9 +38,13 @@ bzw. über die Navigation (Admin/Gruppenführer mit Freigabe).
 - **Gruppen** verwalten (Züge/Gruppen, denen Personen zugeordnet werden).
 - **Sortierung** der Personenliste (Nachname / Vorname / Gruppe+Nachname).
 - **Inaktivitäts-Löschung**: Personen ohne neue Timeline-Aktivität werden nach X
-  Tagen automatisch gelöscht (7 Tage vorher Warn-Mail; 0 = nie).
+  Tagen automatisch gelöscht (7 Tage vorher Warn-Mail; 0 = nie). Unabhängig von der
+  Ampel-Markierung „inaktiv".
 - **PIN-Erinnerung**: Intervall, in dem Personen ohne PIN (mit E-Mail) an das Setzen
   erinnert werden (nur wenn Barcode-Modul aus).
+- **Aktivitäts-Ampel**: Schwellen für gelb/rot (in Tagen) und die zwei
+  Ampel-Benachrichtigungen (gelb/rot) an-/abschaltbar. Die Benachrichtigung geht
+  **einmalig beim Überschreiten** an die Abonnenten des jeweiligen Ereignisses.
 
 ## Datenschutz-Hinweis
 

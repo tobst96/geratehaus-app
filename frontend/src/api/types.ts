@@ -61,6 +61,15 @@ export interface Person {
   funktion_id: number | null;
   pin_gesetzt: boolean;
   benachrichtigungen_aktiv: boolean;
+  inaktiv: boolean;
+}
+
+export type AmpelStatus = "gruen" | "gelb" | "rot" | "inaktiv";
+
+export interface AmpelEintrag {
+  person_id: number;
+  status: AmpelStatus;
+  tage: number;
 }
 
 export interface PersonEreignis {

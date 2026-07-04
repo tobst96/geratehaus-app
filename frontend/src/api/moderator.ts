@@ -1,5 +1,6 @@
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut, apiUpload } from "./client";
 import type {
+  AmpelEintrag,
   BuchungOut,
   DienstbuchOut,
   DienststundenSummeOut,
@@ -221,6 +222,8 @@ export const einsatzFeldLoeschen = (id: number) =>
   apiDelete<void>(`/moderator/stammdaten/einsatz-felder/${id}`);
 
 export const holeAllePersonen = () => apiGet<Person[]>("/moderator/stammdaten/personen");
+export const holeAmpelUebersicht = () =>
+  apiGet<AmpelEintrag[]>("/moderator/stammdaten/personen/ampel");
 export const personAnlegen = (daten: {
   vorname: string;
   zwischenname: string | null;
@@ -239,6 +242,7 @@ export const personAktualisieren = (
     gruppe_id: number | null;
     funktion_id: number | null;
     benachrichtigungen_aktiv: boolean;
+    inaktiv: boolean;
   }>
 ) => apiPut<Person>(`/moderator/stammdaten/personen/${id}`, daten);
 export const personPinSetzen = (id: number, pin: string) =>
