@@ -14,6 +14,8 @@ export function MinioModul() {
   const [secret, setSecret] = useState("");
   const [meldung, setMeldung] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
+  const [testMeldung, setTestMeldung] = useState<string | null>(null);
+  const [testOk, setTestOk] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export function MinioModul() {
     try {
       await setzeMinioEinstellungen({
         endpoint: einst.endpoint,
+        console_url: einst.console_url,
         region: einst.region,
         access_key: einst.access_key,
         bucket_backups: einst.bucket_backups,
@@ -52,14 +55,15 @@ export function MinioModul() {
 
   async function testen() {
     setLaeuft(true);
-    setFehler(null);
-    setMeldung(null);
+    setTestMeldung("Teste Verbindung …");
+    setTestOk(false);
     try {
       const r = await testeMinioVerbindung();
-      if (r.ok) setMeldung("✓ " + r.meldung);
-      else setFehler(r.meldung);
+      setTestOk(r.ok);
+      setTestMeldung((r.ok ? "✓ " : "✗ ") + r.meldung);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Test fehlgeschlagen.");
+      setTestOk(false);
+      setTestMeldung("✗ " + (err instanceof ApiError ? String(err.detail) : "Test fehlgeschlagen."));
     } finally {
       setLaeuft(false);
     }
@@ -84,8 +88,17 @@ export function MinioModul() {
       <div className="karte">
         <h2>Verbindung</h2>
         <div className="formular-feld">
-          <label htmlFor="ep">Endpoint (mitgeliefertes MinIO: http://minio:9000)</label>
+          <label htmlFor="ep">Endpoint (S3-API – mitgeliefertes MinIO: http://minio:9000)</label>
           <input id="ep" value={einst.endpoint} onChange={(e) => feld("endpoint", e.target.value)} />
+        </div>
+        <div className="formular-feld">
+          <label htmlFor="cu">Konsolen-URL (Weboberfläche, im Browser erreichbar – z. B. http://192.168.2.8:9001)</label>
+          <input
+            id="cu"
+            value={einst.console_url}
+            onChange={(e) => feld("console_url", e.target.value)}
+            placeholder="http://<server>:9001"
+          />
         </div>
         <div className="formular-feld">
           <label htmlFor="rg">Region</label>
@@ -127,14 +140,37 @@ export function MinioModul() {
         </p>
       </div>
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
         <button onClick={speichern} disabled={laeuft}>
           {laeuft ? "…" : "Speichern"}
         </button>
         <button className="sekundaer" onClick={testen} disabled={laeuft}>
           Verbindung testen
         </button>
+        {einst.console_url ? (
+          <button
+            type="button"
+            className="sekundaer"
+            onClick={() => window.open(einst.console_url, "_blank", "noopener")}
+          >
+            MinIO-Konsole öffnen ↗
+          </button>
+        ) : (
+          <span style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+            Konsolen-URL eintragen &amp; speichern, um die MinIO-Oberfläche zu öffnen.
+          </span>
+        )}
+        {testMeldung && (
+          <span style={{ color: testOk ? "var(--farbe-text-mute)" : "#c62828", fontWeight: 600 }}>
+            {testMeldung}
+          </span>
+        )}
       </div>
+      <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem", marginTop: 8 }}>
+        Hinweis: Die MinIO-Konsole öffnet sich in einem neuen Tab; dort mit den MinIO-Zugangsdaten
+        (Access/Secret bzw. Root-User) anmelden. Ein automatischer Login ist aus Sicherheitsgründen
+        nicht möglich.
+      </p>
     </div>
   );
 }

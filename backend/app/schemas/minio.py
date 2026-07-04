@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class MinioEinstellungen(BaseModel):
     endpoint: str
+    console_url: str
     region: str
     access_key: str
     secret_gesetzt: bool
@@ -13,6 +14,7 @@ class MinioEinstellungen(BaseModel):
 
 class MinioEinstellungenUpdate(BaseModel):
     endpoint: str | None = None
+    console_url: str | None = None
     region: str | None = None
     access_key: str | None = None
     secret_key: str | None = None

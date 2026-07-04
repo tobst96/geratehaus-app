@@ -2,6 +2,7 @@ import { apiGet, apiPatch, apiPost } from "./client";
 
 export interface MinioEinstellungen {
   endpoint: string;
+  console_url: string;
   region: string;
   access_key: string;
   secret_gesetzt: boolean;
@@ -12,6 +13,7 @@ export interface MinioEinstellungen {
 
 export type MinioEinstellungenUpdate = Partial<{
   endpoint: string;
+  console_url: string;
   region: string;
   access_key: string;
   secret_key: string;

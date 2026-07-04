@@ -356,6 +356,7 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("backup_pdf_archiv_pfad", "pdfs", ConfigTyp.STR, "S3-Präfix (Ordner) für das PDF-Archiv"),
     # MinIO-Modul (Objektspeicher). modul_minio_aktiv wird über das Feature-Modul verwaltet.
     ConfigDefault("minio_endpoint", "http://minio:9000", ConfigTyp.STR, "MinIO/S3-Endpoint-URL"),
+    ConfigDefault("minio_console_url", "", ConfigTyp.STR, "MinIO-Konsolen-URL (im Browser erreichbar, z. B. http://host:9101)"),
     ConfigDefault("minio_region", "us-east-1", ConfigTyp.STR, "MinIO/S3-Region"),
     ConfigDefault("minio_access_key", "", ConfigTyp.STR, "MinIO Access Key"),
     ConfigDefault("minio_secret_key", "", ConfigTyp.STR, "MinIO Secret Key"),

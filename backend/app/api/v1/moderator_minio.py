@@ -13,6 +13,7 @@ async def einstellungen_lesen(db: DbSession, _admin: CurrentAdmin) -> MinioEinst
     g = config_service.get
     return MinioEinstellungen(
         endpoint=str(await g(db, "minio_endpoint", "http://minio:9000")),
+        console_url=str(await g(db, "minio_console_url", "")),
         region=str(await g(db, "minio_region", "us-east-1")),
         access_key=str(await g(db, "minio_access_key", "")),
         secret_gesetzt=bool(str(await g(db, "minio_secret_key", ""))),
@@ -28,7 +29,8 @@ async def einstellungen_setzen(
 ) -> MinioEinstellungen:
     s = config_service.set
     for wert, key in [
-        (daten.endpoint, "minio_endpoint"), (daten.region, "minio_region"),
+        (daten.endpoint, "minio_endpoint"), (daten.console_url, "minio_console_url"),
+        (daten.region, "minio_region"),
         (daten.access_key, "minio_access_key"), (daten.secret_key, "minio_secret_key"),
         (daten.bucket_backups, "minio_bucket_backups"),
         (daten.bucket_einsaetze, "minio_bucket_einsaetze"),
