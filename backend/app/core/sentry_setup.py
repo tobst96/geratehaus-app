@@ -65,6 +65,29 @@ def _sentry_umgebung(version: str) -> str:
         return "production"
 
 
+# Log-Events, die bereits an anderer Stelle sauber behandelt und dem Admin
+# gemeldet werden (Fehler-Mail + Status im Backup-Browser) und deshalb keinen
+# unerwarteten Code-Fehler darstellen. Sie sollen als Log-Zeile erhalten
+# bleiben, aber kein eigenes Sentry-Issue erzeugen (sonst nur Rauschen).
+_UNTERDRUECKTE_LOG_EVENTS = ("backup_fehlgeschlagen",)
+
+
+def _before_send(event, hint):
+    """Verwirft Sentry-Events für bereits behandelte Betriebsfehler (z. B. ein
+    fehlgeschlagenes Backup wegen falsch konfiguriertem Ziel). Echte,
+    unerwartete Fehler/Exceptions bleiben unberührt."""
+    # Bei via LoggingIntegration erzeugten Events keine Exception -> nur wenn
+    # es KEIN Exception-Event ist, überhaupt filtern.
+    if "exc_info" in hint:
+        return event
+    nachricht = ""
+    logentry = event.get("logentry") or {}
+    nachricht = logentry.get("message") or event.get("message") or ""
+    if any(marker in nachricht for marker in _UNTERDRUECKTE_LOG_EVENTS):
+        return None
+    return event
+
+
 def init_sentry_wenn_aktiviert(fehlerberichte_aktiv: bool) -> bool:
     """Gibt zurück, ob Sentry tatsächlich initialisiert wurde."""
     dsn = _aktive_dsn()
@@ -81,6 +104,7 @@ def init_sentry_wenn_aktiviert(fehlerberichte_aktiv: bool) -> bool:
         # nur technische Fehlerdetails (Stacktrace, Request-Pfad/-Methode).
         send_default_pii=False,
         traces_sample_rate=0.0,
+        before_send=_before_send,
         # Aktiviert die Sentry Logs API (sichtbar unter "Logs" in der Sentry-UI)
         # zusätzlich zu den klassischen Issues.
         enable_logs=True,
