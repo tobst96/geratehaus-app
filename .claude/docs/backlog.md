@@ -549,7 +549,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Stable-Release vorbereiten (Release-Checkliste)
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Hoch
 - Kategorie: Wartung / Release
 - Skills: review, tests
@@ -562,6 +562,9 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Notiz (Stand 02.07.2026): Alle inhaltlichen Etappe-N-Punkte sind erledigt
   (Einsatzdetails-Bug, Divera, Benachrichtigungen, Stable-Updater, Punktesystem
   entfernt).
+- Notiz (Stand 04.07.2026): **Stable v0.4.0** veröffentlicht (GitHub-Release, latest, kein
+  Prerelease). Checkliste durchlaufen: Datenschutz (Backups/Objektspeicher ergänzt), README,
+  alle docs/*.md geprüft, pytest (179) + npm run build grün. Migrationen bis 0046.
 - Notiz (Stand 03.07.2026): Beta **0.3.0-beta.3** veröffentlicht (GitHub-Prerelease).
   Release-Checkliste dabei abgearbeitet: Datenschutz-Seite aktualisiert; README
   gegen aktuellen Stand geprüft und nachgezogen (Punktesystem entfernt, Module/
