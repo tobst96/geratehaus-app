@@ -71,7 +71,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Personal-Liste mobile: Sticky Suche/Button
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Niedrig
 - Kategorie: Frontend / Design
 - Skills: geraetehaus-patterns, review
@@ -83,7 +83,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Dark Mode: alternatives Logo hinterlegbar
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Niedrig
 - Kategorie: Feature / Frontend
 - Skills: geraetehaus-patterns, review

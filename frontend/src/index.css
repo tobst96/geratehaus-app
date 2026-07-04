@@ -581,11 +581,21 @@ table tr:hover {
 
 /* === Personal-Seite Mobile =============================================== */
 
+/* Titel + Buttons + Suche als gemeinsame Sticky-Leiste, damit „+ Person
+   hinzufügen" und die Suche in langen Listen beim Scrollen erreichbar bleiben. */
+.personal-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--farbe-hintergrund);
+  padding-top: 4px;
+}
+
 .personal-kopf {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -617,9 +627,6 @@ table tr:hover {
 .personal-suche {
   width: 100%;
   margin-bottom: 12px;
-  position: sticky;
-  top: 0;
-  z-index: 5;
 }
 
 /* Nur auf Mobile sichtbar (Master-Detail einspaltig). */
@@ -659,6 +666,11 @@ table tr:hover {
 
   /* Master-Detail: sobald eine Person gewählt ist, nur die Detailansicht zeigen. */
   .personal-layout--detail .personal-liste {
+    display: none;
+  }
+
+  /* Suche filtert nur die (ausgeblendete) Liste – in der Detailansicht verstecken. */
+  .personal-sticky--detail .personal-suche {
     display: none;
   }
 

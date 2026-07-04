@@ -385,16 +385,25 @@ export function Personal() {
 
   return (
     <div>
-      <div className="personal-kopf">
-        <h1 style={{ margin: 0 }}>Personal</h1>
-        <div className="personal-kopf-buttons">
-          <button type="button" className="sekundaer" onClick={() => setZeigeEinstellungen(true)}>
-            Personal-Einstellungen
-          </button>
-          <button type="button" onClick={anlegenModalOeffnen}>
-            + Person hinzufügen
-          </button>
+      <div className={`personal-sticky${ausgewaehltePerson ? " personal-sticky--detail" : ""}`}>
+        <div className="personal-kopf">
+          <h1 style={{ margin: 0 }}>Personal</h1>
+          <div className="personal-kopf-buttons">
+            <button type="button" className="sekundaer" onClick={() => setZeigeEinstellungen(true)}>
+              Personal-Einstellungen
+            </button>
+            <button type="button" onClick={anlegenModalOeffnen}>
+              + Person hinzufügen
+            </button>
+          </div>
         </div>
+        <input
+          className="personal-suche"
+          placeholder="Suche…"
+          value={suche}
+          onChange={(e) => setSuche(e.target.value)}
+          autoFocus
+        />
       </div>
 
       {zeigeEinstellungen && (
@@ -562,14 +571,6 @@ export function Personal() {
 
       <div className={`personal-layout${ausgewaehltePerson ? " personal-layout--detail" : ""}`}>
         <div className="personal-liste">
-          <input
-            className="personal-suche"
-            placeholder="Suche…"
-            value={suche}
-            onChange={(e) => setSuche(e.target.value)}
-            autoFocus
-          />
-
           <div
             style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12, fontSize: "0.85rem" }}
           >
