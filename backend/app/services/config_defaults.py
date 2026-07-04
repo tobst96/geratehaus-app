@@ -66,7 +66,7 @@ DEFAULTS: list[ConfigDefault] = [
     # anhand der Registry ergänzt bzw. ignoriert.
     ConfigDefault(
         "modul_reihenfolge",
-        "personal,fahrzeuge,benachrichtigungen,kiosk,backup,einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,divera,barcode",
+        "personal,fahrzeuge,benachrichtigungen,kiosk,backup,minio,einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,divera,barcode",
         ConfigTyp.STR,
         "Reihenfolge der Feature-Module (kommagetrennte Keys)",
     ),
@@ -354,4 +354,14 @@ DEFAULTS: list[ConfigDefault] = [
     # PDF-Archiv im Objektspeicher (S3/MinIO): alle erzeugten PDFs zusätzlich sichern
     ConfigDefault("backup_pdf_archiv_aktiv", "false", ConfigTyp.BOOL, "Erzeugte PDFs zusätzlich im S3-Objektspeicher archivieren"),
     ConfigDefault("backup_pdf_archiv_pfad", "pdfs", ConfigTyp.STR, "S3-Präfix (Ordner) für das PDF-Archiv"),
+    # MinIO-Modul (Objektspeicher). modul_minio_aktiv wird über das Feature-Modul verwaltet.
+    ConfigDefault("minio_endpoint", "http://minio:9000", ConfigTyp.STR, "MinIO/S3-Endpoint-URL"),
+    ConfigDefault("minio_region", "us-east-1", ConfigTyp.STR, "MinIO/S3-Region"),
+    ConfigDefault("minio_access_key", "", ConfigTyp.STR, "MinIO Access Key"),
+    ConfigDefault("minio_secret_key", "", ConfigTyp.STR, "MinIO Secret Key"),
+    ConfigDefault("minio_bucket_backups", "geratehaus-backups", ConfigTyp.STR, "Bucket für Voll-Backups"),
+    ConfigDefault("minio_bucket_einsaetze", "einsaetze", ConfigTyp.STR, "Bucket für Einsatz-Dokumente (Ordner je Einsatz)"),
+    ConfigDefault("minio_bucket_dienstbuecher", "dienstbuecher", ConfigTyp.STR, "Bucket für Dienstbuch-Dokumente (flach)"),
+    # Backup-Ziel: MinIO (nutzt die Verbindung des MinIO-Moduls)
+    ConfigDefault("backup_minio_aktiv", "false", ConfigTyp.BOOL, "Backup-Ziel: MinIO (Modul MinIO)"),
 ]

@@ -10,6 +10,7 @@ import { BarcodeModul } from "./module/BarcodeModul";
 import { BenachrichtigungenModul } from "./module/BenachrichtigungenModul";
 import { KioskModul } from "./module/KioskModul";
 import { BackupModul } from "./module/BackupModul";
+import { MinioModul } from "./module/MinioModul";
 
 export function ModulUnterseite() {
   const { key } = useParams<{ key: string }>();
@@ -37,6 +38,8 @@ export function ModulUnterseite() {
       return <KioskModul />;
     case "backup":
       return <BackupModul />;
+    case "minio":
+      return <MinioModul />;
     default:
       return (
         <div>

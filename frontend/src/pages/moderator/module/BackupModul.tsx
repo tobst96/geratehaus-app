@@ -101,6 +101,7 @@ export function BackupModul() {
         email_aktiv: einst.email_aktiv,
         pdf_archiv_aktiv: einst.pdf_archiv_aktiv,
         pdf_archiv_pfad: einst.pdf_archiv_pfad,
+        minio_aktiv: einst.minio_aktiv,
         ...(passphrase ? { passphrase } : {}),
         ...(webdavPw ? { webdav_passwort: webdavPw } : {}),
         ...(s3Secret ? { s3_secret_key: s3Secret } : {}),
@@ -413,6 +414,17 @@ export function BackupModul() {
           <input type="checkbox" checked={einst.email_aktiv} onChange={(e) => feld("email_aktiv", e.target.checked)} />
           Als E-Mail-Anhang an die Benachrichtigungs-Empfänger (nur für kleine Instanzen)
         </label>
+
+        {einst.minio_modul_aktiv ? (
+          <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12 }}>
+            <input type="checkbox" checked={einst.minio_aktiv} onChange={(e) => feld("minio_aktiv", e.target.checked)} />
+            MinIO Backup (nutzt die Verbindung aus dem Modul „MinIO")
+          </label>
+        ) : (
+          <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem", marginTop: 12 }}>
+            Für „MinIO Backup" zuerst das Modul „MinIO" unter Module aktivieren und konfigurieren.
+          </p>
+        )}
       </div>
 
       {/* --- PDF-Archiv --- */}

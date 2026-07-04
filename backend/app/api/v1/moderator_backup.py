@@ -14,7 +14,7 @@ from app.schemas.backup import (
     BackupKategorie,
     BackupOut,
 )
-from app.services import backup_service
+from app.services import backup_service, feature_modul_service
 from app.services.backup_service import BackupFehler
 from app.services.config_service import config_service
 
@@ -59,6 +59,8 @@ async def einstellungen_lesen(db: DbSession, _admin: CurrentAdmin) -> BackupEins
         email_aktiv=bool(await g(db, "backup_email_aktiv", False)),
         pdf_archiv_aktiv=bool(await g(db, "backup_pdf_archiv_aktiv", False)),
         pdf_archiv_pfad=str(await g(db, "backup_pdf_archiv_pfad", "pdfs")),
+        minio_aktiv=bool(await g(db, "backup_minio_aktiv", False)),
+        minio_modul_aktiv=await feature_modul_service.ist_aktiv(db, "minio"),
     )
 
 
@@ -102,6 +104,7 @@ async def einstellungen_setzen(
         (daten.sftp_user, "backup_sftp_user"), (daten.sftp_passwort, "backup_sftp_passwort"),
         (daten.sftp_pfad, "backup_sftp_pfad"), (daten.email_aktiv, "backup_email_aktiv"),
         (daten.pdf_archiv_aktiv, "backup_pdf_archiv_aktiv"), (daten.pdf_archiv_pfad, "backup_pdf_archiv_pfad"),
+        (daten.minio_aktiv, "backup_minio_aktiv"),
     ]:
         if feld is not None:
             await s(db, key, feld)

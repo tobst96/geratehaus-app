@@ -30,6 +30,8 @@ export interface BackupEinstellungen {
   email_aktiv: boolean;
   pdf_archiv_aktiv: boolean;
   pdf_archiv_pfad: string;
+  minio_aktiv: boolean;
+  minio_modul_aktiv: boolean;
 }
 
 export type BackupEinstellungenUpdate = Partial<{
@@ -62,6 +64,7 @@ export type BackupEinstellungenUpdate = Partial<{
   email_aktiv: boolean;
   pdf_archiv_aktiv: boolean;
   pdf_archiv_pfad: string;
+  minio_aktiv: boolean;
 }>;
 
 export interface BackupOut {

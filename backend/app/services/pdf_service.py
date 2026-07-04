@@ -73,12 +73,19 @@ async def einsatz_pdf(db: AsyncSession, einsatz: Any) -> bytes:
         zusatzfelder_anzeige.append({"label": f.label, "wert": "Ja" if wert is True else wert})
     pdf = await _rendern(db, "einsatz.html", einsatz=einsatz, zusatzfelder_anzeige=zusatzfelder_anzeige)
     await _archiviere(db, f"einsaetze/einsatz-{getattr(einsatz, 'id', 'x')}.pdf", pdf)
+    # MinIO-Modul: Ordner je Einsatz mit aktueller JSON + Bericht-PDF.
+    from app.services import minio_service
+
+    await minio_service.einsatz_dokumente(db, einsatz, pdf)
     return pdf
 
 
 async def dienstbuch_pdf(db: AsyncSession, dienstbuch: Any) -> bytes:
     pdf = await _rendern(db, "dienstbuch.html", dienstbuch=dienstbuch)
     await _archiviere(db, f"dienstbuecher/dienstbuch-{getattr(dienstbuch, 'id', 'x')}.pdf", pdf)
+    from app.services import minio_service
+
+    await minio_service.dienstbuch_dokument(db, getattr(dienstbuch, "id", 0), pdf)
     return pdf
 
 

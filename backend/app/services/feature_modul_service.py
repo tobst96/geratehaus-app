@@ -38,6 +38,9 @@ FEATURE_MODULE: list[FeatureModulDef] = [
     FeatureModulDef("benachrichtigungen", "Benachrichtigungen", False, immer_aktiv=True),
     FeatureModulDef("kiosk", "Kiosk", False, immer_aktiv=True),
     FeatureModulDef("backup", "Backup", False, immer_aktiv=True),
+    # Objektspeicher (MinIO/S3): internes Modul, aber an-/abschaltbar. Bei aktivem
+    # Modul werden erzeugte Dokumente (Einsätze/Dienstbücher) automatisch abgelegt.
+    FeatureModulDef("minio", "MinIO", False),
     FeatureModulDef("einsatztagebuch", "Einsatztagebuch", True),
     FeatureModulDef("dienstbuch", "Dienstbuch", True),
     FeatureModulDef("dienststunden", "Dienststunden", True),
