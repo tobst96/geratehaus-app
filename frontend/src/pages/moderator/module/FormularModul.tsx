@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import QRCode from "qrcode";
 import { Link } from "react-router-dom";
 import { ApiError } from "../../../api/client";
 import { useConfig } from "../../../context/ConfigContext";
@@ -10,6 +11,8 @@ import {
   feldLoeschen,
   formularAktualisieren,
   formularAnlegen,
+  formularDuplizieren,
+  formularExportUrl,
   formularLoeschen,
   holeEinreichungen,
   holeFormulare,
@@ -59,8 +62,15 @@ const FELDTYP_LABEL: Record<FormularFeldTyp, string> = {
   mehrzeilig: "Textfeld (mehrzeilig)",
   checkbox: "Checkbox",
   sterne: "Sternebewertung",
+  skala: "Skala (1–N)",
   dropdown: "Dropdown",
   dropdown_mehrfach: "Dropdown (Mehrfachauswahl)",
+  datum: "Datum",
+  zahl: "Zahl",
+  email: "E-Mail",
+  telefon: "Telefon",
+  ja_nein: "Ja/Nein",
+  datei: "Datei-Upload",
 };
 
 function wertText(a: Einreichung["antworten"][number]): string {
@@ -80,6 +90,7 @@ export function FormularModul() {
   const [neuesFeldTyp, setNeuesFeldTyp] = useState<FormularFeldTyp>("text");
   const [einreichungen, setEinreichungen] = useState<Einreichung[] | null>(null);
   const [zusammenfassung, setZusammenfassung] = useState<Zusammenfassung | null>(null);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
 
   const basisUrl = (config?.oeffentliche_basis_url || window.location.origin).replace(/\/$/, "");
 
@@ -94,6 +105,16 @@ export function FormularModul() {
   useEffect(() => {
     laden();
   }, []);
+
+  useEffect(() => {
+    if (ausgewaehltId === null) {
+      setQrUrl(null);
+      return;
+    }
+    QRCode.toDataURL(`${basisUrl}/formular/${ausgewaehltId}`, { width: 160, margin: 1 })
+      .then(setQrUrl)
+      .catch(() => setQrUrl(null));
+  }, [ausgewaehltId, basisUrl]);
 
   const ausgewaehlt = formulare?.find((f) => f.id === ausgewaehltId) ?? null;
 
@@ -121,6 +142,12 @@ export function FormularModul() {
     await formularLoeschen(f.id);
     setAusgewaehltId(null);
     await laden();
+  }
+
+  async function duplizieren(f: Formular) {
+    const kopie = await formularDuplizieren(f.id);
+    await laden();
+    setAusgewaehltId(kopie.id);
   }
 
   async function feldHinzufuegen() {
@@ -273,18 +300,96 @@ export function FormularModul() {
               wird bei Ablauf automatisch eine Auswertung dorthin gesendet.
             </p>
           </div>
+          <div className="formular-feld">
+            <label>Startdatum (leer = sofort verfügbar)</label>
+            <input
+              type="datetime-local"
+              key={`start-${ausgewaehlt.id}`}
+              defaultValue={zuLokalInput(ausgewaehlt.start_am)}
+              onBlur={(e) => formularFeldAendern(ausgewaehlt, { start_am: vonLokalInput(e.target.value) })}
+            />
+          </div>
+          <div className="formular-feld">
+            <label>Maximale Anzahl Einreichungen (leer/0 = unbegrenzt)</label>
+            <input
+              type="number"
+              min={0}
+              key={`max-${ausgewaehlt.id}`}
+              defaultValue={ausgewaehlt.max_einreichungen ?? ""}
+              onBlur={(e) =>
+                formularFeldAendern(ausgewaehlt, { max_einreichungen: e.target.value ? Number(e.target.value) : null })
+              }
+            />
+          </div>
+          <div className="formular-feld">
+            <label>Einreichungen automatisch löschen nach (Tagen; leer/0 = nie)</label>
+            <input
+              type="number"
+              min={0}
+              key={`aufb-${ausgewaehlt.id}`}
+              defaultValue={ausgewaehlt.aufbewahrung_tage ?? ""}
+              onBlur={(e) =>
+                formularFeldAendern(ausgewaehlt, { aufbewahrung_tage: e.target.value ? Number(e.target.value) : null })
+              }
+            />
+          </div>
+          <div className="formular-feld">
+            <label>Danke-Text (nach dem Absenden angezeigt)</label>
+            <textarea
+              key={`danke-${ausgewaehlt.id}`}
+              defaultValue={ausgewaehlt.danke_text ?? ""}
+              placeholder="z. B. Vielen Dank für deine Rückmeldung!"
+              onBlur={(e) => formularFeldAendern(ausgewaehlt, { danke_text: e.target.value || null })}
+            />
+          </div>
+          <div className="formular-feld">
+            <label>Einwilligungstext (Pflicht-Häkchen beim Absenden; leer = keins)</label>
+            <textarea
+              key={`einw-${ausgewaehlt.id}`}
+              defaultValue={ausgewaehlt.einwilligung_text ?? ""}
+              placeholder="z. B. Ich bin mit der Verarbeitung meiner Angaben einverstanden."
+              onBlur={(e) => formularFeldAendern(ausgewaehlt, { einwilligung_text: e.target.value || null })}
+            />
+          </div>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input
+              type="checkbox"
+              checked={ausgewaehlt.ergebnis_oeffentlich}
+              onChange={(e) => formularFeldAendern(ausgewaehlt, { ergebnis_oeffentlich: e.target.checked })}
+            />
+            Ergebnis nach dem Absenden öffentlich anzeigen (ohne Freitexte)
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input
+              type="checkbox"
+              checked={ausgewaehlt.mehrfach_verhindern}
+              onChange={(e) => formularFeldAendern(ausgewaehlt, { mehrfach_verhindern: e.target.checked })}
+            />
+            Mehrfach-Absenden verhindern (bei Anmeldepflicht pro Person erzwungen)
+          </label>
 
           <div className="formular-feld">
             <label>Teilbarer Link (z. B. für WhatsApp)</label>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <input readOnly value={`${basisUrl}/formular/${ausgewaehlt.id}`} style={{ flex: "1 1 240px" }} />
-              <button
-                type="button"
-                className="sekundaer"
-                onClick={(e) => linkKopieren(`${basisUrl}/formular/${ausgewaehlt.id}`, e.currentTarget)}
-              >
-                Link kopieren
-              </button>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-start" }}>
+              {qrUrl && <img src={qrUrl} alt="QR-Code zum Formular" width={120} height={120} />}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: "1 1 240px" }}>
+                <input readOnly value={`${basisUrl}/formular/${ausgewaehlt.id}`} />
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    className="sekundaer"
+                    onClick={(e) => linkKopieren(`${basisUrl}/formular/${ausgewaehlt.id}`, e.currentTarget)}
+                  >
+                    Link kopieren
+                  </button>
+                  <a className="sekundaer" href={formularExportUrl(ausgewaehlt.id)}>
+                    CSV-Export
+                  </a>
+                  <button type="button" className="sekundaer" onClick={() => duplizieren(ausgewaehlt)}>
+                    Duplizieren
+                  </button>
+                </div>
+              </div>
             </div>
             {!ausgewaehlt.aktiv && (
               <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
@@ -373,9 +478,9 @@ export function FormularModul() {
                     />
                   </div>
                 )}
-                {feld.typ === "sterne" && (
+                {(feld.typ === "sterne" || feld.typ === "skala") && (
                   <div className="formular-feld" style={{ marginTop: 8 }}>
-                    <label>Maximale Sternzahl</label>
+                    <label>{feld.typ === "sterne" ? "Maximale Sternzahl" : "Maximum der Skala"}</label>
                     <input
                       type="number"
                       min={1}
@@ -387,6 +492,14 @@ export function FormularModul() {
                     />
                   </div>
                 )}
+                <div className="formular-feld" style={{ marginTop: 8 }}>
+                  <label>Hilfetext / Platzhalter (optional)</label>
+                  <input
+                    defaultValue={feld.hinweis ?? ""}
+                    key={`hw-${feld.id}`}
+                    onBlur={(e) => feldAendern(feld, { hinweis: e.target.value || null })}
+                  />
+                </div>
               </div>
             ))}
 

@@ -193,6 +193,18 @@ async def _personal_ampel_job() -> None:
             logger.warning("personal_ampel_job_fehlgeschlagen", exc_info=True)
 
 
+async def _formular_aufbewahrung_job() -> None:
+    """Läuft täglich um 3:20 Uhr; löscht Formular-Einreichungen, die älter als die
+    je Formular gesetzte Aufbewahrungsfrist sind."""
+    async with AsyncSessionLocal() as db:
+        try:
+            geloescht = await formular_service.einreichungen_aufbewahrung_bereinigen(db)
+            if geloescht:
+                logger.info("formular_einreichungen_bereinigt", anzahl=geloescht)
+        except Exception:
+            logger.warning("formular_aufbewahrung_job_fehlgeschlagen", exc_info=True)
+
+
 async def _formular_ablauf_job() -> None:
     """Läuft alle 15 min; schickt für gerade abgelaufene Formulare einmalig eine
     Auswertung per Mail an den hinterlegten Empfänger."""
@@ -353,6 +365,16 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("formular_ablauf_job_registriert")
+
+    scheduler.add_job(
+        _formular_aufbewahrung_job,
+        "cron",
+        hour=3,
+        minute=20,
+        id="formular_aufbewahrung",
+        replace_existing=True,
+    )
+    logger.info("formular_aufbewahrung_job_registriert", uhrzeit="03:20")
 
     # Alle 15 min; ob/ wann tatsächlich gesichert wird, entscheidet der Job anhand
     # der konfigurierten Uhrzeit/Wochentage (einmal pro Tag, mit Nachhol-Logik).

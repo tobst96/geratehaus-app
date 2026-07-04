@@ -226,3 +226,168 @@ async def test_ablauf_job_versendet_einmalig(db, monkeypatch):
     # Zweiter Lauf sendet nicht erneut (bereits markiert)
     gesendet.clear()
     assert await formular_service.ablauf_zusammenfassungen_versenden(db) == 0
+
+
+# --- Ausbau: neue Feldtypen, Gates, Duplizieren, Export, Aufbewahrung ---------
+
+
+@pytest.mark.asyncio
+async def test_neue_feldtypen_validierung(client, db):
+    formular = await _formular(db)
+    skala = await _feld(db, formular.id, label="Skala", typ="skala", max_sterne=7)
+    zahl = await _feld(db, formular.id, label="Alter", typ="zahl")
+    mail = await _feld(db, formular.id, label="Mail", typ="email")
+    jn = await _feld(db, formular.id, label="Dabei", typ="ja_nein")
+
+    # Ungültige Werte
+    r = await client.post(
+        f"/api/v1/formulare/{formular.id}/einreichen",
+        json={"antworten": {str(skala.id): 9, str(zahl.id): "abc", str(mail.id): "kaputt", str(jn.id): "Vielleicht"}},
+    )
+    assert r.status_code == 422
+    for f in (skala, zahl, mail, jn):
+        assert str(f.id) in r.json()["detail"]["felder"]
+
+    # Gültige Werte
+    r = await client.post(
+        f"/api/v1/formulare/{formular.id}/einreichen",
+        json={"antworten": {str(skala.id): 5, str(zahl.id): 42, str(mail.id): "a@b.de", str(jn.id): "Ja"}},
+    )
+    assert r.status_code == 201
+
+
+@pytest.mark.asyncio
+async def test_kapazitaet_ausgebucht(client, db):
+    formular = await _formular(db, max_einreichungen=1)
+    await _feld(db, formular.id, label="Text", typ="text")
+    r = await client.post(f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}})
+    assert r.status_code == 201
+    r = await client.post(f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}})
+    assert r.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_startdatum_noch_nicht_verfuegbar(client, db):
+    formular = await _formular(db, start_am=datetime.now(timezone.utc) + timedelta(days=1))
+    r = await client.get(f"/api/v1/formulare/{formular.id}")
+    assert r.status_code == 404
+    r = await client.get("/api/v1/formulare")
+    assert all(f["id"] != formular.id for f in r.json())
+
+
+@pytest.mark.asyncio
+async def test_einwilligung_pflicht(client, db):
+    formular = await _formular(db, einwilligung_text="Ich stimme zu.")
+    await _feld(db, formular.id, label="Text", typ="text")
+    r = await client.post(f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}})
+    assert r.status_code == 422
+    r = await client.post(
+        f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}, "einwilligung": True}
+    )
+    assert r.status_code == 201
+
+
+@pytest.mark.asyncio
+async def test_honeypot_verwirft_still(client, db):
+    formular = await _formular(db)
+    await _feld(db, formular.id, label="Text", typ="text")
+    r = await client.post(
+        f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}, "hp": "bot"}
+    )
+    assert r.status_code == 201
+    assert len(await formular_service.einreichungen_fuer(db, formular.id)) == 0
+
+
+@pytest.mark.asyncio
+async def test_mehrfach_verhindern_pro_person(client, db):
+    person = Person(name="Max Muster")
+    db.add(person)
+    await db.commit()
+    formular = await _formular(db, mehrfach_verhindern=True)
+    await _feld(db, formular.id, label="Text", typ="text")
+    cookies = {"geraetehaus_name": "Max Muster"}
+    r = await client.post(
+        f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}}, cookies=cookies
+    )
+    assert r.status_code == 201
+    r = await client.post(
+        f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}}, cookies=cookies
+    )
+    assert r.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_oeffentliches_ergebnis_ohne_freitext(client, db):
+    formular = await _formular(db, ergebnis_oeffentlich=True)
+    sterne = await _feld(db, formular.id, label="Note", typ="sterne", max_sterne=5)
+    text = await _feld(db, formular.id, label="Kommentar", typ="text")
+    await client.post(
+        f"/api/v1/formulare/{formular.id}/einreichen",
+        json={"antworten": {str(sterne.id): 4, str(text.id): "geheim"}},
+    )
+    r = await client.get(f"/api/v1/formulare/{formular.id}/ergebnis")
+    assert r.status_code == 200
+    felder = {f["feld_id"]: f for f in r.json()["felder"]}
+    assert felder[sterne.id]["durchschnitt"] == 4
+    assert felder[text.id]["texte"] is None  # Freitext öffentlich ausgeblendet
+
+    # Ohne Freigabe: 404
+    formular2 = await _formular(db)
+    r = await client.get(f"/api/v1/formulare/{formular2.id}/ergebnis")
+    assert r.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_duplizieren(client, db):
+    h = await _token(client, db)
+    formular = await _formular(db, aktiv=True)
+    await _feld(db, formular.id, label="Note", typ="sterne")
+    await client.post(f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}})
+
+    r = await client.post(f"/api/v1/moderator/formulare/{formular.id}/duplizieren", headers=h)
+    assert r.status_code == 201
+    kopie = r.json()
+    assert kopie["name"].endswith("(Kopie)") and kopie["aktiv"] is False
+    assert len(kopie["felder"]) == 1
+    # Einreichungen werden nicht mitkopiert
+    assert len(await formular_service.einreichungen_fuer(db, kopie["id"])) == 0
+
+
+@pytest.mark.asyncio
+async def test_csv_export(client, db):
+    h = await _token(client, db)
+    formular = await _formular(db, moderator_sichtbar=True)
+    feld = await _feld(db, formular.id, label="Name", typ="text")
+    await client.post(
+        f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {str(feld.id): "Anna"}}
+    )
+    r = await client.get(f"/api/v1/moderator/formulare/{formular.id}/export.csv", headers=h)
+    assert r.status_code == 200
+    assert "Name" in r.text and "Anna" in r.text
+
+
+@pytest.mark.asyncio
+async def test_aufbewahrung_job_loescht_alte(client, db):
+    formular = await _formular(db, aufbewahrung_tage=1)
+    await _feld(db, formular.id, label="Text", typ="text")
+    await client.post(f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}})
+
+    # Einreichung künstlich altern
+    eintraege = await formular_service.einreichungen_fuer(db, formular.id)
+    eintraege[0].erstellt_am = datetime.now(timezone.utc) - timedelta(days=5)
+    await db.commit()
+
+    assert await formular_service.einreichungen_aufbewahrung_bereinigen(db) == 1
+    assert len(await formular_service.einreichungen_fuer(db, formular.id)) == 0
+
+
+@pytest.mark.asyncio
+async def test_datei_referenz_validierung(client, db):
+    formular = await _formular(db)
+    datei = await _feld(db, formular.id, label="Foto", typ="datei", pflicht=True)
+    r = await client.post(
+        f"/api/v1/formulare/{formular.id}/einreichen",
+        json={"antworten": {str(datei.id): "/uploads/formulare/gibtsnicht.png"}},
+    )
+    assert r.status_code == 422
+    assert str(datei.id) in r.json()["detail"]["felder"]

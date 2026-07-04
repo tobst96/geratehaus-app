@@ -25,12 +25,22 @@ class Formular(Base, TimestampMixin):
     email_empfaenger: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # Dürfen Gruppenführer/Moderatoren die Einreichungen sehen (sonst nur Admins)?
     moderator_sichtbar: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    # Optionales Ablaufdatum (NULL = dauerhaft gültig). Nach Ablauf nicht mehr absendbar.
+    # Optionales Startdatum (NULL = sofort) und Ablaufdatum (NULL = dauerhaft gültig).
+    start_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     ablauf_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Wann die Ablauf-Zusammenfassung per Mail verschickt wurde (kein Doppelversand).
     zusammenfassung_gesendet_am: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Kapazität (NULL/0 = unbegrenzt) und Auto-Löschung der Einreichungen nach X Tagen.
+    max_einreichungen: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    aufbewahrung_tage: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Danke-Text nach Absenden; Ergebnis öffentlich zeigen; DSGVO-Einwilligungstext;
+    # Mehrfach-Einreichung verhindern (bei Login serverseitig erzwungen).
+    danke_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ergebnis_oeffentlich: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    einwilligung_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    mehrfach_verhindern: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     reihenfolge: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     felder: Mapped[list["FormularFeld"]] = relationship(
@@ -53,6 +63,8 @@ class FormularFeld(Base, TimestampMixin):
     label: Mapped[str] = mapped_column(String(255), nullable=False)
     typ: Mapped[str] = mapped_column(String(32), nullable=False, default="text")
     pflicht: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Optionaler Hilfetext/Platzhalter unter dem Feld.
+    hinweis: Mapped[str | None] = mapped_column(Text, nullable=True)
     optionen: Mapped[list] = mapped_column(JSONB, default=list, nullable=False)
     max_sterne: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
     reihenfolge: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
