@@ -33,6 +33,7 @@ echo "[updater $(date -Is)] Update angefordert (Zielversion: ${ANGEFORDERTE_VERS
 rm -f "$MARKER"
 
 git pull --ff-only
-docker compose up -d --build
+# --profile minio: der optionale MinIO-Objektspeicher soll beim Update weiterlaufen.
+docker compose --profile minio up -d --build
 
 echo "[updater $(date -Is)] Update abgeschlossen."

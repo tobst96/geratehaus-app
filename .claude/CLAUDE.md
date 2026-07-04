@@ -103,13 +103,29 @@ bestehenden Muster orientieren – Skill `new-module` (Detail-Checkliste dort).
 - In dieser Docker-Umgebung (kein Host-venv/-Postgres) läuft die Backend-Suite über
   `scripts/test-backend.sh` (nutzt die Container + Test-DB `geratehaus_test`).
 
+## Branch-Modell
+
+- **`main` = Stable.** Nur geprüfte Releases (und ggf. Hotfixes) landen hier;
+  Stable-Releases werden auf `main` getaggt (`vX.Y.Z`, kein Prerelease).
+- **`beta` = Arbeits-/Integrationsbranch.** Hier läuft die gesamte laufende
+  Entwicklung; **die Live-Instanz deployt `beta`** (nach jedem Push neu bauen).
+- **Kleine, sichere Aufgaben:** direkt auf `beta` committen + pushen.
+  **Große/riskante Umbauten** (breaking, Auth, DB-weit): Feature-Branch →
+  **PR nach `beta`**.
+- **Stable-Release:** `beta` → `main` mergen, Version finalisieren, `vX.Y.Z`
+  taggen, GitHub-Release (kein Prerelease). Danach auf `beta` die nächste
+  Beta-Version öffnen (`X.(Y+1).0-beta.1`) und – sobald das erste Feature liegt –
+  einen Beta-Release taggen, damit Version/Doku-Links konsistent bleiben.
+- Neue Beta veröffentlichen: von `beta` einen `vX.Y.Z-beta.N`-Tag + Prerelease.
+
 ## Arbeitsweise / Workflow
 
 - Aufgaben werden im Backlog `.claude/docs/backlog.md` über den `todo`-Skill
   gepflegt. Vor dem Lesen/Ändern immer den aktuellen Stand aus Git holen; nach
-  Änderungen sofort committen und pushen.
-- Nach jedem `git push` `docker compose up -d --build` ausführen, damit die
-  laufende Instanz aktuell ist.
+  Änderungen sofort committen und pushen (auf `beta`).
+- Nach jedem `git push` `docker compose --profile minio up -d --build` ausführen,
+  damit die laufende Instanz aktuell ist (das `--profile minio` hält den optionalen
+  Objektspeicher am Laufen).
 - Vor jeder Implementierung bestehende Patterns suchen und wiederverwenden –
   Skill `geraetehaus-patterns`.
 
