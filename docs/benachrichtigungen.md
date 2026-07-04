@@ -21,6 +21,8 @@ wird:
 - Neue Buchungsanfrage
 - Dienststunden-Schwellenwert überschritten
 - Person inaktiv (wird bald gelöscht)
+- Person überfällig – Aktivitäts-Ampel gelb
+- Person überfällig – Aktivitäts-Ampel rot
 
 Zusätzlich: **PDF bei Einsatz-/Dienstbuch-Abschluss** an die Abonnenten anhängen.
 

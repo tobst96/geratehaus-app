@@ -8,7 +8,14 @@ from app.schemas.einsatz_feld import (
     EinsatzFeldDefinitionOut,
     EinsatzFeldDefinitionUpdate,
 )
-from app.schemas.person import PersonCreate, PersonEreignisOut, PersonOut, PersonPinSetzen, PersonUpdate
+from app.schemas.person import (
+    AmpelEintragOut,
+    PersonCreate,
+    PersonEreignisOut,
+    PersonOut,
+    PersonPinSetzen,
+    PersonUpdate,
+)
 from app.schemas.person_bild_reservierung import PersonBildReservierungOut
 from app.schemas.stammdaten import (
     FahrzeugCreate,
@@ -24,7 +31,7 @@ from app.schemas.stammdaten import (
     GruppeOut,
     GruppeUpdate,
 )
-from app.services import barcode_service, dienststunden_service, divera_personal_service, email_template_service, person_bild_reservierung_service, stammdaten_service
+from app.services import ampel_service, barcode_service, dienststunden_service, divera_personal_service, email_template_service, person_bild_reservierung_service, stammdaten_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -223,6 +230,14 @@ async def personen_liste(db: DbSession, _moderator: CurrentModerator) -> list[Pe
     Personen-Endpunkte bleiben admin-only."""
     personen = await stammdaten_service.liste_personen(db)
     return await stammdaten_service.personen_zu_out(db, personen)
+
+
+@router.get("/personen/ampel", response_model=list[AmpelEintragOut])
+async def personen_ampel(db: DbSession, _moderator: CurrentModerator) -> list[AmpelEintragOut]:
+    """Aktivitäts-Ampelstatus je Person (gruen/gelb/rot/inaktiv) für die
+    Personal-Liste. Muss vor '/personen/{person_id}' stehen, sonst würde 'ampel'
+    als person_id interpretiert."""
+    return await ampel_service.ampel_uebersicht(db)
 
 
 @router.post("/personen", response_model=PersonOut, status_code=status.HTTP_201_CREATED)

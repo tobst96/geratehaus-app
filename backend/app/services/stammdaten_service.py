@@ -260,6 +260,7 @@ FELD_LABELS = {
     "gruppe_id": "Gruppe",
     "funktion_id": "Funktion",
     "benachrichtigungen_aktiv": "Benachrichtigungen aktiv",
+    "inaktiv": "Inaktiv",
 }
 
 
@@ -421,6 +422,7 @@ async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[Pers
             funktion_id=p.funktion_id,
             pin_gesetzt=p.pin_gesetzt,
             benachrichtigungen_aktiv=p.benachrichtigungen_aktiv,
+            inaktiv=p.inaktiv,
         )
         for p in personen
     ]
@@ -529,6 +531,10 @@ async def personen_inaktivitaet_pruefen(db: AsyncSession) -> tuple[int, int]:
     anzahl_warnungen = 0
     anzahl_loeschungen = 0
     for person in personen:
+        # Manuell auf inaktiv gesetzte Personen (z. B. Beurlaubung) sind bewusst
+        # von der automatischen Löschung ausgenommen.
+        if person.inaktiv:
+            continue
         letzte_aktivitaet = await _letzte_aktivitaet(db, person)
         if letzte_aktivitaet.tzinfo is None:
             letzte_aktivitaet = letzte_aktivitaet.replace(tzinfo=timezone.utc)

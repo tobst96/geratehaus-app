@@ -17,6 +17,7 @@ class PersonOut(BaseModel):
     funktion_id: int | None
     pin_gesetzt: bool
     benachrichtigungen_aktiv: bool
+    inaktiv: bool = False
 
 
 class PersonCreate(BaseModel):
@@ -36,6 +37,7 @@ class PersonUpdate(BaseModel):
     gruppe_id: int | None = None
     funktion_id: int | None = None
     benachrichtigungen_aktiv: bool | None = None
+    inaktiv: bool | None = None
 
 
 class PersonEreignisOut(BaseModel):
@@ -45,6 +47,15 @@ class PersonEreignisOut(BaseModel):
     zeitpunkt: datetime
     typ: str
     beschreibung: str
+
+
+class AmpelEintragOut(BaseModel):
+    """Aktivitäts-Ampel je Person: Status (gruen/gelb/rot/inaktiv) und Anzahl Tage
+    seit dem letzten relevanten Eintrag."""
+
+    person_id: int
+    status: str
+    tage: int
 
 
 class PersonPinSetzen(BaseModel):

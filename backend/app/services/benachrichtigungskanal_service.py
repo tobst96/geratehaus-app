@@ -47,6 +47,8 @@ EREIGNIS_TYPEN: list[EreignisTyp] = [
     EreignisTyp("benachrichtigung_buchungsanfrage", "Neue Buchungsanfrage"),
     EreignisTyp("benachrichtigung_schwellenwert_ueberschreitung", "Dienststunden-Schwellenwert"),
     EreignisTyp("benachrichtigung_person_inaktiv", "Person inaktiv / wird gelöscht"),
+    EreignisTyp("benachrichtigung_person_ampel_gelb", "Person überfällig (Ampel gelb)"),
+    EreignisTyp("benachrichtigung_person_ampel_rot", "Person überfällig (Ampel rot)"),
 ]
 
 _ERLAUBTE_EREIGNISSE = {e.key for e in EREIGNIS_TYPEN}

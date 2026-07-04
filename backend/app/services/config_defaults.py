@@ -148,6 +148,20 @@ DEFAULTS: list[ConfigDefault] = [
         "Tage ohne neuen Timeline-Eintrag, nach denen eine Person automatisch gelöscht wird "
         "(7 Tage vorher kommt eine Warn-Benachrichtigung). 0 = Funktion deaktiviert.",
     ),
+    # Aktivitäts-Ampel Personal: Tage ohne Eintrag (Einsatz/Dienstbuch/Dienststunden,
+    # je nach aktivem Modul), ab denen die Personen-Kachel gelb bzw. rot wird.
+    ConfigDefault(
+        "personal_ampel_gelb_tage",
+        "30",
+        ConfigTyp.INT,
+        "Tage ohne relevanten Eintrag, ab denen die Personen-Ampel gelb wird. 0 = aus.",
+    ),
+    ConfigDefault(
+        "personal_ampel_rot_tage",
+        "60",
+        ConfigTyp.INT,
+        "Tage ohne relevanten Eintrag, ab denen die Personen-Ampel rot wird. 0 = aus.",
+    ),
     # Divera 24/7
     ConfigDefault("divera_aktiv", "false", ConfigTyp.BOOL, "Divera-Anbindung aktiv"),
     ConfigDefault("divera_api_key", "", ConfigTyp.STR, "Divera Accesskey/API-Key"),
@@ -217,6 +231,18 @@ DEFAULTS: list[ConfigDefault] = [
         "true",
         ConfigTyp.BOOL,
         "Benachrichtigung, wenn eine inaktive Person bald automatisch gelöscht wird",
+    ),
+    ConfigDefault(
+        "benachrichtigung_person_ampel_gelb",
+        "true",
+        ConfigTyp.BOOL,
+        "Benachrichtigung, wenn eine Person die gelbe Aktivitäts-Ampel erreicht",
+    ),
+    ConfigDefault(
+        "benachrichtigung_person_ampel_rot",
+        "true",
+        ConfigTyp.BOOL,
+        "Benachrichtigung, wenn eine Person die rote Aktivitäts-Ampel erreicht",
     ),
     # Benachrichtigungskanäle (Zugangsdaten, ersetzt frühere .env-Werte)
     ConfigDefault("notifier_telegram_aktiv", "false", ConfigTyp.BOOL, "Telegram-Versand aktiv"),
@@ -314,6 +340,18 @@ DEFAULTS: list[ConfigDefault] = [
         "falls keine neue Aktivität erfolgt.",
         ConfigTyp.STR,
         "Text bei Inaktivitäts-Warnung. Platzhalter: {person}, {tage_inaktiv}",
+    ),
+    ConfigDefault(
+        "benachrichtigung_text_person_ampel_gelb",
+        "{name} hatte seit {tage} Tagen keinen Einsatz, Dienst oder Dienststunden mehr (Ampel gelb).",
+        ConfigTyp.STR,
+        "Text bei gelber Aktivitäts-Ampel. Platzhalter: {name}, {tage}",
+    ),
+    ConfigDefault(
+        "benachrichtigung_text_person_ampel_rot",
+        "{name} hatte seit {tage} Tagen keinen Einsatz, Dienst oder Dienststunden mehr (Ampel rot).",
+        ConfigTyp.STR,
+        "Text bei roter Aktivitäts-Ampel. Platzhalter: {name}, {tage}",
     ),
     # Setup
     ConfigDefault("setup_abgeschlossen", "false", ConfigTyp.BOOL, "Setup-Wizard abgeschlossen"),

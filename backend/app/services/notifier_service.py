@@ -25,6 +25,8 @@ EREIGNIS_BETREFF = {
     "benachrichtigung_buchungsanfrage": "Neue Buchungsanfrage",
     "benachrichtigung_schwellenwert_ueberschreitung": "Dienststunden-Schwellenwert überschritten",
     "benachrichtigung_person_inaktiv": "Person inaktiv – wird bald gelöscht",
+    "benachrichtigung_person_ampel_gelb": "Person überfällig (Ampel gelb)",
+    "benachrichtigung_person_ampel_rot": "Person überfällig (Ampel rot)",
 }
 
 EREIGNIS_VORLAGE = {
@@ -34,6 +36,8 @@ EREIGNIS_VORLAGE = {
     "benachrichtigung_buchungsanfrage": "benachrichtigung_text_buchungsanfrage",
     "benachrichtigung_schwellenwert_ueberschreitung": "benachrichtigung_text_schwellenwert_ueberschreitung",
     "benachrichtigung_person_inaktiv": "benachrichtigung_text_person_inaktiv",
+    "benachrichtigung_person_ampel_gelb": "benachrichtigung_text_person_ampel_gelb",
+    "benachrichtigung_person_ampel_rot": "benachrichtigung_text_person_ampel_rot",
 }
 
 # Kanal-Typ (Benachrichtigungskanal.typ) → Notifier-Kanalname (für ausschluss_kanaele,

@@ -14,6 +14,7 @@ import {
   barcodeBildUrl,
   holeAlleGruppen,
   holeAlleFunktionenDienststunden,
+  holeAmpelUebersicht,
 } from "../../api/moderator";
 import { holePersonBildReservierung } from "../../api/personBildReservierungen";
 import {
@@ -26,6 +27,7 @@ import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import type {
+  AmpelStatus,
   FunktionDienststunden,
   Gruppe,
   Person,
@@ -40,6 +42,20 @@ interface BildQr {
   token: string;
   bildUrl: string;
   ablaufAm: string;
+}
+
+// Rahmenfarbe der Personen-Kachel je Ampelstatus (gelb/rot = überfällig).
+function ampelRahmen(status: AmpelStatus | undefined): { border?: string } {
+  if (status === "rot") return { border: "2px solid #d64545" };
+  if (status === "gelb") return { border: "2px solid #e0a500" };
+  return {};
+}
+
+function ampelTitel(status: AmpelStatus | undefined): string | undefined {
+  if (status === "rot") return "Überfällig – lange kein Einsatz/Dienst/Dienststunden";
+  if (status === "gelb") return "Länger kein Einsatz/Dienst/Dienststunden";
+  if (status === "inaktiv") return "Als inaktiv markiert – keine Ampel";
+  return undefined;
 }
 
 function Initialen(vorname: string | null, nachname: string | null, name: string): string {
@@ -133,6 +149,7 @@ export function Personal() {
   const [filterBenachrichtigung, setFilterBenachrichtigung] = useState<"alle" | "an" | "aus">("alle");
   const [ereignisTypen, setEreignisTypen] = useState<EreignisTyp[]>([]);
   const [aboUebersicht, setAboUebersicht] = useState<Record<number, PersonBenachrichtigung>>({});
+  const [ampelMap, setAmpelMap] = useState<Record<number, AmpelStatus>>({});
   const [filterAbo, setFilterAbo] = useState("");
   const [ausgewaehlteId, setAusgewaehlteId] = useState<number | null>(null);
   const bildInputRef = useRef<HTMLInputElement>(null);
@@ -176,9 +193,21 @@ export function Personal() {
     }
   }
 
+  async function ladeAmpel() {
+    try {
+      const rows = await holeAmpelUebersicht();
+      const map: Record<number, AmpelStatus> = {};
+      for (const r of rows) map[r.person_id] = r.status;
+      setAmpelMap(map);
+    } catch {
+      setAmpelMap({});
+    }
+  }
+
   useEffect(() => {
     laden();
     ladeAboUebersicht();
+    ladeAmpel();
     holeAlleGruppen().then(setGruppen).catch(() => setGruppen([]));
     holeAlleFunktionenDienststunden().then(setFunktionen).catch(() => setFunktionen([]));
     holeEreignisTypen().then(setEreignisTypen).catch(() => setEreignisTypen([]));
@@ -295,6 +324,13 @@ export function Personal() {
   async function benachrichtigungenAendern(p: Person, aktiv: boolean) {
     await personAktualisieren(p.id, { benachrichtigungen_aktiv: aktiv });
     await laden();
+    await timelineLaden(p.id);
+  }
+
+  async function inaktivAendern(p: Person, inaktiv: boolean) {
+    await personAktualisieren(p.id, { inaktiv });
+    await laden();
+    await ladeAmpel();
     await timelineLaden(p.id);
   }
 
@@ -619,6 +655,26 @@ export function Personal() {
             )}
           </div>
 
+          {Object.values(ampelMap).some((s) => s === "gelb" || s === "rot") && (
+            <div
+              style={{
+                display: "flex",
+                gap: 14,
+                flexWrap: "wrap",
+                margin: "0 0 8px 0",
+                fontSize: "0.8rem",
+                color: "var(--farbe-text-mute)",
+              }}
+            >
+              <span>
+                <span style={{ color: "#e0a500" }}>▉</span> länger inaktiv
+              </span>
+              <span>
+                <span style={{ color: "#d64545" }}>▉</span> überfällig
+              </span>
+            </div>
+          )}
+
           <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px 0" }}>
             {gefiltert.map((p) => (
               <li key={p.id}>
@@ -633,10 +689,14 @@ export function Personal() {
                     gap: 10,
                     marginBottom: 6,
                     textAlign: "left",
+                    ...ampelRahmen(ampelMap[p.id]),
                   }}
+                  title={ampelTitel(ampelMap[p.id])}
                 >
                   <PersonenAvatar person={p} groesse={32} />
-                  <span style={{ flex: 1 }}>{p.name}</span>
+                  <span style={{ flex: 1, opacity: ampelMap[p.id] === "inaktiv" ? 0.55 : 1 }}>
+                    {p.name}
+                  </span>
                   {filterAbo && aboUebersicht[p.id]?.mail_aktiv && (
                     <span title="Aktiver Mail-Kanal mit hinterlegter E-Mail">📧</span>
                   )}
@@ -705,6 +765,17 @@ export function Personal() {
                     onChange={(e) => benachrichtigungenAendern(ausgewaehltePerson, e.target.checked)}
                   />
                   Benachrichtigungen aktiv
+                </label>
+                <label
+                  style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  title="Inaktive Personen erhalten keine Aktivitäts-Ampel und keine Ampel-Benachrichtigung und werden nicht automatisch gelöscht."
+                >
+                  <input
+                    type="checkbox"
+                    checked={ausgewaehltePerson.inaktiv}
+                    onChange={(e) => inaktivAendern(ausgewaehltePerson, e.target.checked)}
+                  />
+                  Inaktiv (von der Aktivitäts-Ampel ausnehmen)
                 </label>
                 <select
                   value={ausgewaehltePerson.gruppe_id ?? ""}
