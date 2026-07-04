@@ -139,6 +139,16 @@ async def dienstbuch_wieder_oeffnen(db: AsyncSession, dienstbuch: Dienstbuch) ->
     return geladen
 
 
+async def relevant_setzen(db: AsyncSession, dienstbuch: Dienstbuch, relevant: bool) -> Dienstbuch:
+    """Markiert einen Dienst als „relevant" (oder hebt die Markierung auf) –
+    Grundlage für eine spätere Auswertung der Mindest-Dienstbeteiligung."""
+    dienstbuch.relevant = relevant
+    await db.commit()
+    geladen = await get_dienstbuch(db, dienstbuch.id)
+    assert geladen is not None
+    return geladen
+
+
 async def _pdf_per_mail_versenden(dienstbuch: Dienstbuch, db: AsyncSession) -> None:
     if not await config_service.get(db, "notifier_email_aktiv", False):
         return

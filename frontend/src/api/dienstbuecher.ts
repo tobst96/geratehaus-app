@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut } from "./client";
+import { apiGet, apiPatch, apiPost, apiPut } from "./client";
 import type { DienstbuchOut, TeilnehmerOut } from "./types";
 
 export const holeLetzteDienstbuecher = () =>
@@ -32,3 +32,6 @@ export const dienstbuchSchliessen = (id: number) =>
 
 export const dienstbuchWiederOeffnen = (id: number) =>
   apiPost<DienstbuchOut>(`/dienstbuecher/${id}/wieder-oeffnen`);
+
+export const dienstbuchRelevantSetzen = (id: number, relevant: boolean) =>
+  apiPatch<DienstbuchOut>(`/dienstbuecher/${id}/relevant`, { relevant });

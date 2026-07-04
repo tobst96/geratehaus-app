@@ -18,6 +18,7 @@ class Dienstbuch(Base, TimestampMixin):
     notizen: Mapped[str | None] = mapped_column(Text, nullable=True)
     archiviert: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     geschlossen: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    relevant: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     teilnehmer: Mapped[list["DienstbuchPerson"]] = relationship(
         back_populates="dienstbuch",

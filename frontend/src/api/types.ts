@@ -184,6 +184,7 @@ export interface DienstbuchOut {
   notizen: string | null;
   archiviert: boolean;
   geschlossen: boolean;
+  relevant: boolean;
   teilnehmer: TeilnehmerOut[];
 }
 

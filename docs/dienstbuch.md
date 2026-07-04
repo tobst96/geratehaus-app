@@ -13,6 +13,9 @@ Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Login).
 
 - Dienstbücher anlegen, Teilnehmer verwalten, Zeitfenster & Abschluss.
 - **PDF-Export** je Dienstbuch; Dienstbuch schließen / wieder öffnen.
+- **Als relevant markieren** – kennzeichnet einen Dienst als relevant
+  (Badge „★ relevant"); Grundlage für eine spätere Auswertung der
+  Mindest-Dienstbeteiligung (Anzahl relevanter Dienste pro Person).
 
 ## Automatik
 

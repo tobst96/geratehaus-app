@@ -18,6 +18,10 @@ class TeilnehmerAktualisieren(BaseModel):
     atemschutzminuten: int = Field(ge=0)
 
 
+class RelevantSetzen(BaseModel):
+    relevant: bool
+
+
 class TeilnehmerOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -38,4 +42,5 @@ class DienstbuchOut(BaseModel):
     notizen: str | None
     archiviert: bool
     geschlossen: bool
+    relevant: bool
     teilnehmer: list[TeilnehmerOut] = []

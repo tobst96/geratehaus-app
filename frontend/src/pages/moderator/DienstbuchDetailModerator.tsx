@@ -5,6 +5,7 @@ import {
   dienstbuchPdfUrl,
   dienstbuchSchliessen,
   dienstbuchWiederOeffnen,
+  dienstbuchRelevantSetzen,
 } from "../../api/dienstbuecher";
 import { ApiError } from "../../api/client";
 import type { DienstbuchOut } from "../../api/types";
@@ -58,6 +59,19 @@ export function DienstbuchDetailModerator() {
     }
   }
 
+  async function relevantUmschalten() {
+    if (!dienstbuch) return;
+    setAendertStatus(true);
+    try {
+      await dienstbuchRelevantSetzen(dienstbuch.id, !dienstbuch.relevant);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Markierung fehlgeschlagen.");
+    } finally {
+      setAendertStatus(false);
+    }
+  }
+
   if (fehler) return <p className="fehlertext">{fehler}</p>;
   if (!dienstbuch) return <Ladeanzeige />;
 
@@ -73,6 +87,7 @@ export function DienstbuchDetailModerator() {
         </p>
         <span className="einsatz-status-badge">{dienstbuch.geschlossen ? "geschlossen" : "offen"}</span>
         {dienstbuch.archiviert && <span className="einsatz-status-badge">archiviert</span>}
+        {dienstbuch.relevant && <span className="einsatz-status-badge">★ relevant</span>}
       </div>
 
       <p style={{ marginTop: "1rem", display: "flex", gap: 12, alignItems: "center" }}>
@@ -89,6 +104,9 @@ export function DienstbuchDetailModerator() {
             {aendertStatus ? "Öffnet …" : "Dienstbuch wieder öffnen"}
           </button>
         )}
+        <button className="sekundaer" onClick={relevantUmschalten} disabled={aendertStatus}>
+          {dienstbuch.relevant ? "Relevant-Markierung entfernen" : "Als relevant markieren"}
+        </button>
       </p>
 
       {dienstbuch.notizen && (

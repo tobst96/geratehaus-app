@@ -406,7 +406,7 @@ Netzwerkdrucker mit IPP/CUPS im LAN.
 
 ### Dienstbuch-Eintrag als „relevant" markieren
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Mittel
 - Kategorie: Feature / Datenbank / Backend / Frontend
 - Skills: geraetehaus-patterns, tests, review
@@ -414,6 +414,13 @@ Netzwerkdrucker mit IPP/CUPS im LAN.
   `PATCH /moderator/dienstbuecher/{id}/relevant` (CurrentModerator); Button in der
   Dienstbuch-Detailansicht.
 - Akzeptanzkriterien: Markierung setz-/rücksetzbar; Migration; Test.
+- Erledigt (04.07.2026, beta): Migration 0047 (`dienstbuecher.relevant`, additiv/
+  non-breaking), Model/Schema (`DienstbuchOut.relevant` + `RelevantSetzen`),
+  `dienstbuch_service.relevant_setzen`, Endpunkt `PATCH /dienstbuecher/{id}/relevant`
+  (CurrentModerator). Frontend: Toggle-Button + „★ relevant"-Badge in
+  `DienstbuchDetailModerator.tsx`. Tests `test_dienstbuch_relevant.py` (3, grün);
+  volle Suite 186 grün. Doku `docs/dienstbuch.md` ergänzt. Baut die Grundlage für
+  „Anzahl relevanter Dienste pro Person" (nächster Punkt).
 
 ### Anzahl relevanter Dienste pro Person abrufbar
 

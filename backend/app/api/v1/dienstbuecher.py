@@ -4,6 +4,7 @@ from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_mod
 from app.schemas.dienstbuch import (
     DienstbuchAnlegen,
     DienstbuchOut,
+    RelevantSetzen,
     TeilnehmerAktualisieren,
     TeilnehmerAnlegen,
     TeilnehmerOut,
@@ -68,6 +69,16 @@ async def wieder_oeffnen(db: DbSession, _moderator: CurrentModerator, dienstbuch
     if dienstbuch is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden.")
     return await dienstbuch_service.dienstbuch_wieder_oeffnen(db, dienstbuch)
+
+
+@router.patch("/{dienstbuch_id}/relevant", response_model=DienstbuchOut)
+async def relevant_setzen(
+    db: DbSession, _moderator: CurrentModerator, dienstbuch_id: int, daten: RelevantSetzen
+) -> DienstbuchOut:
+    dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
+    if dienstbuch is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden.")
+    return await dienstbuch_service.relevant_setzen(db, dienstbuch, daten.relevant)
 
 
 @router.post("/{dienstbuch_id}/reservierung", response_model=DienstbuchReservierungOut, dependencies=[])
