@@ -38,7 +38,8 @@ class Person(Base, TimestampMixin):
     pin_erinnerung_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     benachrichtigungen_aktiv: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Aktivitäts-Ampel: manuell auf inaktiv gesetzte Personen (z. B. Beurlaubung)
-    # werden von Ampel-Färbung, Ampel-Benachrichtigung und Auto-Löschung ausgenommen.
+    # werden von Ampel-Färbung und Ampel-Benachrichtigung ausgenommen. Die separate
+    # Inaktivitäts-Auto-Löschung bleibt davon unberührt (eigene Schwelle).
     inaktiv: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Zuletzt per Benachrichtigung gemeldete Ampelstufe (gruen/gelb/rot) – damit die
     # Benachrichtigung nur einmal beim Überschreiten einer Schwelle ausgelöst wird.

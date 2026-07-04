@@ -768,7 +768,7 @@ export function Personal() {
                 </label>
                 <label
                   style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  title="Inaktive Personen erhalten keine Aktivitäts-Ampel und keine Ampel-Benachrichtigung und werden nicht automatisch gelöscht."
+                  title="Inaktive Personen erhalten keine Aktivitäts-Ampel und keine Ampel-Benachrichtigung. Die automatische Inaktivitäts-Löschung bleibt davon unberührt."
                 >
                   <input
                     type="checkbox"

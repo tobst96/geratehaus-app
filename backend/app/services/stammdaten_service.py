@@ -531,10 +531,6 @@ async def personen_inaktivitaet_pruefen(db: AsyncSession) -> tuple[int, int]:
     anzahl_warnungen = 0
     anzahl_loeschungen = 0
     for person in personen:
-        # Manuell auf inaktiv gesetzte Personen (z. B. Beurlaubung) sind bewusst
-        # von der automatischen Löschung ausgenommen.
-        if person.inaktiv:
-            continue
         letzte_aktivitaet = await _letzte_aktivitaet(db, person)
         if letzte_aktivitaet.tzinfo is None:
             letzte_aktivitaet = letzte_aktivitaet.replace(tzinfo=timezone.utc)

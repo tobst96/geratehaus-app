@@ -164,18 +164,21 @@ async def test_person_inaktiv_persistiert(client, db):
 
 
 @pytest.mark.asyncio
-async def test_auto_loeschung_ueberspringt_inaktiv(db):
+async def test_auto_loeschung_unabhaengig_von_inaktiv(db):
+    """Die Inaktiv-Markierung steuert nur die Ampel und beeinflusst die separate
+    automatische Inaktivitäts-Löschung bewusst NICHT."""
     await config_service.set(db, "personen_inaktivitaet_tage", 1)
     alt = datetime.now(timezone.utc) - timedelta(days=100)
 
-    aktiv = await _person(db, "Wird gelöscht")
+    aktiv = await _person(db, "Ohne Markierung")
     aktiv.erstellt_am = alt
-    inaktiv = await _person(db, "Bleibt", inaktiv=True)
+    inaktiv = await _person(db, "Inaktiv markiert", inaktiv=True)
     inaktiv.erstellt_am = alt
     await db.commit()
 
     await stammdaten_service.personen_inaktivitaet_pruefen(db)
 
+    # Beide werden gelöscht – die Inaktiv-Markierung schützt nicht davor.
     verbleibend = {p.name for p in (await db.execute(select(Person))).scalars().all()}
-    assert "Bleibt" in verbleibend
-    assert "Wird gelöscht" not in verbleibend
+    assert "Ohne Markierung" not in verbleibend
+    assert "Inaktiv markiert" not in verbleibend

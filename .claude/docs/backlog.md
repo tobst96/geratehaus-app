@@ -718,8 +718,9 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `GET /moderator/stammdaten/personen/ampel`; 2 Ereignisse verdrahtet
   (`benachrichtigung_person_ampel_gelb/_rot`); Schwellen+Toggles auf der
   Personal-Modul-Unterseite; Rahmenfarbe + Inaktiv-Checkbox + Legende in
-  `Personal.tsx`; Tagesjob 7:15 Uhr; `inaktiv`-Ausnahme in der Auto-Löschung.
-  Tests `test_ampel.py` (7); volle Suite 193 grün; `npm run build` grün.
+  `Personal.tsx`; Tagesjob 7:15 Uhr. Die `inaktiv`-Markierung steuert nur die
+  Ampel; die separate Inaktivitäts-Auto-Löschung bleibt davon unberührt (auf
+  Wunsch). Tests `test_ampel.py` (7); volle Suite 193 grün; `npm run build` grün.
 
 ## Berechtigungsverwaltung & Modul-System
 

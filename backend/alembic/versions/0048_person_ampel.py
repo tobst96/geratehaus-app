@@ -2,8 +2,8 @@
 
 Fügt der Tabelle `personen` zwei Felder für das Aktivitäts-Ampelsystem hinzu:
 - `inaktiv`: manuell gesetzt (z. B. Beurlaubung) – solche Personen bekommen keine
-  Ampel-Färbung und keine Ampel-Benachrichtigung und werden von der automatischen
-  Inaktivitäts-Löschung ausgenommen.
+  Ampel-Färbung und keine Ampel-Benachrichtigung. Die separate Inaktivitäts-
+  Auto-Löschung bleibt davon unberührt.
 - `ampel_gemeldet`: zuletzt per Benachrichtigung gemeldete Ampelstufe
   (gruen/gelb/rot), damit die Benachrichtigung nur EINMAL beim Überschreiten einer
   Schwelle ausgelöst wird und nicht täglich erneut.
