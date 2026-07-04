@@ -11,6 +11,15 @@ import {
   type NamensAbweichungOut,
   type SchwellenwertEintrag,
 } from "../../api/moderator";
+import {
+  holeSichtbareFormulare,
+  holeEinreichungen,
+  holeZusammenfassung,
+  type Einreichung,
+  type Formular,
+  type Zusammenfassung,
+} from "../../api/formular";
+import { FormularZusammenfassung } from "./FormularZusammenfassung";
 import { ApiError } from "../../api/client";
 import type { BuchungOut, DienstbuchOut, EinsatzOut } from "../../api/types";
 import type { DienststundenEintragOut } from "../../api/dienststunden";
@@ -18,7 +27,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 
-const TABS_BASIS = ["Einsätze", "Dienstbücher", "Dienststunden", "Buchungen"] as const;
+const TABS_BASIS = ["Einsätze", "Dienstbücher", "Dienststunden", "Buchungen", "Formulare"] as const;
 const TAB_NAMENSABWEICHUNGEN = "Namensabweichungen" as const;
 type Tab = (typeof TABS_BASIS)[number] | typeof TAB_NAMENSABWEICHUNGEN;
 
@@ -29,6 +38,7 @@ const TAB_MODUL: Record<(typeof TABS_BASIS)[number], string> = {
   "Dienstbücher": "modul_dienstbuch_aktiv",
   "Dienststunden": "modul_dienststunden_aktiv",
   "Buchungen": "modul_fahrzeugbuchung_aktiv",
+  "Formulare": "modul_formular_aktiv",
 };
 
 export function Listen() {
@@ -63,6 +73,7 @@ export function Listen() {
       {tab === "Dienstbücher" && <DienstbuecherTab />}
       {tab === "Dienststunden" && <DienststundenTab />}
       {tab === "Buchungen" && <BuchungenTab />}
+      {tab === "Formulare" && <FormulareTab />}
       {tab === "Namensabweichungen" && istAdmin && <NamensabweichungenTab />}
     </div>
   );
@@ -512,5 +523,109 @@ function ArchiviertFeld({ value, onChange }: { value: string; onChange: (v: stri
       <option value="false">Nur aktive</option>
       <option value="true">Nur archivierte</option>
     </select>
+  );
+}
+
+function formularWertText(a: Einreichung["antworten"][number]): string {
+  if (a.typ === "checkbox") return a.wert ? "Ja" : "Nein";
+  if (Array.isArray(a.wert)) return a.wert.join(", ");
+  if (a.wert === null || a.wert === "") return "–";
+  return String(a.wert);
+}
+
+function FormulareTab() {
+  const [formulare, setFormulare] = useState<Formular[] | null>(null);
+  const [ausgewaehltId, setAusgewaehltId] = useState<number | null>(null);
+  const [ansicht, setAnsicht] = useState<"auswertung" | "einreichungen">("auswertung");
+  const [einreichungen, setEinreichungen] = useState<Einreichung[] | null>(null);
+  const [zusammenfassung, setZusammenfassung] = useState<Zusammenfassung | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+
+  useEffect(() => {
+    holeSichtbareFormulare()
+      .then(setFormulare)
+      .catch((err) =>
+        setFehler(err instanceof ApiError ? String(err.detail) : "Formulare konnten nicht geladen werden.")
+      );
+  }, []);
+
+  async function auswaehlen(id: number) {
+    setAusgewaehltId(id);
+    setEinreichungen(null);
+    setZusammenfassung(null);
+    try {
+      const [z, e] = await Promise.all([holeZusammenfassung(id), holeEinreichungen(id)]);
+      setZusammenfassung(z);
+      setEinreichungen(e);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Daten konnten nicht geladen werden.");
+    }
+  }
+
+  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (!formulare) return <Ladeanzeige />;
+  if (formulare.length === 0)
+    return <p style={{ color: "var(--farbe-text-mute)" }}>Keine für dich freigegebenen Formulare.</p>;
+
+  return (
+    <div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+        {formulare.map((f) => (
+          <button
+            key={f.id}
+            className={f.id === ausgewaehltId ? "" : "sekundaer"}
+            onClick={() => auswaehlen(f.id)}
+          >
+            {f.name}
+          </button>
+        ))}
+      </div>
+
+      {ausgewaehltId !== null && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          <button
+            className={ansicht === "auswertung" ? "" : "sekundaer"}
+            onClick={() => setAnsicht("auswertung")}
+          >
+            Auswertung
+          </button>
+          <button
+            className={ansicht === "einreichungen" ? "" : "sekundaer"}
+            onClick={() => setAnsicht("einreichungen")}
+          >
+            Einreichungen
+          </button>
+        </div>
+      )}
+
+      {ausgewaehltId !== null && ansicht === "auswertung" && zusammenfassung && (
+        <FormularZusammenfassung daten={zusammenfassung} />
+      )}
+
+      {ausgewaehltId !== null &&
+        ansicht === "einreichungen" &&
+        (!einreichungen ? (
+          <Ladeanzeige />
+        ) : einreichungen.length === 0 ? (
+          <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Einreichungen.</p>
+        ) : (
+          einreichungen.map((e) => (
+            <div
+              key={e.id}
+              style={{ border: "1px solid var(--farbe-rand)", borderRadius: 8, padding: 12, marginBottom: 8 }}
+            >
+              <div style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)", marginBottom: 6 }}>
+                {new Date(e.erstellt_am).toLocaleString("de-DE")}
+                {e.person_name ? ` · ${e.person_name}` : ""}
+              </div>
+              {e.antworten.map((a) => (
+                <div key={a.feld_id}>
+                  <strong>{a.label}:</strong> {formularWertText(a)}
+                </div>
+              ))}
+            </div>
+          ))
+        ))}
+    </div>
   );
 }

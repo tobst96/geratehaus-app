@@ -9,7 +9,8 @@ type ModulKey =
   | "modul_einsatztagebuch_aktiv"
   | "modul_dienstbuch_aktiv"
   | "modul_dienststunden_aktiv"
-  | "modul_fahrzeugbuchung_aktiv";
+  | "modul_fahrzeugbuchung_aktiv"
+  | "modul_formular_aktiv";
 
 type NavItem = { pfad: string; titel: string; icon: string; modulKey?: ModulKey };
 type NavGruppe = {
@@ -54,6 +55,7 @@ const LISTEN_UNTERPUNKTE: { tab: string; icon: string; modulKey: ModulKey }[] = 
   { tab: "Dienstbücher", icon: "dienstbuch", modulKey: "modul_dienstbuch_aktiv" },
   { tab: "Dienststunden", icon: "dienststunden", modulKey: "modul_dienststunden_aktiv" },
   { tab: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv" },
+  { tab: "Formulare", icon: "formular", modulKey: "modul_formular_aktiv" },
 ];
 
 const MODUL_ICON: Record<string, string> = {
@@ -61,6 +63,7 @@ const MODUL_ICON: Record<string, string> = {
   dienstbuch: "dienstbuch",
   dienststunden: "dienststunden",
   fahrzeugbuchung: "fahrzeug",
+  formular: "formular",
   divera: "divera",
   personal: "personal",
   fahrzeuge: "fahrzeug",

@@ -22,6 +22,7 @@ from app.services import (
     divera_personal_service,
     divera_service,
     einsatz_service,
+    formular_service,
     pin_service,
     stammdaten_service,
 )
@@ -192,6 +193,18 @@ async def _personal_ampel_job() -> None:
             logger.warning("personal_ampel_job_fehlgeschlagen", exc_info=True)
 
 
+async def _formular_ablauf_job() -> None:
+    """Läuft alle 15 min; schickt für gerade abgelaufene Formulare einmalig eine
+    Auswertung per Mail an den hinterlegten Empfänger."""
+    async with AsyncSessionLocal() as db:
+        try:
+            gesendet = await formular_service.ablauf_zusammenfassungen_versenden(db)
+            if gesendet:
+                logger.info("formular_ablauf_auswertungen_versendet", anzahl=gesendet)
+        except Exception:
+            logger.warning("formular_ablauf_job_fehlgeschlagen", exc_info=True)
+
+
 async def _backup_job() -> None:
     """Läuft alle 15 min; erstellt höchstens EIN Backup pro Tag zur konfigurierten
     Uhrzeit an den gewählten Wochentagen (mit Nachhol-Logik nach Ausfall)."""
@@ -330,6 +343,16 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("personal_ampel_job_registriert", uhrzeit="07:15")
+
+    # Alle 15 min prüfen, ob Formulare abgelaufen sind (zeitnahe Auswertungs-Mail).
+    scheduler.add_job(
+        _formular_ablauf_job,
+        "interval",
+        minutes=15,
+        id="formular_ablauf",
+        replace_existing=True,
+    )
+    logger.info("formular_ablauf_job_registriert")
 
     # Alle 15 min; ob/ wann tatsächlich gesichert wird, entscheidet der Job anhand
     # der konfigurierten Uhrzeit/Wochentage (einmal pro Tag, mit Nachhol-Logik).

@@ -45,6 +45,7 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("modul_dienstbuch_aktiv", "true", ConfigTyp.BOOL, "Dienstbuch aktiv"),
     ConfigDefault("modul_dienststunden_aktiv", "true", ConfigTyp.BOOL, "Dienststunden aktiv"),
     ConfigDefault("modul_fahrzeugbuchung_aktiv", "true", ConfigTyp.BOOL, "Fahrzeugbuchung aktiv"),
+    ConfigDefault("modul_formular_aktiv", "false", ConfigTyp.BOOL, "Formular-Modul aktiv"),
     # Divera ist ein Feature-Modul (An/Aus), aber nicht mitgliederseitig – daher
     # keine _startseite/_aussenzugriff-Keys. Steuert, ob der Divera-Bereich
     # (Unterseite + Polling/Personal-Sync) überhaupt verfügbar ist.
@@ -66,7 +67,7 @@ DEFAULTS: list[ConfigDefault] = [
     # anhand der Registry ergänzt bzw. ignoriert.
     ConfigDefault(
         "modul_reihenfolge",
-        "personal,fahrzeuge,benachrichtigungen,kiosk,backup,minio,einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,divera,barcode",
+        "personal,fahrzeuge,benachrichtigungen,kiosk,backup,minio,einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,formular,divera,barcode",
         ConfigTyp.STR,
         "Reihenfolge der Feature-Module (kommagetrennte Keys)",
     ),
@@ -87,6 +88,9 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.BOOL,
         "Fahrzeugbuchung auf Startseite anzeigen",
     ),
+    ConfigDefault(
+        "modul_formular_startseite", "false", ConfigTyp.BOOL, "Formulare auf Startseite anzeigen"
+    ),
     # Außenzugriff: ob Mitglieder dieses Modul auch über den öffentlichen
     # Mitglieder-Login (außerhalb des Gerätehaus-Kiosks) nutzen dürfen.
     ConfigDefault(
@@ -100,6 +104,9 @@ DEFAULTS: list[ConfigDefault] = [
     ),
     ConfigDefault(
         "modul_fahrzeugbuchung_aussenzugriff", "false", ConfigTyp.BOOL, "Fahrzeugbuchung für Mitglieder-Login freigeben"
+    ),
+    ConfigDefault(
+        "modul_formular_aussenzugriff", "false", ConfigTyp.BOOL, "Formulare für Mitglieder-Login freigeben"
     ),
     # Einsatztagebuch
     ConfigDefault(

@@ -21,15 +21,18 @@ const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   modul_dienstbuch_aktiv: true,
   modul_dienststunden_aktiv: true,
   modul_fahrzeugbuchung_aktiv: true,
+  modul_formular_aktiv: false,
   modul_barcode_aktiv: false,
   modul_einsatztagebuch_startseite: true,
   modul_dienstbuch_startseite: true,
   modul_dienststunden_startseite: true,
   modul_fahrzeugbuchung_startseite: false,
+  modul_formular_startseite: false,
   modul_einsatztagebuch_aussenzugriff: false,
   modul_dienstbuch_aussenzugriff: false,
   modul_dienststunden_aussenzugriff: false,
   modul_fahrzeugbuchung_aussenzugriff: false,
+  modul_formular_aussenzugriff: false,
 };
 
 const ConfigContext = createContext<ConfigContextValue>({

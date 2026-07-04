@@ -29,6 +29,8 @@ import { MitgliedAnmelden } from "./pages/mitglied/MitgliedAnmelden";
 import { Einsatztagebuch } from "./pages/einsatztagebuch/Einsatztagebuch";
 import { EinsatzDetail } from "./pages/einsatztagebuch/EinsatzDetail";
 import { Dienstbuch } from "./pages/dienstbuch/Dienstbuch";
+import { FormularListe } from "./pages/formular/FormularListe";
+import { FormularAusfuellen } from "./pages/formular/FormularAusfuellen";
 import { Dienststunden } from "./pages/dienststunden/Dienststunden";
 import { Fahrzeugbuchung } from "./pages/fahrzeugbuchung/Fahrzeugbuchung";
 import { FahrzeugView } from "./pages/fahrzeug/FahrzeugView";
@@ -80,6 +82,8 @@ export function App() {
           <Route path="/dienstbuch" element={<Dienstbuch />} />
           <Route path="/dienststunden" element={<Dienststunden />} />
           <Route path="/fahrzeugbuchung" element={<Fahrzeugbuchung />} />
+          <Route path="/formulare" element={<FormularListe />} />
+          <Route path="/formular/:id" element={<FormularAusfuellen />} />
           <Route path="/fahrzeug/:token" element={<FahrzeugView />} />
           <Route path="/eintragen/:token" element={<ManuelleEintragung />} />
           <Route path="/eintragen-dienstbuch/:token" element={<DienstbuchManuelleEintragung />} />

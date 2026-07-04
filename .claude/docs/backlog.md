@@ -699,6 +699,36 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ---
 
+## Modul Formular
+
+### Neues Modul „Formular" (Formular-Builder + Einreichungen)
+
+- Status: Erledigt
+- Priorität: Mittel
+- Kategorie: Neues Modul / Feature / Datenbank / Backend / Frontend
+- Skills: planner, new-module, geraetehaus-patterns, tests, review
+- Beschreibung: Konfigurierbare Formulare (Feldtypen Text/Mehrzeilig/Checkbox/
+  Sterne/Dropdown/Dropdown-Mehrfach, Pflichtfelder), öffentlich oder mit
+  Mitglieder-Login absendbar, formularspezifischer E-Mail-Empfänger, Einreichungen
+  gespeichert und auswertbar (Admin immer, Moderator je Formular freigebbar).
+- Erledigt (04.07.2026, Feature-Branch `feature/formular-modul` → PR nach `beta`):
+  Migration 0049 (formulare/formular_felder/formular_einreichungen); Models/Schemas/
+  Service (Validierung + Snapshot + `EmailNotifier.send_an`); Router
+  `moderator_formular` (Admin) + öffentlicher `formulare` (require_modul_aktiv,
+  Rate-Limit, Login-Gate); Feature-Modul `formular` (mitgliederseitig) +
+  `modul_formular_*`-Config + öffentliche Config. Frontend: Admin-Unterseite
+  `FormularModul`, öffentliche `FormularListe`/`FormularAusfuellen`, Kiosk-/Hub-Kachel,
+  Moderator-Tab „Listen → Formulare". Tests `test_formular.py`; `npm run build` grün.
+  Doku `docs/formular.md` + Datenschutz ergänzt.
+- Erweiterung (04.07.2026, selber PR): **Ablaufdatum** je Formular (Migration 0050,
+  `ablauf_am`/`zusammenfassung_gesendet_am`) – abgelaufene Formulare nicht mehr
+  absendbar; **teilbarer Link** (kopierbar im Admin) für anonyme Umfragen;
+  **Zwischenstand/Auswertung** (Ø/Verteilung/Freitexte) im Admin- und Moderator-
+  Bereich (`GET …/zusammenfassung`); **Ablauf-Job** (alle 15 min) schickt bei Ablauf
+  eine Auswertung an den E-Mail-Empfänger. Tests erweitert; volle Suite 202 grün.
+
+---
+
 ## Personal
 
 ### Aktivitäts-Ampel für Personal

@@ -19,13 +19,16 @@ class OeffentlicheKonfiguration(BaseModel):
     modul_dienstbuch_aktiv: bool
     modul_dienststunden_aktiv: bool
     modul_fahrzeugbuchung_aktiv: bool
+    modul_formular_aktiv: bool
     # Barcode-Login aktiv? Wenn false, identifiziert sich der Kiosk per Namen+PIN.
     modul_barcode_aktiv: bool
     modul_einsatztagebuch_startseite: bool
     modul_dienstbuch_startseite: bool
     modul_dienststunden_startseite: bool
     modul_fahrzeugbuchung_startseite: bool
+    modul_formular_startseite: bool
     modul_einsatztagebuch_aussenzugriff: bool
     modul_dienstbuch_aussenzugriff: bool
     modul_dienststunden_aussenzugriff: bool
     modul_fahrzeugbuchung_aussenzugriff: bool
+    modul_formular_aussenzugriff: bool

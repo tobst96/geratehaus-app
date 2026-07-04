@@ -105,6 +105,19 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
+        <h2>Formulare</h2>
+        <p>
+          Sofern das Formular-Modul aktiv ist, kann die Organisation eigene Formulare bereitstellen.
+          Beim Absenden werden die eingegebenen Antworten gespeichert; je nach Formular kann eine
+          Anmeldung erforderlich sein, wodurch die Einreichung der jeweiligen Person zugeordnet wird.
+          Die Inhalte können personenbezogene Daten enthalten – abhängig davon, welche Angaben das
+          jeweilige Formular abfragt. Zu jedem Formular kann eine E-Mail-Benachrichtigung mit den
+          übermittelten Antworten an eine hinterlegte Adresse versendet werden. Zugriff auf die
+          Einreichungen haben nur Administratoren bzw. ausdrücklich freigegebene Moderatoren.
+        </p>
+      </div>
+
+      <div className="karte">
         <h2>Aufbewahrung &amp; Archivierung</h2>
         <p>
           Einsätze und Dienstbücher werden nach einem von der Organisation festgelegten Zeitraum

@@ -19,6 +19,7 @@ from app.models.einsatz import Einsatz, EinsatzPerson
 from app.models.einsatz_ereignis import EinsatzEreignis
 from app.models.einsatz_feld import EinsatzFeldDefinition
 from app.models.fahrzeug import Fahrzeug
+from app.models.formular import Formular, FormularEinreichung, FormularFeld
 from app.models.fahrzeugbuchung_reservierung import FahrzeugbuchungReservierung
 from app.models.funktion import FunktionDienststunden, FunktionEinsatz
 from app.models.gruppe import Gruppe
@@ -57,6 +58,9 @@ __all__ = [
     "FahrzeugBuchung",
     "FahrzeugbuchungReservierung",
     "FahrzeugToken",
+    "Formular",
+    "FormularEinreichung",
+    "FormularFeld",
     "FunktionDienststunden",
     "FunktionEinsatz",
     "Gruppe",
