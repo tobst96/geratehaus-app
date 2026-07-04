@@ -5,8 +5,44 @@
 > Punkte über den `todo`-Skill in den Backlog (`.claude/docs/backlog.md`) überführt
 > und dann implementiert werden.
 >
-> **Legende:** Nutzen `⭐` (1–3), Aufwand `S`/`M`/`L`. Stand: 04.07.2026 (nach
+> **Legende:** Nutzen `⭐` (1–3), Aufwand `S`/`M`/`L`. Stand: 05.07.2026 (nach
 > Formular-Ausbau, Migrationen bis 0051).
+
+---
+
+## ★ Priorisierte Sicherheits-Roadmap (Rückmeldung 05.07.2026)
+
+**Kontext:** Instanz ist **voll öffentlich über HTTPS**, **eine überschaubare Wehr
+(<100 Mitglieder)**, **Datenschutz soll zentral automatisiert** werden. Gewünschter
+Fokus: **Sicherheit/Berechtigungen, UX/Mobile/Kiosk, Stabilität/Betrieb**
+(Statistik & Mandantenfähigkeit vorerst nachrangig). Keine akuten Bugs – proaktiv.
+
+Empfohlene Reihenfolge (alle Punkte vom Nutzer gewünscht):
+
+1. **PIN-Brute-Force-Schutz** `⭐⭐⭐ · M` — Fehlversuchs-Zähler + temporäre Sperre
+   **pro Person** und Rate-Limit **pro IP** am Mitglieder-/Kiosk-Login (Name+PIN).
+   Öffentlich sind 4–6-stellige PINs sonst ratbar. Sperre als PersonEreignis
+   protokollieren; ggf. Captcha/Verzögerung nach N Fehlversuchen.
+2. **Berechtigungssystem fertigstellen** `⭐⭐⭐ · M` — restliche Router mit
+   `require_modul_zugriff` absichern (`stammdaten`, `barcodes`, `kiosk-geraete`,
+   Gruppenführer-Bereiche), Frontend-Guards auf `hat_zugriff` statt `istAdmin`,
+   altes Rollenmodell ablösen. (Beendet die halbfertige Baustelle.)
+3. **Geschützte Datei-Auslieferung** `⭐⭐ · M` — personenbezogene Uploads
+   (Personenbilder, Formular-Dateien) nur für Berechtigte bzw. über kurzlebige
+   Tokens ausliefern statt statisch unter `/uploads`. Beim Upload zusätzlich
+   **Magic-Bytes-Prüfung** (nicht nur `content_type`) und **EXIF entfernen**.
+4. **Admin-/Moderator-Login härten** `⭐⭐⭐ · M` — Login-**Rate-Limit + Lockout**
+   bei Fehlversuchen. **2FA primär per E-Mail-Code (OTP)**, weil viele keine
+   Authenticator-App nutzen; **Passkeys/WebAuthn** als starke, phishing-resistente
+   **Opt-in-Alternative**, wenn 2FA ohnehin gebaut wird.
+   *Hinweise:* E-Mail-OTP setzt konfiguriertes SMTP voraus und ist nur so sicher wie
+   das E-Mail-Konto des Nutzers; Passkey ist deutlich stärker, aber nicht auf jedem
+   Gerät verfügbar → beide anbieten, E-Mail-OTP als Fallback.
+5. **Audit-Log** `⭐⭐ · M` — protokolliert **Löschungen, Freigaben und
+   Rechteänderungen** (wer/wann/was), modulübergreifend, im Admin einsehbar.
+
+> Weil jetzt **öffentlich über HTTPS**: **Web-Push wird nutzbar** → der fehlende
+> Frontend-Abo-Flow (siehe „Benachrichtigungen") lohnt sich jetzt konkret.
 
 ---
 
@@ -27,10 +63,11 @@
   nicht überall konsequent; ein zentraler UTC→Europe/Berlin-Layer inkl. Anzeige im
   Frontend fehlt. Datumsnahe Features (Ampel, Dienststunden-Stichtag, Auto-Abschluss,
   Formular-Ablauf) profitieren stark. Ohne das drohen subtile Off-by-one-Fehler.
-- **⭐⭐ · M – Audit-Log / Aktivitätsprotokoll für Admin-Aktionen.** Timeline gibt es
-  nur personenbezogen. Ein schlankes, modulübergreifendes Audit-Log (wer hat wann was
-  geändert/gelöscht/freigegeben) erhöht Nachvollziehbarkeit und Vertrauen – gerade bei
-  Löschungen (Einsätze, Personen, Formular-Einreichungen).
+- **⭐⭐ · M – Audit-Log (Löschungen/Freigaben/Rechteänderungen).** *[vom Nutzer
+  gewünscht, Umfang gewählt]* Modulübergreifendes Protokoll: wer hat wann was
+  **gelöscht** (Einsätze, Personen, Formular-Einreichungen …), **freigegeben**
+  (Buchungen, Divera-Vorschläge) oder an **Rechten/Rollen** geändert. Im Admin
+  einsehbar/filterbar. Ergänzt die rein personenbezogene Timeline.
 - **⭐⭐ · S – Barrierefreiheit (a11y).** Viele Interaktionen sind `<button>`/`<div>`
   mit Inline-Styles; Fokus-Zustände, `aria-*` und Tastaturbedienung sind uneinheitlich
   (z. B. Sterne-/Skala-Auswahl, Kiosk-Kacheln). Ein a11y-Durchlauf (Fokusringe,
@@ -44,11 +81,11 @@
 - **⭐ · S – Inline-Styles → CSS-Klassen.** Sehr viele `style={{…}}` (u. a. neue
   Formular-/Ampel-UIs). Schrittweise in `index.css`-Klassen überführen: bessere
   Dark-Mode-Konsistenz, kleineres Bundle, leichter wartbar.
-- **⭐⭐ · S – Sicherheits-Feinschliff.** Datei-Uploads (Personenbilder, jetzt auch
-  Formulare) landen unter `/uploads/…` und sind per URL erreichbar. Vorschlag:
-  Content-Type serverseitig per Magic-Bytes prüfen (nicht nur `content_type`),
-  optional EXIF strippen, und für sensible Uploads einen tokenbasierten/geschützten
-  Serve-Pfad statt statischem `/uploads` anbieten.
+- **⭐⭐⭐ · M – Sicherheits-Härtung öffentliche Instanz.** → siehe **Sicherheits-
+  Roadmap oben** (PIN-Brute-Force, Berechtigungen, geschützte Datei-Auslieferung,
+  Login-Härtung/2FA-per-Mail/Passkey, Audit-Log). Zusätzlich prüfen: CSP/Security-
+  Header-Review, Abhängigkeits-/Secret-Scanning in CI, konsequentes Rate-Limit auf
+  allen öffentlichen POST-Endpunkten.
 - **⭐ · S – Observability.** Sentry ist optional/opt-in. Ergänzend: strukturierte
   Health-/Readiness-Endpunkte, ein kleines „System-Status"-Panel im Admin (DB, SMTP,
   MinIO, Divera, Scheduler-Jobs mit letzter Laufzeit) – hilft beim Self-Hosting-Support.
@@ -162,7 +199,8 @@
 
 - **⭐⭐⭐ · M – Web-Push-Abo-Flow im Frontend** (Backlog): Backend ist fertig, aber es
   fehlt der `pushManager.subscribe()`-Flow + „Benachrichtigungen aktivieren"-Button →
-  aktuell empfängt niemand Push. Braucht HTTPS-Kontext (dokumentieren).
+  aktuell empfängt niemand Push. **Jetzt konkret nutzbar, da die Instanz öffentlich
+  über HTTPS läuft** (secure context ist gegeben).
 - **⭐⭐ · M – Pro-Empfänger statt global** (Backlog Etappe G): E-Mail pro
   Moderatoren-Zugang + Ereignis-Abos je Zugang statt zentraler Empfängerliste.
 - **⭐⭐ · S – „Digest"/Zusammenfassungen:** tägliche/wöchentliche Sammelmail statt
@@ -234,8 +272,23 @@
 
 ## Wie weiter?
 
-1. **Schnelle, hohe Hebel zuerst:** Berechtigungen fertig · Web-Push-Flow ·
-   Mindest-Dienstbeteiligung · Einsatz-Statistik · CI+Frontend-Tests.
-2. Einzelne Punkte per `todo`-Skill in `backlog.md` als Etappe/Aufgabe überführen
+1. **Zuerst die Sicherheits-Roadmap oben** (in der Reihenfolge 1→5), da öffentliche
+   Instanz. Parallel niedrig hängende UX-/Kiosk-Punkte (Mobile-Overflow, Kiosk-
+   Autolock) und Stabilität (CI + erste Frontend-Tests, Backup-Restore-Test).
+2. Danach die modulweisen ⭐⭐⭐-Punkte (Web-Push-Flow, Einsatz-Statistik,
+   Mindest-Dienstbeteiligung – Grundabfrage ist seit 05.07.2026 vorhanden).
+3. Einzelne Punkte per `todo`-Skill in `backlog.md` als Etappe/Aufgabe überführen
    (mit Akzeptanzkriterien), dann wie gewohnt Feature-Branch → PR → `beta`.
-3. Diese Datei bei Bedarf fortschreiben (neue Ideen ergänzen, Umgesetztes streichen).
+   Sicherheits-/Auth-/DB-weite Umbauten grundsätzlich über PR (nicht direkt).
+4. Diese Datei fortschreiben (neue Ideen ergänzen, Umgesetztes streichen).
+
+## Offene Detailfragen (bei Umsetzung klären)
+
+- **2FA-Reichweite:** nur Admin/Moderator, oder optional auch für Mitglieder-Login?
+  E-Mail-OTP nur bei Login von neuem Gerät (Trusted-Device 30 Tage) oder immer?
+- **PIN-Sperre:** nach wie vielen Fehlversuchen, wie lange sperren, und braucht ein
+  Moderator einen „Entsperren"-Knopf? Sperre pro Person **und** pro IP?
+- **Geschützte Dateien:** Personenbilder am Kiosk müssen weiterhin schnell laden –
+  Token-Serve mit kurzlebigem Link vs. Session-geschützt abwägen.
+- **Audit-Log-Aufbewahrung:** wie lange aufbewahren (DSGVO) und wer darf es sehen
+  (nur Admin)?
