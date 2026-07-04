@@ -22,6 +22,13 @@ class RelevantSetzen(BaseModel):
     relevant: bool
 
 
+class RelevanteDiensteEintrag(BaseModel):
+    """Anzahl relevanter Dienste je Person (Mindest-Dienstbeteiligung)."""
+
+    person_id: int
+    anzahl: int
+
+
 class TeilnehmerOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

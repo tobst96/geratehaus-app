@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import structlog
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -147,6 +147,33 @@ async def relevant_setzen(db: AsyncSession, dienstbuch: Dienstbuch, relevant: bo
     geladen = await get_dienstbuch(db, dienstbuch.id)
     assert geladen is not None
     return geladen
+
+
+async def relevante_dienste_pro_person(
+    db: AsyncSession, von: date | None = None, bis: date | None = None
+) -> list[tuple[int, int]]:
+    """Anzahl der als „relevant" markierten Dienstbücher, an denen jede Person
+    teilgenommen hat – Grundlage für die Mindest-Dienstbeteiligung. Optional auf
+    ein Zeitfenster (`von`/`bis`, Eröffnungsdatum) einschränkbar. Liefert
+    (person_id, anzahl) je Person mit mindestens einer relevanten Teilnahme."""
+    stmt = (
+        select(
+            DienstbuchPerson.person_id,
+            func.count(func.distinct(Dienstbuch.id)),
+        )
+        .join(Dienstbuch, Dienstbuch.id == DienstbuchPerson.dienstbuch_id)
+        .where(Dienstbuch.relevant.is_(True))
+        .group_by(DienstbuchPerson.person_id)
+    )
+    if von is not None:
+        stmt = stmt.where(Dienstbuch.eroeffnet_am >= datetime(von.year, von.month, von.day, tzinfo=timezone.utc))
+    if bis is not None:
+        # bis inklusiv: bis zum Ende des Tages
+        grenze = datetime(bis.year, bis.month, bis.day, tzinfo=timezone.utc) + timedelta(days=1)
+        stmt = stmt.where(Dienstbuch.eroeffnet_am < grenze)
+
+    result = await db.execute(stmt)
+    return [(pid, anzahl) for pid, anzahl in result.all()]
 
 
 async def _pdf_per_mail_versenden(dienstbuch: Dienstbuch, db: AsyncSession) -> None:

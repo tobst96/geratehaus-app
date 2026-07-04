@@ -1,9 +1,12 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_modul_aktiv
 from app.schemas.dienstbuch import (
     DienstbuchAnlegen,
     DienstbuchOut,
+    RelevanteDiensteEintrag,
     RelevantSetzen,
     TeilnehmerAktualisieren,
     TeilnehmerAnlegen,
@@ -28,6 +31,19 @@ async def letzte(db: DbSession) -> list[DienstbuchOut]:
 @router.post("", response_model=DienstbuchOut, status_code=status.HTTP_201_CREATED)
 async def anlegen(db: DbSession, daten: DienstbuchAnlegen) -> DienstbuchOut:
     return await dienstbuch_service.dienstbuch_anlegen(db, daten)
+
+
+@router.get("/relevante-uebersicht", response_model=list[RelevanteDiensteEintrag])
+async def relevante_uebersicht(
+    db: DbSession,
+    _moderator: CurrentModerator,
+    von: date | None = None,
+    bis: date | None = None,
+) -> list[RelevanteDiensteEintrag]:
+    """Anzahl der als „relevant" markierten Dienste je Person (optional im Zeitraum
+    von/bis). Muss vor '/{dienstbuch_id}' stehen, sonst wird der Pfad als ID gedeutet."""
+    paare = await dienstbuch_service.relevante_dienste_pro_person(db, von, bis)
+    return [RelevanteDiensteEintrag(person_id=pid, anzahl=anzahl) for pid, anzahl in paare]
 
 
 @router.get("/{dienstbuch_id}", response_model=DienstbuchOut)

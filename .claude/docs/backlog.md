@@ -424,13 +424,19 @@ Netzwerkdrucker mit IPP/CUPS im LAN.
 
 ### Anzahl relevanter Dienste pro Person abrufbar
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Niedrig
 - Kategorie: Feature / Backend
 - Skills: geraetehaus-patterns, tests, review
 - Beschreibung: Query-Parameter/Endpunkt für die Anzahl relevanter Dienste pro
   Person – Grundlage für ein späteres Mindest-Dienstbeteiligungs-Modul.
 - Akzeptanzkriterien: Wert abrufbar; Test.
+- Erledigt (05.07.2026, beta): `dienstbuch_service.relevante_dienste_pro_person(db,
+  von, bis)` (gruppierte Query, distinct je Dienstbuch, optionaler Zeitraum) +
+  Endpunkt `GET /dienstbuecher/relevante-uebersicht?von=&bis=` (CurrentModerator,
+  vor `/{id}` platziert) + Schema `RelevanteDiensteEintrag`. Tests in
+  `test_dienstbuch_relevant.py`. Volle Suite 215 grün. Nächster Baustein:
+  Mindest-Dienstbeteiligung (Schwelle + Ampel/Benachrichtigung) – siehe Vorschlag.md.
 
 ---
 
