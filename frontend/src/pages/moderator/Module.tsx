@@ -13,6 +13,7 @@ import { Ladeanzeige } from "../../components/Ladeanzeige";
 export function Module() {
   const [module, setModule] = useState<FeatureModul[] | null>(null);
   const [docsBasis, setDocsBasis] = useState<string | null>(null);
+  const [suche, setSuche] = useState("");
   const [fehler, setFehler] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -83,15 +84,38 @@ export function Module() {
       </p>
       {fehler && <p className="fehlertext">{fehler}</p>}
 
-      {[
-        { titel: "Interne Module", hinweis: "Verwaltung & Technik – nicht für Mitglieder sichtbar.", liste: module.filter((m) => !m.mitgliederseitig) },
-        { titel: "Mitglieder-Module", hinweis: "Erscheinen als Kacheln am Kiosk / im Mitglieder-Login.", liste: module.filter((m) => m.mitgliederseitig) },
-      ].map((gruppe) => (
+      <input
+        type="text"
+        placeholder="Modul suchen…"
+        value={suche}
+        onChange={(e) => setSuche(e.target.value)}
+        autoFocus
+        style={{ maxWidth: 640, marginBottom: 16 }}
+      />
+
+      {(() => {
+        const begriff = suche.trim().toLowerCase();
+        const passt = (m: FeatureModul) =>
+          begriff === "" || m.name.toLowerCase().includes(begriff) || m.key.toLowerCase().includes(begriff);
+        const gruppen = [
+          { titel: "Interne Module", hinweis: "Verwaltung & Technik – nicht für Mitglieder sichtbar.", liste: module!.filter((m) => !m.mitgliederseitig) },
+          { titel: "Mitglieder-Module", hinweis: "Erscheinen als Kacheln am Kiosk / im Mitglieder-Login.", liste: module!.filter((m) => m.mitgliederseitig) },
+        ];
+        const gesamtTreffer = gruppen.reduce((n, g) => n + g.liste.filter(passt).length, 0);
+        if (begriff !== "" && gesamtTreffer === 0) {
+          return <p style={{ color: "var(--farbe-text-mute)" }}>Keine Module gefunden.</p>;
+        }
+        return gruppen.map((gruppe) => {
+          const treffer = gruppe.liste.filter(passt);
+          if (treffer.length === 0) return null;
+          return (
         <div key={gruppe.titel} style={{ marginBottom: 20 }}>
           <h2 style={{ marginBottom: 2 }}>{gruppe.titel}</h2>
           <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem", marginTop: 0 }}>{gruppe.hinweis}</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 640 }}>
-            {gruppe.liste.map((m, gi) => (
+            {treffer.map((m) => {
+              const gi = gruppe.liste.indexOf(m);
+              return (
           <div
             key={m.key}
             className="karte"
@@ -102,7 +126,7 @@ export function Module() {
                 type="button"
                 className="sekundaer"
                 aria-label="Nach oben"
-                disabled={busy || gi === 0}
+                disabled={busy || begriff !== "" || gi === 0}
                 onClick={() => verschiebeInGruppe(m, gruppe.liste, -1)}
                 style={{ padding: "2px 8px", lineHeight: 1 }}
               >
@@ -112,7 +136,7 @@ export function Module() {
                 type="button"
                 className="sekundaer"
                 aria-label="Nach unten"
-                disabled={busy || gi === gruppe.liste.length - 1}
+                disabled={busy || begriff !== "" || gi === gruppe.liste.length - 1}
                 onClick={() => verschiebeInGruppe(m, gruppe.liste, 1)}
                 style={{ padding: "2px 8px", lineHeight: 1 }}
               >
@@ -213,10 +237,13 @@ export function Module() {
               </div>
             </div>
           </div>
-            ))}
+              );
+            })}
           </div>
         </div>
-      ))}
+          );
+        });
+      })()}
     </div>
   );
 }
