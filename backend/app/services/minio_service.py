@@ -80,6 +80,78 @@ async def put_bytes(
     await asyncio.to_thread(_put)
 
 
+async def liste_buckets(db: AsyncSession) -> list[str]:
+    cfg = await config(db)
+
+    def _list():
+        return [b["Name"] for b in _client(cfg).list_buckets().get("Buckets", [])]
+
+    return await asyncio.to_thread(_list)
+
+
+async def browse(db: AsyncSession, bucket: str, prefix: str = "") -> dict:
+    """Listet – wie ein Dateibrowser – die Unterordner (CommonPrefixes) und Dateien
+    auf der aktuellen Ebene (Delimiter '/'). Max. 1000 Einträge pro Ebene."""
+    cfg = await config(db)
+
+    def _browse():
+        client = _client(cfg)
+        resp = client.list_objects_v2(Bucket=bucket, Prefix=prefix, Delimiter="/")
+        ordner = [cp["Prefix"] for cp in resp.get("CommonPrefixes", [])]
+        dateien = [
+            {"key": o["Key"], "groesse": o["Size"], "geaendert": o["LastModified"].isoformat()}
+            for o in resp.get("Contents", [])
+            if o["Key"] != prefix  # den Ordner-Platzhalter selbst nicht als Datei zeigen
+        ]
+        return {"ordner": ordner, "dateien": dateien}
+
+    return await asyncio.to_thread(_browse)
+
+
+async def dokument_buckets(db: AsyncSession) -> list[str]:
+    """Die Dokument-Buckets (Einsätze/Dienstbücher) – NICHT der Backup-Bucket
+    (der gehört nicht ins Voll-Backup, sonst Rekursion)."""
+    cfg = await config(db)
+    return [cfg["bucket_einsaetze"], cfg["bucket_dienstbuecher"]]
+
+
+async def alle_objekte(db: AsyncSession, bucket: str) -> list[str]:
+    """Alle Objekt-Keys eines Buckets (rekursiv, ohne Ordner-Platzhalter)."""
+    cfg = await config(db)
+
+    def _list():
+        client = _client(cfg)
+        keys: list[str] = []
+        try:
+            for page in client.get_paginator("list_objects_v2").paginate(Bucket=bucket):
+                for o in page.get("Contents", []):
+                    if not o["Key"].endswith("/"):
+                        keys.append(o["Key"])
+        except Exception:  # noqa: BLE001 - Bucket existiert evtl. (noch) nicht
+            return []
+        return keys
+
+    return await asyncio.to_thread(_list)
+
+
+async def objekt_lesen(db: AsyncSession, bucket: str, key: str) -> bytes:
+    cfg = await config(db)
+
+    def _get():
+        return _client(cfg).get_object(Bucket=bucket, Key=key)["Body"].read()
+
+    return await asyncio.to_thread(_get)
+
+
+async def objekt_loeschen(db: AsyncSession, bucket: str, key: str) -> None:
+    cfg = await config(db)
+
+    def _del():
+        _client(cfg).delete_object(Bucket=bucket, Key=key)
+
+    await asyncio.to_thread(_del)
+
+
 async def verbindung_testen(db: AsyncSession) -> tuple[bool, str]:
     """Prüft die Verbindung (list_buckets). Für den 'Verbindung testen'-Button."""
     cfg = await config(db)

@@ -1,13 +1,28 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  browseMinio,
+  holeMinioBuckets,
   holeMinioEinstellungen,
+  ladeMinioObjekt,
+  loescheMinioObjekt,
   setzeMinioEinstellungen,
   testeMinioVerbindung,
+  type MinioBrowse,
   type MinioEinstellungen,
 } from "../../../api/minio";
 import { ApiError } from "../../../api/client";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";
+
+function groesse(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function basisname(key: string): string {
+  return key.replace(/\/+$/, "").split("/").pop() ?? key;
+}
 
 export function MinioModul() {
   const [einst, setEinst] = useState<MinioEinstellungen | null>(null);
@@ -18,11 +33,48 @@ export function MinioModul() {
   const [testOk, setTestOk] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
 
+  // Dateibrowser
+  const [buckets, setBuckets] = useState<string[]>([]);
+  const [bucket, setBucket] = useState("");
+  const [prefix, setPrefix] = useState("");
+  const [inhalt, setInhalt] = useState<MinioBrowse | null>(null);
+  const [browserFehler, setBrowserFehler] = useState<string | null>(null);
+
   useEffect(() => {
     holeMinioEinstellungen()
       .then(setEinst)
       .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : "Laden fehlgeschlagen."));
+    holeMinioBuckets()
+      .then((bs) => setBuckets(bs))
+      .catch((err) =>
+        setBrowserFehler(err instanceof ApiError ? String(err.detail) : "Buckets nicht ladbar."),
+      );
   }, []);
+
+  async function oeffne(b: string, p: string) {
+    setBucket(b);
+    setPrefix(p);
+    setBrowserFehler(null);
+    try {
+      setInhalt(await browseMinio(b, p));
+    } catch (err) {
+      setInhalt(null);
+      setBrowserFehler(err instanceof ApiError ? String(err.detail) : "Ordner nicht ladbar.");
+    }
+  }
+
+  async function objektLoeschen(key: string) {
+    if (!confirm(`„${basisname(key)}" wirklich löschen?`)) return;
+    try {
+      await loescheMinioObjekt(bucket, key);
+      await oeffne(bucket, prefix);
+    } catch (err) {
+      setBrowserFehler(err instanceof ApiError ? String(err.detail) : "Löschen fehlgeschlagen.");
+    }
+  }
+
+  // Breadcrumb-Segmente aus dem aktuellen Präfix.
+  const segmente = prefix.split("/").filter(Boolean);
 
   function feld<K extends keyof MinioEinstellungen>(key: K, wert: MinioEinstellungen[K]) {
     setEinst((e) => (e ? { ...e, [key]: wert } : e));
@@ -171,6 +223,104 @@ export function MinioModul() {
         (Access/Secret bzw. Root-User) anmelden. Ein automatischer Login ist aus Sicherheitsgründen
         nicht möglich.
       </p>
+
+      {/* --- Dateibrowser (läuft über die App, kein Port-Öffnen nötig) --- */}
+      <div className="karte">
+        <h2>Dateibrowser</h2>
+        <p style={{ color: "var(--farbe-text-mute)" }}>
+          Buckets und Dateien direkt hier ansehen und herunterladen – ohne den MinIO-Port zu öffnen.
+        </p>
+        {browserFehler && <p className="fehlertext">{browserFehler}</p>}
+
+        <div className="formular-feld" style={{ maxWidth: 320 }}>
+          <label htmlFor="bucketsel">Bucket</label>
+          <select
+            id="bucketsel"
+            value={bucket}
+            onChange={(e) => (e.target.value ? oeffne(e.target.value, "") : setBucket(""))}
+          >
+            <option value="">– Bucket wählen –</option>
+            {buckets.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {bucket && (
+          <>
+            {/* Breadcrumb */}
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
+              <button type="button" className="sekundaer" onClick={() => oeffne(bucket, "")}>
+                {bucket}
+              </button>
+              {segmente.map((seg, i) => {
+                const p = segmente.slice(0, i + 1).join("/") + "/";
+                return (
+                  <span key={p} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    /
+                    <button type="button" className="sekundaer" onClick={() => oeffne(bucket, p)}>
+                      {seg}
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+
+            {inhalt && (
+              <div className="tabelle-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Größe</th>
+                      <th>Geändert</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inhalt.ordner.map((o) => (
+                      <tr key={o}>
+                        <td>
+                          <button type="button" className="sekundaer" onClick={() => oeffne(bucket, o)}>
+                            📁 {basisname(o)}
+                          </button>
+                        </td>
+                        <td>–</td>
+                        <td>–</td>
+                        <td></td>
+                      </tr>
+                    ))}
+                    {inhalt.dateien.map((d) => (
+                      <tr key={d.key}>
+                        <td>📄 {basisname(d.key)}</td>
+                        <td>{groesse(d.groesse)}</td>
+                        <td>{new Date(d.geaendert).toLocaleString("de-DE")}</td>
+                        <td style={{ whiteSpace: "nowrap" }}>
+                          <button type="button" className="sekundaer" onClick={() => ladeMinioObjekt(bucket, d.key)}>
+                            Download
+                          </button>{" "}
+                          <button type="button" className="sekundaer" onClick={() => objektLoeschen(d.key)}>
+                            Löschen
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {inhalt.ordner.length === 0 && inhalt.dateien.length === 0 && (
+                      <tr>
+                        <td colSpan={4} style={{ color: "var(--farbe-text-mute)" }}>
+                          Leer.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

@@ -26,3 +26,14 @@ class MinioEinstellungenUpdate(BaseModel):
 class MinioTestErgebnis(BaseModel):
     ok: bool
     meldung: str
+
+
+class MinioObjekt(BaseModel):
+    key: str
+    groesse: int
+    geaendert: str
+
+
+class MinioBrowse(BaseModel):
+    ordner: list[str]
+    dateien: list[MinioObjekt]

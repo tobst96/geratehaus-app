@@ -127,6 +127,23 @@ dienstbuch-7.pdf
 
 ---
 
+## Dateibrowser (in der App)
+
+Im MinIO‑Modul gibt es einen eingebauten **Dateibrowser** – Buckets, Ordner und
+Dateien lassen sich **direkt in der App** ansehen und **herunterladen**, ohne den
+MinIO‑Port nach außen zu öffnen (die App erreicht MinIO intern). Bucket wählen, per
+Breadcrumb navigieren, Dateien herunterladen oder löschen. Für den normalen Betrieb
+ersetzt das die MinIO‑Konsole.
+
+## MinIO-Dokumente im Backup (Langzeit-Archiv)
+
+Die im Objektspeicher liegenden **Dokumente (Einsätze/Dienstbücher) werden mit ins
+Voll‑Backup aufgenommen** (`.ghb`, Kategorie „MinIO‑Dokumente"). So sind sie auch
+außer Haus gesichert und langfristig (z. B. 10 Jahre) archiviert. Beim **Import**
+lässt sich die Kategorie „MinIO‑Dokumente" gezielt zurück in den Objektspeicher
+spielen. Der **Backup‑Bucket selbst** wird dabei **nicht** mitgesichert (keine
+Rekursion).
+
 ## MinIO als Backup-Ziel
 
 Im **Backup‑Modul** erscheint die Checkbox **„MinIO Backup"** – **nur**, wenn das

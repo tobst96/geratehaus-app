@@ -1,7 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Response, status
 
 from app.api.deps import CurrentAdmin, DbSession
-from app.schemas.minio import MinioEinstellungen, MinioEinstellungenUpdate, MinioTestErgebnis
+from app.schemas.minio import (
+    MinioBrowse,
+    MinioEinstellungen,
+    MinioEinstellungenUpdate,
+    MinioObjekt,
+    MinioTestErgebnis,
+)
 from app.services import minio_service
 from app.services.config_service import config_service
 
@@ -45,3 +51,54 @@ async def einstellungen_setzen(
 async def verbindung_testen(db: DbSession, _admin: CurrentAdmin) -> MinioTestErgebnis:
     ok, meldung = await minio_service.verbindung_testen(db)
     return MinioTestErgebnis(ok=ok, meldung=meldung)
+
+
+async def _pruefe_aktiv(db: DbSession) -> None:
+    if not await minio_service.aktiv(db):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="MinIO-Modul nicht aktiv oder nicht konfiguriert.",
+        )
+
+
+@router.get("/buckets", response_model=list[str])
+async def buckets(db: DbSession, _admin: CurrentAdmin) -> list[str]:
+    await _pruefe_aktiv(db)
+    try:
+        return await minio_service.liste_buckets(db)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc))
+
+
+@router.get("/browse", response_model=MinioBrowse)
+async def browse(db: DbSession, _admin: CurrentAdmin, bucket: str, prefix: str = "") -> MinioBrowse:
+    await _pruefe_aktiv(db)
+    try:
+        r = await minio_service.browse(db, bucket, prefix)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc))
+    return MinioBrowse(ordner=r["ordner"], dateien=[MinioObjekt(**d) for d in r["dateien"]])
+
+
+@router.get("/download")
+async def download(db: DbSession, _admin: CurrentAdmin, bucket: str, key: str) -> Response:
+    await _pruefe_aktiv(db)
+    try:
+        daten = await minio_service.objekt_lesen(db, bucket, key)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    name = key.rstrip("/").rsplit("/", 1)[-1] or "download"
+    return Response(
+        content=daten,
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{name}"'},
+    )
+
+
+@router.delete("/object", status_code=status.HTTP_204_NO_CONTENT)
+async def objekt_loeschen(db: DbSession, _admin: CurrentAdmin, bucket: str, key: str) -> None:
+    await _pruefe_aktiv(db)
+    try:
+        await minio_service.objekt_loeschen(db, bucket, key)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc))

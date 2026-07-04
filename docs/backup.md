@@ -30,6 +30,8 @@ Ein Backup ist eine **ZIP-Datei** (Endung `.ghb`), die enthält:
 - `manifest.json` – Metadaten (Version, Zeitpunkt, Tabellen + Anzahl)
 - `db/<tabelle>.json` – **jede** Datenbanktabelle als JSON
 - `files/uploads/…` – **alle** hochgeladenen Dateien (Logo, Bilder …)
+- `minio/<bucket>/…` – die **MinIO‑Dokumente** (Einsätze/Dienstbücher), falls das
+  MinIO‑Modul aktiv ist – wichtig fürs Langzeit‑Archiv (z. B. 10 Jahre)
 
 Die Datei wird mit **AES‑256‑GCM** verschlüsselt (Passphrase). So kann sie
 gefahrlos auch außer Haus (Cloud, NAS) liegen.
@@ -109,9 +111,9 @@ anderen trotzdem gesichert – das Backup gilt nur dann als fehlgeschlagen, wenn
    im Feld angeben (sonst wird die gespeicherte genutzt).
 2. **Analysieren**: die Datei wird entschlüsselt und der Inhalt gelesen (noch **kein**
    Schreiben). Es erscheinen die **Kategorien** mit Anzahl:
-   - Konfiguration & Branding, Dateien (Logo/Bilder), Personal & Stammdaten,
-     Fahrzeuge, Zugänge & Berechtigungen, Einsätze, Dienstbücher, Dienststunden,
-     Fahrzeugbuchungen, Benachrichtigungen, Tokens.
+   - Konfiguration & Branding, Dateien (Logo/Bilder), **MinIO‑Dokumente**,
+     Personal & Stammdaten, Fahrzeuge, Zugänge & Berechtigungen, Einsätze,
+     Dienstbücher, Dienststunden, Fahrzeugbuchungen, Benachrichtigungen, Tokens.
 3. **Auswahl treffen**: nur bestimmte Bereiche **oder alles** importieren.
 4. **Modus wählen**:
    - **Ersetzen** – die gewählten Bereiche werden **komplett überschrieben**

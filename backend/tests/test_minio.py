@@ -87,6 +87,66 @@ async def test_inaktiv_legt_nichts_ab(db, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_browse_ordner_und_dateien(db, monkeypatch):
+    class FakeBrowseS3:
+        def list_objects_v2(self, Bucket, Prefix="", Delimiter=None):  # noqa: N803
+            if Delimiter:
+                return {
+                    "CommonPrefixes": [{"Prefix": "einsatz-1/"}],
+                    "Contents": [{"Key": "info.txt", "Size": 3, "LastModified": datetime.now(timezone.utc)}],
+                }
+            return {"Contents": []}
+
+    monkeypatch.setattr(minio_service, "_client", lambda cfg: FakeBrowseS3())
+    await _minio_aktivieren(db)
+    r = await minio_service.browse(db, "einsaetze", "")
+    assert r["ordner"] == ["einsatz-1/"]
+    assert r["dateien"][0]["key"] == "info.txt"
+
+
+@pytest.mark.asyncio
+async def test_minio_dokumente_im_backup(db, tmp_path, monkeypatch):
+    monkeypatch.setattr(backup_service.settings, "upload_dir", str(tmp_path / "u"))
+    await config_service.set(db, "backup_lokal_aktiv", True)
+    await config_service.set(db, "backup_lokal_pfad", str(tmp_path / "b"))
+    await config_service.set(db, "backup_webdav_aktiv", False)
+    await config_service.set(db, "backup_passphrase", "geheim123")
+
+    async def fake_aktiv(_db):
+        return True
+
+    async def fake_buckets(_db):
+        return ["einsaetze"]
+
+    async def fake_alle(_db, bucket):
+        return ["einsatz-1/bericht.pdf"] if bucket == "einsaetze" else []
+
+    async def fake_lesen(_db, bucket, key):
+        return b"PDFDATA"
+
+    put_calls: list = []
+
+    async def fake_put(_db, bucket, key, daten, content_type="application/octet-stream"):
+        put_calls.append((bucket, key, daten))
+
+    m = backup_service.minio_service
+    monkeypatch.setattr(m, "aktiv", fake_aktiv)
+    monkeypatch.setattr(m, "dokument_buckets", fake_buckets)
+    monkeypatch.setattr(m, "alle_objekte", fake_alle)
+    monkeypatch.setattr(m, "objekt_lesen", fake_lesen)
+    monkeypatch.setattr(m, "put_bytes", fake_put)
+
+    backup = await backup_service.erstelle_backup(db)
+    blob = (tmp_path / "b" / backup.dateiname).read_bytes()
+    token, manifest, kategorien = backup_service.analysiere(blob, "geheim123")
+    assert manifest["minio_objekte"] == 1
+    assert next(k for k in kategorien if k["key"] == "minio")["anzahl"] == 1
+
+    await backup_service.importiere(db, token, ["minio"], "zusammenfuehren")
+    assert ("einsaetze", "einsatz-1/bericht.pdf", b"PDFDATA") in put_calls
+
+
+@pytest.mark.asyncio
 async def test_minio_backup_ziel_ausgewaehlt(db, monkeypatch):
     await config_service.set(db, "backup_lokal_aktiv", False)
     await _minio_aktivieren(db)

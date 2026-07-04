@@ -45,6 +45,7 @@ EXCL_TABELLEN = {"backups"}
 KATEGORIEN: list[tuple[str, str, list[str]]] = [
     ("konfiguration", "Konfiguration & Branding", ["app_config"]),
     ("dateien", "Dateien (Logo, Bilder)", []),
+    ("minio", "MinIO-Dokumente (Objektspeicher)", []),
     (
         "personal",
         "Personal & Stammdaten",
@@ -189,18 +190,32 @@ async def _baue_zip(db: AsyncSession) -> tuple[bytes, dict]:
                     zf.writestr(f"files/uploads/{p.relative_to(upload).as_posix()}", p.read_bytes())
                     datei_anzahl += 1
 
+        # MinIO-Dokumente (Einsätze/Dienstbücher) mitsichern – sie liegen nur im
+        # Objektspeicher und müssen fürs Langzeit-Archiv mit ins (Off-Site-)Backup.
+        minio_objekte = 0
+        try:
+            if await minio_service.aktiv(db):
+                for bucket in await minio_service.dokument_buckets(db):
+                    for key in await minio_service.alle_objekte(db, bucket):
+                        zf.writestr(f"minio/{bucket}/{key}", await minio_service.objekt_lesen(db, bucket, key))
+                        minio_objekte += 1
+        except Exception:  # noqa: BLE001
+            logger.warning("backup_minio_dokumente_fehlgeschlagen", exc_info=True)
+
         manifest = {
             "schema_version": 1,
             "app_version": _app_version(),
             "erstellt_am": datetime.now(timezone.utc).isoformat(),
             "tabellen": tabellen_info,
             "datei_anzahl": datei_anzahl,
+            "minio_objekte": minio_objekte,
         }
         zf.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False))
 
     zusammenfassung = {
         "app_version": manifest["app_version"],
         "datei_anzahl": datei_anzahl,
+        "minio_objekte": minio_objekte,
         "tabellen": tabellen_info,
         "datensaetze_gesamt": sum(t["anzahl"] for t in tabellen_info),
     }
@@ -676,6 +691,8 @@ def _kategorien_aus_manifest(manifest: dict) -> list[dict]:
     for key, label, tabellen in KATEGORIEN:
         if key == "dateien":
             anzahl = int(manifest.get("datei_anzahl", 0))
+        elif key == "minio":
+            anzahl = int(manifest.get("minio_objekte", 0))
         else:
             anzahl = sum(anzahl_je_tabelle.get(t, 0) for t in tabellen)
         ergebnis.append({"key": key, "label": label, "anzahl": anzahl})
@@ -752,6 +769,15 @@ async def importiere(db: AsyncSession, token: str, kategorien: list[str], modus:
                     ziel.parent.mkdir(parents=True, exist_ok=True)
                     ziel.write_bytes(zf.read(name))
                     dateien += 1
+
+        # MinIO-Dokumente in den Objektspeicher zurückspielen (nur wenn MinIO aktiv).
+        if (alle or "minio" in kategorien) and await minio_service.aktiv(db):
+            for name in zf.namelist():
+                if name.startswith("minio/") and not name.endswith("/"):
+                    bucket, _, key = name[len("minio/"):].partition("/")
+                    if bucket and key:
+                        await minio_service.put_bytes(db, bucket, key, zf.read(name))
+                        dateien += 1
 
     await db.commit()
     _import_cache.pop(token, None)
