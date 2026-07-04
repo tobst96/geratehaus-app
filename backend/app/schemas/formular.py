@@ -72,6 +72,7 @@ class FormularOut(BaseModel):
     login_erforderlich: bool
     email_empfaenger: str | None
     moderator_sichtbar: bool
+    ablauf_am: datetime | None
     reihenfolge: int
     felder: list[FormularFeldOut] = []
 
@@ -83,6 +84,7 @@ class FormularCreate(BaseModel):
     login_erforderlich: bool = False
     email_empfaenger: str | None = Field(default=None, max_length=255)
     moderator_sichtbar: bool = False
+    ablauf_am: datetime | None = None
     reihenfolge: int = 0
 
 
@@ -93,6 +95,9 @@ class FormularUpdate(BaseModel):
     login_erforderlich: bool | None = None
     email_empfaenger: str | None = Field(default=None, max_length=255)
     moderator_sichtbar: bool | None = None
+    # Ablaufdatum setzen/ändern; explizit null = dauerhaft gültig. `exclude_unset`
+    # im Service sorgt dafür, dass ein weggelassenes Feld unverändert bleibt.
+    ablauf_am: datetime | None = None
     reihenfolge: int | None = None
 
 
@@ -134,3 +139,27 @@ class EinreichungOut(BaseModel):
     person_name: str | None
     antworten: list[EinreichungAntwortOut]
     erstellt_am: datetime
+
+
+# --- Zusammenfassung / Auswertung --------------------------------------------
+
+
+class FeldZusammenfassung(BaseModel):
+    feld_id: int
+    label: str
+    typ: str
+    anzahl_beantwortet: int
+    # Ø bei Sternebewertung
+    durchschnitt: float | None = None
+    # Anzahl je Ausprägung (Sterne, Dropdown-Optionen, Ja/Nein)
+    verteilung: dict[str, int] | None = None
+    # Einzelantworten bei Freitextfeldern
+    texte: list[str] | None = None
+
+
+class ZusammenfassungOut(BaseModel):
+    formular_id: int
+    name: str
+    anzahl_einreichungen: int
+    ablauf_am: datetime | None
+    felder: list[FeldZusammenfassung]

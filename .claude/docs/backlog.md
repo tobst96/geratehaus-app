@@ -718,8 +718,14 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Rate-Limit, Login-Gate); Feature-Modul `formular` (mitgliederseitig) +
   `modul_formular_*`-Config + öffentliche Config. Frontend: Admin-Unterseite
   `FormularModul`, öffentliche `FormularListe`/`FormularAusfuellen`, Kiosk-/Hub-Kachel,
-  Moderator-Tab „Listen → Formulare". Tests `test_formular.py` (6); volle Suite 199
-  grün; `npm run build` grün. Doku `docs/formular.md` + Datenschutz ergänzt.
+  Moderator-Tab „Listen → Formulare". Tests `test_formular.py`; `npm run build` grün.
+  Doku `docs/formular.md` + Datenschutz ergänzt.
+- Erweiterung (04.07.2026, selber PR): **Ablaufdatum** je Formular (Migration 0050,
+  `ablauf_am`/`zusammenfassung_gesendet_am`) – abgelaufene Formulare nicht mehr
+  absendbar; **teilbarer Link** (kopierbar im Admin) für anonyme Umfragen;
+  **Zwischenstand/Auswertung** (Ø/Verteilung/Freitexte) im Admin- und Moderator-
+  Bereich (`GET …/zusammenfassung`); **Ablauf-Job** (alle 15 min) schickt bei Ablauf
+  eine Auswertung an den E-Mail-Empfänger. Tests erweitert; volle Suite 202 grün.
 
 ---
 

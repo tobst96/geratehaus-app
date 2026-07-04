@@ -27,8 +27,27 @@ export interface Formular {
   login_erforderlich: boolean;
   email_empfaenger: string | null;
   moderator_sichtbar: boolean;
+  ablauf_am: string | null;
   reihenfolge: number;
   felder: FormularFeld[];
+}
+
+export interface FeldZusammenfassung {
+  feld_id: number;
+  label: string;
+  typ: FormularFeldTyp;
+  anzahl_beantwortet: number;
+  durchschnitt: number | null;
+  verteilung: Record<string, number> | null;
+  texte: string[] | null;
+}
+
+export interface Zusammenfassung {
+  formular_id: number;
+  name: string;
+  anzahl_einreichungen: number;
+  ablauf_am: string | null;
+  felder: FeldZusammenfassung[];
 }
 
 export interface FormularOeffentlich {
@@ -77,6 +96,8 @@ export const feldLoeschen = (feldId: number) =>
 
 export const holeEinreichungen = (formularId: number) =>
   apiGet<Einreichung[]>(`/moderator/formulare/${formularId}/einreichungen`);
+export const holeZusammenfassung = (formularId: number) =>
+  apiGet<Zusammenfassung>(`/moderator/formulare/${formularId}/zusammenfassung`);
 export const holeSichtbareFormulare = () =>
   apiGet<Formular[]>("/moderator/formulare/sichtbar");
 

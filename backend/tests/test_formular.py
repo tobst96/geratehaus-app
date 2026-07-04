@@ -1,5 +1,8 @@
 """Tests für das Formular-Modul: CRUD, Einreichungsvalidierung, Mailversand,
-Zugriff (Login-Pflicht / Modul inaktiv) und Moderator-Sichtbarkeit."""
+Zugriff (Login-Pflicht / Modul inaktiv), Moderator-Sichtbarkeit, Ablauf +
+Auswertung."""
+
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -157,3 +160,69 @@ async def test_moderator_sichtbarkeit(client, db):
     # "sichtbar"-Liste zeigt dem Gruppenführer nur freigegebene Formulare
     r = await client.get("/api/v1/moderator/formulare/sichtbar", headers=h_mod)
     assert r.status_code == 200 and [f["id"] for f in r.json()] == [formular.id]
+
+
+# --- Ablauf + Auswertung -----------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_abgelaufenes_formular_nicht_absendbar(client, db):
+    formular = await _formular(db, ablauf_am=datetime.now(timezone.utc) - timedelta(hours=1))
+    await _feld(db, formular.id, label="Text", typ="text")
+
+    # Detail + Liste blenden abgelaufene Formulare aus
+    r = await client.get(f"/api/v1/formulare/{formular.id}")
+    assert r.status_code == 404
+    r = await client.get("/api/v1/formulare")
+    assert all(f["id"] != formular.id for f in r.json())
+
+    # Absenden abgelehnt
+    r = await client.post(f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}})
+    assert r.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_zusammenfassung_aggregiert(client, db):
+    h = await _token(client, db)
+    formular = await _formular(db, moderator_sichtbar=True)
+    sterne = await _feld(db, formular.id, label="Bewertung", typ="sterne", max_sterne=5)
+    dd = await _feld(db, formular.id, label="Dienst", typ="dropdown", optionen=["A", "B"])
+
+    for note, wahl in [(4, "A"), (2, "A"), (5, "B")]:
+        r = await client.post(
+            f"/api/v1/formulare/{formular.id}/einreichen",
+            json={"antworten": {str(sterne.id): note, str(dd.id): wahl}},
+        )
+        assert r.status_code == 201
+
+    r = await client.get(f"/api/v1/moderator/formulare/{formular.id}/zusammenfassung", headers=h)
+    assert r.status_code == 200
+    daten = r.json()
+    assert daten["anzahl_einreichungen"] == 3
+    sterne_stat = next(f for f in daten["felder"] if f["feld_id"] == sterne.id)
+    assert sterne_stat["durchschnitt"] == pytest.approx((4 + 2 + 5) / 3, abs=0.01)
+    dd_stat = next(f for f in daten["felder"] if f["feld_id"] == dd.id)
+    assert dd_stat["verteilung"] == {"A": 2, "B": 1}
+
+
+@pytest.mark.asyncio
+async def test_ablauf_job_versendet_einmalig(db, monkeypatch):
+    gesendet = []
+
+    async def fake_send_an(self, _db, empfaenger, betreff, nachricht):
+        gesendet.append((empfaenger, betreff, nachricht))
+
+    monkeypatch.setattr(formular_service.EmailNotifier, "send_an", fake_send_an)
+    await config_service.set(db, "notifier_email_aktiv", True)
+
+    formular = await _formular(
+        db, email_empfaenger="chef@wehr.de", ablauf_am=datetime.now(timezone.utc) - timedelta(minutes=1)
+    )
+    await _feld(db, formular.id, label="Note", typ="sterne", max_sterne=5)
+
+    assert await formular_service.ablauf_zusammenfassungen_versenden(db) == 1
+    assert gesendet and gesendet[0][0] == "chef@wehr.de"
+
+    # Zweiter Lauf sendet nicht erneut (bereits markiert)
+    gesendet.clear()
+    assert await formular_service.ablauf_zusammenfassungen_versenden(db) == 0

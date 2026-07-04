@@ -8,6 +8,7 @@ from app.schemas.formular import (
     FormularFeldOut,
     FormularOut,
     FormularUpdate,
+    ZusammenfassungOut,
 )
 from app.services import formular_service
 
@@ -110,3 +111,19 @@ async def einreichungen_liste(
             detail="Für dieses Formular sind die Einreichungen nicht freigegeben.",
         )
     return await formular_service.einreichungen_fuer(db, formular_id)
+
+
+@router.get("/{formular_id}/zusammenfassung", response_model=ZusammenfassungOut)
+async def zusammenfassung(
+    db: DbSession, moderator: CurrentModerator, formular_id: int
+) -> ZusammenfassungOut:
+    """Aggregierter Zwischenstand (Ø/Verteilung/Freitexte) je Formular."""
+    formular = await formular_service.get_formular(db, formular_id)
+    if formular is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Formular nicht gefunden.")
+    if moderator.rolle != "admin" and not formular.moderator_sichtbar:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Für dieses Formular ist die Auswertung nicht freigegeben.",
+        )
+    return await formular_service.zusammenfassung(db, formular)

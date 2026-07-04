@@ -22,7 +22,18 @@ Admin an-/abschalten kann.
 
 Pro Formular ist einstellbar, ob es **öffentlich ohne Login** oder **nur nach
 Anmeldung** (Mitglieder-Login per Name + PIN, am Kiosk per Barcode/PIN) abgesendet
-werden darf. Bei angemeldeten Personen wird die Einreichung der Person zugeordnet.
+werden darf. Bei angemeldeten Personen wird die Einreichung der Person zugeordnet;
+öffentliche Formulare können anonym ausgefüllt werden.
+
+## Teilbarer Link & Ablauf
+
+- Zu jedem Formular gibt es einen **teilbaren Link** (`…/formular/<id>`), den man in
+  der Modul-Unterseite direkt kopieren kann – z. B. um eine Umfrage in einer
+  WhatsApp-Gruppe zu teilen. Der Link funktioniert, sobald das Formular **aktiv** ist.
+- Optional lässt sich ein **Ablaufdatum** setzen (leer = dauerhaft gültig). Nach
+  Ablauf ist das Formular nicht mehr absendbar und verschwindet aus der Liste.
+- Ist bei Ablauf ein **E-Mail-Empfänger** hinterlegt, wird automatisch eine
+  **Auswertung** (Zusammenfassung aller Antworten) an diese Adresse gesendet.
 
 ## E-Mail-Benachrichtigung
 
@@ -39,6 +50,10 @@ E-Mail-Versand ist in den Benachrichtigungen konfiguriert.)
 - Pro Formular ist einstellbar, ob die Einreichungen auch für **Gruppenführer/
   Moderatoren** sichtbar sind. Wenn aktiviert, erscheinen sie unter
   **Listen → Formulare**; sonst bleiben sie admin-intern.
+- **Zwischenstand/Auswertung**: Neben den Einzel-Einreichungen gibt es eine
+  aggregierte Auswertung (Ø bei Sternebewertung, Anzahl je Dropdown-Option/Ja-Nein,
+  Freitext-Antworten) – jederzeit im Admin- und (bei Freigabe) Moderator-Bereich
+  einsehbar.
 
 ## Admin (Modul-Unterseite)
 

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ApiError } from "../../../api/client";
+import { useConfig } from "../../../context/ConfigContext";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";
+import { FormularZusammenfassung } from "../FormularZusammenfassung";
 import {
   feldAktualisieren,
   feldAnlegen,
@@ -11,11 +13,46 @@ import {
   formularLoeschen,
   holeEinreichungen,
   holeFormulare,
+  holeZusammenfassung,
   type Einreichung,
   type Formular,
   type FormularFeld,
   type FormularFeldTyp,
+  type Zusammenfassung,
 } from "../../../api/formular";
+
+// ISO (UTC) <-> Wert für <input type="datetime-local"> (lokale Zeit des Browsers).
+function zuLokalInput(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const lokal = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return lokal.toISOString().slice(0, 16);
+}
+function vonLokalInput(wert: string): string | null {
+  return wert ? new Date(wert).toISOString() : null;
+}
+
+async function linkKopieren(text: string, knopf: HTMLButtonElement) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    const alt = knopf.textContent;
+    knopf.textContent = "Kopiert!";
+    setTimeout(() => (knopf.textContent = alt), 1500);
+  } catch {
+    window.prompt("Link manuell kopieren:", text);
+  }
+}
 
 const FELDTYP_LABEL: Record<FormularFeldTyp, string> = {
   text: "Textfeld (einzeilig)",
@@ -34,6 +71,7 @@ function wertText(a: Einreichung["antworten"][number]): string {
 }
 
 export function FormularModul() {
+  const { config } = useConfig();
   const [formulare, setFormulare] = useState<Formular[] | null>(null);
   const [ausgewaehltId, setAusgewaehltId] = useState<number | null>(null);
   const [neuerName, setNeuerName] = useState("");
@@ -41,6 +79,9 @@ export function FormularModul() {
   const [neuesFeldLabel, setNeuesFeldLabel] = useState("");
   const [neuesFeldTyp, setNeuesFeldTyp] = useState<FormularFeldTyp>("text");
   const [einreichungen, setEinreichungen] = useState<Einreichung[] | null>(null);
+  const [zusammenfassung, setZusammenfassung] = useState<Zusammenfassung | null>(null);
+
+  const basisUrl = (config?.oeffentliche_basis_url || window.location.origin).replace(/\/$/, "");
 
   async function laden() {
     try {
@@ -64,6 +105,7 @@ export function FormularModul() {
       await laden();
       setAusgewaehltId(neu.id);
       setEinreichungen(null);
+      setZusammenfassung(null);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Anlegen fehlgeschlagen.");
     }
@@ -120,6 +162,7 @@ export function FormularModul() {
   async function einreichungenLaden() {
     if (!ausgewaehlt) return;
     setEinreichungen(null);
+    setZusammenfassung(null);
     setEinreichungen(await holeEinreichungen(ausgewaehlt.id));
   }
 
@@ -152,6 +195,7 @@ export function FormularModul() {
             onClick={() => {
               setAusgewaehltId(f.id);
               setEinreichungen(null);
+      setZusammenfassung(null);
             }}
           >
             {f.name}
@@ -216,6 +260,38 @@ export function FormularModul() {
             />
             Einreichungen auch für Gruppenführer/Moderatoren sichtbar
           </label>
+          <div className="formular-feld">
+            <label>Ablaufdatum (leer = dauerhaft gültig)</label>
+            <input
+              type="datetime-local"
+              key={`ablauf-${ausgewaehlt.id}`}
+              defaultValue={zuLokalInput(ausgewaehlt.ablauf_am)}
+              onBlur={(e) => formularFeldAendern(ausgewaehlt, { ablauf_am: vonLokalInput(e.target.value) })}
+            />
+            <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+              Nach Ablauf ist das Formular nicht mehr absendbar. Ist ein E-Mail-Empfänger hinterlegt,
+              wird bei Ablauf automatisch eine Auswertung dorthin gesendet.
+            </p>
+          </div>
+
+          <div className="formular-feld">
+            <label>Teilbarer Link (z. B. für WhatsApp)</label>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input readOnly value={`${basisUrl}/formular/${ausgewaehlt.id}`} style={{ flex: "1 1 240px" }} />
+              <button
+                type="button"
+                className="sekundaer"
+                onClick={(e) => linkKopieren(`${basisUrl}/formular/${ausgewaehlt.id}`, e.currentTarget)}
+              >
+                Link kopieren
+              </button>
+            </div>
+            {!ausgewaehlt.aktiv && (
+              <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+                Hinweis: Das Formular ist noch inaktiv und daher über den Link nicht erreichbar.
+              </p>
+            )}
+          </div>
 
           <h2>Felder</h2>
           {[...ausgewaehlt.felder]
@@ -330,6 +406,22 @@ export function FormularModul() {
             </select>
             <button onClick={feldHinzufuegen}>+ Feld hinzufügen</button>
           </div>
+
+          <h2>Auswertung (Zwischenstand)</h2>
+          <button
+            className="sekundaer"
+            onClick={async () => {
+              setZusammenfassung(null);
+              setZusammenfassung(await holeZusammenfassung(ausgewaehlt.id));
+            }}
+          >
+            Auswertung laden
+          </button>
+          {zusammenfassung && (
+            <div style={{ marginTop: 12 }}>
+              <FormularZusammenfassung daten={zusammenfassung} />
+            </div>
+          )}
 
           <h2>Einreichungen</h2>
           <button className="sekundaer" onClick={einreichungenLaden}>

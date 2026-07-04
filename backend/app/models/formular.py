@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -25,6 +25,12 @@ class Formular(Base, TimestampMixin):
     email_empfaenger: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # Dürfen Gruppenführer/Moderatoren die Einreichungen sehen (sonst nur Admins)?
     moderator_sichtbar: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Optionales Ablaufdatum (NULL = dauerhaft gültig). Nach Ablauf nicht mehr absendbar.
+    ablauf_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Wann die Ablauf-Zusammenfassung per Mail verschickt wurde (kein Doppelversand).
+    zusammenfassung_gesendet_am: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     reihenfolge: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     felder: Mapped[list["FormularFeld"]] = relationship(

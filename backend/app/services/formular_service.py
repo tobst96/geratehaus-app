@@ -2,6 +2,8 @@
 validieren + speichern und den formularspezifischen Empfänger per Mail informieren.
 """
 
+from datetime import datetime, timezone
+
 import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,10 +13,12 @@ from app.core import zeit
 from app.models.formular import Formular, FormularEinreichung, FormularFeld
 from app.models.person import Person
 from app.schemas.formular import (
+    FeldZusammenfassung,
     FormularCreate,
     FormularFeldCreate,
     FormularFeldUpdate,
     FormularUpdate,
+    ZusammenfassungOut,
 )
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
@@ -111,12 +115,25 @@ async def feld_loeschen(db: AsyncSession, feld: FormularFeld) -> None:
 # --- Öffentlicher Zugriff ----------------------------------------------------
 
 
+def ist_abgelaufen(formular: Formular) -> bool:
+    if formular.ablauf_am is None:
+        return False
+    ablauf = formular.ablauf_am
+    if ablauf.tzinfo is None:
+        ablauf = ablauf.replace(tzinfo=timezone.utc)
+    return ablauf <= datetime.now(timezone.utc)
+
+
 async def liste_zugaengliche_formulare(db: AsyncSession) -> list[Formular]:
-    """Aktive Formulare für die öffentliche/Mitglieder-Liste."""
+    """Aktive, noch nicht abgelaufene Formulare für die öffentliche/Mitglieder-Liste."""
+    jetzt = datetime.now(timezone.utc)
     stmt = (
         select(Formular)
         .options(selectinload(Formular.felder))
-        .where(Formular.aktiv.is_(True))
+        .where(
+            Formular.aktiv.is_(True),
+            (Formular.ablauf_am.is_(None)) | (Formular.ablauf_am > jetzt),
+        )
         .order_by(Formular.reihenfolge, Formular.id)
     )
     return list((await db.execute(stmt)).scalars().all())
@@ -259,3 +276,128 @@ async def einreichungen_fuer(db: AsyncSession, formular_id: int) -> list[Formula
         .order_by(FormularEinreichung.erstellt_am.desc())
     )
     return list((await db.execute(stmt)).scalars().all())
+
+
+# --- Zusammenfassung / Auswertung --------------------------------------------
+
+
+def _leer(wert: object) -> bool:
+    return wert is None or wert == "" or (isinstance(wert, list) and len(wert) == 0)
+
+
+def _feld_zusammenfassung(feld: FormularFeld, werte: list[object]) -> FeldZusammenfassung:
+    basis = {"feld_id": feld.id, "label": feld.label, "typ": feld.typ}
+
+    if feld.typ == "sterne":
+        zahlen = [w for w in werte if isinstance(w, int) and not isinstance(w, bool)]
+        durchschnitt = round(sum(zahlen) / len(zahlen), 2) if zahlen else None
+        verteilung = {str(n): sum(1 for z in zahlen if z == n) for n in range(1, feld.max_sterne + 1)}
+        return FeldZusammenfassung(
+            **basis, anzahl_beantwortet=len(zahlen), durchschnitt=durchschnitt, verteilung=verteilung
+        )
+
+    if feld.typ == "checkbox":
+        ja = sum(1 for w in werte if w is True)
+        return FeldZusammenfassung(
+            **basis, anzahl_beantwortet=len(werte), verteilung={"Ja": ja, "Nein": len(werte) - ja}
+        )
+
+    if feld.typ in ("dropdown", "dropdown_mehrfach"):
+        verteilung: dict[str, int] = {opt: 0 for opt in feld.optionen}
+        beantwortet = 0
+        for w in werte:
+            if feld.typ == "dropdown":
+                if _leer(w):
+                    continue
+                beantwortet += 1
+                verteilung[str(w)] = verteilung.get(str(w), 0) + 1
+            elif isinstance(w, list) and w:
+                beantwortet += 1
+                for x in w:
+                    verteilung[str(x)] = verteilung.get(str(x), 0) + 1
+        return FeldZusammenfassung(**basis, anzahl_beantwortet=beantwortet, verteilung=verteilung)
+
+    # text / mehrzeilig
+    texte = [str(w) for w in werte if not _leer(w)]
+    return FeldZusammenfassung(**basis, anzahl_beantwortet=len(texte), texte=texte)
+
+
+async def zusammenfassung(db: AsyncSession, formular: Formular) -> ZusammenfassungOut:
+    """Aggregierte Auswertung über alle Einreichungen (Zwischenstand)."""
+    einreichungen = await einreichungen_fuer(db, formular.id)
+    felder_stats: list[FeldZusammenfassung] = []
+    for feld in sorted((f for f in formular.felder if f.aktiv), key=lambda f: f.reihenfolge):
+        werte: list[object] = []
+        for e in einreichungen:
+            for a in e.antworten:
+                if a.get("feld_id") == feld.id:
+                    werte.append(a.get("wert"))
+                    break
+        felder_stats.append(_feld_zusammenfassung(feld, werte))
+    return ZusammenfassungOut(
+        formular_id=formular.id,
+        name=formular.name,
+        anzahl_einreichungen=len(einreichungen),
+        ablauf_am=formular.ablauf_am,
+        felder=felder_stats,
+    )
+
+
+def _zusammenfassung_text(zus: ZusammenfassungOut) -> str:
+    zeilen = [
+        f"Auswertung des Formulars: {zus.name}",
+        f"Anzahl Einreichungen: {zus.anzahl_einreichungen}",
+        "",
+    ]
+    for f in zus.felder:
+        zeilen.append(f"{f.label}:")
+        if f.durchschnitt is not None:
+            zeilen.append(f"  Durchschnitt: {f.durchschnitt}")
+        if f.verteilung:
+            for k, v in f.verteilung.items():
+                zeilen.append(f"  {k}: {v}")
+        if f.texte:
+            for t in f.texte:
+                zeilen.append(f"  - {t}")
+        if f.durchschnitt is None and not f.verteilung and not f.texte:
+            zeilen.append(f"  ({f.anzahl_beantwortet} Antworten)")
+        zeilen.append("")
+    return "\n".join(zeilen)
+
+
+async def ablauf_zusammenfassungen_versenden(db: AsyncSession) -> int:
+    """Hintergrund-Job: schickt für gerade abgelaufene Formulare einmalig eine
+    Auswertung per Mail an den hinterlegten Empfänger. Gibt die Anzahl der
+    versendeten Mails zurück."""
+    jetzt = datetime.now(timezone.utc)
+    stmt = (
+        select(Formular)
+        .options(selectinload(Formular.felder))
+        .where(
+            Formular.ablauf_am.is_not(None),
+            Formular.ablauf_am <= jetzt,
+            Formular.zusammenfassung_gesendet_am.is_(None),
+        )
+    )
+    formulare = list((await db.execute(stmt)).scalars().all())
+    email_aktiv = await config_service.get(db, "notifier_email_aktiv", False)
+    gesendet = 0
+    for formular in formulare:
+        # Zuerst markieren, damit ein einmal abgelaufenes Formular nicht wiederholt
+        # verarbeitet wird (auch bei fehlendem Empfänger / Mailfehler).
+        formular.zusammenfassung_gesendet_am = jetzt
+        if not (formular.email_empfaenger and email_aktiv):
+            continue
+        try:
+            zus = await zusammenfassung(db, formular)
+            await EmailNotifier().send_an(
+                db,
+                formular.email_empfaenger,
+                f"Formular abgelaufen – Auswertung: {formular.name}",
+                _zusammenfassung_text(zus),
+            )
+            gesendet += 1
+        except Exception:  # noqa: BLE001
+            logger.warning("formular_ablauf_mail_fehlgeschlagen", formular_id=formular.id, exc_info=True)
+    await db.commit()
+    return gesendet

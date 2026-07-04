@@ -54,8 +54,10 @@ async def formulare_liste(db: DbSession) -> list[FormularOeffentlichOut]:
 @router.get("/{formular_id}", response_model=FormularOeffentlichOut)
 async def formular_detail(db: DbSession, formular_id: int) -> FormularOeffentlichOut:
     formular = await formular_service.get_formular(db, formular_id)
-    if formular is None or not formular.aktiv:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Formular nicht gefunden.")
+    if formular is None or not formular.aktiv or formular_service.ist_abgelaufen(formular):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Dieses Formular ist nicht (mehr) verfügbar."
+        )
     return _oeffentlich(formular)
 
 
@@ -72,8 +74,10 @@ async def formular_einreichen(
     person: Annotated[Person | None, Depends(optionale_person)],
 ) -> dict:
     formular = await formular_service.get_formular(db, formular_id)
-    if formular is None or not formular.aktiv:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Formular nicht gefunden.")
+    if formular is None or not formular.aktiv or formular_service.ist_abgelaufen(formular):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Dieses Formular ist nicht (mehr) verfügbar."
+        )
 
     if formular.login_erforderlich and person is None:
         raise HTTPException(

@@ -14,9 +14,12 @@ import {
 import {
   holeSichtbareFormulare,
   holeEinreichungen,
+  holeZusammenfassung,
   type Einreichung,
   type Formular,
+  type Zusammenfassung,
 } from "../../api/formular";
+import { FormularZusammenfassung } from "./FormularZusammenfassung";
 import { ApiError } from "../../api/client";
 import type { BuchungOut, DienstbuchOut, EinsatzOut } from "../../api/types";
 import type { DienststundenEintragOut } from "../../api/dienststunden";
@@ -533,7 +536,9 @@ function formularWertText(a: Einreichung["antworten"][number]): string {
 function FormulareTab() {
   const [formulare, setFormulare] = useState<Formular[] | null>(null);
   const [ausgewaehltId, setAusgewaehltId] = useState<number | null>(null);
+  const [ansicht, setAnsicht] = useState<"auswertung" | "einreichungen">("auswertung");
   const [einreichungen, setEinreichungen] = useState<Einreichung[] | null>(null);
+  const [zusammenfassung, setZusammenfassung] = useState<Zusammenfassung | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
 
   useEffect(() => {
@@ -547,10 +552,13 @@ function FormulareTab() {
   async function auswaehlen(id: number) {
     setAusgewaehltId(id);
     setEinreichungen(null);
+    setZusammenfassung(null);
     try {
-      setEinreichungen(await holeEinreichungen(id));
+      const [z, e] = await Promise.all([holeZusammenfassung(id), holeEinreichungen(id)]);
+      setZusammenfassung(z);
+      setEinreichungen(e);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Einreichungen konnten nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : "Daten konnten nicht geladen werden.");
     }
   }
 
@@ -573,7 +581,29 @@ function FormulareTab() {
         ))}
       </div>
 
+      {ausgewaehltId !== null && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          <button
+            className={ansicht === "auswertung" ? "" : "sekundaer"}
+            onClick={() => setAnsicht("auswertung")}
+          >
+            Auswertung
+          </button>
+          <button
+            className={ansicht === "einreichungen" ? "" : "sekundaer"}
+            onClick={() => setAnsicht("einreichungen")}
+          >
+            Einreichungen
+          </button>
+        </div>
+      )}
+
+      {ausgewaehltId !== null && ansicht === "auswertung" && zusammenfassung && (
+        <FormularZusammenfassung daten={zusammenfassung} />
+      )}
+
       {ausgewaehltId !== null &&
+        ansicht === "einreichungen" &&
         (!einreichungen ? (
           <Ladeanzeige />
         ) : einreichungen.length === 0 ? (
