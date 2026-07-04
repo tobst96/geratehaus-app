@@ -7,10 +7,12 @@ import {
   type FeatureModul,
 } from "../../api/featureModule";
 import { ApiError } from "../../api/client";
+import { holeMeta } from "../../api/meta";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 export function Module() {
   const [module, setModule] = useState<FeatureModul[] | null>(null);
+  const [docsBasis, setDocsBasis] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -24,6 +26,9 @@ export function Module() {
 
   useEffect(() => {
     laden();
+    holeMeta()
+      .then((m) => setDocsBasis(m.docs_basis_url))
+      .catch(() => setDocsBasis(null));
   }, []);
 
   async function flagSetzen(
@@ -115,6 +120,17 @@ export function Module() {
                 >
                   {m.name} →
                 </Link>
+                {docsBasis && (
+                  <a
+                    href={`${docsBasis}/${m.key}.md`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}
+                    title="Dokumentation dieses Moduls auf GitHub öffnen (passend zur installierten Version)"
+                  >
+                    📖 Doku ↗
+                  </a>
+                )}
                 {!m.mitgliederseitig && (
                   <span
                     style={{

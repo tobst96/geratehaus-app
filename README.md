@@ -102,6 +102,9 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
 
 ### 🧩 Module
 
+📖 Ausführliche Anleitungen je Modul: **[docs/README.md](docs/README.md)** (in der App
+über die Modul-Übersicht je Modul „📖 Doku", verlinkt passend zur installierten Version).
+
 | Modul | Highlights |
 |---|---|
 | **Einsatztagebuch („Garage")** | Einsätze manuell oder per Divera-Import; Fahrzeuge als Kästen mit konfigurierbaren Sitzplätzen (Trupp/Staffel/Gruppe nach DIN 14502 oder frei), Eintragung per Barcode-Scan inkl. VAB & Atemschutzminuten, „Einsatzbereit im Feuerwehrhaus" und „Auf Anfahrt gewesen" als eigene Buchungsarten |

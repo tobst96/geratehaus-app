@@ -26,6 +26,7 @@ from app.api.v1 import (
     moderator_dashboard,
     moderator_einstellungen,
     moderator_listen,
+    moderator_meta,
     moderator_feature_module,
     moderator_module,
     moderator_person_kanaele,
@@ -129,6 +130,7 @@ app.include_router(moderator_dashboard.router, prefix="/api/v1")
 app.include_router(moderator_listen.router, prefix="/api/v1")
 app.include_router(moderator_module.router, prefix="/api/v1")
 app.include_router(moderator_feature_module.router, prefix="/api/v1")
+app.include_router(moderator_meta.router, prefix="/api/v1")
 app.include_router(moderator_berechtigungen.router, prefix="/api/v1")
 app.include_router(moderator_person_kanaele.router, prefix="/api/v1")
 app.include_router(moderator_buchungen.router, prefix="/api/v1")

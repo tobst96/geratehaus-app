@@ -123,6 +123,11 @@ Feste Checkliste, bevor eine neue Version veröffentlicht wird:
 - **README prüfen und anpassen** (`README.md`): Spiegelt sie noch den aktuellen
   Funktionsumfang, Setup und Stand wider (neue/entfernte Features, geänderte
   Schritte)? Vor jeder Veröffentlichung kontrollieren.
+- **Modul-Docs prüfen und anpassen** (`docs/*.md`): Bei jedem Beta- **und**
+  Stable-Release **alle** Modul-Dokus durchgehen und an geänderte/neue/entfernte
+  Funktionen anpassen. Neues Modul → neue `docs/<key>.md` anlegen (Dateiname =
+  Modul-Key, sonst bricht der Doku-Link auf der Modul-Übersicht). Index
+  `docs/README.md` mitpflegen.
 - `pytest` (Backend) und `npm run build` (Frontend) fehlerfrei.
 - Feature-Freeze: vor dem Release keine neuen Features mehr mergen (siehe Backlog
   `.claude/docs/backlog.md`, Etappe N).
