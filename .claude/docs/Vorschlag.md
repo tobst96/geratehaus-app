@@ -174,6 +174,19 @@ Parallel zur Sicherheits-Roadmap (alle vom Nutzer bestätigt):
 
 *Stand: Garage-Ansicht (Sitzplatz-genau), Countdown/Auto-Abschluss, Zusatzfelder, PDF, Divera-Import, MinIO-Ablage.*
 
+- **⭐⭐⭐ · L – Einsätze zusammenführen (Merge)** *[gewählt 05.07.2026]*: **jeder
+  Moderator** kann **offene** Einsätze zu einem zusammenführen – v. a. wenn **ein
+  reales Ereignis mehrere Divera-Alarme** erzeugt hat (mehrere Einsatz-Datensätze →
+  einer). Ablauf:
+  1. **Feldweise wählen**, welcher Wert von welchem Einsatz übernommen wird (Titel,
+     Adresse, Meldung, Zeit, Einsatznummer, Zusatzfelder …) – bei Konflikt nachfragen.
+  2. **Teilnahmen/Sitzplätze zusammenführen**: bei **Doppelbelegung eines Sitzes**
+     nachfragen, was passiert – Person aus **Einsatz A**, aus **Einsatz B**, oder
+     **beide auf einen Platz** lassen.
+  3. Quell-Einsätze nach dem Merge **löschen/archivieren**, Merge im **Timeline**
+     vermerken (welche Einsätze/Divera-IDs vereint wurden).
+  Größere UI + Konfliktlogik → **eigener Feature-Branch + PR**. (Motiviert durch
+  Divera-Mehrfachalarme, wirkt aber generell im Einsatztagebuch.)
 - **⭐⭐⭐ · M – Einsatz-Statistik** (Backlog Einsatztagebuch): Jahresanzahl mit
   Vorjahresvergleich zum Stichtag + Wizard-Startwert. Kombiniert mit Dashboard sehr
   wertvoll für Jahresberichte.
@@ -305,13 +318,24 @@ Parallel zur Sicherheits-Roadmap (alle vom Nutzer bestätigt):
 
 *Stand: Polling/Webhook, Alarm→Einsatz-Upsert, Personal-Abgleich-Vorschläge.*
 
+> **Grundsatz (Nutzer 05.07.2026): nur lesen, kein Rückkanal.** Die App liest Alarme/
+> Personal aus Divera und schreibt **nichts** zurück. Personal-Abgleich bleibt bei
+> **Vorschlägen** (kein automatischer Ausbau gewünscht).
+
+- **⭐⭐ · S – Sync-Status & Verbindungstest** *[gewählt 05.07.2026]*: „Verbindung
+  testen"-Button, **letzter erfolgreicher Sync** + letzte Fehler direkt im Modul
+  sichtbar (heute nur Logs). Reduziert Support/Fehlersuche.
+- **⭐⭐ · M – Feld-Mapping konfigurierbar** *[gewählt 05.07.2026]*: Zuordnung
+  **Divera-Felder → Einsatz(-Zusatz)felder** einstellbar, statt fest Adresse/Meldung/
+  Einsatznummer. Nutzt die Zusatzfeld-Definitionen des Einsatztagebuchs.
 - **⭐⭐ · M – Webhook-Sicherheit:** Accesskey steckt als Query-Parameter in der URL
   (landet in Logs). Signatur/HMAC oder Header-Secret prüfen; Request validieren.
-- **⭐⭐ · S – Rückkanal & Sync-Status:** Divera-Verbindung testen-Button, letzter
-  erfolgreicher Sync + Fehleranzeige im Modul; Mapping Divera-Felder → Einsatzfelder
-  konfigurierbar.
+  *(jetzt nicht priorisiert, aber bei öffentlicher Instanz relevant.)*
 - **⭐ · S – Fahrzeug-/Alarmierungs-Daten** aus Divera (welche Fahrzeuge alarmiert)
   optional in den Einsatz übernehmen.
+
+> **Verwandt (motiviert durch Divera):** „Einsätze zusammenführen" – wenn ein
+> Ereignis **mehrere Alarme** erzeugt → siehe **Einsatztagebuch** (Merge-Feature).
 
 ## 11. Barcode
 
