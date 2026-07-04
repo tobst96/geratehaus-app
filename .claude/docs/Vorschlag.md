@@ -153,6 +153,10 @@ Parallel zur Sicherheits-Roadmap (alle vom Nutzer bestätigt):
   Ablaufdatum, Lehrgänge) mit Ablauf-Erinnerung. Sehr feuerwehrtypischer Bedarf.
 - **⭐ · S – Foto-Handling:** Uploads serverseitig auf max. Kantenlänge verkleinern
   (spart Speicher/Bandbreite am Kiosk), Platzhalter-Avatare (Initialen) sind schon da.
+- **⭐⭐ · M – Mitglieder-Selfservice** *[gewählt 05.07.2026]*: Mitglied kann im
+  Login **eigene Kontaktdaten/Foto aktualisieren**; Änderungen gehen als **Vorschlag**
+  an einen Moderator zur Bestätigung (analog Divera-Personal-Vorschläge / Namens-
+  abweichungen). Entlastet die Moderatoren bei Stammdatenpflege.
 
 ## 2. Fahrzeuge
 
@@ -182,6 +186,11 @@ Parallel zur Sicherheits-Roadmap (alle vom Nutzer bestätigt):
   eine Jahresübersicht (Kurzprüfung/Belastungsübung-Nachweise) ableiten.
 - **⭐ · S – Countdown-Feinschliff:** am Kiosk sichtbarer „noch offen bis"-Hinweis +
   „Countdown verlängern"-Button für lange Einsätze.
+- **⭐⭐ · M – Foto-/Lagebild-Anhänge je Einsatz** *[gewählt 05.07.2026]*: Bilder zum
+  Einsatz hochladen (Lagebilder, Schadensfotos), im **MinIO**-Ordner des Einsatzes
+  archiviert (10-Jahre-Ablage) und im PDF/Bericht referenzierbar. Datei-Upload-
+  Baustein aus dem Formular-Modul wiederverwendbar; Datenschutz beachten (kein
+  öffentliches Serve → siehe geschützte Datei-Auslieferung).
 
 ## 4. Dienstbuch
 
@@ -196,6 +205,12 @@ Parallel zur Sicherheits-Roadmap (alle vom Nutzer bestätigt):
   jeden 1. Montag") halb-automatisch anlegen.
 - **⭐ · S – Themen/Kategorien je Dienst** (Ausbildung/Arbeitsdienst/Sonstiges) für
   Auswertungen.
+- **⭐⭐ · M – Anwesenheitsquote pro Person** *[gewählt 05.07.2026]*: prozentuale
+  Teilnahme an Diensten je Person (Zeitraum wählbar) + Export – gute Ergänzung zur
+  Mindest-Dienstbeteiligung.
+- **⭐ · S – Ausbilder/Thema je Dienst** *[gewählt 05.07.2026]*: pro Dienst
+  dokumentieren, **wer welches Thema** ausgebildet hat (Feld „Ausbilder" + „Thema"),
+  Grundlage für Ausbildungsnachweise/-abdeckung.
 
 ## 5. Dienststunden
 
@@ -207,6 +222,10 @@ Parallel zur Sicherheits-Roadmap (alle vom Nutzer bestätigt):
   Moderator bestätigt werden (Missbrauchsschutz), abschaltbar.
 - **⭐ · S – Automatische Stunden aus Einsatz/Dienstbuch** vorschlagen (Teilnahme →
   Stundenvorschlag), Person bestätigt nur.
+- **⭐⭐ · M – Persönlicher Jahresreport** *[gewählt 05.07.2026]*: jede Person erhält
+  ihre Stundenauswertung (Summe je Funktion/Kategorie, Schwellenwert-Status) als
+  **Mail und/oder Download** – z. B. zum Jahreswechsel. Nutzt das Notifier-/PDF-
+  System.
 
 ## 6. Fahrzeugbuchung
 
