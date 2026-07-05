@@ -148,6 +148,34 @@ async def test_modul_flag_aenderung_wird_protokolliert(client, db):
 
 
 @pytest.mark.asyncio
+async def test_export_csv_und_json(client, db):
+    admin_h = await _token(client, db)
+    await audit_service.protokolliere(db, "admin", "person_geloescht", "person", 7, "Max Muster")
+
+    r_csv = await client.get("/api/v1/moderator/audit/export?format=csv", headers=admin_h)
+    assert r_csv.status_code == 200
+    assert "text/csv" in r_csv.headers["content-type"]
+    assert "attachment" in r_csv.headers["content-disposition"]
+    assert "person_geloescht" in r_csv.text
+    assert "Max Muster" in r_csv.text
+
+    r_json = await client.get("/api/v1/moderator/audit/export?format=json", headers=admin_h)
+    assert r_json.status_code == 200
+    daten = r_json.json()
+    assert any(e["aktion"] == "person_geloescht" and e["objekt_id"] == 7 for e in daten)
+
+    r_bad = await client.get("/api/v1/moderator/audit/export?format=xml", headers=admin_h)
+    assert r_bad.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_export_nur_admin(client, db):
+    gf_h = await _token(client, db, username="gf_export", rolle="gruppenfuehrer")
+    r = await client.get("/api/v1/moderator/audit/export", headers=gf_h)
+    assert r.status_code == 403
+
+
+@pytest.mark.asyncio
 async def test_aufbewahrung_bereinigt_alte_eintraege(db):
     # Ein alter (>365 Tage) und ein frischer Eintrag.
     alt = AuditLog(

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { holeAuditLog, type AuditEintrag } from "../../api/audit";
+import { exportiereAuditLog, holeAuditLog, type AuditEintrag } from "../../api/audit";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 
@@ -72,6 +72,20 @@ export function AuditLog() {
         </div>
         <button type="button" className="sekundaer" onClick={laden}>
           Neu laden
+        </button>
+        <button
+          type="button"
+          className="sekundaer"
+          onClick={() => exportiereAuditLog("csv", filterAktion || undefined)}
+        >
+          Export CSV
+        </button>
+        <button
+          type="button"
+          className="sekundaer"
+          onClick={() => exportiereAuditLog("json", filterAktion || undefined)}
+        >
+          Export JSON
         </button>
       </div>
 

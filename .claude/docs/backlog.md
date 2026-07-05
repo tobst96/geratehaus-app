@@ -983,7 +983,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (5) Audit-Log (Löschungen/Freigaben/Rechteänderungen)
 
-- Status: In Bearbeitung (Phase 1 = PR #31 gemergt + deployt 05.07.2026; Phase 2 offen)
+- Status: Erledigt (Phase 1 = PR #31; Phase 2 direkt auf beta, 05.07.2026 – alle
+  Akzeptanzkriterien erfüllt)
 - Fortschritt (05.07.2026, Phase 1): **Audit-Infrastruktur + erste Hooks + Admin-API.**
   Neue Tabelle `audit_logs` (Migration 0053) + `AuditLog`-Model + `audit_service`
   (`protokolliere` / `liste` mit Filter, neueste zuerst). Protokolliert werden Akteur
@@ -1011,8 +1012,14 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   API-Modul `api/audit.ts` gegen den bestehenden `GET /moderator/audit`. Maschinelle
   Aktions-Schlüssel werden über eine Label-Map menschenlesbar dargestellt (robust
   gegen neue Hooks). `npm run build` grün.
-  **Offen (Rest Phase 2):** weitere Hooks (Formular-Einreichung/-Löschung, Divera-
-  Vorschlag-Freigabe); **CSV/JSON-Export**.
+- Fortschritt (05.07.2026, Phase 2 – CSV/JSON-Export, direkt auf beta): Neuer Admin-
+  Endpunkt `GET /moderator/audit/export?format=csv|json&aktion=` (`audit_service.csv_export`
+  /`json_export`, vollständiger Export, optional gefiltert, CSV mit UTF-8-BOM für Excel)
+  + „Export CSV"/„Export JSON"-Buttons in `AuditLog.tsx` (Download via authentifiziertem
+  Blob, respektiert den gesetzten Aktions-Filter). Tests `test_audit_log.py` (2 neu);
+  Suite 267 grün; `npm run build` grün.
+- **Alle Akzeptanzkriterien erfüllt.** Optionaler Ausbau (nicht Teil der Kriterien,
+  Backlog-Idee): zusätzliche Hooks für Formular-Löschung und Divera-Vorschlag-Freigabe.
 - Priorität: Mittel
 - Kategorie: Backend / Frontend / Sicherheit
 - Skills: planner, geraetehaus-patterns, tests, review

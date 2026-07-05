@@ -6,6 +6,9 @@ dann erhalten bleibt, wenn er nach der eigentlichen (bereits committeten) Aktion
 geschrieben wird.
 """
 
+import csv
+import io
+import json
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import delete, select
@@ -43,6 +46,43 @@ async def liste(
         stmt = stmt.where(AuditLog.aktion == aktion)
     stmt = stmt.limit(limit)
     return list((await db.execute(stmt)).scalars().all())
+
+
+def csv_export(eintraege: list[AuditLog]) -> str:
+    """Serialisiert Audit-Einträge als CSV (für den Admin-Export)."""
+    puffer = io.StringIO()
+    writer = csv.writer(puffer)
+    writer.writerow(["Zeitpunkt", "Akteur", "Aktion", "Objekt-Typ", "Objekt-ID", "Details"])
+    for e in eintraege:
+        writer.writerow([
+            e.zeitpunkt.isoformat(),
+            e.akteur,
+            e.aktion,
+            e.objekt_typ,
+            "" if e.objekt_id is None else e.objekt_id,
+            e.details or "",
+        ])
+    return puffer.getvalue()
+
+
+def json_export(eintraege: list[AuditLog]) -> str:
+    """Serialisiert Audit-Einträge als JSON (für den Admin-Export)."""
+    return json.dumps(
+        [
+            {
+                "id": e.id,
+                "zeitpunkt": e.zeitpunkt.isoformat(),
+                "akteur": e.akteur,
+                "aktion": e.aktion,
+                "objekt_typ": e.objekt_typ,
+                "objekt_id": e.objekt_id,
+                "details": e.details,
+            }
+            for e in eintraege
+        ],
+        ensure_ascii=False,
+        indent=2,
+    )
 
 
 async def aufbewahrung_bereinigen(db: AsyncSession) -> int:

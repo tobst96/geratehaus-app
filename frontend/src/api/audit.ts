@@ -15,3 +15,18 @@ export const holeAuditLog = (aktion?: string, limit = 200) =>
     ...(aktion ? { aktion } : {}),
     limit,
   });
+
+export async function exportiereAuditLog(format: "csv" | "json", aktion?: string): Promise<void> {
+  const blob = await apiGet<Blob>("/moderator/audit/export", {
+    format,
+    ...(aktion ? { aktion } : {}),
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `audit-log.${format}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
