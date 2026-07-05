@@ -88,7 +88,7 @@ def _client_ip(request: Request) -> str | None:
     return request.client.host if request.client else None
 
 
-@router.post("/{token}/einloesen", response_model=TeilnahmeOut)
+@router.post("/{token}/einloesen", response_model=TeilnahmeOut, dependencies=[Depends(rate_limit(20, 60))])
 async def reservierung_einloesen(
     db: DbSession, request: Request, token: str, daten: ReservierungEinloesen
 ) -> TeilnahmeOut:

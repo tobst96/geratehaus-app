@@ -73,7 +73,7 @@ async def reservierung_personen(db: DbSession, token: str) -> list[PersonOut]:
     return await stammdaten_service.personen_zu_out(db, personen)
 
 
-@router.post("/{token}/einloesen", response_model=TeilnehmerOut)
+@router.post("/{token}/einloesen", response_model=TeilnehmerOut, dependencies=[Depends(rate_limit(20, 60))])
 async def reservierung_einloesen(
     db: DbSession, token: str, daten: DienstbuchReservierungEinloesen
 ) -> TeilnehmerOut:

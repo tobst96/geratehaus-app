@@ -960,16 +960,24 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (6) Security-Härtung Querschnitt
 
-- Status: Backlog
+- Status: In Bearbeitung (Rate-Limit-Slice erledigt 05.07.2026, direkt auf beta)
 - Priorität: Mittel
 - Kategorie: Backend / DevOps / Sicherheit
 - Skills: geraetehaus-patterns, review
 - Plan: Nein
 - Beschreibung: CSP/Security-Header-Review; Abhängigkeits-/Secret-Scanning in CI;
   konsequentes Rate-Limit auf **allen** öffentlichen POST-Endpunkten.
+- Fortschritt (05.07.2026): **Rate-Limit auf öffentlichen POSTs erledigt.** Bisher
+  ungeschützte öffentliche POSTs abgesichert (Reservierungs-/`{token}/einloesen`-
+  Endpunkte für Einsatz/Dienstbuch/Dienststunden/Fahrzeugbuchung, Personenbild-Upload,
+  Mitglied-Login-Reservierung anlegen, Push subscribe/unsubscribe). Zusätzlich
+  `rate_limit` so gehärtet, dass es pro **Routen-Muster** statt pro konkretem Pfad
+  begrenzt – sonst wäre jeder geratene Token ein eigener Bucket (Token-Brute-Force).
+  Tests in `test_security.py`.
 - Akzeptanzkriterien: Security-Header geprüft/ergänzt; Dependency-/Secret-Scan in CI;
-  Rate-Limit auf öffentlichen POSTs.
-- Notizen: Teilweise abhängig von „CI bei jedem PR" (Etappe Q).
+  ~~Rate-Limit auf öffentlichen POSTs~~ ✓.
+- Notizen: Offen bleiben CSP/Security-Header-Review und Dependency-/Secret-Scanning
+  (Letzteres abhängig von „CI bei jedem PR", Etappe Q).
 
 ---
 

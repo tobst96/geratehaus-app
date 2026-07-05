@@ -13,7 +13,7 @@ from app.services import mitglied_login_reservierung_service, stammdaten_service
 router = APIRouter(prefix="/mitglied-login-reservierungen", tags=["mitglied-login-reservierungen"])
 
 
-@router.post("", response_model=MitgliedLoginReservierungOut, dependencies=[])
+@router.post("", response_model=MitgliedLoginReservierungOut, dependencies=[Depends(rate_limit(15, 60))])
 async def reservierung_anlegen(db: DbSession) -> MitgliedLoginReservierungOut:
     """Erstellt einen Reservierungs-Token für 'Barcode vergessen' beim
     Mitglieder-Login: QR-Code führt auf eine Seite, auf der man sich per
