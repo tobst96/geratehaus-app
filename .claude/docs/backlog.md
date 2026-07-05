@@ -846,6 +846,496 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ---
 
+## Etappe P – Sicherheits-Roadmap öffentliche Instanz (Priorität hoch)
+
+> Übertragen aus `Vorschlag.md` (05.07.2026). Kontext: Instanz **voll öffentlich
+> über HTTPS**, überschaubare Wehr (<100 Mitglieder), Datenschutz zentral. Fokus:
+> Sicherheit/Berechtigungen. Reihenfolge 1→6 wie unten. Auth-/DB-weite Umbauten
+> grundsätzlich über **Feature-Branch → PR nach `beta`**.
+
+### (0) Öffentliche Daten-API absichern – Phase 2
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Backend / Sicherheit / Auth
+- Skills: planner, geraetehaus-patterns, tests, review
+- Plan: Ja
+- Beschreibung: **Phase 1 erledigt** (v0.4.1 / PR #26): Gate `require_zugriff`
+  (Kiosk-Token `X-Kiosk-Token` / Moderator-JWT / Mitglieds-Cookie) als Router-Level-
+  Dependency auf `einsaetze`, `dienstbuecher`, `dienststunden`, `buchungen`,
+  `stammdaten`; Frontend sendet Kiosk-Token; `zusatzfelder`-Write geschlossen; Tests
+  `test_api_zugriff.py`. **Phase 2 (offen):** echte **signierte Mitglieder-Session**
+  statt setzbarem Namens-Cookie (`POST /auth/name` PIN-los entschärfen);
+  `GET /auth/personen`-Namensliste (bleibt öffentlich für Login-Auswahl – nur
+  id/name/bild/pin_gesetzt, rate-limitiert) in Phase 2 mitdenken; Divera-Webhook-
+  Secret aus der URL in Header/HMAC.
+- Akzeptanzkriterien: Mitglieds-Zugriff über signiertes Session-Token; kein
+  PIN-loses Setzen des Namens-Cookies mehr; Swagger erneut ohne offene sensible Daten.
+- Notizen: Baut auf `require_zugriff` (`api/deps.py`) auf.
+
+### (1) PIN-Brute-Force-Schutz (Mitglieder-/Kiosk-Login)
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Backend / Sicherheit
+- Skills: planner, geraetehaus-patterns, tests, review
+- Plan: Ja
+- Beschreibung: Öffentliche 4–6-stellige PINs sind ratbar. Fehlversuchs-Zähler +
+  temporäre Sperre **pro Person** und Rate-Limit **pro IP** am Name+PIN-Login.
+  **Beschlossen:** 5 Fehlversuche → 15 Min Sperre pro Person, nach Ablauf automatisch
+  frei; **Moderator kann manuell entsperren**; zusätzlich Rate-Limit pro IP. Sperre
+  als `PersonEreignis` protokollieren; ggf. Verzögerung/Captcha nach N Versuchen.
+- Akzeptanzkriterien: Nach 5 Fehlversuchen 15-Min-Sperre; IP-Rate-Limit greift;
+  Moderator-Entsperren vorhanden; PersonEreignis geschrieben; Tests.
+- Notizen: Rate-Limit-Baustein aus `test_security.py`/vorhandenem Limiter nutzen.
+
+### (2) Berechtigungssystem fertigstellen
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Backend / Frontend / Sicherheit
+- Skills: planner, geraetehaus-patterns, tests, review
+- Plan: Ja
+- Beschreibung: Granulares Modul ist gebaut, aber unvollständig: Frontend-Guards
+  prüfen weiter `istAdmin` statt `hat_zugriff`; viele Router (`stammdaten`,
+  `barcodes`, `kiosk-geraete`, Gruppenführer-Bereiche) sind noch nicht über
+  `require_modul_zugriff` gesichert; altes Rollenmodell ablösen (inkl. Datenmigration
+  Rollen→Rechte, ohne bestehende Zugänge auszusperren).
+- Akzeptanzkriterien: Restliche Router mit `require_modul_zugriff`; Frontend-Guards
+  auf `hat_zugriff`; Migration Rollen→Rechte; Tests.
+- Notizen: **Führt die bestehende Aufgabe „Granulare Berechtigungsverwaltung"
+  (Abschnitt unten) zu Ende** – dort zusammenführen, nicht doppelt umsetzen.
+
+### (3) Geschützte Datei-Auslieferung
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Backend / Sicherheit / Datenschutz
+- Skills: planner, geraetehaus-patterns, tests, review
+- Plan: Ja
+- Beschreibung: Personenbezogene Uploads (Personenbilder, Formular-Dateien) nicht
+  mehr statisch/dauerhaft öffentlich unter `/uploads`, sondern über **kurzlebige,
+  signierte Token-Links** je Datei ausliefern (nur für Berechtigte). Beim Upload
+  zusätzlich **Magic-Bytes-Prüfung** (nicht nur `content_type`) und **EXIF entfernen**.
+- Akzeptanzkriterien: Kein dauerhaft öffentlicher Uploads-Pfad; signierte Token-
+  Links; Magic-Bytes-Check + EXIF-Strip beim Upload; Tests.
+- Notizen: Offene Detailfrage: Personenbilder am Kiosk müssen schnell laden –
+  Token-Serve (kurzlebiger Link) vs. session-geschützt abwägen.
+
+### (4) Admin-/Moderator-Login härten + 2FA
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Backend / Frontend / Sicherheit / Auth
+- Skills: planner, geraetehaus-patterns, tests, review
+- Plan: Ja
+- Beschreibung: Login-**Rate-Limit + Lockout** bei Fehlversuchen. **2FA für Admin +
+  Moderator**: **E-Mail-Code (OTP)** als Standard (viele nutzen keine Authenticator-
+  App), **Passkeys/WebAuthn** als optionale starke, phishing-resistente Alternative.
+  Abfrage **nur bei neuem/unbekanntem Gerät** (Trusted-Device 30 Tage merken).
+  **Recovery:** Recovery-Codes bei der Einrichtung **und** ein zweiter Admin kann 2FA
+  zurücksetzen (doppeltes Netz).
+- Akzeptanzkriterien: Login-Lockout/Rate-Limit; E-Mail-OTP-Flow (setzt SMTP voraus);
+  Passkey opt-in; Trusted-Device 30 Tage; Recovery-Codes + Admin-Reset; Tests.
+- Notizen: ⚠ Voraussetzung mind. **2 Admin-Zugänge** (sonst Aussperr-Risiko) – im
+  Setup/Doku darauf hinweisen. Offene Detailfrage: OTP nur bei neuem Gerät oder immer;
+  2FA optional auch für Mitglieder-Login?
+
+### (5) Audit-Log (Löschungen/Freigaben/Rechteänderungen)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Backend / Frontend / Sicherheit
+- Skills: planner, geraetehaus-patterns, tests, review
+- Plan: Ja
+- Beschreibung: Modulübergreifendes Protokoll: wer hat wann was **gelöscht**
+  (Einsätze, Personen, Formular-Einreichungen …), **freigegeben** (Buchungen,
+  Divera-Vorschläge) oder an **Rechten/Rollen** geändert. **Nur für Admin** einsehbar/
+  filterbar. Ergänzt die rein personenbezogene Timeline. **Beschlossen:** 1 Jahr in
+  der DB, danach automatisch löschen; **Admin-Export (CSV/JSON)**; bewusst **keine
+  MinIO-Archivierung** (Over-Engineering; Frist = Datenminimierung; liegt im Backup).
+- Akzeptanzkriterien: Audit-Einträge für Löschungen/Freigaben/Rechteänderungen;
+  Admin-Ansicht mit Filter; 1-Jahr-Retention-Job; CSV/JSON-Export; Tests.
+- Notizen: Neue Tabelle + Migration + Service-Hooks in den betroffenen Services.
+
+### (6) Security-Härtung Querschnitt
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Backend / DevOps / Sicherheit
+- Skills: geraetehaus-patterns, review
+- Plan: Nein
+- Beschreibung: CSP/Security-Header-Review; Abhängigkeits-/Secret-Scanning in CI;
+  konsequentes Rate-Limit auf **allen** öffentlichen POST-Endpunkten.
+- Akzeptanzkriterien: Security-Header geprüft/ergänzt; Dependency-/Secret-Scan in CI;
+  Rate-Limit auf öffentlichen POSTs.
+- Notizen: Teilweise abhängig von „CI bei jedem PR" (Etappe Q).
+
+---
+
+## Etappe Q – UX/Mobile/Kiosk & Stabilität (aus Vorschlag)
+
+> Übertragen aus `Vorschlag.md` (05.07.2026). Parallel zur Sicherheits-Roadmap.
+
+### Kiosk-Autolock / Inaktivitäts-Reset
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Frontend / Kiosk / UX
+- Skills: geraetehaus-patterns, review
+- Plan: Nein
+- Beschreibung: Nach X Sekunden Inaktivität zurück zur Kiosk-Startseite (verhindert
+  „hängende" Sitzungen mit gewählter Person). Schwelle konfigurierbar (config_defaults).
+- Akzeptanzkriterien: Konfigurierbares Timeout; Reset auf Startseite; kein Reset bei
+  Aktivität.
+- Notizen: Nutzen ⭐⭐.
+
+### Barrierefreiheit (a11y)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / UX
+- Skills: geraetehaus-patterns, review
+- Plan: Nein
+- Beschreibung: Fokusringe, Tastaturbedienung, `aria-*`/`role`, Screenreader – v. a.
+  Sterne-/Skala-Auswahl und Kiosk-Kacheln (heute oft `<div>`/`<button>` mit Inline-
+  Styles, uneinheitliche Fokus-Zustände).
+- Akzeptanzkriterien: Fokusringe + Tastaturbedienung + Labels auf kritischen
+  Interaktionen; a11y-Durchlauf dokumentiert.
+- Notizen: Nutzen ⭐⭐.
+
+### Einheitliche Fehler-/Ladezustände
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / UX
+- Skills: geraetehaus-patterns, review
+- Plan: Nein
+- Beschreibung: Gemeinsames Toast/Alert-Muster + „Erneut versuchen" statt roher
+  `String(err.detail)`-Texte. `Ladeanzeige` existiert bereits.
+- Akzeptanzkriterien: Zentrales Fehler-/Toast-Muster; Retry; konsistent eingesetzt.
+- Notizen: Nutzen ⭐⭐.
+
+### Inline-Styles → CSS-Klassen
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / Wartung
+- Skills: geraetehaus-patterns, review
+- Plan: Nein
+- Beschreibung: Sehr viele `style={{…}}` (u. a. Formular-/Ampel-UIs) schrittweise in
+  `index.css`-Klassen überführen: bessere Dark-Mode-Konsistenz, kleineres Bundle,
+  wartbarer.
+- Akzeptanzkriterien: Schrittweise Migration; keine visuelle Regression.
+- Notizen: Nutzen ⭐.
+
+### Mehrsprachigkeit vorbereiten (i18n)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / Wartung
+- Skills: planner, geraetehaus-patterns, review
+- Plan: Nein
+- Beschreibung: Deutsch bleibt, aber Strings in eine zentrale Datei ziehen (leichtes
+  i18n) erleichtert Wording-Anpassungen je Feuerwehr und spätere Sprachen.
+- Akzeptanzkriterien: Zentrale String-Quelle; erste Seiten umgestellt.
+- Notizen: Nutzen ⭐⭐.
+
+### CI bei jedem PR (GitHub Actions)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: DevOps / Tests
+- Skills: tests, review
+- Plan: Nein
+- Beschreibung: GitHub Actions: `pytest` (gegen Postgres-Service-Container) + `npm
+  run build` (+ Frontend-Tests, sobald vorhanden) bei jedem PR. Verhindert
+  Regressionen, die heute nur manuell auffallen. Aktuell **keine** GitHub Actions.
+- Akzeptanzkriterien: Workflow läuft bei jedem PR; pytest + build grün als Gate.
+- Notizen: Nutzen ⭐⭐⭐.
+
+### Erste Frontend-Tests (Vitest + Testing Library)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Tests / Frontend
+- Skills: tests, review
+- Plan: Nein
+- Beschreibung: Aktuell **0 Frontend-Tests**. Vitest + React Testing Library für die
+  kritischen Flows: Kiosk-Eintragung, Formular ausfüllen, Login.
+- Akzeptanzkriterien: Vitest eingerichtet; Tests für die drei Flows grün.
+- Notizen: Nutzen ⭐⭐⭐. Voraussetzung/Ergänzung zur CI.
+
+### Automatischer Backup-Restore-Test
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Backend / DevOps / Backup
+- Skills: geraetehaus-patterns, tests, review
+- Plan: Ja
+- Beschreibung: Backup regelmäßig in eine **Wegwerf-DB** zurückspielen + verifizieren
+  (Checksummen); Reporting „letztes Backup ok/Größe". Ein Backup, das man nie
+  zurückspielt, ist ein Risiko.
+- Akzeptanzkriterien: Automatischer Probe-Restore + Integritätsprüfung; Status-
+  Reporting.
+- Notizen: Nutzen ⭐⭐⭐. Deckt zugleich Backup-Modul-Punkt „Restore-Test".
+
+### System-Statuspanel im Admin (Observability)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Backend / Frontend / Betrieb
+- Skills: geraetehaus-patterns, review
+- Plan: Nein
+- Beschreibung: DB/SMTP/MinIO/Divera + letzte Job-Läufe (mit letzter Laufzeit) auf
+  einen Blick; strukturierte Health-/Readiness-Endpunkte. Hilft beim Self-Hosting-
+  Support. Sentry ist optional/opt-in.
+- Akzeptanzkriterien: Status-Panel im Admin; Health/Readiness-Endpunkte.
+- Notizen: Nutzen ⭐. Backup-Status (Etappe Q „Restore-Test" / Backup-Modul) hier
+  mit anzeigen.
+
+> **Hinweis Mobile-Overflow:** bereits als Bugs in **Etappe D** („Layout-Overflow auf
+> Mobile") und **Etappe E** („Kacheln seitlich abgeschnitten") erfasst – dort beheben.
+
+---
+
+## Ideen-Backlog aus Vorschlag.md (übertragen 05.07.2026)
+
+> Modulweise Ideensammlung, 1:1 aus der gelöschten `Vorschlag.md` übernommen, damit
+> keine Information verloren geht. Legende Nutzen `⭐`(1–3) · Aufwand `S/M/L`.
+> Bereits als eigene Etappe/Aufgabe geführte Punkte sind mit „→ siehe …" verlinkt
+> statt doppelt beschrieben. „gewählt 05.07.2026" = vom Nutzer ausdrücklich gewünscht.
+
+### Personal
+
+- **Mitglieder-Selfservice** `⭐⭐ · M` · Prio Mittel · Plan Ja · *gewählt 05.07.2026*:
+  Mitglied kann im Login **eigene Kontaktdaten/Foto aktualisieren**; Änderungen gehen
+  als **Vorschlag** an einen Moderator zur Bestätigung (analog Divera-Personal-
+  Vorschläge / Namensabweichungen). Entlastet Moderatoren bei Stammdatenpflege.
+- **Mitgliederdaten-Zusatzfelder** `⭐⭐ · M` · Prio Mittel · Plan Ja: frei
+  konfigurierbare Personenfelder (analog `EinsatzFeldDefinition`) – Führerscheinklassen,
+  Atemschutztauglichkeit + Ablaufdatum, Lehrgänge – mit **Ablauf-Erinnerung**. Sehr
+  feuerwehrtypischer Bedarf.
+- **Ampel weiter denken** `⭐⭐ · S` · Prio Mittel · Plan Nein: in der Personal-Liste
+  nach Ampel **filtern/sortieren** („nur überfällige zeigen"); Ampel-Schwelle **pro
+  Gruppe/Funktion** differenzieren (Aktive vs. Altersabteilung). Vgl. Aufgabe
+  „Personal-Filter nach Benachrichtigungs-Freigaben" (Benachrichtigungen).
+- **Foto-Handling** `⭐ · S` · Prio Niedrig · Plan Nein: Uploads serverseitig auf max.
+  Kantenlänge verkleinern (spart Speicher/Bandbreite am Kiosk). Platzhalter-Avatare
+  (Initialen) existieren.
+- **CSV-Import** `⭐⭐⭐ · M` → **siehe Etappe J** (Personen-CSV-Import).
+- **Personen-Auswertungsseite** `⭐⭐ · M` → **siehe Etappe H** (Timeline + Verlauf,
+  neuer Tab „Statistik").
+
+### Fahrzeuge
+
+- **Funkstatus + Live-Position (quellen-agnostisch)** `⭐⭐⭐ · L` · Prio Mittel ·
+  Plan Ja · *gewählt 05.07.2026*: je Fahrzeug **Funkstatus (FMS 1–6)** und **Position**
+  (lat/lon **+ Timestamp**). **Generisches Ingest-/Provider-Interface** (kein
+  Hardcoding), damit **Traccar** (Open-Source-GPS, Webhook/API), **Divera** o. a.
+  einfach anbindbar sind.
+  - Datenmodell: letzte Position/Status am Fahrzeug + optionale **Positions-Historie**
+    (Aufbewahrungsfrist); Mapping „Quellen-ID → Fahrzeug".
+  - Frontend: Karte (Leaflet + OSM-Tiles) mit Markern, Status-Badge, „zuletzt gesehen";
+    am Dashboard.
+  - Sicherheit/DSGVO: Ingest per **Token/HMAC**; Ansicht nur Admin/Moderator;
+    Positions-Historie mit **Löschfrist**; Zweckbindung dokumentieren. Dient der
+    **Lageübersicht/Fahrzeugsuche**, nicht der Alarmierung.
+  - Vorgehen: Feature-Branch + PR; **zuerst ersten Connector** (Traccar) wählen,
+    Interface daran ausrichten.
+- **Fahrzeug-Zusatzdaten & Prüftermine** `⭐⭐ · M` · Prio Mittel · Plan Nein:
+  Kennzeichen, Funkrufname (ISSI vorhanden), TÜV/UVV/Beladungsprüfung mit
+  **Erinnerung** vor Ablauf (Notifier). Häufiger Wunsch.
+- **Sitzplan-UX: Raster-Snap/Ausrichten** `⭐⭐ · S` · Prio Mittel · Plan Nein ·
+  *gewählt 05.07.2026*. (Sitzplan-PDF/Druck und „Beladung je Sitzplatz" **nicht**
+  gewählt.)
+
+### Einsatztagebuch
+
+- **Einsätze zusammenführen (Merge)** `⭐⭐⭐ · L` · Prio Mittel · Plan Ja ·
+  *gewählt 05.07.2026*: **jeder Moderator** kann **offene** Einsätze zusammenführen
+  (ein reales Ereignis, mehrere Divera-Alarme → ein Datensatz).
+  1. **Feldweise wählen**, welcher Wert von welchem Einsatz übernommen wird (Titel,
+     Adresse, Meldung, Zeit, Einsatznummer, Zusatzfelder) – bei Konflikt nachfragen.
+  2. **Teilnahmen/Sitzplätze zusammenführen**: bei **Doppelbelegung eines Sitzes**
+     nachfragen – Person aus Einsatz A, aus B oder **beide auf einen Platz** lassen.
+  3. Quell-Einsätze **löschen/archivieren**, Merge im **Timeline** vermerken (welche
+     Einsätze/Divera-IDs). Eigener Feature-Branch + PR.
+- **Foto-/Lagebild-Anhänge je Einsatz** `⭐⭐ · M` · Prio Mittel · Plan Ja ·
+  *gewählt 05.07.2026*: Bilder (Lagebilder/Schadensfotos) hochladen, im **MinIO**-Ordner
+  des Einsatzes archiviert (10-Jahre-Ablage), im PDF/Bericht referenzierbar. Datei-
+  Upload-Baustein aus Formular-Modul wiederverwenden; **kein öffentliches Serve**
+  (→ geschützte Datei-Auslieferung, Etappe P).
+- **Einsatzarten/Kategorien** `⭐⭐ · M` · Prio Mittel · Plan Nein: Brand/TH/Sonstiges,
+  Stichwort-Katalog – Grundlage für Auswertungen und PDF-Statistiken.
+- **Zusatzfeld-Typen erweitern** `⭐⭐ · S` · Prio Mittel · Plan Nein: Datum/Zahl/
+  Auswahl analog Formular-Modul (heute nur text/mehrzeilig/checkbox); Validierungs-
+  Baustein teilen.
+- **Atemschutz-Auswertung** `⭐⭐ · M` · Prio Mittel · Plan Nein: aus „Atemschutz +
+  Minuten" je Person eine Jahresübersicht (Kurzprüfung/Belastungsübung) ableiten.
+- **Countdown-Feinschliff** `⭐ · S` · Prio Niedrig · Plan Nein: am Kiosk sichtbarer
+  „noch offen bis"-Hinweis + „Countdown verlängern"-Button für lange Einsätze.
+- **Einsatz-Statistik (Jahresvergleich)** `⭐⭐⭐ · M` → **siehe Abschnitt
+  „Einsatztagebuch"** (Jahresanzahl mit Vorjahresvergleich zum Stichtag).
+
+### Dienstbuch
+
+- **Ausbilder/Thema je Dienst** `⭐ · S` · Prio Niedrig · Plan Nein · *gewählt
+  05.07.2026*: pro Dienst dokumentieren, **wer welches Thema** ausgebildet hat (Feld
+  „Ausbilder" + „Thema") – Grundlage für Ausbildungsnachweise/-abdeckung.
+- **Anwesenheitsquote pro Person – Frontend** `⭐⭐ · M` · Prio Mittel · Plan Nein ·
+  *Backend erledigt 05.07.2026*: `GET /dienstbuecher/anwesenheit?von=&bis=` liefert
+  `{gesamt, personen:[{person_id, teilgenommen, quote}]}`. **Offen:** Frontend-Anzeige
+  (Personal/Listen) + optional Export.
+- **Wiederkehrende Dienste/Vorlagen** `⭐⭐ · S` · Prio Mittel · Plan Nein: Dienstplan-
+  Vorlagen (z. B. „Übung jeden 1. Montag") halb-automatisch anlegen.
+- **Themen/Kategorien je Dienst** `⭐ · S` · Prio Niedrig · Plan Nein: Ausbildung/
+  Arbeitsdienst/Sonstiges für Auswertungen.
+- **Mindest-Dienstbeteiligung** `⭐⭐⭐ · M` → **siehe Etappe L** (Auswertung relevanter
+  Dienste + Schwellenwert + Benachrichtigung/Ampel).
+- **Dienstbuch-Zusatzfelder + Typ „Auswahl"** `⭐⭐ · M` → **siehe Etappe C**.
+
+### Dienststunden
+
+- **Persönlicher Jahresreport** `⭐⭐ · M` · Prio Mittel · Plan Nein · *gewählt
+  05.07.2026*: jede Person erhält ihre Stundenauswertung (Summe je Funktion/Kategorie,
+  Schwellenwert-Status) als **Mail und/oder Download** (z. B. Jahreswechsel). Nutzt
+  Notifier-/PDF-System.
+- **Jahresauswertung/Export** `⭐⭐ · M` · Prio Mittel · Plan Nein: pro Person/Funktion
+  (CSV/PDF) inkl. Schwellenwert-Erreichung – Basis für Aufwandsentschädigung/Ehrungen.
+- **Genehmigungs-Workflow (optional)** `⭐⭐ · S` · Prio Niedrig · Plan Nein: erfasste
+  Stunden müssen von einem Moderator bestätigt werden (Missbrauchsschutz), abschaltbar.
+- **Automatische Stunden aus Einsatz/Dienstbuch** `⭐ · S` · Prio Niedrig · Plan Nein:
+  Teilnahme → Stundenvorschlag, Person bestätigt nur.
+
+### Fahrzeugbuchung
+
+- **Selbst-Stornierung/Änderung per Token-Link** `⭐⭐ · S` · Prio Mittel · Plan Nein:
+  Anfragender storniert/ändert selbst über Token-Link aus der Mail (heute nur
+  Moderator).
+- **Wiederkehrende Buchungen** `⭐⭐ · S` · Prio Mittel · Plan Nein: Serientermine +
+  Ganztags-Option.
+- **Kollisionsanzeige schon bei der Anfrage** `⭐ · S` · Prio Niedrig · Plan Nein: am
+  Kiosk „belegt von…" anzeigen, bevor abgeschickt wird.
+- **Externe/iCal-Kalender überlagern** `⭐⭐⭐ · M` → **siehe Etappe I**.
+
+### Formular
+
+- **Bedingte Felder / Logiksprünge** `⭐⭐ · M` · Prio Mittel · Plan Ja: „zeige Feld B
+  nur, wenn A = Ja". Häufigster Mehrwert für echte Umfragen/Anmeldungen.
+- **Anmelde-Workflow rund machen** `⭐⭐ · M` · Prio Mittel · Plan Ja: aus „Kapazität"
+  eine echte **Teilnehmerliste + optionale Warteliste mit Nachrück-Benachrichtigung**.
+- **PDF-Export je Einreichung + MinIO-Archiv** `⭐⭐ · S` · Prio Mittel · Plan Nein:
+  PDF je Einreichung (CSV existiert); Datei-Uploads ins MinIO-Modul (10-Jahre-Logik
+  wie Einsatz/Dienstbuch).
+- **Diagramme in der Auswertung** `⭐⭐ · S` · Prio Mittel · Plan Nein: Balken sind
+  rudimentär da; Anteile in %.
+- **Vorlagen-Bibliothek** `⭐ · S` · Prio Niedrig · Plan Nein: typische Formulare
+  (Dienstbewertung, Anmeldung Fest, Materialmeldung) zum Duplizieren.
+- **Bestätigungsmail an Einreicher** `⭐ · S` · Prio Niedrig · Plan Nein: wenn
+  E-Mail-Feld/Login vorhanden.
+
+### Benachrichtigungen
+
+- **Ampel-Sammelbenachrichtigung statt Einzelmails** `⭐⭐⭐ · S` · Prio **Hoch** ·
+  Plan Nein · *gemeldet 05.07.2026*: Der Ampel-Job verschickt heute **eine
+  Benachrichtigung pro überfälliger Person** → in der Praxis 50+ Telegram/E-Mail-
+  Nachrichten auf einmal. Stattdessen **eine einzige** Benachrichtigung senden, die
+  **alle betroffenen Personen auflistet** (die sonst je eine Einzelnachricht ausgelöst
+  hätten). Betrifft `ampel_service.ampel_benachrichtigungen_versenden` (ruft
+  `notifier_service.benachrichtige()` je Person) – auf einen Sammelversand umstellen.
+  - Akzeptanzkriterien: max. **eine** Nachricht je Kanal/Lauf mit Personenliste im
+    Text; Regressionstest, der bei N überfälligen Personen genau 1 Benachrichtigung
+    erzeugt.
+- **Zustell-Log & Testversand je Kanal/Ereignis** `⭐⭐ · S` · Prio Mittel · Plan Nein
+  · *gewählt 05.07.2026*: sichtbar machen, ob/wann/an wen etwas rausging (heute nur
+  Sentry/Logs); jedes Ereignis testweise auslösbar. Reduziert Support.
+- **Eskalation bei offenen Anfragen** `⭐⭐ · M` · Prio Mittel · Plan Nein · *gewählt
+  05.07.2026*: bleibt eine Buchungsanfrage (o. Ä.) länger als X Stunden unbeantwortet
+  → automatische Erinnerung an die Moderatoren. Scheduler-Job (Muster
+  `_formular_ablauf_job`).
+- **Bevorzugter Kanal + Fallback je Person** `⭐⭐ · M` · Prio Mittel · Plan Nein ·
+  *gewählt 05.07.2026*: Person wählt Wunschkanal (Mail/Telegram/Push); bei Fehlschlag
+  (z. B. Bounce) greift eine **Fallback-Reihenfolge**. Ersetzt „an alle aktiven
+  Kanäle". Baut auf `Benachrichtigungskanal` + `benachrichtige()` (Zustell-Ergebnis
+  auswerten).
+- **„Digest"/Zusammenfassungen** `⭐⭐ · S` · Prio Niedrig · Plan Nein: tägliche/
+  wöchentliche Sammelmail statt Einzelmails, pro Abonnent wählbar.
+- **Telegram-Gruppen/Chat-Verwaltung** `⭐ · S` · Prio Niedrig · Plan Nein:
+  komfortabler Bot-Setup-Assistent.
+- **Grundsatz „Kein Alarmierungssystem" umsetzen** `⭐⭐ · S` · Prio Mittel · Plan Nein:
+  App meldet keine Alarme/Einsätze **aktiv** raus (kein Divera/Melder-Ersatz). **Zu
+  prüfen:** bestehende Sofort-Benachrichtigung „Neuer Einsatz (Divera-Alarm)" ggf.
+  standardmäßig **aus**/entfernen, damit die Positionierung eindeutig bleibt.
+- **Web-Push-Abo-Flow im Frontend** `⭐⭐ · M` → **siehe „Web Push nutzbar machen"**
+  (Abschnitt Benachrichtigungen). Jetzt konkret nutzbar (öffentlich über HTTPS).
+- **Pro-Empfänger statt global** `⭐⭐ · M` → **siehe Etappe G**.
+
+### Kiosk
+
+- **Kiosk-Gerät-Verwaltung erweitern** `⭐⭐ · M` · Prio Mittel · Plan Nein: „zuletzt
+  gesehen", Umbenennen, Deaktivieren/Token-Rotation, QR-Code zum Einrichten des
+  Tablets.
+- **Kiosk-Branding pro Gerät** `⭐ · S` · Prio Niedrig · Plan Nein: z. B. Standort-Name
+  im Header; PWA-„Add to Homescreen"-Anleitung im Kiosk-Setup.
+- **Offline-Fallback** `⭐ · S` · Prio Niedrig · Plan Nein: freundliche Offline-Seite
+  über den Service-Worker; Eintragungen ggf. lokal puffern (fortgeschritten).
+- **Kiosk-Autolock/Inaktivitäts-Reset** `⭐⭐ · S` → **siehe Etappe Q**.
+
+### Divera 24/7
+
+> Grundsatz: **nur lesen, kein Rückkanal**; Personal-Abgleich bleibt bei Vorschlägen.
+
+- **Sync-Status & Verbindungstest** `⭐⭐ · S` · Prio Mittel · Plan Nein · *gewählt
+  05.07.2026*: „Verbindung testen"-Button, letzter erfolgreicher Sync + letzte Fehler
+  im Modul sichtbar (heute nur Logs).
+- **Feld-Mapping konfigurierbar** `⭐⭐ · M` · Prio Mittel · Plan Ja · *gewählt
+  05.07.2026*: Zuordnung Divera-Felder → Einsatz(-Zusatz)felder einstellbar statt fest.
+  Nutzt Zusatzfeld-Definitionen des Einsatztagebuchs.
+- **Webhook-Sicherheit (HMAC/Header-Secret)** `⭐⭐ · M` · Prio Mittel · Plan Ja:
+  Accesskey steckt als Query-Parameter (landet in Logs). Signatur/HMAC oder Header-
+  Secret prüfen; Request validieren. Vgl. Etappe P (0) Phase 2.
+- **Fahrzeug-/Alarmierungs-Daten übernehmen** `⭐ · S` · Prio Niedrig · Plan Nein:
+  welche Fahrzeuge alarmiert wurden optional in den Einsatz übernehmen.
+
+### Barcode
+
+- **Sammel-Barcodes als PDF** `⭐⭐ · S` · Prio Mittel · Plan Nein: Kartenbogen zum
+  Ausdrucken/Laminieren für alle Mitglieder; QR statt/zusätzlich zu Code128 optional.
+- **NFC/Chip-Option** `⭐ · S` · Prio Niedrig · Plan Nein: langfristig Tags statt
+  Papier-Barcode.
+- **„Barcode vergessen" absichern** `⭐⭐ · S` → **siehe Etappe F**.
+
+### Backup
+
+- **Backup-Status im Dashboard/Statuspanel** `⭐⭐ · S` · Prio Mittel · Plan Nein:
+  letzter Lauf, Ziel-Ergebnisse, nächster Lauf + Warnung, wenn X Tage kein
+  erfolgreiches Backup. Vgl. System-Statuspanel (Etappe Q).
+- **Schlüssel-/Passphrase-Handling** `⭐⭐ · S` · Prio Mittel · Plan Nein: Warnung/Doku,
+  dass ohne Passphrase kein Restore möglich ist; optional Recovery-Hinweis-Workflow.
+- **Selektives Zeitplan-Backup** `⭐ · S` · Prio Niedrig · Plan Nein: nur DB / nur
+  Dateien / nur MinIO je Ziel.
+- **Restore-Test & Integritätsprüfung** `⭐⭐⭐ · M` → **siehe Etappe Q** (Automatischer
+  Backup-Restore-Test).
+
+### MinIO / Objektspeicher
+
+- **Lifecycle/Retention-Policies je Bucket** `⭐⭐ · M` · Prio Mittel · Plan Nein: z. B.
+  10 Jahre aufbewahren, dann löschen; Object-Lock/WORM-Hinweis für revisionssichere
+  Archivierung.
+- **Weitere Module anbinden** `⭐⭐ · S` · Prio Mittel · Plan Nein: Formular-Uploads +
+  Personenbilder archivieren; Dateibrowser um Vorschau (Bilder/PDF inline) erweitern.
+- **Verbindungs-Diagnose ausbauen** `⭐ · S` · Prio Niedrig · Plan Nein: Bucket-Rechte
+  prüfen, freier Speicher.
+
+### Querschnitt (weitere, nicht bereits oben)
+
+- **Zeitzone durchgängig Europe/Berlin** `⭐⭐⭐ · M` → **siehe Etappe M**.
+- **Berechtigungssystem fertigstellen** `⭐⭐⭐ · M` → **siehe Etappe P (2)** /
+  „Granulare Berechtigungsverwaltung".
+
+---
+
 ## Archiviert (bereits erledigt – aus TODO.md übernommen)
 
 Nur zur Nachvollziehbarkeit; nicht mehr zu tun.
