@@ -1003,9 +1003,16 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   älter als `audit_aufbewahrung_tage` (Config-Default 365, `0` = unbegrenzt); täglicher
   Scheduler-Job `audit_retention` (03:50). Tests in `test_audit_log.py` (2 neu, Suite
   265 grün).
+- Fortschritt (05.07.2026, Phase 2 – Admin-Frontend-Ansicht, direkt auf beta):
+  **Audit-Log ist jetzt in der Oberfläche einsehbar.** Neue Admin-Seite
+  `pages/moderator/AuditLog.tsx` (Route `/moderator/audit` unter `AdminRoute`,
+  Nav-Punkt „Audit-Log" in der Gruppe Verwaltung, `nurAdmin`) mit Tabelle
+  (Zeitpunkt/Akteur/Aktion/Objekt/Details), Filter nach Aktion und „Neu laden".
+  API-Modul `api/audit.ts` gegen den bestehenden `GET /moderator/audit`. Maschinelle
+  Aktions-Schlüssel werden über eine Label-Map menschenlesbar dargestellt (robust
+  gegen neue Hooks). `npm run build` grün.
   **Offen (Rest Phase 2):** weitere Hooks (Formular-Einreichung/-Löschung, Divera-
-  Vorschlag-Freigabe);
-  **CSV/JSON-Export**; **Admin-Frontend-Ansicht** (Filter/Suche).
+  Vorschlag-Freigabe); **CSV/JSON-Export**.
 - Priorität: Mittel
 - Kategorie: Backend / Frontend / Sicherheit
 - Skills: planner, geraetehaus-patterns, tests, review

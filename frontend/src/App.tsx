@@ -21,6 +21,7 @@ import { Update } from "./pages/moderator/Update";
 import { Module } from "./pages/moderator/Module";
 import { ModulUnterseite } from "./pages/moderator/ModulUnterseite";
 import { Berechtigungen } from "./pages/moderator/Berechtigungen";
+import { AuditLog } from "./pages/moderator/AuditLog";
 import { BarcodeGenerator } from "./pages/moderator/BarcodeGenerator";
 import { NotifierEinstellungen } from "./pages/moderator/NotifierEinstellungen";
 import { SetupWizard } from "./pages/setup/SetupWizard";
@@ -71,6 +72,7 @@ export function App() {
                 <Route path="barcodes" element={<BarcodeGenerator />} />
                 <Route path="kiosk-geraete" element={<KioskGeraete />} />
                 <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />
+                <Route path="audit" element={<AuditLog />} />
               </Route>
               {/* Backend granular über require_modul_zugriff geschützt – hier
                   individuell per hat_zugriff statt Rolle (Admins via Bypass). */}

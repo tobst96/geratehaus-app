@@ -20,6 +20,9 @@ type NavItem = {
   // Individueller Modul-Zugriff (Berechtigungssystem). Ist er gesetzt, wird der
   // Punkt statt über die Rolle über `hat_zugriff` eingeblendet (Admins via Bypass).
   berechtigungKey?: string;
+  // Nur für Admins sichtbar (Backend-Endpunkt ist CurrentAdmin, kein granulares
+  // Modul-Recht) – auch wenn die Gruppe für einen Gruppenführer sichtbar wird.
+  nurAdmin?: boolean;
 };
 type NavGruppe = {
   id: string;
@@ -52,6 +55,7 @@ const NAV_GRUPPEN: NavGruppe[] = [
     admin: true,
     items: [
       { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen", berechtigungKey: "berechtigungen" },
+      { pfad: "/moderator/audit", titel: "Audit-Log", icon: "berechtigungen", nurAdmin: true },
       { pfad: "/moderator/update", titel: "Update", icon: "update", berechtigungKey: "einstellungen" },
       { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen", berechtigungKey: "einstellungen" },
     ],
@@ -91,7 +95,8 @@ export function ModeratorLayout() {
 
   // Ein Nav-Punkt ist sichtbar, wenn er keinen Berechtigungs-Key hat (dann greift
   // die Gruppen-Rollenregel) oder der Moderator den Modul-Zugriff besitzt.
-  const itemSichtbar = (item: NavItem) => !item.berechtigungKey || hatModulZugriff(item.berechtigungKey);
+  const itemSichtbar = (item: NavItem) =>
+    (!item.nurAdmin || istAdmin) && (!item.berechtigungKey || hatModulZugriff(item.berechtigungKey));
   // Admin-Gruppen: für Admins immer sichtbar; sonst nur, wenn mindestens ein Punkt
   // über einen Berechtigungs-Key freigeschaltet ist (rein rollen-basierte
   // Admin-Gruppen ohne Keys bleiben für Nicht-Admins verborgen).
