@@ -1051,16 +1051,22 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### CI bei jedem PR (GitHub Actions)
 
-- Status: Backlog
+- Status: Erledigt (05.07.2026)
 - Priorität: Mittel
 - Kategorie: DevOps / Tests
 - Skills: tests, review
 - Plan: Nein
 - Beschreibung: GitHub Actions: `pytest` (gegen Postgres-Service-Container) + `npm
   run build` (+ Frontend-Tests, sobald vorhanden) bei jedem PR. Verhindert
-  Regressionen, die heute nur manuell auffallen. Aktuell **keine** GitHub Actions.
-- Akzeptanzkriterien: Workflow läuft bei jedem PR; pytest + build grün als Gate.
-- Notizen: Nutzen ⭐⭐⭐.
+  Regressionen, die heute nur manuell auffallen.
+- Umsetzung (05.07.2026): `.github/workflows/ci.yml` mit zwei Jobs – **Backend
+  (pytest)** gegen einen `postgres:16`-Service (Test-DB `geratehaus_test`, Schema via
+  `Base.metadata.create_all` aus conftest; WeasyPrint-Systemlibs vorab installiert)
+  und **Frontend (build)** (`npm ci` + `npm run build`). Trigger: jeder Pull Request
+  sowie Pushes auf `beta`/`main`; laufende Runs werden bei neuem Push abgebrochen.
+- Akzeptanzkriterien: ~~Workflow läuft bei jedem PR; pytest + build grün als Gate~~ ✓.
+- Notizen: Nutzen ⭐⭐⭐. Unblockt die **Dependency-/Secret-Scanning**-Aufgabe aus
+  Etappe P (6) (kann als weiterer CI-Job ergänzt werden).
 
 ### Erste Frontend-Tests (Vitest + Testing Library)
 
