@@ -1,10 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from app.api.deps import DbSession
+from app.api.deps import DbSession, require_zugriff
 from app.schemas.stammdaten import FahrzeugOut, FunktionDienststundenOut, FunktionEinsatzOut, GruppeOut
 from app.services import stammdaten_service
 
-router = APIRouter(prefix="/stammdaten", tags=["stammdaten"])
+router = APIRouter(prefix="/stammdaten", tags=["stammdaten"], dependencies=[Depends(require_zugriff)])
 
 
 @router.get("/fahrzeuge", response_model=list[FahrzeugOut])

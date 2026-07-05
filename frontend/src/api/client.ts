@@ -50,6 +50,12 @@ export async function anfrage<T>(pfad: string, optionen: RequestOptions = {}): P
   if (moderatorToken) {
     headers["Authorization"] = `Bearer ${moderatorToken}`;
   }
+  // Kiosk-Tablets identifizieren sich gegenüber den (sonst öffentlichen) Daten-
+  // Endpunkten über ihren Gerät-Token; wird beim Öffnen von /kiosk/<token> gesetzt.
+  const kioskToken = localStorage.getItem("kiosk_token");
+  if (kioskToken) {
+    headers["X-Kiosk-Token"] = kioskToken;
+  }
 
   let body: BodyInit | undefined;
   if (optionen.body !== undefined) {

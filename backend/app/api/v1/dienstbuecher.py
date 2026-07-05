@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_modul_aktiv
+from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_modul_aktiv, require_zugriff
 from app.schemas.dienstbuch import (
     DienstbuchAnlegen,
     DienstbuchOut,
@@ -14,7 +14,10 @@ from app.services import dienstbuch_reservierung_service, dienstbuch_service, pd
 router = APIRouter(
     prefix="/dienstbuecher",
     tags=["dienstbuch"],
-    dependencies=[Depends(require_modul_aktiv("modul_dienstbuch_aktiv")), ],
+    dependencies=[
+        Depends(require_modul_aktiv("modul_dienstbuch_aktiv")),
+        Depends(require_zugriff),
+    ],
 )
 
 

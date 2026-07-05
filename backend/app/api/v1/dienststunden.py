@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv
+from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv, require_zugriff
 from app.schemas.dienststunden import (
     DienststundenEintragOut,
     DienststundenErfassen,
@@ -12,7 +12,10 @@ from app.services import dienststunden_reservierung_service, dienststunden_servi
 router = APIRouter(
     prefix="/dienststunden",
     tags=["dienststunden"],
-    dependencies=[Depends(require_modul_aktiv("modul_dienststunden_aktiv"))],
+    dependencies=[
+        Depends(require_modul_aktiv("modul_dienststunden_aktiv")),
+        Depends(require_zugriff),
+    ],
 )
 
 
