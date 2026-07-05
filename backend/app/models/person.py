@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -33,6 +33,11 @@ class Person(Base, TimestampMixin):
     )
     pin_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     pin_gesetzt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Brute-Force-Schutz für den öffentlichen Name+PIN-Login: Zähler
+    # aufeinanderfolgender Fehlversuche und Zeitpunkt, bis zu dem der PIN-Login
+    # dieser Person gesperrt ist (NULL = nicht gesperrt; nach Ablauf automatisch frei).
+    pin_fehlversuche: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    pin_gesperrt_bis: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Zeitpunkt der letzten PIN-Erinnerungsmail (Person ohne PIN); steuert das
     # Intervall des Erinnerungs-Jobs. NULL = noch nie erinnert.
     pin_erinnerung_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -875,7 +875,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (1) PIN-Brute-Force-Schutz (Mitglieder-/Kiosk-Login)
 
-- Status: Backlog
+- Status: Review (PR nach beta offen, 05.07.2026 – `feature/pin-brute-force-schutz`)
 - Priorität: Hoch
 - Kategorie: Backend / Sicherheit
 - Skills: planner, geraetehaus-patterns, tests, review
