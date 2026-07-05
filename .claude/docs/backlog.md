@@ -1073,6 +1073,25 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Notizen: Nutzen ⭐⭐⭐. Unblockt die **Dependency-/Secret-Scanning**-Aufgabe aus
   Etappe P (6) (kann als weiterer CI-Job ergänzt werden).
 
+### Frontend-Abhängigkeiten: npm-audit-Advisories beheben (vite 5 → 8)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Wartung / Sicherheit / Frontend
+- Skills: geraetehaus-patterns, tests, review
+- Plan: Ja
+- Beschreibung: Der neue `npm audit`-CI-Job meldet 3 Advisories (2 moderate, 1 high)
+  in der Build-Toolchain: `esbuild <=0.24.2` (GHSA-67mh-4wv8-2f99 – Dev-Server nimmt
+  beliebige Requests an) → `vite <=6.4.2` → `vite-plugin-pwa`. Betrifft die
+  **Dev-Abhängigkeiten** (Dev-Server), nicht das ausgelieferte Build-Artefakt, daher
+  produktiv geringes Risiko. Fix erfordert `npm audit fix --force` bzw. den Sprung auf
+  **vite@8** (Major, breaking) inkl. passender `vite-plugin-pwa`-Version.
+- Akzeptanzkriterien: `npm audit` ohne High/Moderate in der Toolchain; `npm run build`
+  + PWA-Generierung weiterhin grün; App startet/rendert unverändert (Smoke-Test).
+- Notizen: Major-Upgrade → eigener Feature-Branch + PR, Build/PWA gründlich testen
+  (Vite-5→8-Migrationsschritte prüfen: Config, Rollup-Optionen, PWA-Plugin-Kompatibilität).
+  Aufgekommen 05.07.2026 durch den neuen Security-Scan (Etappe P6 / [[CI bei jedem PR]]).
+
 ### Erste Frontend-Tests (Vitest + Testing Library)
 
 - Status: Backlog
