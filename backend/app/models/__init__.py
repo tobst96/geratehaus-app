@@ -3,6 +3,7 @@ entdeckt. Reihenfolge spielt keine Rolle, SQLAlchemy löst Foreign Keys über
 String-Referenzen ("personen.id" etc.) auf."""
 
 from app.models.app_config import AppConfig
+from app.models.audit_log import AuditLog
 from app.models.backup import Backup
 from app.models.barcode_token import BarcodeToken, FahrzeugToken
 from app.models.benachrichtigungskanal import Benachrichtigungskanal
@@ -71,6 +72,7 @@ __all__ = [
     "NamensAbweichung",
     "Person",
     "PersonBildReservierung",
+    "AuditLog",
     "PersonEreignis",
     "PersonEreignisAbo",
     "PersonFreigabeToken",

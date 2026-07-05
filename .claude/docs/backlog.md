@@ -975,7 +975,17 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (5) Audit-Log (Löschungen/Freigaben/Rechteänderungen)
 
-- Status: Backlog
+- Status: In Bearbeitung (Phase 1 als PR 05.07.2026 – `feature/audit-log-p5`)
+- Fortschritt (05.07.2026, Phase 1): **Audit-Infrastruktur + erste Hooks + Admin-API.**
+  Neue Tabelle `audit_logs` (Migration 0053) + `AuditLog`-Model + `audit_service`
+  (`protokolliere` / `liste` mit Filter, neueste zuerst). Protokolliert werden Akteur
+  (Moderator-Username), Aktion, Objekt-Typ/-ID und Details. Router-Hooks:
+  Person-Löschung, Einsatz-Löschung, Buchung genehmigt/abgelehnt, Berechtigung
+  geändert. Admin-Leseendpunkt `GET /moderator/audit` (nur Admin, `?aktion=`-Filter).
+  Automatisch im Voll-Backup enthalten. Tests `test_audit_log.py`.
+  **Offen (Phase 2):** weitere Hooks (Formular-Einreichung/-Löschung, Divera-Vorschlag-
+  Freigabe, Moderator-Anlage/Passwort, Modul an/aus); **1-Jahr-Retention-Job**;
+  **CSV/JSON-Export**; **Admin-Frontend-Ansicht** (Filter/Suche).
 - Priorität: Mittel
 - Kategorie: Backend / Frontend / Sicherheit
 - Skills: planner, geraetehaus-patterns, tests, review
