@@ -48,7 +48,7 @@ from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.sentry_setup import init_sentry_wenn_aktiviert
 from app.db.session import AsyncSessionLocal
 from app.jobs import scheduler
-from app.services import modul_service
+from app.services import modul_service, stammdaten_service
 from app.services.config_service import config_service
 
 konfiguriere_logging()
@@ -84,6 +84,10 @@ async def lifespan(app: FastAPI):
             if await _barcodes_vorhanden(db):
                 await config_service.set(db, "modul_barcode_aktiv", True)
             await config_service.set(db, "modul_barcode_migration_done", True)
+        # Einmalige, idempotente Umbenennung alter durchzählbarer Profilbild-Namen
+        # (person-<id>.<ext>) auf Zufallstoken, damit Profilbilder nicht per ID
+        # öffentlich abgezählt werden können.
+        await stammdaten_service.personenbilder_backfill(db)
         init_sentry_wenn_aktiviert(await config_service.get(db, "fehlerberichte_aktiv", False))
     scheduler.start()
     yield

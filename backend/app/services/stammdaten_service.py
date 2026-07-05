@@ -1,8 +1,10 @@
-import time
 from datetime import datetime, timezone
+from io import BytesIO
 from pathlib import Path
+from uuid import uuid4
 
 from fastapi import HTTPException, UploadFile, status
+from PIL import Image, UnidentifiedImageError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -376,35 +378,103 @@ async def person_loeschen(db: AsyncSession, person: Person) -> None:
     await db.commit()
 
 
-async def person_bild_speichern(db: AsyncSession, person: Person, datei: UploadFile) -> Person:
-    """Speichert das Profilbild einer Person (PNG/JPEG) und aktualisiert bild_url."""
-    erlaubte_typen = {"image/png": ".png", "image/jpeg": ".jpg"}
-    if datei.content_type not in erlaubte_typen:
+def _bild_verarbeiten(inhalt: bytes) -> tuple[bytes, str]:
+    """Validiert die Bytes als echtes PNG/JPEG (nicht nur laut Content-Type-Header)
+    und gibt neu kodierte Bytes OHNE Metadaten (EXIF/GPS entfernt) + Dateiendung
+    zurück. Das erneute Kodieren über Pillow verwirft sämtliche EXIF-Daten und wirkt
+    zugleich als Magic-Bytes-Prüfung – wer kein gültiges Bild hochlädt, bekommt 415."""
+    try:
+        bild = Image.open(BytesIO(inhalt))
+        bild.load()
+    except (UnidentifiedImageError, OSError):
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Datei ist kein gültiges PNG-/JPEG-Bild.",
+        )
+    if bild.format not in {"PNG", "JPEG"}:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Bild muss PNG oder JPEG sein.",
         )
+    ausgabe = BytesIO()
+    if bild.format == "PNG":
+        # Alpha erhalten; ohne pnginfo werden Text-/Metadaten-Chunks nicht übernommen.
+        bild.save(ausgabe, format="PNG")
+        return ausgabe.getvalue(), ".png"
+    # JPEG: in RGB wandeln (falls CMYK/P) und ohne exif= neu speichern → Metadaten weg.
+    bild.convert("RGB").save(ausgabe, format="JPEG", quality=88)
+    return ausgabe.getvalue(), ".jpg"
+
+
+def _upload_pfad_aus_url(url: str | None) -> Path | None:
+    """Interner Dateipfad zu einer `/uploads/…`-Referenz (ohne Query-Suffix)."""
+    if not url or not url.startswith("/uploads/"):
+        return None
+    relativ = url[len("/uploads/") :].split("?", 1)[0]
+    return Path(settings.upload_dir) / relativ
+
+
+async def person_bild_speichern(db: AsyncSession, person: Person, datei: UploadFile) -> Person:
+    """Speichert das Profilbild einer Person (PNG/JPEG) und aktualisiert bild_url.
+
+    Der Dateiname ist ein nicht erratbares Zufallstoken (kein `person-<id>`), damit
+    die öffentlich ausgelieferten Bilder nicht per ID durchzählbar sind; zusätzlich
+    werden die Bytes als echtes Bild geprüft und EXIF/Metadaten entfernt."""
     inhalt = await datei.read()
     if len(inhalt) > 5 * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail="Bild darf maximal 5 MB groß sein.",
         )
+    bytes_bereinigt, endung = _bild_verarbeiten(inhalt)
 
     hatte_noch_kein_bild = not person.bild_url
+    altes_bild = _upload_pfad_aus_url(person.bild_url)
 
     upload_verzeichnis = Path(settings.upload_dir) / "personen"
     upload_verzeichnis.mkdir(parents=True, exist_ok=True)
-    dateiname = f"person-{person.id}{erlaubte_typen[datei.content_type]}"
-    (upload_verzeichnis / dateiname).write_bytes(inhalt)
+    dateiname = f"{uuid4().hex}{endung}"
+    (upload_verzeichnis / dateiname).write_bytes(bytes_bereinigt)
 
-    # Cache-busting-Suffix, damit ein neu hochgeladenes Bild beim selben
-    # Dateinamen nicht aus dem Browser-Cache des alten Bilds angezeigt wird.
-    person.bild_url = f"/uploads/personen/{dateiname}?v={int(time.time())}"
+    # Altes Bild (falls vorhanden und anderer Name) entfernen – kein verwaistes,
+    # weiterhin abrufbares Profilbild zurücklassen.
+    if altes_bild is not None and altes_bild.name != dateiname:
+        altes_bild.unlink(missing_ok=True)
+
+    person.bild_url = f"/uploads/personen/{dateiname}"
     await person_ereignis_protokollieren(db, person.id, "bild_geaendert", "Profilbild aktualisiert")
     await db.commit()
     await db.refresh(person)
     return person
+
+
+async def personenbilder_backfill(db: AsyncSession) -> int:
+    """Einmalige, idempotente Migration der alten, durchzählbaren Profilbild-Namen
+    (`/uploads/personen/person-<id>.<ext>`) auf Zufallstoken. Benennt die Datei auf
+    der Platte um und aktualisiert `bild_url`. Gibt die Anzahl umbenannter Bilder
+    zurück. Läuft beim App-Start (siehe lifespan) und bei fehlenden Dateien
+    defensiv (überspringt statt zu werfen)."""
+    stmt = select(Person).where(Person.bild_url.like("/uploads/personen/person-%"))
+    personen = list((await db.execute(stmt)).scalars().all())
+    umbenannt = 0
+    for person in personen:
+        alt = _upload_pfad_aus_url(person.bild_url)
+        endung = alt.suffix if alt else ".jpg"
+        neuer_name = f"{uuid4().hex}{endung}"
+        ziel = Path(settings.upload_dir) / "personen" / neuer_name
+        try:
+            if alt is not None and alt.exists():
+                ziel.parent.mkdir(parents=True, exist_ok=True)
+                alt.rename(ziel)
+            elif alt is None:
+                continue
+        except OSError:
+            continue
+        person.bild_url = f"/uploads/personen/{neuer_name}"
+        umbenannt += 1
+    if umbenannt:
+        await db.commit()
+    return umbenannt
 
 
 async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[PersonOut]:
