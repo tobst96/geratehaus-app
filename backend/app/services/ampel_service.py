@@ -127,9 +127,40 @@ async def ampel_uebersicht(db: AsyncSession) -> list[AmpelEintragOut]:
     return ergebnis
 
 
+_EREIGNIS_JE_STUFE = {
+    STATUS_GELB: "benachrichtigung_person_ampel_gelb",
+    STATUS_ROT: "benachrichtigung_person_ampel_rot",
+}
+
+
+async def _sammel_nachricht(
+    db: AsyncSession, vorlage_schluessel: str, personen: list[tuple[str, int]]
+) -> str:
+    """Baut aus mehreren überfälligen Personen **einen** Nachrichtentext: je Person
+    eine Zeile, formatiert mit der konfigurierten Ein-Personen-Vorlage
+    ({name}/{tage}). Fehlt/greift die Vorlage nicht, wird ein neutraler Fallback je
+    Zeile genutzt, damit der Name in jedem Fall erscheint."""
+    vorlage = await config_service.get(db, vorlage_schluessel, "")
+    zeilen: list[str] = []
+    for name, tage in personen:
+        zeile = ""
+        if vorlage:
+            try:
+                zeile = vorlage.format(name=name, tage=tage)
+            except (KeyError, IndexError):
+                zeile = ""
+        if not zeile:
+            zeile = f"{name} ({tage} Tage ohne Aktivität)"
+        zeilen.append(f"- {zeile}")
+    return "\n".join(zeilen)
+
+
 async def ampel_benachrichtigungen_versenden(db: AsyncSession) -> int:
     """Tagesjob: meldet je Person genau einmal, sobald sie neu die gelbe bzw. rote
-    Schwelle überschreitet. Gibt die Anzahl versendeter Meldungen zurück."""
+    Schwelle überschreitet. Alle in einem Lauf neu überfälligen Personen werden je
+    Stufe zu **einer** Sammel-Benachrichtigung gebündelt (statt einer Nachricht pro
+    Person – sonst Mail-/Telegram-Flut). Gibt die Anzahl versendeter Sammel-Meldungen
+    zurück (höchstens zwei: gelb und/oder rot)."""
     gelb, rot, einsatz, dienstbuch, dienststunden = await _konfig(db)
     if gelb <= 0 and rot <= 0:
         return 0
@@ -137,21 +168,26 @@ async def ampel_benachrichtigungen_versenden(db: AsyncSession) -> int:
         db, einsatz=einsatz, dienstbuch=dienstbuch, dienststunden=dienststunden
     )
     jetzt = datetime.now(timezone.utc)
-    gesendet = 0
+    faellig: dict[str, list[tuple[str, int]]] = {STATUS_GELB: [], STATUS_ROT: []}
     for person in await _personen(db):
         if person.inaktiv:
             person.ampel_gemeldet = STATUS_GRUEN
             continue
         status, tage = _status(person, letzte.get(person.id), jetzt, gelb, rot)
         vorher = person.ampel_gemeldet if person.ampel_gemeldet in _SCHWERE else STATUS_GRUEN
-        if _SCHWERE[status] > _SCHWERE[vorher]:
-            ereignis = (
-                "benachrichtigung_person_ampel_rot"
-                if status == STATUS_ROT
-                else "benachrichtigung_person_ampel_gelb"
-            )
-            await notifier_service.benachrichtige(db, ereignis, name=person.name, tage=tage)
-            gesendet += 1
+        if _SCHWERE[status] > _SCHWERE[vorher] and status in faellig:
+            faellig[status].append((person.name, tage))
         person.ampel_gemeldet = status
+
+    gesendet = 0
+    for stufe in (STATUS_ROT, STATUS_GELB):
+        personen = faellig[stufe]
+        if not personen:
+            continue
+        ereignis = _EREIGNIS_JE_STUFE[stufe]
+        vorlage_schluessel = notifier_service.EREIGNIS_VORLAGE[ereignis]
+        nachricht = await _sammel_nachricht(db, vorlage_schluessel, personen)
+        await notifier_service.benachrichtige(db, ereignis, nachricht_override=nachricht)
+        gesendet += 1
     await db.commit()
     return gesendet

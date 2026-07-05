@@ -101,6 +101,58 @@ async def test_benachrichtigung_einmalig_und_eskalation(db, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_benachrichtigung_sammelt_alle_personen(db, monkeypatch):
+    """Regression: Mehrere überfällige Personen lösen NUR EINE Benachrichtigung je
+    Stufe aus (die alle betroffenen Personen auflistet), statt einer Nachricht pro
+    Person – sonst gibt es bei vielen Überfälligen eine Mail-/Telegram-Flut."""
+    gesendet = []
+
+    async def fake_benachrichtige(_db, ereignis, nachricht_override=None, **kw):
+        gesendet.append((ereignis, nachricht_override))
+
+    monkeypatch.setattr(ampel_service.notifier_service, "benachrichtige", fake_benachrichtige)
+
+    await _schwellen(db, gelb=30, rot=60)
+    namen = ["Anna", "Bea", "Cara"]
+    for n in namen:
+        p = await _person(db, n)
+        await _einsatz_teilnahme(db, p, 40)  # alle gelb (40 ≥ 30)
+
+    # Genau EINE Benachrichtigung trotz drei überfälliger Personen …
+    assert await ampel_service.ampel_benachrichtigungen_versenden(db) == 1
+    assert len(gesendet) == 1
+    ereignis, nachricht = gesendet[0]
+    assert ereignis == "benachrichtigung_person_ampel_gelb"
+    # … die alle drei Namen enthält.
+    assert nachricht is not None
+    for n in namen:
+        assert n in nachricht
+
+
+@pytest.mark.asyncio
+async def test_benachrichtigung_gelb_und_rot_getrennt(db, monkeypatch):
+    """Gelbe und rote Überschreitungen sind eigene, separat abonnierbare Ereignisse
+    → je eine Sammel-Benachrichtigung (also höchstens zwei), nicht mehr."""
+    gesendet = []
+
+    async def fake_benachrichtige(_db, ereignis, nachricht_override=None, **kw):
+        gesendet.append((ereignis, nachricht_override))
+
+    monkeypatch.setattr(ampel_service.notifier_service, "benachrichtige", fake_benachrichtige)
+
+    await _schwellen(db, gelb=30, rot=60)
+    for n in ("Gelb1", "Gelb2"):
+        await _einsatz_teilnahme(db, await _person(db, n), 40)  # gelb
+    for n in ("Rot1", "Rot2", "Rot3"):
+        await _einsatz_teilnahme(db, await _person(db, n), 70)  # rot
+
+    # Zwei Personen gelb + drei rot → genau zwei Benachrichtigungen.
+    assert await ampel_service.ampel_benachrichtigungen_versenden(db) == 2
+    ereignisse = {e for e, _ in gesendet}
+    assert ereignisse == {"benachrichtigung_person_ampel_gelb", "benachrichtigung_person_ampel_rot"}
+
+
+@pytest.mark.asyncio
 async def test_benachrichtigung_reset_bei_neuer_aktivitaet(db, monkeypatch):
     gesendet = []
 

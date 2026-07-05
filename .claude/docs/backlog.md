@@ -1238,15 +1238,14 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 ### Benachrichtigungen
 
 - **Ampel-Sammelbenachrichtigung statt Einzelmails** `⭐⭐⭐ · S` · Prio **Hoch** ·
-  Plan Nein · *gemeldet 05.07.2026*: Der Ampel-Job verschickt heute **eine
-  Benachrichtigung pro überfälliger Person** → in der Praxis 50+ Telegram/E-Mail-
-  Nachrichten auf einmal. Stattdessen **eine einzige** Benachrichtigung senden, die
-  **alle betroffenen Personen auflistet** (die sonst je eine Einzelnachricht ausgelöst
-  hätten). Betrifft `ampel_service.ampel_benachrichtigungen_versenden` (ruft
-  `notifier_service.benachrichtige()` je Person) – auf einen Sammelversand umstellen.
-  - Akzeptanzkriterien: max. **eine** Nachricht je Kanal/Lauf mit Personenliste im
-    Text; Regressionstest, der bei N überfälligen Personen genau 1 Benachrichtigung
-    erzeugt.
+  Plan Nein · **Status: Erledigt (05.07.2026)** · *gemeldet 05.07.2026*: Der Ampel-Job
+  verschickte je überfälliger Person eine eigene Benachrichtigung → 50+ Telegram/
+  E-Mail-Nachrichten auf einmal. **Umgesetzt:** `ampel_service.ampel_benachrichtigungen_versenden`
+  bündelt alle in einem Lauf neu überfälligen Personen je Stufe (gelb/rot) zu **einer**
+  Sammel-Benachrichtigung (Personenliste im Text); neuer Parameter
+  `notifier_service.benachrichtige(nachricht_override=…)`. Höchstens zwei Nachrichten
+  je Lauf (gelb und/oder rot) statt einer pro Person. Regressionstests in
+  `test_ampel.py` (`…_sammelt_alle_personen`, `…_gelb_und_rot_getrennt`).
 - **Zustell-Log & Testversand je Kanal/Ereignis** `⭐⭐ · S` · Prio Mittel · Plan Nein
   · *gewählt 05.07.2026*: sichtbar machen, ob/wann/an wen etwas rausging (heute nur
   Sentry/Logs); jedes Ereignis testweise auslösbar. Reduziert Support.
