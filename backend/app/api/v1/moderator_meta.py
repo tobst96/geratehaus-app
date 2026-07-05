@@ -3,8 +3,8 @@ import re
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.api.deps import CurrentModerator
-from app.services import update_service
+from app.api.deps import CurrentModerator, DbSession
+from app.services import berechtigungs_service, update_service
 
 router = APIRouter(prefix="/moderator/meta", tags=["moderator:meta"])
 
@@ -14,6 +14,12 @@ class MetaOut(BaseModel):
     # Basis-URL der Modul-Docs auf GitHub, passend zum installierten Release
     # (Tag v<version>; Fallback 'main' bei unbekannter/ungetaggter Version).
     docs_basis_url: str
+
+
+class MeineBerechtigungenOut(BaseModel):
+    ist_admin: bool
+    # Modul-Keys, auf die der angemeldete Moderator zugreifen darf (Admins: alle).
+    keys: list[str]
 
 
 def _version_zu_tag(version: str) -> str:
@@ -38,4 +44,15 @@ async def meta(_mod: CurrentModerator) -> MetaOut:
     return MetaOut(
         installierte_version=version,
         docs_basis_url=f"https://github.com/{update_service.GITHUB_REPO}/blob/{tag}/docs",
+    )
+
+
+@router.get("/meine-berechtigungen", response_model=MeineBerechtigungenOut)
+async def meine_berechtigungen(db: DbSession, moderator: CurrentModerator) -> MeineBerechtigungenOut:
+    """Eigene Modul-Zugriffe des angemeldeten Moderators – die Grundlage für die
+    Frontend-Navigation/Routen-Guards (`hat_zugriff` statt Rolle). Bewusst NICHT
+    modul-gegated, da jeder Moderator seine eigenen Rechte kennen muss."""
+    return MeineBerechtigungenOut(
+        ist_admin=berechtigungs_service.ist_admin(moderator),
+        keys=await berechtigungs_service.meine_keys(db, moderator),
     )

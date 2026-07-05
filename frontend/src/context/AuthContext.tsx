@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { apiPost, getModeratorToken, setModeratorToken } from "../api/client";
 import {
   barcodeEinscannen as barcodeEinscannenApi,
@@ -6,6 +6,7 @@ import {
   moderatorLogin,
   namePinLogin,
 } from "../api/auth";
+import { holeMeineBerechtigungen } from "../api/meta";
 
 const NAME_SPEICHER_KEY = "angezeigter_name";
 
@@ -35,6 +36,10 @@ interface AuthContextValue {
   kioskScanBeenden: () => Promise<void>;
   moderatorAngemeldet: boolean;
   moderatorRolle: string | null;
+  /** True, sobald die eigenen Modul-Rechte geladen wurden (Guards warten darauf). */
+  berechtigungenGeladen: boolean;
+  /** Ob der angemeldete Moderator auf ein Modul zugreifen darf (Admin: immer true). */
+  hatModulZugriff: (modulKey: string) => boolean;
   moderatorAnmelden: (username: string, passwort: string) => Promise<void>;
   moderatorAbmelden: () => void;
   mitgliedAbmelden: () => Promise<void>;
@@ -52,6 +57,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [moderatorRolle, setModeratorRolle] = useState<string | null>(
     rolleAusToken(getModeratorToken())
   );
+  // Eigene Modul-Rechte (Keys). null = noch nicht geladen. Admins bekommen vom
+  // Backend alle Keys, sodass hatModulZugriff für sie stets true ist.
+  const [modulRechte, setModulRechte] = useState<Set<string> | null>(null);
+
+  // Rechte laden, sobald ein Moderator angemeldet ist (und beim Abmelden leeren).
+  useEffect(() => {
+    let aktiv = true;
+    if (!moderatorAngemeldet) {
+      setModulRechte(null);
+      return;
+    }
+    holeMeineBerechtigungen()
+      .then((r) => {
+        if (aktiv) setModulRechte(new Set(r.keys));
+      })
+      .catch(() => {
+        if (aktiv) setModulRechte(new Set());
+      });
+    return () => {
+      aktiv = false;
+    };
+  }, [moderatorAngemeldet]);
+
+  function hatModulZugriff(modulKey: string): boolean {
+    // Admin-Bypass zusätzlich zur (ohnehin alle Keys enthaltenden) Backend-Antwort,
+    // damit die UI schon vor dem Laden der Rechte für Admins vollständig ist.
+    if (moderatorRolle === "admin") return true;
+    return modulRechte?.has(modulKey) ?? false;
+  }
 
   async function namenEintragen(name: string): Promise<void> {
     await apiPost<void>("/auth/name", { name });
@@ -129,6 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         kioskScanBeenden,
         moderatorAngemeldet,
         moderatorRolle,
+        berechtigungenGeladen: modulRechte !== null || moderatorRolle === "admin",
+        hatModulZugriff,
         moderatorAnmelden,
         moderatorAbmelden,
         mitgliedAbmelden,
