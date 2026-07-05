@@ -1422,6 +1422,54 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ---
 
+## Etappe R – QR-PDFs (Nutzerwunsch 05.07.2026)
+
+### Kiosk-Link als schönes QR-PDF (pro Gerät)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Feature / Frontend / Backend
+- Skills: geraetehaus-patterns, tests, review
+- Plan: Ja
+- Beschreibung: Pro Kiosk-Gerät ein ansprechend gestaltetes PDF zum Ausdrucken/
+  Aushängen: Logo + Organisationsname + Gerätename + **großer QR-Code** auf den
+  Kiosk-Link (`/kiosk/<token>`) + kurze Einrichtungs-Anleitung („als Lesezeichen/
+  Startbildschirm speichern"). Button „PDF" pro Gerät auf der Kiosk-Geräte-Seite
+  (`KioskGeraete.tsx`, neben Link kopieren).
+- Akzeptanzkriterien: PDF-Download je Gerät; QR führt korrekt auf `/kiosk/<token>`;
+  Logo/Name/Gerätename enthalten; Test.
+- Notizen: Server-seitig über WeasyPrint (wie Einsatz-/Dienstbuch-PDF, `pdf_service`
+  + HTML-Template) + QR als Data-URI. QR-Erzeugung: entweder Python-QR-Lib ergänzen
+  (`segno` pur-Python oder `qrcode`+Pillow – Pillow ist vorhanden) oder QR im Frontend
+  (`qrcode`-Lib ist da) erzeugen und als Data-URI an den PDF-Endpunkt senden.
+
+### Dienststunden-Funktions-QR-PDF (Stempel-Poster)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Neues Feature / Frontend / Backend
+- Skills: planner, geraetehaus-patterns, tests, review
+- Plan: Ja
+- Beschreibung: Pro Dienststunden-**Funktion** ein **dauerhafter** QR/Link zum
+  Aushängen (Poster). Scan → **Login** (Name+PIN bzw. Barcode je nach Modul) →
+  Funktion ist **fest vorgegeben**, Datum = **heute**, die Person wählt nur die
+  **Stundenzahl** (vorhandene Touch-Eingabe mit Chips/Stepper). QR-PDF (Logo,
+  Funktionsname, großer QR, kurze Anleitung) über einen „QR-PDF"-Button pro Funktion
+  in der Dienststunden-Verwaltung.
+- Design (geklärt 05.07.2026): **dauerhaft pro Funktion** (kein Einmal-Token);
+  gescannte Seite verlangt **Login**, Funktion fixiert, nur Stundenwahl für heute.
+- Akzeptanzkriterien: QR-PDF je Funktion; gescannte Seite mit Login-Pflicht, fester
+  Funktion, nur Stunden (heute); Eintrag landet korrekt in Dienststunden der
+  angemeldeten Person; Tests.
+- Notizen: Dauerhafter funktionsgebundener Link (z. B. `/dienststunden-stempel/<funktion_id>`);
+  neuer öffentlicher Eintrags-Endpunkt mit **fixer Funktion** (rate-limitiert, Funktion
+  server-seitig als existent+aktiv prüfen), nutzt das signierte Mitglieder-Cookie
+  (`get_current_person`) und den vorhandenen Dienststunden-Erfassungs-Service. Baut auf
+  bestehender Touch-Eingabe (`DienststundenManuelleEintragung.tsx` / `Dienststunden`-
+  Modul) auf.
+
+---
+
 ## Archiviert (bereits erledigt – aus TODO.md übernommen)
 
 Nur zur Nachvollziehbarkeit; nicht mehr zu tun.
