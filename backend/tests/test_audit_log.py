@@ -73,6 +73,77 @@ async def test_audit_endpunkt_nur_admin(client, db):
 
 
 @pytest.mark.asyncio
+async def test_moderator_anlegen_wird_protokolliert(client, db):
+    h = await _token(client, db)
+    r = await client.post(
+        "/api/v1/moderator/einstellungen/moderatoren",
+        json={"username": "neuer_gf", "passwort": "geheim123", "rolle": "gruppenfuehrer"},
+        headers=h,
+    )
+    assert r.status_code == 201
+
+    eintraege = await audit_service.liste(db, aktion="moderator_angelegt")
+    assert len(eintraege) == 1
+    assert eintraege[0].akteur == "admin"
+    assert "neuer_gf" in eintraege[0].details
+
+
+@pytest.mark.asyncio
+async def test_moderator_passwort_aendern_wird_protokolliert(client, db):
+    h = await _token(client, db)
+    ziel = Moderator(username="ziel", passwort_hash=hash_secret("alt12345"), rolle="gruppenfuehrer")
+    db.add(ziel)
+    await db.commit()
+    await db.refresh(ziel)
+
+    r = await client.put(
+        f"/api/v1/moderator/einstellungen/moderatoren/{ziel.id}/passwort",
+        json={"passwort": "neu12345"},
+        headers=h,
+    )
+    assert r.status_code == 200
+
+    eintraege = await audit_service.liste(db, aktion="moderator_passwort_geaendert")
+    assert len(eintraege) == 1
+    assert eintraege[0].objekt_id == ziel.id
+    assert eintraege[0].details == "ziel"
+
+
+@pytest.mark.asyncio
+async def test_moderator_loeschen_wird_protokolliert(client, db):
+    h = await _token(client, db)
+    ziel = Moderator(username="wegzu", passwort_hash=hash_secret("x12345678"), rolle="gruppenfuehrer")
+    db.add(ziel)
+    await db.commit()
+    await db.refresh(ziel)
+
+    r = await client.delete(
+        f"/api/v1/moderator/einstellungen/moderatoren/{ziel.id}", headers=h
+    )
+    assert r.status_code == 204
+
+    eintraege = await audit_service.liste(db, aktion="moderator_geloescht")
+    assert len(eintraege) == 1
+    assert eintraege[0].details == "wegzu"
+
+
+@pytest.mark.asyncio
+async def test_modul_flag_aenderung_wird_protokolliert(client, db):
+    h = await _token(client, db)
+    r = await client.patch(
+        "/api/v1/moderator/feature-module/einsatztagebuch",
+        json={"aktiv": True},
+        headers=h,
+    )
+    assert r.status_code == 200
+
+    eintraege = await audit_service.liste(db, aktion="modul_flag_geaendert")
+    assert len(eintraege) == 1
+    assert "einsatztagebuch" in eintraege[0].details
+    assert "aktiv=True" in eintraege[0].details
+
+
+@pytest.mark.asyncio
 async def test_liste_filtert_und_sortiert_neueste_zuerst(db):
     await audit_service.protokolliere(db, "a", "aktion_x", "t", 1)
     await audit_service.protokolliere(db, "a", "aktion_y", "t", 2)

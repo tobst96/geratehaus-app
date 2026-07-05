@@ -991,8 +991,15 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Person-Löschung, Einsatz-Löschung, Buchung genehmigt/abgelehnt, Berechtigung
   geändert. Admin-Leseendpunkt `GET /moderator/audit` (nur Admin, `?aktion=`-Filter).
   Automatisch im Voll-Backup enthalten. Tests `test_audit_log.py`.
-  **Offen (Phase 2):** weitere Hooks (Formular-Einreichung/-Löschung, Divera-Vorschlag-
-  Freigabe, Moderator-Anlage/Passwort, Modul an/aus); **1-Jahr-Retention-Job**;
+- Fortschritt (05.07.2026, Phase 2 – Hooks für privilegierte Aktionen, direkt auf beta):
+  Bisher ungeloggte **Konten-/Modul-Änderungen** ergänzt: `moderator_angelegt`,
+  `moderator_passwort_geaendert`, `moderator_geloescht` (in `moderator_einstellungen.py`,
+  je mit `CurrentModerator`-Akteur) und `modul_flag_geaendert` (An/Aus + Kiosk/
+  Außenzugriff in `moderator_feature_module.py`). Genau die „Wer hat Zugänge/Zugriff
+  geändert"-Ereignisse, die bisher fehlten. Tests in `test_audit_log.py` (4 neu, Suite
+  263 grün).
+  **Offen (Rest Phase 2):** weitere Hooks (Formular-Einreichung/-Löschung, Divera-
+  Vorschlag-Freigabe); **1-Jahr-Retention-Job**;
   **CSV/JSON-Export**; **Admin-Frontend-Ansicht** (Filter/Suche).
 - Priorität: Mittel
 - Kategorie: Backend / Frontend / Sicherheit

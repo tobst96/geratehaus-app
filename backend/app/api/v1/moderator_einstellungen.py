@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
 from app.api.deps import CurrentModerator, DbSession, require_modul_zugriff
 from app.schemas.moderator import ModeratorAnlegen, ModeratorOut, ModeratorPasswortAendern
-from app.services import archive_service, logo_service, moderator_service
+from app.services import archive_service, audit_service, logo_service, moderator_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -85,23 +85,33 @@ async def moderatoren_liste(db: DbSession) -> list[ModeratorOut]:
     "/moderatoren", response_model=ModeratorOut, status_code=status.HTTP_201_CREATED
 )
 async def moderator_anlegen(
-    db: DbSession, daten: ModeratorAnlegen
+    db: DbSession, akteur: CurrentModerator, daten: ModeratorAnlegen
 ) -> ModeratorOut:
     if await moderator_service.get_moderator_by_username(db, daten.username) is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Benutzername bereits vergeben."
         )
-    return await moderator_service.moderator_anlegen(db, daten.username, daten.passwort, daten.rolle)
+    neu = await moderator_service.moderator_anlegen(db, daten.username, daten.passwort, daten.rolle)
+    await audit_service.protokolliere(
+        db, akteur.username, "moderator_angelegt", "moderator", neu.id,
+        f"{neu.username} (Rolle {neu.rolle})",
+    )
+    return neu
 
 
 @router.put("/moderatoren/{moderator_id}/passwort", response_model=ModeratorOut)
 async def moderator_passwort_aendern(
-    db: DbSession, moderator_id: int, daten: ModeratorPasswortAendern
+    db: DbSession, akteur: CurrentModerator, moderator_id: int, daten: ModeratorPasswortAendern
 ) -> ModeratorOut:
     ziel = await moderator_service.get_moderator(db, moderator_id)
     if ziel is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moderator nicht gefunden.")
-    return await moderator_service.moderator_passwort_aendern(db, ziel, daten.passwort)
+    ergebnis = await moderator_service.moderator_passwort_aendern(db, ziel, daten.passwort)
+    await audit_service.protokolliere(
+        db, akteur.username, "moderator_passwort_geaendert", "moderator", moderator_id,
+        ziel.username,
+    )
+    return ergebnis
 
 
 @router.delete("/moderatoren/{moderator_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -118,4 +128,8 @@ async def moderator_loeschen(db: DbSession, admin: CurrentModerator, moderator_i
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Der letzte verbleibende Moderator-Zugang kann nicht gelöscht werden.",
         )
+    name = ziel.username
     await moderator_service.moderator_loeschen(db, ziel)
+    await audit_service.protokolliere(
+        db, admin.username, "moderator_geloescht", "moderator", moderator_id, name
+    )
