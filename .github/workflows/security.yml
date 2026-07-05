@@ -1,0 +1,66 @@
+name: Security-Scans
+
+# Ergänzt die CI um Sicherheits-Scans (Etappe P6): Abhängigkeits-Audit für Python
+# und npm sowie Secret-Scanning. Läuft bei jedem PR, bei Pushes auf beta/main und
+# wöchentlich (damit neu veröffentlichte CVEs auch ohne Codeänderung auffallen).
+#
+# Die Abhängigkeits-Audits sind bewusst NICHT blockierend (continue-on-error):
+# Sie machen bekannte Schwachstellen sichtbar, blockieren aber keine Merges wegen
+# einer CVE in einer (transitiven) Abhängigkeit. Kann später verschärft werden.
+
+on:
+  pull_request:
+  push:
+    branches: [beta, main]
+  schedule:
+    - cron: "17 4 * * 1" # wöchentlich, Montag früh
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-audit:
+    name: Abhängigkeits-Audit (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Backend + pip-audit installieren
+        run: |
+          pip install ./backend
+          pip install pip-audit
+      - name: pip-audit
+        continue-on-error: true
+        run: pip-audit --desc
+
+  npm-audit:
+    name: Abhängigkeits-Audit (npm)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: npm ci
+        working-directory: frontend
+        run: npm ci
+      - name: npm audit
+        working-directory: frontend
+        continue-on-error: true
+        run: npm audit --audit-level=high
+
+  secret-scan:
+    name: Secret-Scanning (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

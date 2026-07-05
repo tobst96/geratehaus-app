@@ -974,10 +974,15 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `rate_limit` so gehärtet, dass es pro **Routen-Muster** statt pro konkretem Pfad
   begrenzt – sonst wäre jeder geratene Token ein eigener Bucket (Token-Brute-Force).
   Tests in `test_security.py`.
-- Akzeptanzkriterien: Security-Header geprüft/ergänzt; Dependency-/Secret-Scan in CI;
-  ~~Rate-Limit auf öffentlichen POSTs~~ ✓.
-- Notizen: Offen bleiben CSP/Security-Header-Review und Dependency-/Secret-Scanning
-  (Letzteres abhängig von „CI bei jedem PR", Etappe Q).
+- Fortschritt (05.07.2026): **Dependency-/Secret-Scanning erledigt.**
+  `.github/workflows/security.yml` – `pip-audit` (Python) und `npm audit` (Frontend,
+  je nicht-blockierend/informativ) plus `gitleaks` Secret-Scanning; Trigger PR/Push
+  auf beta/main + wöchentlich. Setzt auf die neue CI (Etappe Q) auf.
+- Akzeptanzkriterien: Security-Header geprüft/ergänzt; ~~Dependency-/Secret-Scan in
+  CI~~ ✓; ~~Rate-Limit auf öffentlichen POSTs~~ ✓.
+- Notizen: **Offen bleibt nur noch CSP/Security-Header-Review.** Bewusst separat, weil
+  eine falsche CSP die Live-App (heavy Inline-Styles, externes Logo/Tiles, LAN-über-HTTP)
+  brechen kann → nicht blind direkt auf beta; erst per Report-Only-CSP evaluieren.
 
 ---
 
