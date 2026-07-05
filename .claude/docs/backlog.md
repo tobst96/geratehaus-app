@@ -1060,12 +1060,23 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (usb/serial/bluetooth/hid/Sensoren/browsing-topics aus; **camera bewusst erlaubt**,
   da Barcode-Scanner; geolocation aus, da im Frontend ungenutzt) ergänzt. HSTS bewusst
   weiterhin nicht (TLS terminiert im Reverse-Proxy). Test in `test_security.py`.
+- Fortschritt (06.07.2026): **CSP als Report-Only ausgerollt (direkt auf beta).**
+  Da die SPA von **nginx** (nicht FastAPI) ausgeliefert wird, sitzt die CSP in
+  `frontend/nginx.conf` auf den HTML-Dokument-Antworten (`= /index.html` + SPA-Fallback
+  `/`) als `Content-Security-Policy-Report-Only` – blockiert nichts, meldet aber
+  Verstöße in der Browser-Konsole. Policy: `default-src 'self'`; `script-src 'self'`
+  (keine Inline-Skripte im Vite-Build); `style-src 'self' 'unsafe-inline'
+  https://fonts.googleapis.com` (React-Inline-Styles + Google Fonts); `font-src 'self'
+  data: https://fonts.gstatic.com`; `img-src 'self' data: blob:` (QR-/Barcodes,
+  Uploads); `connect-/manifest-/worker-src 'self'`; `frame-ancestors 'none'`,
+  `object-src 'none'`, `base-uri`/`form-action 'self'`. `nginx -t` grün.
 - Akzeptanzkriterien: ~~Security-Header geprüft/ergänzt~~ ✓; ~~Dependency-/Secret-Scan
-  in CI~~ ✓; ~~Rate-Limit auf öffentlichen POSTs~~ ✓.
-- Notizen: **Offen bleibt nur noch die CSP selbst.** Bewusst separat, weil eine falsche
-  CSP die Live-App (Kamera/BarcodeDetector, externes Logo, LAN-über-HTTP) brechen kann
-  → nicht blind direkt auf beta; erst per `Content-Security-Policy-Report-Only`
-  evaluieren, was blockiert würde.
+  in CI~~ ✓; ~~Rate-Limit auf öffentlichen POSTs~~ ✓; CSP als Report-Only aktiv (Enforcing
+  folgt nach Auswertung).
+- Notizen: **Nächster Schritt (offen):** Report-Only ein paar Tage live beobachten
+  (Browser-Konsole/ggf. Report-Endpoint ergänzen), dann die identische Policy als
+  enforcing `Content-Security-Policy` übernehmen. Erwägenswert: Google Fonts self-hosten,
+  um die externen `fonts.googleapis.com`/`fonts.gstatic.com`-Ausnahmen zu streichen.
 
 ---
 
