@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 
 from app.api.deps import CurrentPerson, DbSession
+from app.core import mitglied_session
 from app.core.rate_limit import rate_limit
 from app.core.security import create_access_token, verify_secret
 from app.models.barcode_token import BarcodeToken
@@ -17,7 +18,6 @@ from app.schemas.auth import (
     BarcodeVorschau,
     MeinProfil,
     ModeratorToken,
-    NameEintragen,
     NamePinLogin,
     NamePinVorschau,
     PersonAuswahl,
@@ -25,7 +25,6 @@ from app.schemas.auth import (
 )
 from app.db.session import AsyncSessionLocal
 from app.services import (
-    auth_service,
     barcode_service,
     feature_modul_service,
     mitglied_login_reservierung_service,
@@ -37,6 +36,19 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 NAME_COOKIE = "geraetehaus_name"
 NAME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365 * 5  # 5 Jahre
+
+
+def _setze_namens_cookie(response: Response, name: str) -> None:
+    """Setzt das Mitglieder-Identitäts-Cookie mit einem SIGNIERTEN Wert (nur nach
+    echter Identifikation via Barcode/Name+PIN). Der Name steht nicht mehr im
+    Klartext im Cookie und ist damit nicht fälschbar."""
+    response.set_cookie(
+        NAME_COOKIE,
+        mitglied_session.signiere_name(name),
+        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
+        httponly=True,
+        samesite="lax",
+    )
 
 
 @router.post("/abmelden", status_code=status.HTTP_204_NO_CONTENT)
@@ -55,26 +67,6 @@ async def mein_profil(person: CurrentPerson) -> MeinProfil:
         bild_url=person.bild_url,
         gruppe_id=person.gruppe_id,
         funktion_id=person.funktion_id,
-    )
-
-
-@router.post("/name", status_code=status.HTTP_204_NO_CONTENT)
-async def name_eintragen(
-    db: DbSession,
-    response: Response,
-    daten: NameEintragen,
-    geraetehaus_name: Annotated[str | None, Cookie()] = None,
-) -> None:
-    """Trägt den Namen dauerhaft im Cookie ein."""
-    if geraetehaus_name and geraetehaus_name != daten.name:
-        await auth_service.protokolliere_namensabweichung(db, geraetehaus_name, daten.name)
-    await auth_service.get_or_create_person(db, daten.name)
-    response.set_cookie(
-        NAME_COOKIE,
-        daten.name,
-        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
-        httponly=True,
-        samesite="lax",
     )
 
 
@@ -117,13 +109,7 @@ async def barcode_einscannen(
     barcode.last_used_at = datetime.utcnow()
     await db.commit()
 
-    response.set_cookie(
-        NAME_COOKIE,
-        person.name,
-        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
-        httponly=True,
-        samesite="lax",
-    )
+    _setze_namens_cookie(response, person.name)
     return BarcodeIdentitaet(name=person.name)
 
 
@@ -157,13 +143,7 @@ async def mitglied_login_einloesen(db: DbSession, response: Response, token: str
     reservierung.eingeloest = True
     await db.commit()
 
-    response.set_cookie(
-        NAME_COOKIE,
-        person.name,
-        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
-        httponly=True,
-        samesite="lax",
-    )
+    _setze_namens_cookie(response, person.name)
     return BarcodeIdentitaet(name=person.name)
 
 
@@ -273,13 +253,7 @@ async def name_pin_login(db: DbSession, response: Response, daten: NamePinLogin)
     if not korrekt:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="PIN falsch.")
 
-    response.set_cookie(
-        NAME_COOKIE,
-        person.name,
-        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
-        httponly=True,
-        samesite="lax",
-    )
+    _setze_namens_cookie(response, person.name)
     return BarcodeIdentitaet(name=person.name)
 
 

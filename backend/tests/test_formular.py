@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from app.core import mitglied_session
 from app.core.security import hash_secret
 from app.models.moderator import Moderator
 from app.models.person import Person
@@ -305,7 +306,7 @@ async def test_mehrfach_verhindern_pro_person(client, db):
     await db.commit()
     formular = await _formular(db, mehrfach_verhindern=True)
     await _feld(db, formular.id, label="Text", typ="text")
-    cookies = {"geraetehaus_name": "Max Muster"}
+    cookies = {"geraetehaus_name": mitglied_session.signiere_name("Max Muster")}
     r = await client.post(
         f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}}, cookies=cookies
     )
