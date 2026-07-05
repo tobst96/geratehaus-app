@@ -917,7 +917,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (3) Geschützte Datei-Auslieferung
 
-- Status: Backlog
+- Status: In Bearbeitung (Phase 1 als PR 05.07.2026 – `feature/geschuetzte-datei-ausl-p3`)
+- Fortschritt (05.07.2026, Phase 1): **Durchzählbares Profilbild-Leck geschlossen.**
+  Profilbilder lagen als `/uploads/personen/person-<id>.<ext>` unter einem öffentlichen
+  Static-Mount → per ID abzählbar. Jetzt: **Zufallstoken-Dateinamen** (nicht erratbar),
+  **Magic-Bytes-Prüfung + EXIF-Entfernung** über Pillow-Re-Encode, altes Bild wird beim
+  Ersetzen gelöscht; **einmalige idempotente Backfill-Umbenennung** bestehender
+  `person-<id>`-Dateien beim App-Start. Gilt auch für den „Barcode-vergessen"-Upload
+  (nutzt dieselbe Funktion). Formular-Uploads nutzen bereits Zufallsnamen. Tests in
+  `test_person_bild_schutz.py`.
+  **Offen (Phase 2):** echter Zugriffsschutz statt Capability-URL – **kurzlebige,
+  signierte Token-Links** je Datei, kein dauerhaft öffentlicher `/uploads`-Pfad
+  (Kiosk/Moderator/Mitglied-Kontext beachten: `<img>` sendet keine Auth-Header →
+  signierte Query-Token); Magic-Bytes/EXIF auch für Formular-Bild-Uploads.
 - Priorität: Mittel
 - Kategorie: Backend / Sicherheit / Datenschutz
 - Skills: planner, geraetehaus-patterns, tests, review
