@@ -19,6 +19,14 @@ Fokus: **Sicherheit/Berechtigungen, UX/Mobile/Kiosk, Stabilität/Betrieb**
 
 ### ⚠ SOFORT / höchste Priorität – Öffentliche API absichern (05.07.2026)
 
+> **✅ Phase 1 umgesetzt (05.07.2026, PR `feature/api-absichern`):** Gate
+> `require_zugriff` (Kiosk-Token `X-Kiosk-Token` / Moderator / Mitglieds-Cookie) als
+> Router-Level-Dependency auf `einsaetze`, `dienstbuecher`, `dienststunden`,
+> `buchungen`, `stammdaten`; Frontend sendet den Kiosk-Token; `zusatzfelder`-Write
+> geschlossen. Tests `test_api_zugriff.py`. **Offen (Phase 2):** echte signierte
+> Mitglieder-Session statt setzbarem Namens-Cookie; `GET /auth/personen`-Namensliste;
+> Divera-Webhook-Secret aus der URL.
+
 **Befund (vom Nutzer über Swagger entdeckt):** Mehrere **daten-sensible Endpunkte
 sind ohne Authentifizierung** erreichbar. `require_modul_aktiv` prüft **nur**, ob das
 Modul aktiv ist – **keine Auth**. Auf der öffentlichen Instanz ist das ein **Datenleck**:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_modul_aktiv
+from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_modul_aktiv, require_zugriff
 from app.schemas.einsatz import (
     EinsatzAnlegen,
     EinsatzEreignisOut,
@@ -18,7 +18,10 @@ from app.services.config_service import config_service
 router = APIRouter(
     prefix="/einsaetze",
     tags=["einsatztagebuch"],
-    dependencies=[Depends(require_modul_aktiv("modul_einsatztagebuch_aktiv"))],
+    dependencies=[
+        Depends(require_modul_aktiv("modul_einsatztagebuch_aktiv")),
+        Depends(require_zugriff),
+    ],
 )
 
 

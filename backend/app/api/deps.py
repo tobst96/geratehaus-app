@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Cookie, Depends, HTTPException, status
+from fastapi import Cookie, Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -75,6 +75,42 @@ async def get_current_person(
 
 
 CurrentPerson = Annotated[Person, Depends(get_current_person)]
+
+
+async def require_zugriff(
+    db: DbSession,
+    token: Annotated[str | None, Depends(_oauth2_scheme)] = None,
+    geraetehaus_name: Annotated[str | None, Cookie()] = None,
+    x_kiosk_token: Annotated[str | None, Header()] = None,
+) -> None:
+    """Zugriffs-Gate für die (sonst öffentlichen) Daten-Endpunkte: lässt durch, wenn
+    mindestens EINE Identität vorliegt – Kiosk-Token (Header `X-Kiosk-Token`),
+    Moderator (Bearer-JWT) oder Mitglied (Namens-Cookie). Verhindert, dass Einsätze/
+    Stammdaten/Buchungen anonym über die offene API abgefragt werden.
+
+    Phase 1: Der Mitglieder-Cookie ist noch nicht kryptografisch gesichert (per Name
+    setzbar) – akzeptiert, um den Außenzugriff nicht zu brechen; eine echte, signierte
+    Mitglieder-Session folgt separat (Phase 2)."""
+    # 1) Kiosk-Token (Tablet im Gerätehaus)
+    if x_kiosk_token:
+        # lokaler Import vermeidet Import-Zyklen (Service nutzt Models/Config)
+        from app.services import kiosk_token_service
+
+        if await kiosk_token_service.get_by_token(db, x_kiosk_token) is not None:
+            return
+    # 2) Mitglied (Namens-Cookie)
+    if geraetehaus_name:
+        return
+    # 3) Moderator (signiertes Bearer-JWT genügt fürs Gate)
+    if token:
+        payload = decode_access_token(token)
+        if payload is not None and "sub" in payload:
+            return
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Nicht angemeldet.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 def require_modul_aktiv(config_schluessel: str):
