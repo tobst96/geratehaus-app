@@ -891,7 +891,16 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (2) Berechtigungssystem fertigstellen
 
-- Status: Backlog
+- Status: In Bearbeitung (Teil-PR 05.07.2026 – `feature/berechtigungen-frontend-guards`)
+- Fortschritt (05.07.2026): **Frontend-Guards** begonnen – neuer Endpunkt
+  `GET /moderator/meta/meine-berechtigungen` + `berechtigungs_service.meine_keys`;
+  AuthContext lädt eigene Modul-Rechte und bietet `hatModulZugriff(key)`; neuer
+  `BerechtigungRoute`. Nav/Routen der bereits backend-gegateten Verwaltungs-Module
+  (Einstellungen/Module/Update → Key `einstellungen`, Berechtigungen) prüfen jetzt
+  `hat_zugriff` statt der Rolle (Admins via Bypass, non-breaking). **Noch offen:**
+  restliche Router gaten (barcodes, kiosk-geraete, stammdaten/personal pro Endpunkt,
+  Benachrichtigungen), breaking Gruppenführer-Bereiche + Rechte-Seed gegen Aussperren,
+  altes Rollenmodell ablösen (Phase 5) + `permissions.md`/`CLAUDE.md`.
 - Priorität: Hoch
 - Kategorie: Backend / Frontend / Sicherheit
 - Skills: planner, geraetehaus-patterns, tests, review
