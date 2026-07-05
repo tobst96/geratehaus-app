@@ -65,6 +65,8 @@ export interface Person {
   pin_gesetzt: boolean;
   benachrichtigungen_aktiv: boolean;
   inaktiv: boolean;
+  /** Zeitpunkt, bis zu dem der PIN-Login gesperrt ist (ISO), sonst null. */
+  pin_gesperrt_bis: string | null;
 }
 
 export type AmpelStatus = "gruen" | "gelb" | "rot" | "inaktiv";

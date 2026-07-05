@@ -9,6 +9,14 @@ async def test_security_headers_gesetzt(client):
     assert response.headers["x-content-type-options"] == "nosniff"
     assert response.headers["x-frame-options"] == "DENY"
     assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
+    assert response.headers["cross-origin-opener-policy"] == "same-origin"
+    assert response.headers["x-permitted-cross-domain-policies"] == "none"
+    permissions = response.headers["permissions-policy"]
+    assert "geolocation=()" in permissions
+    # Kamera bleibt erlaubt (Barcode-Scanner) – darf NICHT abgeschaltet werden.
+    assert "camera=()" not in permissions
+    # Kein HSTS: TLS terminiert im Reverse-Proxy, die App kennt das Schema nicht.
+    assert "strict-transport-security" not in response.headers
 
 
 async def test_rate_limit_blockiert_nach_max_aufrufen():

@@ -12,7 +12,15 @@ type ModulKey =
   | "modul_fahrzeugbuchung_aktiv"
   | "modul_formular_aktiv";
 
-type NavItem = { pfad: string; titel: string; icon: string; modulKey?: ModulKey };
+type NavItem = {
+  pfad: string;
+  titel: string;
+  icon: string;
+  modulKey?: ModulKey;
+  // Individueller Modul-Zugriff (Berechtigungssystem). Ist er gesetzt, wird der
+  // Punkt statt über die Rolle über `hat_zugriff` eingeblendet (Admins via Bypass).
+  berechtigungKey?: string;
+};
 type NavGruppe = {
   id: string;
   titel: string | null;
@@ -43,9 +51,9 @@ const NAV_GRUPPEN: NavGruppe[] = [
     titel: "Verwaltung",
     admin: true,
     items: [
-      { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen" },
-      { pfad: "/moderator/update", titel: "Update", icon: "update" },
-      { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen" },
+      { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen", berechtigungKey: "berechtigungen" },
+      { pfad: "/moderator/update", titel: "Update", icon: "update", berechtigungKey: "einstellungen" },
+      { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen", berechtigungKey: "einstellungen" },
     ],
   },
 ];
@@ -75,12 +83,21 @@ const MODUL_ICON: Record<string, string> = {
 };
 
 export function ModeratorLayout() {
-  const { moderatorAbmelden, moderatorRolle } = useAuth();
+  const { moderatorAbmelden, moderatorRolle, hatModulZugriff } = useAuth();
   const { config, neuLaden } = useConfig();
   const navigate = useNavigate();
   const location = useLocation();
   const istAdmin = moderatorRolle === "admin";
-  const sichtbareGruppen = NAV_GRUPPEN.filter((g) => !g.admin || istAdmin);
+
+  // Ein Nav-Punkt ist sichtbar, wenn er keinen Berechtigungs-Key hat (dann greift
+  // die Gruppen-Rollenregel) oder der Moderator den Modul-Zugriff besitzt.
+  const itemSichtbar = (item: NavItem) => !item.berechtigungKey || hatModulZugriff(item.berechtigungKey);
+  // Admin-Gruppen: für Admins immer sichtbar; sonst nur, wenn mindestens ein Punkt
+  // über einen Berechtigungs-Key freigeschaltet ist (rein rollen-basierte
+  // Admin-Gruppen ohne Keys bleiben für Nicht-Admins verborgen).
+  const gruppeSichtbar = (g: NavGruppe) =>
+    !g.admin || istAdmin || g.items.some((i) => i.berechtigungKey && hatModulZugriff(i.berechtigungKey));
+  const sichtbareGruppen = NAV_GRUPPEN.filter(gruppeSichtbar);
   const [drawerOffen, setDrawerOffen] = useState(false);
   const [moduleOffen, setModuleOffen] = useState(false);
   const [listenOffen, setListenOffen] = useState(true);
@@ -165,7 +182,7 @@ export function ModeratorLayout() {
                 ))}
 
               {gruppe.items
-                .filter((item) => !item.modulKey || modulAktiv(item.modulKey))
+                .filter((item) => (!item.modulKey || modulAktiv(item.modulKey)) && itemSichtbar(item))
                 .map((item) => (
                   <NavLink
                     key={item.pfad}

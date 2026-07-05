@@ -247,6 +247,8 @@ export const personAktualisieren = (
 ) => apiPut<Person>(`/moderator/stammdaten/personen/${id}`, daten);
 export const personPinSetzen = (id: number, pin: string) =>
   apiPut<Person>(`/moderator/stammdaten/personen/${id}/pin`, { pin });
+export const personPinEntsperren = (id: number) =>
+  apiPost<Person>(`/moderator/stammdaten/personen/${id}/pin-entsperren`);
 export const holePersonTimeline = (id: number) =>
   apiGet<PersonEreignis[]>(`/moderator/stammdaten/personen/${id}/timeline`);
 export const holePersonDienststunden = (id: number) =>

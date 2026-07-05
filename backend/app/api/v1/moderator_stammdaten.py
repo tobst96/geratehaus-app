@@ -287,6 +287,19 @@ async def person_pin_setzen(
     return await stammdaten_service.person_zu_out(db, person)
 
 
+@router.post("/personen/{person_id}/pin-entsperren", response_model=PersonOut)
+async def person_pin_entsperren(
+    db: DbSession, _moderator: CurrentModerator, person_id: int
+) -> PersonOut:
+    """Hebt eine durch zu viele Fehlversuche entstandene PIN-Sperre manuell auf
+    (Gruppenführer/Moderator) und setzt den Fehlversuchszähler zurück."""
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    person = await stammdaten_service.pin_sperre_aufheben(db, person)
+    return await stammdaten_service.person_zu_out(db, person)
+
+
 @router.post("/personen/{person_id}/bild-reservierung", response_model=PersonBildReservierungOut)
 async def person_bild_reservierung_anlegen(
     db: DbSession, _admin: CurrentAdmin, person_id: int

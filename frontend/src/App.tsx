@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { ModeratorRoute } from "./components/ModeratorRoute";
 import { AdminRoute } from "./components/AdminRoute";
+import { BerechtigungRoute } from "./components/BerechtigungRoute";
 import { SetupGate } from "./components/SetupGate";
 import { KioskGate } from "./components/KioskGate";
 import { LandingPage } from "./pages/LandingPage";
@@ -64,15 +65,23 @@ export function App() {
               <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
               <Route path="dienstbuecher/:id" element={<DienstbuchDetailModerator />} />
               <Route path="buchungen" element={<Buchungsmanagement />} />
+              {/* Noch admin-only (Backend nutzt CurrentAdmin): Barcodes,
+                  Kiosk-Geräte, Benachrichtigungen. */}
               <Route element={<AdminRoute />}>
                 <Route path="barcodes" element={<BarcodeGenerator />} />
                 <Route path="kiosk-geraete" element={<KioskGeraete />} />
                 <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />
+              </Route>
+              {/* Backend granular über require_modul_zugriff geschützt – hier
+                  individuell per hat_zugriff statt Rolle (Admins via Bypass). */}
+              <Route element={<BerechtigungRoute modulKeys={["einstellungen"]} />}>
                 <Route path="einstellungen" element={<Einstellungen />} />
                 <Route path="module" element={<Module />} />
                 <Route path="module/:key" element={<ModulUnterseite />} />
-                <Route path="berechtigungen" element={<Berechtigungen />} />
                 <Route path="update" element={<Update />} />
+              </Route>
+              <Route element={<BerechtigungRoute modulKeys={["berechtigungen"]} />}>
+                <Route path="berechtigungen" element={<Berechtigungen />} />
               </Route>
             </Route>
           </Route>

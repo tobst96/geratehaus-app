@@ -18,6 +18,9 @@ class PersonOut(BaseModel):
     pin_gesetzt: bool
     benachrichtigungen_aktiv: bool
     inaktiv: bool = False
+    # Zeitpunkt, bis zu dem der PIN-Login wegen zu vieler Fehlversuche gesperrt ist
+    # (None = nicht gesperrt). Für Sperr-Badge + „Entsperren" in der Personal-Liste.
+    pin_gesperrt_bis: datetime | None = None
 
 
 class PersonCreate(BaseModel):
