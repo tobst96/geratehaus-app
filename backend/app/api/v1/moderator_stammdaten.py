@@ -31,7 +31,7 @@ from app.schemas.stammdaten import (
     GruppeOut,
     GruppeUpdate,
 )
-from app.services import ampel_service, barcode_service, dienststunden_service, divera_personal_service, email_template_service, person_bild_reservierung_service, stammdaten_service
+from app.services import ampel_service, audit_service, barcode_service, dienststunden_service, divera_personal_service, email_template_service, person_bild_reservierung_service, stammdaten_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -258,11 +258,15 @@ async def person_aktualisieren(
 
 
 @router.delete("/personen/{person_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def person_loeschen(db: DbSession, _admin: CurrentAdmin, person_id: int) -> None:
+async def person_loeschen(db: DbSession, admin: CurrentAdmin, person_id: int) -> None:
     person = await stammdaten_service.get_person(db, person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    name = person.name
     await stammdaten_service.person_loeschen(db, person)
+    await audit_service.protokolliere(
+        db, admin.username, "person_geloescht", "person", person_id, name
+    )
 
 
 @router.post("/personen/{person_id}/bild", response_model=PersonOut)

@@ -12,7 +12,7 @@ from app.schemas.einsatz import (
 )
 from app.schemas.einsatz_feld import EinsatzFeldDefinitionOut
 from app.schemas.reservierung import ReservierungAnlegen, ReservierungOut
-from app.services import einsatz_service, pdf_service, reservierung_service, stammdaten_service
+from app.services import audit_service, einsatz_service, pdf_service, reservierung_service, stammdaten_service
 from app.services.config_service import config_service
 
 router = APIRouter(
@@ -154,13 +154,17 @@ async def einsatz_wieder_oeffnen(
 
 
 @router.delete("/{einsatz_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def einsatz_loeschen(db: DbSession, _moderator: CurrentModerator, einsatz_id: int) -> None:
+async def einsatz_loeschen(db: DbSession, moderator: CurrentModerator, einsatz_id: int) -> None:
     """Löscht einen Einsatz unwiderruflich inkl. aller Teilnahmen, Timeline-
     Einträge und Reservierungen. Nur für Moderatoren/Admins."""
     einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
     if einsatz is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
+    titel = einsatz.titel
     await einsatz_service.einsatz_loeschen(db, einsatz)
+    await audit_service.protokolliere(
+        db, moderator.username, "einsatz_geloescht", "einsatz", einsatz_id, titel
+    )
 
 
 @router.post("/{einsatz_id}/alle-eingetragen", response_model=EinsatzOut, dependencies=[])
