@@ -998,8 +998,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Außenzugriff in `moderator_feature_module.py`). Genau die „Wer hat Zugänge/Zugriff
   geändert"-Ereignisse, die bisher fehlten. Tests in `test_audit_log.py` (4 neu, Suite
   263 grün).
+- Fortschritt (05.07.2026, Phase 2 – Retention-Job, direkt auf beta): **1-Jahr-
+  Aufbewahrung umgesetzt.** `audit_service.aufbewahrung_bereinigen` löscht Einträge
+  älter als `audit_aufbewahrung_tage` (Config-Default 365, `0` = unbegrenzt); täglicher
+  Scheduler-Job `audit_retention` (03:50). Tests in `test_audit_log.py` (2 neu, Suite
+  265 grün).
   **Offen (Rest Phase 2):** weitere Hooks (Formular-Einreichung/-Löschung, Divera-
-  Vorschlag-Freigabe); **1-Jahr-Retention-Job**;
+  Vorschlag-Freigabe);
   **CSV/JSON-Export**; **Admin-Frontend-Ansicht** (Filter/Suche).
 - Priorität: Mittel
 - Kategorie: Backend / Frontend / Sicherheit

@@ -16,6 +16,7 @@ from app.models.backup import Backup
 from app.services import (
     ampel_service,
     archive_service,
+    audit_service,
     backup_service,
     barcode_service,
     dienstbuch_service,
@@ -217,6 +218,18 @@ async def _formular_ablauf_job() -> None:
             logger.warning("formular_ablauf_job_fehlgeschlagen", exc_info=True)
 
 
+async def _audit_retention_job() -> None:
+    """Läuft täglich um 3:50 Uhr; löscht Audit-Log-Einträge, die älter als die
+    konfigurierte Aufbewahrungsfrist sind (Datenminimierung)."""
+    async with AsyncSessionLocal() as db:
+        try:
+            geloescht = await audit_service.aufbewahrung_bereinigen(db)
+            if geloescht:
+                logger.info("audit_log_bereinigt", anzahl=geloescht)
+        except Exception:
+            logger.warning("audit_retention_job_fehlgeschlagen", exc_info=True)
+
+
 async def _backup_job() -> None:
     """Läuft alle 15 min; erstellt höchstens EIN Backup pro Tag zur konfigurierten
     Uhrzeit an den gewählten Wochentagen (mit Nachhol-Logik nach Ausfall)."""
@@ -375,6 +388,16 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("formular_aufbewahrung_job_registriert", uhrzeit="03:20")
+
+    scheduler.add_job(
+        _audit_retention_job,
+        "cron",
+        hour=3,
+        minute=50,
+        id="audit_retention",
+        replace_existing=True,
+    )
+    logger.info("audit_retention_job_registriert", uhrzeit="03:50")
 
     # Alle 15 min; ob/ wann tatsächlich gesichert wird, entscheidet der Job anhand
     # der konfigurierten Uhrzeit/Wochentage (einmal pro Tag, mit Nachhol-Logik).

@@ -67,6 +67,9 @@ DEFAULTS: list[ConfigDefault] = [
     # für die angegebene Dauer gesperrt (0 Fehlversuche = Sperre deaktiviert).
     ConfigDefault("pin_max_fehlversuche", "5", ConfigTyp.INT, "PIN-Login: Fehlversuche bis zur Sperre (0 = aus)"),
     ConfigDefault("pin_sperre_minuten", "15", ConfigTyp.INT, "PIN-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
+    # Aufbewahrungsfrist des Audit-Logs: Einträge, die älter sind, werden
+    # täglich automatisch gelöscht (Datenminimierung). 0 = keine Löschung.
+    ConfigDefault("audit_aufbewahrung_tage", "365", ConfigTyp.INT, "Audit-Log: Aufbewahrungsfrist in Tagen (0 = unbegrenzt)"),
     # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
     # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
     # anhand der Registry ergänzt bzw. ignoriert.

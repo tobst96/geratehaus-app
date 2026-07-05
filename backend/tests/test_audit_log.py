@@ -1,12 +1,16 @@
 """Tests für das Audit-Log (Etappe P5, Phase 1): sicherheitsrelevante Aktionen
 werden mit Akteur protokolliert, sind nur für Admins abrufbar, filter-/sortierbar."""
 
+from datetime import datetime, timedelta, timezone
+
 import pytest
 
 from app.core.security import hash_secret
+from app.models.audit_log import AuditLog
 from app.models.moderator import Moderator
 from app.models.person import Person
 from app.services import audit_service, modul_service
+from app.services.config_service import config_service
 
 
 async def _token(client, db, username="admin", rolle="admin"):
@@ -141,6 +145,38 @@ async def test_modul_flag_aenderung_wird_protokolliert(client, db):
     assert len(eintraege) == 1
     assert "einsatztagebuch" in eintraege[0].details
     assert "aktiv=True" in eintraege[0].details
+
+
+@pytest.mark.asyncio
+async def test_aufbewahrung_bereinigt_alte_eintraege(db):
+    # Ein alter (>365 Tage) und ein frischer Eintrag.
+    alt = AuditLog(
+        akteur="a", aktion="alt", objekt_typ="t",
+        zeitpunkt=datetime.now(timezone.utc) - timedelta(days=400),
+    )
+    db.add(alt)
+    await audit_service.protokolliere(db, "a", "frisch", "t", 1)
+    await db.commit()
+
+    geloescht = await audit_service.aufbewahrung_bereinigen(db)
+    assert geloescht == 1
+
+    verbleibend = await audit_service.liste(db)
+    assert [e.aktion for e in verbleibend] == ["frisch"]
+
+
+@pytest.mark.asyncio
+async def test_aufbewahrung_deaktiviert_bei_null(db):
+    await config_service.set(db, "audit_aufbewahrung_tage", 0)
+    alt = AuditLog(
+        akteur="a", aktion="alt", objekt_typ="t",
+        zeitpunkt=datetime.now(timezone.utc) - timedelta(days=1000),
+    )
+    db.add(alt)
+    await db.commit()
+
+    assert await audit_service.aufbewahrung_bereinigen(db) == 0
+    assert len(await audit_service.liste(db)) == 1
 
 
 @pytest.mark.asyncio
