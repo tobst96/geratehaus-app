@@ -855,7 +855,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (0) Öffentliche Daten-API absichern – Phase 2
 
-- Status: In Bearbeitung (Mitglieder-Session als PR 05.07.2026 – `feature/mitglied-session-p0`)
+- Status: In Bearbeitung (Mitglieder-Session = PR #30 gemergt + deployt 05.07.2026; Rest offen)
 - Priorität: Hoch
 - Kategorie: Backend / Sicherheit / Auth
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -975,7 +975,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (5) Audit-Log (Löschungen/Freigaben/Rechteänderungen)
 
-- Status: In Bearbeitung (Phase 1 als PR 05.07.2026 – `feature/audit-log-p5`)
+- Status: In Bearbeitung (Phase 1 = PR #31 gemergt + deployt 05.07.2026; Phase 2 offen)
 - Fortschritt (05.07.2026, Phase 1): **Audit-Infrastruktur + erste Hooks + Admin-API.**
   Neue Tabelle `audit_logs` (Migration 0053) + `AuditLog`-Model + `audit_service`
   (`protokolliere` / `liste` mit Filter, neueste zuerst). Protokolliert werden Akteur
