@@ -251,7 +251,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### „Barcode vergessen": überall Name+PIN erzwingen
 
-- Status: Backlog
+- Status: Review (Feature-Branch `feature/barcode-vergessen-kein-bild-leak` → PR nach beta, 06.07.2026)
 - Priorität: Hoch
 - Kategorie: Bug / Sicherheit
 - Skills: geraetehaus-patterns, tests, review
@@ -260,6 +260,20 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   dies in der Personen-Timeline vermerken.
 - Akzeptanzkriterien: Kein Bild-Zugriff ohne PIN-Login; PIN-lose Personen gesperrt;
   Timeline-Vermerk; Test.
+- Umsetzung (06.07.2026): Restlücke geschlossen. PIN-Zwang, Sperre PIN-loser Personen
+  und Timeline-Vermerk (`pin_zugriff_verweigert`) waren bereits serverseitig in
+  `stammdaten_service.pin_login_erzwingen` umgesetzt (greift für alle vier Module über
+  `*_vorschau_setzen`/`einloesen`); ebenso ist das Vorschaubild am Gerätehaus-Display
+  schon hinter korrektem PIN. **Offene Lücke:** Der Roster-Endpunkt
+  `GET /…reservierungen/{token}/personen` lieferte den **kompletten `PersonOut` inkl.
+  `bild_url`** – jeder Token-Inhaber konnte so die Profilbilder aller Mitglieder
+  abgreifen, und die mobile „Ohne Barcode eintragen"-Seite zeigte das Foto direkt bei
+  der Namensauswahl (vor PIN). Fix: neues schlankes Schema `ReservierungPerson`
+  (id/name/pin_gesetzt/gruppe_id/funktion_id, **kein `bild_url`**) als `response_model`
+  aller vier Roster-Endpunkte (Einsatz/Dienstbuch/Dienststunden/Fahrzeugbuchung); die
+  vier mobilen Seiten zeigen nur noch Initialen statt Foto. Regressionstest in
+  `test_barcode_pin_pflicht.py` (Roster ohne `bild_url`); volle Suite 268 grün,
+  `npm run build` grün.
 
 ---
 

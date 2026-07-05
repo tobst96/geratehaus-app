@@ -8,7 +8,7 @@ from app.schemas.dienstbuch_reservierung import (
     DienstbuchReservierungInfo,
     DienstbuchReservierungVorschauSetzen,
 )
-from app.schemas.person import PersonOut
+from app.schemas.reservierung import ReservierungPerson
 from app.services import dienstbuch_reservierung_service, dienstbuch_service, stammdaten_service
 
 router = APIRouter(prefix="/dienstbuch-reservierungen", tags=["dienstbuch-reservierungen"])
@@ -64,8 +64,8 @@ async def reservierung_vorschau_setzen(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
-@router.get("/{token}/personen", response_model=list[PersonOut])
-async def reservierung_personen(db: DbSession, token: str) -> list[PersonOut]:
+@router.get("/{token}/personen", response_model=list[ReservierungPerson])
+async def reservierung_personen(db: DbSession, token: str) -> list[ReservierungPerson]:
     reservierung = await dienstbuch_reservierung_service.get_reservierung_by_token(db, token)
     if reservierung is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")

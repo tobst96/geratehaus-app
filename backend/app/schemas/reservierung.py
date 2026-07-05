@@ -1,6 +1,21 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class ReservierungPerson(BaseModel):
+    """Schlanke Personen-Auswahl für die öffentliche „Barcode vergessen"-Seite.
+    Bewusst **ohne `bild_url`**: Der Token-Inhaber darf die Namensliste zur Auswahl
+    sehen, aber NICHT die Profilbilder aller Mitglieder abgreifen. Das Bild wird
+    erst nach korrektem PIN (serverseitig geprüft) am Gerätehaus-Display gezeigt."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    pin_gesetzt: bool
+    gruppe_id: int | None = None
+    funktion_id: int | None = None
 
 
 class ReservierungAnlegen(BaseModel):
