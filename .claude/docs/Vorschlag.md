@@ -254,9 +254,11 @@ Parallel zur Sicherheits-Roadmap (alle vom Nutzer bestätigt):
   jeden 1. Montag") halb-automatisch anlegen.
 - **⭐ · S – Themen/Kategorien je Dienst** (Ausbildung/Arbeitsdienst/Sonstiges) für
   Auswertungen.
-- **⭐⭐ · M – Anwesenheitsquote pro Person** *[gewählt 05.07.2026]*: prozentuale
-  Teilnahme an Diensten je Person (Zeitraum wählbar) + Export – gute Ergänzung zur
-  Mindest-Dienstbeteiligung.
+- **⭐⭐ · M – Anwesenheitsquote pro Person** *[gewählt 05.07.2026; Backend erledigt
+  05.07.2026]*: prozentuale Teilnahme an Diensten je Person (Zeitraum wählbar).
+  **Backend live:** `GET /dienstbuecher/anwesenheit?von=&bis=` (CurrentModerator) →
+  `{gesamt, personen:[{person_id, teilgenommen, quote}]}`. **Offen:** Frontend-Anzeige
+  (Personal/Listen) + optional Export.
 - **⭐ · S – Ausbilder/Thema je Dienst** *[gewählt 05.07.2026]*: pro Dienst
   dokumentieren, **wer welches Thema** ausgebildet hat (Feld „Ausbilder" + „Thema"),
   Grundlage für Ausbildungsnachweise/-abdeckung.

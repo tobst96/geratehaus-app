@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_modul_aktiv
 from app.schemas.dienstbuch import (
+    AnwesenheitEintrag,
+    AnwesenheitOut,
     DienstbuchAnlegen,
     DienstbuchOut,
     RelevanteDiensteEintrag,
@@ -44,6 +46,25 @@ async def relevante_uebersicht(
     von/bis). Muss vor '/{dienstbuch_id}' stehen, sonst wird der Pfad als ID gedeutet."""
     paare = await dienstbuch_service.relevante_dienste_pro_person(db, von, bis)
     return [RelevanteDiensteEintrag(person_id=pid, anzahl=anzahl) for pid, anzahl in paare]
+
+
+@router.get("/anwesenheit", response_model=AnwesenheitOut)
+async def anwesenheit(
+    db: DbSession,
+    _moderator: CurrentModerator,
+    von: date | None = None,
+    bis: date | None = None,
+) -> AnwesenheitOut:
+    """Anwesenheitsquote je Person über alle Dienstbücher im Zeitraum (optional von/bis).
+    Muss vor '/{dienstbuch_id}' stehen, sonst wird 'anwesenheit' als ID gedeutet."""
+    gesamt, eintraege = await dienstbuch_service.anwesenheit_quote(db, von, bis)
+    return AnwesenheitOut(
+        gesamt=gesamt,
+        personen=[
+            AnwesenheitEintrag(person_id=pid, teilgenommen=teil, quote=quote)
+            for pid, teil, quote in eintraege
+        ],
+    )
 
 
 @router.get("/{dienstbuch_id}", response_model=DienstbuchOut)

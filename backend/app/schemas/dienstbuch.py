@@ -29,6 +29,19 @@ class RelevanteDiensteEintrag(BaseModel):
     anzahl: int
 
 
+class AnwesenheitEintrag(BaseModel):
+    person_id: int
+    teilgenommen: int
+    quote: float  # Prozent (0–100)
+
+
+class AnwesenheitOut(BaseModel):
+    """Anwesenheitsquote je Person über alle Dienstbücher im Zeitraum."""
+
+    gesamt: int  # Anzahl aller Dienstbücher im Zeitraum
+    personen: list[AnwesenheitEintrag]
+
+
 class TeilnehmerOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

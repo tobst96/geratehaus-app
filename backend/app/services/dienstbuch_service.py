@@ -176,6 +176,42 @@ async def relevante_dienste_pro_person(
     return [(pid, anzahl) for pid, anzahl in result.all()]
 
 
+def _zeitfenster_filter(stmt, von: date | None, bis: date | None):
+    """Schränkt eine Query über `Dienstbuch.eroeffnet_am` auf von/bis ein (bis inkl.)."""
+    if von is not None:
+        stmt = stmt.where(
+            Dienstbuch.eroeffnet_am >= datetime(von.year, von.month, von.day, tzinfo=timezone.utc)
+        )
+    if bis is not None:
+        grenze = datetime(bis.year, bis.month, bis.day, tzinfo=timezone.utc) + timedelta(days=1)
+        stmt = stmt.where(Dienstbuch.eroeffnet_am < grenze)
+    return stmt
+
+
+async def anwesenheit_quote(
+    db: AsyncSession, von: date | None = None, bis: date | None = None
+) -> tuple[int, list[tuple[int, int, float]]]:
+    """Anwesenheitsquote je Person: (gesamt, [(person_id, teilgenommen, quote%)]).
+    `gesamt` = Anzahl aller Dienstbücher im Zeitraum; `quote` = teilgenommen/gesamt
+    in Prozent (0, wenn keine Dienstbücher). Optionaler Zeitraum über von/bis."""
+    gesamt_stmt = _zeitfenster_filter(select(func.count()).select_from(Dienstbuch), von, bis)
+    gesamt = (await db.execute(gesamt_stmt)).scalar_one()
+
+    teil_stmt = _zeitfenster_filter(
+        select(DienstbuchPerson.person_id, func.count(func.distinct(Dienstbuch.id)))
+        .join(Dienstbuch, Dienstbuch.id == DienstbuchPerson.dienstbuch_id)
+        .group_by(DienstbuchPerson.person_id),
+        von,
+        bis,
+    )
+    rows = (await db.execute(teil_stmt)).all()
+
+    eintraege = [
+        (pid, teil, round(teil / gesamt * 100, 1) if gesamt else 0.0) for pid, teil in rows
+    ]
+    return gesamt, eintraege
+
+
 async def _pdf_per_mail_versenden(dienstbuch: Dienstbuch, db: AsyncSession) -> None:
     if not await config_service.get(db, "notifier_email_aktiv", False):
         return

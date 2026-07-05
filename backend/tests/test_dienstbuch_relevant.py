@@ -129,3 +129,51 @@ async def test_relevante_uebersicht_zaehlt_je_person(client, db):
 async def test_relevante_uebersicht_ohne_login_abgelehnt(client, db):
     r = await client.get("/api/v1/dienstbuecher/relevante-uebersicht")
     assert r.status_code == 401
+
+
+# --- Anwesenheitsquote pro Person --------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_anwesenheit_quote(client, db):
+    from app.models.person import Person
+
+    token = await _moderator_token(client, db)
+    h = {"Authorization": f"Bearer {token}"}
+
+    p1 = Person(name="Anna")
+    p2 = Person(name="Bert")
+    db.add_all([p1, p2])
+    await db.commit()
+    await db.refresh(p1)
+    await db.refresh(p2)
+
+    # 4 Dienstbücher; Anna in 3, Bert in 1
+    d1 = await _dienstbuch_am(db, datetime(2026, 2, 1, 18, tzinfo=timezone.utc), relevant=False)
+    d2 = await _dienstbuch_am(db, datetime(2026, 3, 1, 18, tzinfo=timezone.utc), relevant=False)
+    d3 = await _dienstbuch_am(db, datetime(2026, 4, 1, 18, tzinfo=timezone.utc), relevant=False)
+    d4 = await _dienstbuch_am(db, datetime(2026, 5, 1, 18, tzinfo=timezone.utc), relevant=False)
+    for d in (d1, d2, d3):
+        await _teilnahme(db, d.id, p1.id)
+    await _teilnahme(db, d4.id, p2.id)
+
+    r = await client.get("/api/v1/dienstbuecher/anwesenheit", headers=h)
+    assert r.status_code == 200
+    daten = r.json()
+    assert daten["gesamt"] == 4
+    quoten = {e["person_id"]: e for e in daten["personen"]}
+    assert quoten[p1.id]["teilgenommen"] == 3 and quoten[p1.id]["quote"] == 75.0
+    assert quoten[p2.id]["teilgenommen"] == 1 and quoten[p2.id]["quote"] == 25.0
+
+    # Zeitraum ab April: nur d3 + d4 -> gesamt 2, Anna 1 (50%)
+    r = await client.get("/api/v1/dienstbuecher/anwesenheit?von=2026-04-01", headers=h)
+    daten = r.json()
+    assert daten["gesamt"] == 2
+    quoten = {e["person_id"]: e for e in daten["personen"]}
+    assert quoten[p1.id]["quote"] == 50.0
+
+
+@pytest.mark.asyncio
+async def test_anwesenheit_ohne_login_abgelehnt(client, db):
+    r = await client.get("/api/v1/dienstbuecher/anwesenheit")
+    assert r.status_code == 401
