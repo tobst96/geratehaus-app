@@ -1,4 +1,6 @@
-from sqlalchemy import String
+from datetime import datetime
+
+from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -15,3 +17,8 @@ class Moderator(Base, TimestampMixin):
     username: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     passwort_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     rolle: Mapped[str] = mapped_column(String(64), default="admin", nullable=False)
+    # Brute-Force-Schutz für den Moderator-Login: Zähler aufeinanderfolgender
+    # Fehlversuche und Zeitpunkt, bis zu dem der Login gesperrt ist (NULL = frei;
+    # nach Ablauf automatisch wieder frei).
+    login_fehlversuche: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    login_gesperrt_bis: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

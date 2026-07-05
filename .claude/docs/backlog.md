@@ -956,11 +956,20 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (4) Admin-/Moderator-Login härten + 2FA
 
-- Status: Backlog
+- Status: In Bearbeitung (Login-Lockout als PR 05.07.2026 – `feature/moderator-login-lockout-p4`)
 - Priorität: Hoch
 - Kategorie: Backend / Frontend / Sicherheit / Auth
 - Skills: planner, geraetehaus-patterns, tests, review
 - Plan: Ja
+- Fortschritt (05.07.2026, Phase 1): **Login-Lockout umgesetzt** (analog PIN-Brute-
+  Force). Moderator-Felder `login_fehlversuche` + `login_gesperrt_bis` (Migration 0054);
+  `moderator_service.login_pruefen()` sperrt nach `moderator_login_max_fehlversuche`
+  (Default 5) für `moderator_login_sperre_minuten` (Default 15, auto-Freigabe),
+  Reset bei Erfolg; `/auth/moderator/login` liefert 429 bei Sperre. Zusätzlich zum
+  bestehenden IP-Rate-Limit (10/60). Tests `test_moderator_login_lockout.py`.
+  **Offen (Phase 2 = die eigentliche 2FA):** E-Mail-OTP + Passkey/WebAuthn,
+  Trusted-Device (30 Tage), Recovery-Codes + „zweiter Admin entsperrt/resettet"
+  (Escape-Hatch bei ausgesperrtem Zugang).
 - Beschreibung: Login-**Rate-Limit + Lockout** bei Fehlversuchen. **2FA für Admin +
   Moderator**: **E-Mail-Code (OTP)** als Standard (viele nutzen keine Authenticator-
   App), **Passkeys/WebAuthn** als optionale starke, phishing-resistente Alternative.

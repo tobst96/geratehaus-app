@@ -8,9 +8,8 @@ from sqlalchemy import select
 from app.api.deps import CurrentPerson, DbSession
 from app.core import mitglied_session
 from app.core.rate_limit import rate_limit
-from app.core.security import create_access_token, verify_secret
+from app.core.security import create_access_token
 from app.models.barcode_token import BarcodeToken
-from app.models.moderator import Moderator
 from app.models.person import Person
 from app.schemas.auth import (
     BarcodeEinscannen,
@@ -28,6 +27,7 @@ from app.services import (
     barcode_service,
     feature_modul_service,
     mitglied_login_reservierung_service,
+    moderator_service,
     pin_service,
     stammdaten_service,
 )
@@ -276,9 +276,15 @@ async def pin_anfordern(db: DbSession, daten: PinAnfordern) -> dict[str, str]:
 async def moderator_login(
     db: DbSession, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ) -> ModeratorToken:
-    result = await db.execute(select(Moderator).where(Moderator.username == form_data.username))
-    moderator = result.scalar_one_or_none()
-    if moderator is None or not verify_secret(form_data.password, moderator.passwort_hash):
+    try:
+        moderator = await moderator_service.login_pruefen(db, form_data.username, form_data.password)
+    except moderator_service.ModeratorGesperrtError as sperre:
+        minuten = max(1, round(sperre.verbleibend_sekunden / 60))
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Zu viele Fehlversuche. Login für {minuten} Minute(n) gesperrt.",
+        )
+    if moderator is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Benutzername oder Passwort falsch.",
