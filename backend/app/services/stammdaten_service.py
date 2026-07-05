@@ -1,5 +1,5 @@
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import HTTPException, UploadFile, status
@@ -20,6 +20,7 @@ from app.schemas.einsatz_feld import (
     schluessel_aus_label,
 )
 from app.schemas.person import PersonCreate, PersonOut, PersonUpdate
+from app.services.config_service import config_service
 from app.schemas.stammdaten import (
     FahrzeugCreate,
     FahrzeugUpdate,
@@ -423,6 +424,7 @@ async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[Pers
             pin_gesetzt=p.pin_gesetzt,
             benachrichtigungen_aktiv=p.benachrichtigungen_aktiv,
             inaktiv=p.inaktiv,
+            pin_gesperrt_bis=p.pin_gesperrt_bis,
         )
         for p in personen
     ]
@@ -457,6 +459,91 @@ def person_pin_korrekt(person: Person, pin: str | None) -> bool:
     if not pin or person.pin_hash is None:
         return False
     return verify_secret(pin, person.pin_hash)
+
+
+class PinGesperrtError(Exception):
+    """Der PIN-Login der Person ist wegen zu vieler Fehlversuche temporär gesperrt."""
+
+    def __init__(self, verbleibend_sekunden: int) -> None:
+        super().__init__("PIN-Login vorübergehend gesperrt.")
+        self.verbleibend_sekunden = verbleibend_sekunden
+
+
+def _als_utc(dt: datetime) -> datetime:
+    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+
+
+def _pin_gesperrt_bis(person: Person) -> datetime | None:
+    """Sperr-Zeitpunkt als UTC-aware datetime (oder None), robust gegen naive Werte."""
+    if person.pin_gesperrt_bis is None:
+        return None
+    return _als_utc(person.pin_gesperrt_bis)
+
+
+async def pin_login_versuch(db: AsyncSession, person: Person, pin: str | None) -> bool:
+    """Prüft den PIN mit Brute-Force-Schutz und persistiert den Zählerstand.
+
+    - Ist die Person aktuell gesperrt (`pin_gesperrt_bis` in der Zukunft), wird
+      `PinGesperrtError` mit der Restdauer geworfen – ohne den PIN überhaupt zu prüfen.
+    - Bei korrektem PIN werden Zähler und Sperre zurückgesetzt → True.
+    - Bei falschem PIN wird der Fehlversuchszähler erhöht; erreicht er den
+      konfigurierten Schwellwert (`pin_max_fehlversuche`), wird die Person für
+      `pin_sperre_minuten` gesperrt (Zähler zurückgesetzt) und ein Timeline-Eintrag
+      geschrieben → False.
+
+    Bewusst identisch für Vorschau (`/name-pin/pruefen`) und Login (`/name-pin`),
+    damit die Sperre nicht über den Vorschau-Endpunkt umgangen werden kann.
+    """
+    jetzt = datetime.now(timezone.utc)
+    veraendert = False
+
+    gesperrt_bis = _pin_gesperrt_bis(person)
+    if gesperrt_bis is not None and gesperrt_bis > jetzt:
+        raise PinGesperrtError(int((gesperrt_bis - jetzt).total_seconds()) + 1)
+    # Abgelaufene Sperre aufheben, bevor neu gezählt wird.
+    if gesperrt_bis is not None:
+        person.pin_gesperrt_bis = None
+        person.pin_fehlversuche = 0
+        veraendert = True
+
+    if person_pin_korrekt(person, pin):
+        if person.pin_fehlversuche or person.pin_gesperrt_bis is not None:
+            person.pin_fehlversuche = 0
+            person.pin_gesperrt_bis = None
+            veraendert = True
+        if veraendert:
+            await db.commit()
+        return True
+
+    max_fehlversuche = int(await config_service.get(db, "pin_max_fehlversuche", 5))
+    sperre_minuten = int(await config_service.get(db, "pin_sperre_minuten", 15))
+    person.pin_fehlversuche = (person.pin_fehlversuche or 0) + 1
+    if max_fehlversuche > 0 and person.pin_fehlversuche >= max_fehlversuche:
+        person.pin_gesperrt_bis = jetzt + timedelta(minutes=sperre_minuten)
+        person.pin_fehlversuche = 0
+        await person_ereignis_protokollieren(
+            db,
+            person.id,
+            "pin_gesperrt",
+            f"PIN-Login nach {max_fehlversuche} Fehlversuchen für {sperre_minuten} Minuten gesperrt.",
+        )
+    await db.commit()
+    return False
+
+
+async def pin_sperre_aufheben(db: AsyncSession, person: Person) -> Person:
+    """Hebt eine (temporäre) PIN-Sperre manuell auf (Moderator) und setzt den
+    Fehlversuchszähler zurück. Wird in der Personen-Timeline vermerkt."""
+    war_gesperrt = _pin_gesperrt_bis(person) is not None or bool(person.pin_fehlversuche)
+    person.pin_gesperrt_bis = None
+    person.pin_fehlversuche = 0
+    if war_gesperrt:
+        await person_ereignis_protokollieren(
+            db, person.id, "pin_entsperrt", "PIN-Sperre manuell aufgehoben."
+        )
+    await db.commit()
+    await db.refresh(person)
+    return person
 
 
 async def pin_login_erzwingen(db: AsyncSession, person: Person, pin: str | None, kontext: str) -> None:

@@ -62,6 +62,11 @@ DEFAULTS: list[ConfigDefault] = [
     # Intervall (Tage) für die Erinnerungsmail an Personen ohne gesetzten PIN
     # (nur relevant, wenn das Barcode-Modul AUS ist). Einstellbar im Modul Personal.
     ConfigDefault("pin_erinnerung_intervall_tage", "7", ConfigTyp.INT, "Intervall (Tage) der PIN-Erinnerungsmail"),
+    # Brute-Force-Schutz für den öffentlichen Name+PIN-Login: nach so vielen
+    # aufeinanderfolgenden Fehlversuchen wird der PIN-Login der betroffenen Person
+    # für die angegebene Dauer gesperrt (0 Fehlversuche = Sperre deaktiviert).
+    ConfigDefault("pin_max_fehlversuche", "5", ConfigTyp.INT, "PIN-Login: Fehlversuche bis zur Sperre (0 = aus)"),
+    ConfigDefault("pin_sperre_minuten", "15", ConfigTyp.INT, "PIN-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
     # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
     # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
     # anhand der Registry ergänzt bzw. ignoriert.

@@ -194,6 +194,15 @@ async def barcode_vorschau(db: DbSession, token: str) -> BarcodeVorschau:
     )
 
 
+def _pin_gesperrt_http(sperre: "stammdaten_service.PinGesperrtError") -> HTTPException:
+    """429 mit Restdauer (Minuten) bei temporär gesperrtem PIN-Login."""
+    minuten = max(1, round(sperre.verbleibend_sekunden / 60))
+    return HTTPException(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        detail=f"Zu viele Fehlversuche. PIN-Login für {minuten} Minute(n) gesperrt.",
+    )
+
+
 @router.get(
     "/personen", response_model=list[PersonAuswahl], dependencies=[Depends(rate_limit(30, 60))]
 )
@@ -228,11 +237,18 @@ async def personen_auswahl(db: DbSession, suche: str = "") -> list[PersonAuswahl
 )
 async def name_pin_pruefen(db: DbSession, daten: NamePinLogin) -> NamePinVorschau:
     """Prüft den PIN, OHNE einzuloggen (kein Cookie) – nur für die Bildvorschau am
-    Kiosk, sobald der korrekte PIN eingegeben wurde. Bei falschem/fehlendem PIN 401."""
+    Kiosk, sobald der korrekte PIN eingegeben wurde. Bei falschem/fehlendem PIN 401,
+    bei zu vielen Fehlversuchen 429 (temporäre Sperre)."""
     person = await stammdaten_service.get_person(db, daten.person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
-    if not person.pin_gesetzt or not stammdaten_service.person_pin_korrekt(person, daten.pin):
+    if not person.pin_gesetzt:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="PIN falsch.")
+    try:
+        korrekt = await stammdaten_service.pin_login_versuch(db, person, daten.pin)
+    except stammdaten_service.PinGesperrtError as sperre:
+        raise _pin_gesperrt_http(sperre)
+    if not korrekt:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="PIN falsch.")
     return NamePinVorschau(name=person.name, bild_url=person.bild_url)
 
@@ -250,7 +266,11 @@ async def name_pin_login(db: DbSession, response: Response, daten: NamePinLogin)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
     if not person.pin_gesetzt:
         raise HTTPException(status_code=status.HTTP_428_PRECONDITION_REQUIRED, detail="kein_pin")
-    if not stammdaten_service.person_pin_korrekt(person, daten.pin):
+    try:
+        korrekt = await stammdaten_service.pin_login_versuch(db, person, daten.pin)
+    except stammdaten_service.PinGesperrtError as sperre:
+        raise _pin_gesperrt_http(sperre)
+    if not korrekt:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="PIN falsch.")
 
     response.set_cookie(

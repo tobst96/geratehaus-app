@@ -10,6 +10,7 @@ import {
   personBildReservierungAnlegen,
   personBarcodePerMailSenden,
   personPinSetzen,
+  personPinEntsperren,
   holePersonTimeline,
   barcodeBildUrl,
   holeAlleGruppen,
@@ -133,8 +134,15 @@ const PERSON_EREIGNIS_ICON: Record<string, string> = {
   stammdaten_geaendert: "✏️",
   bild_geaendert: "🖼️",
   pin_gesetzt: "🔒",
+  pin_gesperrt: "⛔",
+  pin_entsperrt: "🔓",
   inaktivitaets_warnung: "⚠️",
 };
+
+/** True, wenn der PIN-Login der Person aktuell (temporär) gesperrt ist. */
+function istPinGesperrt(person: Person): boolean {
+  return !!person.pin_gesperrt_bis && new Date(person.pin_gesperrt_bis).getTime() > Date.now();
+}
 
 
 export function Personal() {
@@ -355,6 +363,16 @@ export function Personal() {
       await timelineLaden(p.id);
     } catch (err) {
       alert(err instanceof ApiError ? String(err.detail) : "PIN konnte nicht gespeichert werden.");
+    }
+  }
+
+  async function pinEntsperren(p: Person) {
+    try {
+      await personPinEntsperren(p.id);
+      await laden();
+      await timelineLaden(p.id);
+    } catch (err) {
+      alert(err instanceof ApiError ? String(err.detail) : "PIN-Sperre konnte nicht aufgehoben werden.");
     }
   }
 
@@ -866,6 +884,17 @@ export function Personal() {
                             {person.pin_gesetzt ? "🔒 PIN gesetzt" : "Kein PIN gesetzt"}
                           </span>
                         </div>
+
+                        {istPinGesperrt(person) && (
+                          <div className="person-aktionen">
+                            <button className="sekundaer" onClick={() => pinEntsperren(person)}>
+                              PIN-Sperre aufheben
+                            </button>
+                            <span style={{ fontSize: "0.85rem", color: "var(--farbe-warnung, #b45309)" }}>
+                              ⛔ PIN-Login gesperrt (zu viele Fehlversuche)
+                            </span>
+                          </div>
+                        )}
 
                         {config?.modul_barcode_aktiv ? (
                           <>
