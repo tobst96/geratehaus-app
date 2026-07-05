@@ -34,7 +34,7 @@ async def test_relevant_setzen_und_zuruecksetzen(client, db):
     dienstbuch = await _dienstbuch(db)
 
     # Default: nicht relevant
-    r = await client.get(f"/api/v1/dienstbuecher/{dienstbuch.id}")
+    r = await client.get(f"/api/v1/dienstbuecher/{dienstbuch.id}", headers=h)
     assert r.status_code == 200
     assert r.json()["relevant"] is False
 
@@ -46,7 +46,7 @@ async def test_relevant_setzen_und_zuruecksetzen(client, db):
     assert r.json()["relevant"] is True
 
     # Persistiert – über einen frischen GET-Request (eigene Session) verifiziert
-    r = await client.get(f"/api/v1/dienstbuecher/{dienstbuch.id}")
+    r = await client.get(f"/api/v1/dienstbuecher/{dienstbuch.id}", headers=h)
     assert r.json()["relevant"] is True
 
     # Wieder zurücksetzen
