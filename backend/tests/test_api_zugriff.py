@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 import pytest
 
+from app.core import mitglied_session
 from app.core.security import hash_secret
 from app.models.kiosk_token import KioskToken
 from app.models.moderator import Moderator
@@ -66,10 +67,21 @@ async def test_mit_moderator_erlaubt(client, db):
 
 @pytest.mark.asyncio
 async def test_mit_mitglieds_cookie_erlaubt(client, db):
-    h = {"Cookie": "geraetehaus_name=Max Muster"}
+    # Nur ein SIGNIERTES Namens-Cookie zählt als Identität.
+    signiert = mitglied_session.signiere_name("Max Muster")
+    h = {"Cookie": f"geraetehaus_name={signiert}"}
     for pfad in GESCHUETZT:
         r = await client.get(pfad, headers=h)
         assert r.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_gefaelschtes_mitglieds_cookie_gesperrt(client, db):
+    # Klartext-Name (nicht signiert) ist gefälscht → 401 (Regression fürs
+    # geschlossene Auth-Loch).
+    h = {"Cookie": "geraetehaus_name=Max Muster"}
+    r = await client.get("/api/v1/einsaetze", headers=h)
+    assert r.status_code == 401
 
 
 @pytest.mark.asyncio

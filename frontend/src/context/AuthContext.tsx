@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { apiPost, getModeratorToken, setModeratorToken } from "../api/client";
+import { getModeratorToken, setModeratorToken } from "../api/client";
 import {
   barcodeEinscannen as barcodeEinscannenApi,
   mitgliedAbmelden as mitgliedAbmeldenApi,
@@ -26,7 +26,6 @@ function rolleAusToken(token: string | null): string | null {
 
 interface AuthContextValue {
   angezeigterName: string | null;
-  namenEintragen: (name: string) => Promise<void>;
   barcodeEinscannen: (token: string) => Promise<string>;
   barcodeEinscannenEinmalig: (token: string) => Promise<string>;
   nameLoginEinmalig: (personId: number, pin: string) => Promise<string>;
@@ -85,12 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // damit die UI schon vor dem Laden der Rechte für Admins vollständig ist.
     if (moderatorRolle === "admin") return true;
     return modulRechte?.has(modulKey) ?? false;
-  }
-
-  async function namenEintragen(name: string): Promise<void> {
-    await apiPost<void>("/auth/name", { name });
-    localStorage.setItem(NAME_SPEICHER_KEY, name);
-    setAngezeigterName(name);
   }
 
   async function barcodeEinscannen(token: string): Promise<string> {
@@ -155,7 +148,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         angezeigterName,
-        namenEintragen,
         barcodeEinscannen,
         barcodeEinscannenEinmalig,
         nameLoginEinmalig,

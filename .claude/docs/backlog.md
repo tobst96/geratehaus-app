@@ -855,7 +855,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (0) Öffentliche Daten-API absichern – Phase 2
 
-- Status: Backlog
+- Status: In Bearbeitung (Mitglieder-Session als PR 05.07.2026 – `feature/mitglied-session-p0`)
 - Priorität: Hoch
 - Kategorie: Backend / Sicherheit / Auth
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -864,13 +864,24 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (Kiosk-Token `X-Kiosk-Token` / Moderator-JWT / Mitglieds-Cookie) als Router-Level-
   Dependency auf `einsaetze`, `dienstbuecher`, `dienststunden`, `buchungen`,
   `stammdaten`; Frontend sendet Kiosk-Token; `zusatzfelder`-Write geschlossen; Tests
-  `test_api_zugriff.py`. **Phase 2 (offen):** echte **signierte Mitglieder-Session**
-  statt setzbarem Namens-Cookie (`POST /auth/name` PIN-los entschärfen);
-  `GET /auth/personen`-Namensliste (bleibt öffentlich für Login-Auswahl – nur
-  id/name/bild/pin_gesetzt, rate-limitiert) in Phase 2 mitdenken; Divera-Webhook-
-  Secret aus der URL in Header/HMAC.
-- Akzeptanzkriterien: Mitglieds-Zugriff über signiertes Session-Token; kein
-  PIN-loses Setzen des Namens-Cookies mehr; Swagger erneut ohne offene sensible Daten.
+  `test_api_zugriff.py`.
+- Fortschritt (05.07.2026): **Signierte Mitglieder-Session umgesetzt.**
+  `geraetehaus_name`-Cookie enthält jetzt einen mit `cookie_secret_key` **signierten**
+  Wert (neues `app/core/mitglied_session.py`) statt des Klartext-Namens → nicht mehr
+  fälschbar. Ausgestellt nur nach echter Identifikation (Barcode/Name+PIN);
+  `get_current_person`, `require_zugriff` und `formulare.optionale_person` verifizieren
+  die Signatur (fehlend/manipuliert → 401 bzw. anonym). Der **PIN-lose `POST /auth/name`
+  ist entfernt** (Frontend `NameForm`/`namenEintragen` mit); Kiosk (X-Kiosk-Token) und
+  PIN/Barcode-Login unverändert. Tests `test_mitglied_session.py` + Regression in
+  `test_api_zugriff.py` (gefälschtes Klartext-Cookie → 401). **Betriebshinweis:**
+  bereits „von zu Hause" angemeldete Mitglieder müssen sich einmalig neu per PIN
+  anmelden (alte Klartext-Cookies werden nicht mehr akzeptiert).
+- **Offen (Rest von Phase 2):** `GET /auth/personen`-Namensliste absichern/rate-limiten
+  (bleibt öffentlich für die Login-Auswahl – nur id/name/bild/pin_gesetzt); Divera-
+  Webhook-Secret aus der URL in Header/HMAC verlagern.
+- Akzeptanzkriterien: ~~Mitglieds-Zugriff über signiertes Session-Token; kein
+  PIN-loses Setzen des Namens-Cookies mehr~~ ✓; Swagger erneut ohne offene sensible
+  Daten (Divera-Webhook-Secret offen).
 - Notizen: Baut auf `require_zugriff` (`api/deps.py`) auf.
 
 ### (1) PIN-Brute-Force-Schutz (Mitglieder-/Kiosk-Login)

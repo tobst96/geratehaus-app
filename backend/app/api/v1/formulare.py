@@ -4,6 +4,7 @@ from fastapi import APIRouter, Cookie, Depends, File, HTTPException, Request, Up
 from sqlalchemy import select
 
 from app.api.deps import DbSession, require_modul_aktiv
+from app.core import mitglied_session
 from app.core.rate_limit import rate_limit
 from app.models.person import Person
 from app.schemas.formular import (
@@ -25,11 +26,13 @@ router = APIRouter(
 async def optionale_person(
     db: DbSession, geraetehaus_name: Annotated[str | None, Cookie()] = None
 ) -> Person | None:
-    """Person aus dem Namens-Cookie – ohne Fehler, wenn keine angemeldet ist."""
-    if not geraetehaus_name:
+    """Person aus dem SIGNIERTEN Namens-Cookie – ohne Fehler, wenn keine angemeldet
+    ist (bzw. das Cookie fehlt/ungültig ist)."""
+    name = mitglied_session.lese_name(geraetehaus_name)
+    if not name:
         return None
     return (
-        await db.execute(select(Person).where(Person.name == geraetehaus_name))
+        await db.execute(select(Person).where(Person.name == name))
     ).scalar_one_or_none()
 
 
