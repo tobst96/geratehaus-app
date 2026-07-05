@@ -875,7 +875,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (1) PIN-Brute-Force-Schutz (Mitglieder-/Kiosk-Login)
 
-- Status: Review (PR nach beta offen, 05.07.2026 – `feature/pin-brute-force-schutz`)
+- Status: Erledigt (PR #27 gemergt + auf beta deployt, 05.07.2026)
 - Priorität: Hoch
 - Kategorie: Backend / Sicherheit
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -891,7 +891,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (2) Berechtigungssystem fertigstellen
 
-- Status: In Bearbeitung (Teil-PR 05.07.2026 – `feature/berechtigungen-frontend-guards`)
+- Status: In Bearbeitung (Teil 1 = PR #28 gemergt + deployt 05.07.2026; Rest offen)
 - Fortschritt (05.07.2026): **Frontend-Guards** begonnen – neuer Endpunkt
   `GET /moderator/meta/meine-berechtigungen` + `berechtigungs_service.meine_keys`;
   AuthContext lädt eigene Modul-Rechte und bietet `hatModulZugriff(key)`; neuer
@@ -917,7 +917,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (3) Geschützte Datei-Auslieferung
 
-- Status: In Bearbeitung (Phase 1 als PR 05.07.2026 – `feature/geschuetzte-datei-ausl-p3`)
+- Status: In Bearbeitung (Phase 1 = PR #29 gemergt + deployt 05.07.2026; Phase 2 offen)
 - Fortschritt (05.07.2026, Phase 1): **Durchzählbares Profilbild-Leck geschlossen.**
   Profilbilder lagen als `/uploads/personen/person-<id>.<ext>` unter einem öffentlichen
   Static-Mount → per ID abzählbar. Jetzt: **Zufallstoken-Dateinamen** (nicht erratbar),
