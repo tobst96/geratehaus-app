@@ -876,9 +876,17 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `test_api_zugriff.py` (gefälschtes Klartext-Cookie → 401). **Betriebshinweis:**
   bereits „von zu Hause" angemeldete Mitglieder müssen sich einmalig neu per PIN
   anmelden (alte Klartext-Cookies werden nicht mehr akzeptiert).
-- **Offen (Rest von Phase 2):** `GET /auth/personen`-Namensliste absichern/rate-limiten
-  (bleibt öffentlich für die Login-Auswahl – nur id/name/bild/pin_gesetzt); Divera-
-  Webhook-Secret aus der URL in Header/HMAC verlagern.
+- Fortschritt (05.07.2026): **Divera-Webhook gehärtet (direkt auf beta).** Der
+  öffentliche `POST /divera/webhook` vergleicht den `accesskey` jetzt **zeitkonstant**
+  (`hmac.compare_digest`, kein Timing-Seitenkanal auf den Divera-API-Key mehr), lehnt
+  einen **nicht konfigurierten (leeren) Key** aktiv ab (kein Durchrutschen per leerem
+  accesskey) und ist **ratenbegrenzt** (60/min pro IP) gegen Brute-Force. Tests
+  `test_divera_webhook.py` (5). **Rest offen:** `accesskey` steckt weiterhin in der
+  URL – die vollständige Verlagerung in einen Header/HMAC-Signatur setzt voraus, dass
+  Divera das serverseitig unterstützt (Capability klären), sonst bricht der Live-Webhook.
+- **Offen (Rest von Phase 2):** `GET /auth/personen`-Namensliste ist bereits
+  rate-limitiert (30/60); Divera-`accesskey` endgültig aus der URL in Header/HMAC
+  verlagern (Divera-Capability vorausgesetzt).
 - Akzeptanzkriterien: ~~Mitglieds-Zugriff über signiertes Session-Token; kein
   PIN-loses Setzen des Namens-Cookies mehr~~ ✓; Swagger erneut ohne offene sensible
   Daten (Divera-Webhook-Secret offen).
