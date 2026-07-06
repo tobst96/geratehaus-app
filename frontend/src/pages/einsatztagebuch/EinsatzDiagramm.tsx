@@ -351,6 +351,9 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     try {
       await einsatzZusatzfelderAktualisieren(einsatz.id, feldWerte);
       await onAktualisiert();
+      // Wurden die Details über das Popup bearbeitet, nach dem Speichern sofort
+      // schließen (im Inline-Layout ist detailsOffen ohnehin schon false).
+      setDetailsOffen(false);
     } finally {
       setFelderSpeichern(false);
     }
