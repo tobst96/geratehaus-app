@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block inhalt %}
+<style>
+    .kiosk-poster {
+        text-align: center;
+        margin-top: 12px;
+    }
+    .kiosk-poster h1 {
+        font-size: 22pt;
+        margin-bottom: 2px;
+    }
+    .kiosk-poster .geraet {
+        font-size: 13pt;
+        color: #555;
+        margin-bottom: 24px;
+    }
+    .kiosk-poster .qr {
+        width: 9.5cm;
+        height: 9.5cm;
+        margin: 0 auto 18px;
+    }
+    .kiosk-poster .qr img {
+        width: 100%;
+        height: 100%;
+    }
+    .kiosk-poster .link {
+        font-size: 10pt;
+        color: #333;
+        word-break: break-all;
+        margin-bottom: 28px;
+    }
+    .kiosk-anleitung {
+        text-align: left;
+        max-width: 14cm;
+        margin: 0 auto;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 14px 18px;
+        background: #f7f7f7;
+    }
+    .kiosk-anleitung h2 {
+        font-size: 12pt;
+        margin: 0 0 8px;
+        color: {{ farbe_primaer }};
+    }
+    .kiosk-anleitung ol {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 10.5pt;
+        line-height: 1.55;
+    }
+</style>
+<div class="kiosk-poster">
+    <h1>Kiosk einrichten</h1>
+    <div class="geraet">{{ geraet_name }}</div>
+
+    <div class="qr"><img src="{{ qr_data_uri }}" alt="QR-Code Kiosk-Link"></div>
+
+    <div class="link">{{ kiosk_link }}</div>
+
+    <div class="kiosk-anleitung">
+        <h2>So richtest du das Tablet ein</h2>
+        <ol>
+            <li>Mit dem WLAN des Gerätehauses verbinden.</li>
+            <li>Den QR-Code oben mit der Tablet-Kamera scannen (oder den Link im Browser öffnen).</li>
+            <li>Im Browser-Menü „Zum Startbildschirm hinzufügen“ bzw. „Als Lesezeichen speichern“ wählen.</li>
+            <li>Die gespeicherte Verknüpfung öffnen – das Tablet startet direkt im Kiosk-Modus.</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}

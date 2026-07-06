@@ -1543,7 +1543,15 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Kiosk-Link als schönes QR-PDF (pro Gerät)
 
-- Status: Backlog
+- Status: Review (Feature-Branch `feature/kiosk-qr-pdf` → PR nach beta, 06.07.2026)
+- Umsetzung (06.07.2026): Server-seitiges PDF über WeasyPrint (`pdf_service.kiosk_link_pdf`
+  + Template `templates/pdf/kiosk_link.html`, erbt `base.html` → Logo/Org-Name im Kopf).
+  QR serverseitig aus dem Kiosk-Link (`{oeffentliche_basis_url}/kiosk/<token>`) über neue
+  Dependency **`segno`** (pur-Python) als PNG-Data-URI. Poster mit Gerätename, großem QR,
+  Link-Text und 4-Schritt-Anleitung. Endpunkt `GET /moderator/barcodes/kiosk/{id}/pdf`
+  (CurrentAdmin). Frontend: „PDF"-Button pro Gerät in `KioskGeraete.tsx` (Download via
+  authentifiziertem Blob, `ladeKioskPdf`). Tests `test_kiosk_pdf.py` (3); Suite 283 grün,
+  `npm run build` grün.
 - Priorität: Mittel
 - Kategorie: Feature / Frontend / Backend
 - Skills: geraetehaus-patterns, tests, review

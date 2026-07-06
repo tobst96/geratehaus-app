@@ -9,7 +9,7 @@ from app.models.barcode_token import FahrzeugToken
 from app.models.kiosk_token import KioskToken
 from app.models.person import Person
 from app.schemas.kiosk_token import KioskTokenAnlegen, KioskTokenOut, KioskTokenStartseiteModule
-from app.services import barcode_service, kiosk_token_service, stammdaten_service
+from app.services import barcode_service, kiosk_token_service, pdf_service, stammdaten_service
 
 logger = structlog.get_logger(__name__)
 
@@ -118,6 +118,21 @@ async def kiosk_token_startseite_setzen(
     if kiosk_token is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kiosk-Token nicht gefunden.")
     return await kiosk_token_service.set_startseite_module(db, kiosk_token, daten.startseite_module)
+
+
+@router.get("/kiosk/{kiosk_token_id}/pdf")
+async def kiosk_token_pdf(db: DbSession, _admin: CurrentAdmin, kiosk_token_id: int) -> Response:
+    """Ausdruckbares QR-PDF-Poster für ein Kiosk-Gerät (Logo, Gerätename, QR auf
+    den Kiosk-Link, Einrichtungs-Anleitung)."""
+    kiosk_token = await kiosk_token_service.get(db, kiosk_token_id)
+    if kiosk_token is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kiosk-Gerät nicht gefunden.")
+    pdf_bytes = await pdf_service.kiosk_link_pdf(db, kiosk_token)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="kiosk-{kiosk_token_id}.pdf"'},
+    )
 
 
 @router.delete("/kiosk/{kiosk_token_id}", status_code=status.HTTP_204_NO_CONTENT)

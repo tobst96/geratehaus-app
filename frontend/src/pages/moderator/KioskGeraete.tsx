@@ -3,6 +3,7 @@ import {
   holeKioskTokens,
   kioskTokenAnlegen,
   kioskTokenLoeschen,
+  ladeKioskPdf,
   setzeKioskStartseiteModule,
   type KioskTokenOut,
 } from "../../api/moderator";
@@ -127,6 +128,9 @@ export function KioskGeraete() {
                 <input readOnly value={linkFuer(g.token)} style={{ width: 360, fontSize: "0.8rem" }} />
                 <button type="button" className="sekundaer" onClick={() => kopieren(linkFuer(g.token))}>
                   Kopieren
+                </button>
+                <button type="button" className="sekundaer" onClick={() => ladeKioskPdf(g.id, g.bezeichnung)}>
+                  PDF
                 </button>
                 <button type="button" className="sekundaer" onClick={() => loeschen(g.id)}>
                   Löschen
