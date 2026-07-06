@@ -301,6 +301,92 @@ async def person_anlegen(db: AsyncSession, daten: PersonCreate) -> Person:
     return person
 
 
+# Spalten der Import-/Vorlage-CSV. Reihenfolge = Spaltenreihenfolge der Vorlage.
+CSV_IMPORT_SPALTEN = ["vorname", "zwischenname", "nachname", "email", "gruppe", "funktion"]
+
+# Beispiel-CSV zum Download neben dem Upload-Button. Bewusst neutrale Platzhalter
+# (keine org-spezifischen Werte); Gruppe/Funktion nur als Namensbeispiel.
+CSV_IMPORT_VORLAGE = (
+    "vorname;zwischenname;nachname;email;gruppe;funktion\n"
+    "Max;;Mustermann;max@example.org;;\n"
+    "Erika;von;Musterfrau;;;\n"
+)
+
+
+async def personen_csv_importieren(
+    db: AsyncSession, inhalt: bytes
+) -> tuple[int, list[dict[str, object]]]:
+    """Legt Personen zeilenweise aus einer CSV an (über `person_anlegen`, inkl.
+    Timeline). Gruppe/Funktion werden per Name (case-insensitive) aufgelöst.
+    Fehlerhafte Zeilen werden übersprungen und mit Zeilennummer gesammelt
+    zurückgegeben, statt den gesamten Import abzubrechen.
+
+    Rückgabe: (Anzahl angelegter Personen, Liste von {"zeile", "fehler"})."""
+    import csv
+    from io import StringIO
+
+    from pydantic import ValidationError
+
+    try:
+        text = inhalt.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = inhalt.decode("latin-1")
+
+    kopfzeile = text.split("\n", 1)[0]
+    trennzeichen = ";" if kopfzeile.count(";") >= kopfzeile.count(",") else ","
+    leser = csv.DictReader(StringIO(text), delimiter=trennzeichen)
+
+    # Namens-Lookups einmalig aufbauen (case-insensitive, getrimmt).
+    gruppen = await liste_gruppen(db, nur_aktive=False)
+    funktionen = await liste_funktionen_dienststunden(db, nur_aktive=False)
+    gruppe_nach_name = {g.name.strip().lower(): g.id for g in gruppen}
+    funktion_nach_name = {f.name.strip().lower(): f.id for f in funktionen}
+
+    angelegt = 0
+    fehler: list[dict[str, object]] = []
+
+    # Zeile 1 = Kopfzeile, Datenzeilen ab 2.
+    for index, roh in enumerate(leser, start=2):
+        werte = {(k or "").strip().lower(): (v or "").strip() for k, v in roh.items()}
+        if not any(werte.get(sp) for sp in CSV_IMPORT_SPALTEN):
+            continue  # komplett leere Zeile überspringen
+
+        gruppe_name = werte.get("gruppe", "")
+        funktion_name = werte.get("funktion", "")
+        gruppe_id: int | None = None
+        funktion_id: int | None = None
+        if gruppe_name:
+            gruppe_id = gruppe_nach_name.get(gruppe_name.lower())
+            if gruppe_id is None:
+                fehler.append({"zeile": index, "fehler": f"Gruppe „{gruppe_name}“ nicht gefunden."})
+                continue
+        if funktion_name:
+            funktion_id = funktion_nach_name.get(funktion_name.lower())
+            if funktion_id is None:
+                fehler.append({"zeile": index, "fehler": f"Funktion „{funktion_name}“ nicht gefunden."})
+                continue
+
+        try:
+            daten = PersonCreate(
+                vorname=werte.get("vorname", ""),
+                zwischenname=werte.get("zwischenname") or None,
+                nachname=werte.get("nachname", ""),
+                email=werte.get("email") or None,
+                gruppe_id=gruppe_id,
+                funktion_id=funktion_id,
+            )
+        except ValidationError as exc:
+            erstes = exc.errors()[0] if exc.errors() else {}
+            feld = erstes.get("loc", ["?"])[0]
+            fehler.append({"zeile": index, "fehler": f"Ungültiges Feld „{feld}“."})
+            continue
+
+        await person_anlegen(db, daten)
+        angelegt += 1
+
+    return angelegt, fehler
+
+
 async def person_aktualisieren(db: AsyncSession, person: Person, daten: PersonUpdate) -> Person:
     aenderungen = daten.model_dump(exclude_unset=True)
     alte_werte = {feld: getattr(person, feld) for feld in aenderungen}

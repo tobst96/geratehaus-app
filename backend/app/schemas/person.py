@@ -63,3 +63,13 @@ class AmpelEintragOut(BaseModel):
 
 class PersonPinSetzen(BaseModel):
     pin: str = Field(min_length=4, max_length=6, pattern=r"^\d+$")
+
+
+class PersonCsvImportFehler(BaseModel):
+    zeile: int
+    fehler: str
+
+
+class PersonCsvImportErgebnis(BaseModel):
+    angelegt: int
+    fehler: list[PersonCsvImportFehler]

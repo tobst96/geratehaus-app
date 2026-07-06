@@ -380,7 +380,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### CSV-Import für Personen inkl. Beispieldatei
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Mittel
 - Kategorie: Feature / Backend / Frontend
 - Skills: geraetehaus-patterns, tests, review
@@ -390,6 +390,11 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   abzubrechen. Beispiel-CSV als statische Datei zum Download neben dem Upload-Button.
 - Akzeptanzkriterien: CSV-Upload legt Personen an, Fehlerreport pro Zeile;
   Beispieldatei verfügbar; Test.
+- Notizen: Erledigt (PR nach `beta`). Service `personen_csv_importieren`
+  (Trennzeichen `;`/`,` autoerkennung, utf-8-sig, Name→Gruppe/Funktion
+  case-insensitiv), Endpunkte `.../personen/csv-import` + `.../personen/csv-vorlage`,
+  UI im Personal-Kopf (Button „CSV-Import" → Modal mit Vorlage-Download,
+  Upload, Fehlerreport pro Zeile). Tests `test_personen_csv_import.py` (5).
 
 ---
 
