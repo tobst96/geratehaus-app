@@ -57,6 +57,7 @@ const NAV_GRUPPEN: NavGruppe[] = [
     items: [
       { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen", berechtigungKey: "berechtigungen" },
       { pfad: "/moderator/audit", titel: "Audit-Log", icon: "berechtigungen", nurAdmin: true },
+      { pfad: "/moderator/systemstatus", titel: "Systemstatus", icon: "update", nurAdmin: true },
       { pfad: "/moderator/update", titel: "Update", icon: "update", berechtigungKey: "einstellungen" },
       { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen", berechtigungKey: "einstellungen" },
     ],

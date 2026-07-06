@@ -1,10 +1,11 @@
 import re
+from typing import Any
 
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.api.deps import CurrentModerator, DbSession
-from app.services import berechtigungs_service, update_service
+from app.api.deps import CurrentAdmin, CurrentModerator, DbSession
+from app.services import berechtigungs_service, systemstatus_service, update_service
 
 router = APIRouter(prefix="/moderator/meta", tags=["moderator:meta"])
 
@@ -20,6 +21,17 @@ class MeineBerechtigungenOut(BaseModel):
     ist_admin: bool
     # Modul-Keys, auf die der angemeldete Moderator zugreifen darf (Admins: alle).
     keys: list[str]
+
+
+class SystemStatusOut(BaseModel):
+    """Read-only Betriebsstatus fürs Admin-Observability-Panel."""
+
+    version: str
+    datenbank: dict[str, Any]
+    smtp: dict[str, Any]
+    minio: dict[str, Any]
+    divera: dict[str, Any]
+    scheduler: dict[str, Any]
 
 
 def _version_zu_tag(version: str) -> str:
@@ -56,3 +68,10 @@ async def meine_berechtigungen(db: DbSession, moderator: CurrentModerator) -> Me
         ist_admin=berechtigungs_service.ist_admin(moderator),
         keys=await berechtigungs_service.meine_keys(db, moderator),
     )
+
+
+@router.get("/systemstatus", response_model=SystemStatusOut)
+async def systemstatus(db: DbSession, _admin: CurrentAdmin) -> SystemStatusOut:
+    """Betriebsstatus (DB/SMTP/MinIO/Divera + geplante Jobs) fürs Admin-Panel.
+    Admin-only – reine Support-/Observability-Info."""
+    return SystemStatusOut(**await systemstatus_service.system_status(db))

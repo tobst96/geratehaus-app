@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -166,3 +166,17 @@ app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads"
 @app.get("/api/v1/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/v1/ready")
+async def ready(response: Response) -> dict[str, str]:
+    """Readiness inkl. DB-Konnektivität: 200 wenn die Datenbank erreichbar ist,
+    sonst 503. Für Load-Balancer/Compose-Healthchecks; bewusst unauthentifiziert."""
+    from app.db.session import AsyncSessionLocal
+    from app.services import systemstatus_service
+
+    async with AsyncSessionLocal() as db:
+        if await systemstatus_service.datenbank_ok(db):
+            return {"status": "ready"}
+    response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    return {"status": "unavailable"}

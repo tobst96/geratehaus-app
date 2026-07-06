@@ -22,6 +22,7 @@ import { Module } from "./pages/moderator/Module";
 import { ModulUnterseite } from "./pages/moderator/ModulUnterseite";
 import { Berechtigungen } from "./pages/moderator/Berechtigungen";
 import { AuditLog } from "./pages/moderator/AuditLog";
+import { Systemstatus } from "./pages/moderator/Systemstatus";
 import { BarcodeGenerator } from "./pages/moderator/BarcodeGenerator";
 import { NotifierEinstellungen } from "./pages/moderator/NotifierEinstellungen";
 import { SetupWizard } from "./pages/setup/SetupWizard";
@@ -72,6 +73,7 @@ export function App() {
               <Route element={<AdminRoute />}>
                 <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />
                 <Route path="audit" element={<AuditLog />} />
+                <Route path="systemstatus" element={<Systemstatus />} />
               </Route>
               {/* Granular schaltbar (Backend: require_modul_zugriff, Admins via Bypass). */}
               <Route element={<BerechtigungRoute modulKeys={["barcodes"]} />}>

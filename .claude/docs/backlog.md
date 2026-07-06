@@ -1416,7 +1416,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### System-Statuspanel im Admin (Observability)
 
-- Status: Backlog
+- Status: Erledigt (direkt auf beta, 07.07.2026)
 - Priorität: Niedrig
 - Kategorie: Backend / Frontend / Betrieb
 - Skills: geraetehaus-patterns, review
@@ -1427,6 +1427,16 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Akzeptanzkriterien: Status-Panel im Admin; Health/Readiness-Endpunkte.
 - Notizen: Nutzen ⭐. Backup-Status (Etappe Q „Restore-Test" / Backup-Modul) hier
   mit anzeigen.
+- Umsetzung (07.07.2026): `systemstatus_service` (read-only Checks DB `SELECT 1`,
+  SMTP-Konfig, MinIO aktiv+erreichbar via `liste_buckets`, Divera-Konfig,
+  Scheduler-Jobs mit `next_run_time`). Endpunkte: `GET /moderator/meta/systemstatus`
+  (Admin-only) + unauth. `GET /api/v1/ready` (Readiness inkl. DB → 200/503; `/health`
+  bleibt der triviale Liveness-Check). Frontend: Admin-Seite `Systemstatus.tsx`
+  (Ampel-Panel Dienste + Job-Tabelle, Aktualisieren-Button), Nav-Punkt „Systemstatus"
+  (nurAdmin) unter Verwaltung, Route unter `AdminRoute`. Tests `test_systemstatus.py`
+  (Readiness, Admin-Status, 403 für Nicht-Admin). Suite 336 grün, `npm run build` grün.
+- **Follow-up (offen):** „letzte Laufzeit" je Job (statt nur nächster Lauf) +
+  Backup-Status brauchen Persistenz der Job-Ergebnisse – bewusst separat gelassen.
 
 > **Hinweis Mobile-Overflow:** bereits als Bugs in **Etappe D** („Layout-Overflow auf
 > Mobile") und **Etappe E** („Kacheln seitlich abgeschnitten") erfasst – dort beheben.
