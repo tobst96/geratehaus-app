@@ -13,6 +13,7 @@ from pathlib import Path
 
 import httpx
 import structlog
+from packaging.version import InvalidVersion, Version
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -62,13 +63,33 @@ def _zu_pep440(v: str) -> str:
 
 
 def _passende_release(releases: list[dict], kanal: str) -> dict | None:
+    """Neuestes passendes Release je Kanal (GitHub liefert neueste zuerst):
+    - `stable`: nur echte Releases (keine Prereleases).
+    - `beta`: **nur Prereleases** – wer auf dem Beta-Kanal ist, soll auf der
+      Beta-Schiene bleiben und NICHT auf ein (womöglich älteres) Stable-Release
+      geschoben werden. Für Stable bewusst den Kanal wechseln."""
     for release in releases:
         if release.get("draft"):
             continue
         if kanal == "stable" and release.get("prerelease"):
             continue
+        if kanal == "beta" and not release.get("prerelease"):
+            continue
         return release
     return None
+
+
+def _ist_neuer(verfuegbar: str, installiert: str) -> bool:
+    """True nur, wenn die verfügbare Version **echt neuer** ist als die
+    installierte – verhindert, dass ein Downgrade (z. B. älteres Stable neben
+    einer neueren Beta) als „Update verfügbar" angezeigt wird. Bei nicht
+    parsebaren Versionen konservativer Fallback auf Ungleichheit."""
+    if not verfuegbar:
+        return False
+    try:
+        return Version(_zu_pep440(verfuegbar)) > Version(_zu_pep440(installiert))
+    except InvalidVersion:
+        return _zu_pep440(verfuegbar) != _zu_pep440(installiert)
 
 
 async def update_status(db: AsyncSession) -> dict:
@@ -108,7 +129,7 @@ async def update_status(db: AsyncSession) -> dict:
         "verfuegbare_version": verfuegbare_version,
         "veroeffentlicht_am": release.get("published_at"),
         "release_url": release.get("html_url"),
-        "update_verfuegbar": bool(verfuegbare_version) and _zu_pep440(verfuegbare_version) != _zu_pep440(aktuelle_version),
+        "update_verfuegbar": _ist_neuer(verfuegbare_version, aktuelle_version),
         "fehler": None,
     }
 

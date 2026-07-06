@@ -559,6 +559,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Update auslösbar sein (nicht nur Anzeige).
 - Akzeptanzkriterien: Update per Klick anstoßbar; Fehlerbehandlung; Test.
 - Notizen: `moderator_update.py` / `update_service.py` / `Update.tsx`.
+- Bugfix (06.07.2026, direkt auf beta): **Beta-Kanal bot fälschlich ein Stable-Update
+  an** (Nutzermeldung). Ursachen: (1) `_passende_release` gab im Beta-Kanal das neueste
+  Release *inkl. Stable* zurück → jetzt liefert der Beta-Kanal **nur Prereleases**
+  (Wechsel auf Stable ist bewusst ein Kanalwechsel); (2) `update_verfuegbar` prüfte nur
+  auf Ungleichheit (`!=`) → jetzt echte „neuer als"-Prüfung via `packaging.version`
+  (neuer `_ist_neuer`), verhindert Downgrade-Anzeige (installiert 0.4.0 vs. ältere
+  0.4.0-beta.1). Regressionstests in `test_update_kanal.py`; Suite 277 grün.
 
 ### Punktesystem vollständig entfernen (inkl. Datenbank)
 
