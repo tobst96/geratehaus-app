@@ -3,8 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from app.api.deps import DbSession
 from app.core.rate_limit import rate_limit
 from app.schemas.einsatz import TeilnahmeOut
-from app.schemas.person import PersonOut
-from app.schemas.reservierung import ReservierungEinloesen, ReservierungInfo, ReservierungVorschauSetzen
+from app.schemas.reservierung import (
+    ReservierungEinloesen,
+    ReservierungInfo,
+    ReservierungPerson,
+    ReservierungVorschauSetzen,
+)
 from app.services import einsatz_service, reservierung_service, stammdaten_service
 
 router = APIRouter(prefix="/reservierungen", tags=["reservierungen"])
@@ -70,8 +74,8 @@ async def reservierung_vorschau_setzen(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
-@router.get("/{token}/personen", response_model=list[PersonOut])
-async def reservierung_personen(db: DbSession, token: str) -> list[PersonOut]:
+@router.get("/{token}/personen", response_model=list[ReservierungPerson])
+async def reservierung_personen(db: DbSession, token: str) -> list[ReservierungPerson]:
     """Personen zur Auswahl auf der mobilen Eintragungs-Seite – der Token
     selbst ist auch hier das Geheimnis, das den Zugriff erlaubt."""
     reservierung = await reservierung_service.get_reservierung_by_token(db, token)

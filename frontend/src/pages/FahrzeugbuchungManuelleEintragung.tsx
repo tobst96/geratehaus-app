@@ -157,14 +157,7 @@ export function FahrzeugbuchungManuelleEintragung() {
           <label htmlFor="fbme-person">Wer bist du?</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
-              {ausgewaehltePerson.bild_url ? (
-                <img
-                  src={ausgewaehltePerson.bild_url}
-                  alt={ausgewaehltePerson.name}
-                  style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover" }}
-                />
-              ) : (
-                <div
+              <div
                   style={{
                     width: 64,
                     height: 64,
@@ -179,7 +172,6 @@ export function FahrzeugbuchungManuelleEintragung() {
                 >
                   {initialenAus(ausgewaehltePerson.name)}
                 </div>
-              )}
               <strong>{ausgewaehltePerson.name}</strong>
               <button type="button" className="sekundaer" onClick={() => setAusgewaehltePerson(null)}>
                 Ändern
