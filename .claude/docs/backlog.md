@@ -991,9 +991,21 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `AdminRoute` auf `BerechtigungRoute` umgestellt. Tests `test_p2_gate_barcodes_kiosk.py`
   (5: Admin-Bypass, GF ohne Recht → 403, GF mit Recht → 200, getrennte Rechte). Suite 316
   grün, `npm run build` grün.
-- Noch offen: `benachrichtigungen`- und `stammdaten`/`personal`-Endpunkte gaten;
-  Nav-Surfacing für berechtigte Gruppenführer; breaking Gruppenführer-Bereiche +
-  Rechte-Seed; altes Rollenmodell ablösen (Phase 5); `permissions.md`/`CLAUDE.md`.
+- Fortschritt (06.07.2026, non-breaking): **`moderator_stammdaten` granular geschaltet.**
+  Alle 37 `CurrentAdmin`-Endpunkte über signaturbasierte Gates (`StammdatenZugriff`/
+  `PersonalZugriff` = `Annotated[Moderator, Depends(require_modul_zugriff(...))]`):
+  Config (Fahrzeuge/Funktionen/Gruppen/Zusatzfelder) → Key `stammdaten`, Personen-
+  Mutationen → Key `personal`. Die drei `CurrentModerator`-Endpunkte (Personen-Liste,
+  Ampel, PIN-Entsperren) bleiben bewusst **für alle Moderatoren offen** → non-breaking.
+  Admins via Bypass. Tests `test_p2_gate_stammdaten.py` (5, inkl. Regressionstest
+  „GF sieht Personen-Liste weiterhin"). Suite 321 grün.
+- `benachrichtigungen` ist kein eigener Router → wird über das bereits gegatete
+  `einstellungen`-Modul bedient (NotifierEinstellungen nutzt `/moderator/einstellungen`);
+  nur der Frontend-Route-Guard bleibt anzugleichen.
+- Noch offen: Nav-Surfacing, damit berechtigte Gruppenführer die freigeschalteten
+  Bereiche (barcodes/kiosk-geraete/stammdaten/personal) im Menü sehen und erreichen;
+  breaking Gruppenführer-Bereiche + Rechte-Seed; altes Rollenmodell ablösen (Phase 5);
+  `permissions.md`/`CLAUDE.md`.
 - Fortschritt (05.07.2026): **Frontend-Guards** begonnen – neuer Endpunkt
   `GET /moderator/meta/meine-berechtigungen` + `berechtigungs_service.meine_keys`;
   AuthContext lädt eigene Modul-Rechte und bietet `hatModulZugriff(key)`; neuer
