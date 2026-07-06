@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { holeFeatureModule, type FeatureModul } from "../../api/featureModule";
 import { navIcon } from "./navIcons";
+import { GRANTBARE_MODUL_UNTERSEITEN } from "./modulRechte";
 
 type ModulKey =
   | "modul_einsatztagebuch_aktiv"
@@ -47,7 +48,7 @@ const NAV_GRUPPEN: NavGruppe[] = [
     titel: "Module",
     admin: true,
     module: true,
-    items: [{ pfad: "/moderator/module", titel: "Übersicht", icon: "module" }],
+    items: [{ pfad: "/moderator/module", titel: "Übersicht", icon: "module", berechtigungKey: "einstellungen" }],
   },
   {
     id: "verwaltung",
@@ -100,8 +101,14 @@ export function ModeratorLayout() {
   // Admin-Gruppen: für Admins immer sichtbar; sonst nur, wenn mindestens ein Punkt
   // über einen Berechtigungs-Key freigeschaltet ist (rein rollen-basierte
   // Admin-Gruppen ohne Keys bleiben für Nicht-Admins verborgen).
+  // Grantbare Modul-Unterseiten, die dieser Moderator freigeschaltet hat (für
+  // Gruppenführer, damit die "Module"-Gruppe + ihre Unterseiten erscheinen).
+  const grantbareUnterseiten = GRANTBARE_MODUL_UNTERSEITEN.filter((m) => hatModulZugriff(m.perm));
   const gruppeSichtbar = (g: NavGruppe) =>
-    !g.admin || istAdmin || g.items.some((i) => i.berechtigungKey && hatModulZugriff(i.berechtigungKey));
+    !g.admin ||
+    istAdmin ||
+    g.items.some((i) => i.berechtigungKey && hatModulZugriff(i.berechtigungKey)) ||
+    (!!g.module && grantbareUnterseiten.length > 0);
   const sichtbareGruppen = NAV_GRUPPEN.filter(gruppeSichtbar);
   const [drawerOffen, setDrawerOffen] = useState(false);
   const [moduleOffen, setModuleOffen] = useState(false);
@@ -226,12 +233,19 @@ export function ModeratorLayout() {
 
               {gruppe.module &&
                 moduleOffen &&
-                aktiveModule.map((m) => (
-                  <NavLink key={m.key} to={`/moderator/module/${m.key}`} className={linkClass(true)}>
-                    {navIcon(MODUL_ICON[m.key])}
-                    <span>{m.name}</span>
-                  </NavLink>
-                ))}
+                (istAdmin
+                  ? aktiveModule.map((m) => (
+                      <NavLink key={m.key} to={`/moderator/module/${m.key}`} className={linkClass(true)}>
+                        {navIcon(MODUL_ICON[m.key])}
+                        <span>{m.name}</span>
+                      </NavLink>
+                    ))
+                  : grantbareUnterseiten.map((m) => (
+                      <NavLink key={m.key} to={`/moderator/module/${m.key}`} className={linkClass(true)}>
+                        {navIcon(m.icon)}
+                        <span>{m.titel}</span>
+                      </NavLink>
+                    )))}
             </Fragment>
           ))}
         </nav>

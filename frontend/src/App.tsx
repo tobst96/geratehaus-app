@@ -85,9 +85,11 @@ export function App() {
               <Route element={<BerechtigungRoute modulKeys={["einstellungen"]} />}>
                 <Route path="einstellungen" element={<Einstellungen />} />
                 <Route path="module" element={<Module />} />
-                <Route path="module/:key" element={<ModulUnterseite />} />
                 <Route path="update" element={<Update />} />
               </Route>
+              {/* Modul-Unterseiten prüfen den Zugriff pro Modul-Key selbst
+                  (grantbare Bereiche für berechtigte Gruppenführer, sonst einstellungen). */}
+              <Route path="module/:key" element={<ModulUnterseite />} />
               <Route element={<BerechtigungRoute modulKeys={["berechtigungen"]} />}>
                 <Route path="berechtigungen" element={<Berechtigungen />} />
               </Route>

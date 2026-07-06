@@ -1,4 +1,6 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { permFuerModulUnterseite } from "./modulRechte";
 import { DiveraModul } from "./module/DiveraModul";
 import { EinsatztagebuchModul } from "./module/EinsatztagebuchModul";
 import { DienstbuchModul } from "./module/DienstbuchModul";
@@ -15,6 +17,18 @@ import { FormularModul } from "./module/FormularModul";
 
 export function ModulUnterseite() {
   const { key } = useParams<{ key: string }>();
+  const { moderatorRolle, hatModulZugriff, berechtigungenGeladen } = useAuth();
+  const istAdmin = moderatorRolle === "admin";
+
+  // Zugriff: Admins immer. Sonst braucht eine grantbare Unterseite ihr eigenes
+  // Recht; alle übrigen Unterseiten (Backup/MinIO/Modul-Einstellungen …) bleiben
+  // wie bisher an "einstellungen" gebunden.
+  if (!berechtigungenGeladen) return null;
+  if (!istAdmin) {
+    const perm = permFuerModulUnterseite(key);
+    const erlaubt = perm ? hatModulZugriff(perm) : hatModulZugriff("einstellungen");
+    if (!erlaubt) return <Navigate to="/moderator/dashboard" replace />;
+  }
 
   switch (key) {
     case "einsatztagebuch":

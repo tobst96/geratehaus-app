@@ -1006,10 +1006,18 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Ist-Stand (granulares `require_modul_zugriff` inkl. Admin-Bypass + gegatete Router,
   signierte Mitglieder-Session, `require_zugriff`-Datentor, 2FA) statt des veralteten
   reinen Rollenmodells.
-- Noch offen: **Nav-Surfacing** (zentrale Nav-/`ModulUnterseite`-Route sind noch admin-/
-  `einstellungen`-gegated → berechtigte Gruppenführer sehen die freigeschalteten
-  Module-Unterseiten noch nicht; Design-Entscheidung nötig, wo sie erscheinen);
-  breaking Gruppenführer-Bereiche + Rechte-Seed; altes Rollenmodell ablösen (Phase 5).
+- Fortschritt (06.07.2026, non-breaking): **Nav-Surfacing umgesetzt.** Berechtigte
+  Gruppenführer sehen die freigeschalteten Modul-Unterseiten jetzt in der Sidebar-Gruppe
+  „Module" und können sie öffnen. Neue Map `modulRechte.ts`
+  (`GRANTBARE_MODUL_UNTERSEITEN`: personal→personal, fahrzeuge→stammdaten,
+  barcode→barcodes, kiosk→kiosk-geraete). `ModulUnterseite` prüft den Zugriff pro
+  `:key` selbst (Admins alles; grantbare Unterseite → ihr Recht; übrige →
+  „einstellungen"), Route dafür aus dem `einstellungen`-Guard herausgelöst. Sidebar:
+  „Module"-Gruppe erscheint für GF mit Grant, rendert für Nicht-Admins nur die
+  freigeschalteten Unterseiten (Admins unverändert via `aktiveModule`). Übersicht-Punkt
+  bleibt an „einstellungen". Tests `modulRechte.test.ts`; `npm run test`/`build` grün.
+- Noch offen: breaking Gruppenführer-Bereiche + Rechte-Seed; altes Rollenmodell ablösen
+  (Phase 5).
 - Fortschritt (05.07.2026): **Frontend-Guards** begonnen – neuer Endpunkt
   `GET /moderator/meta/meine-berechtigungen` + `berechtigungs_service.meine_keys`;
   AuthContext lädt eigene Modul-Rechte und bietet `hatModulZugriff(key)`; neuer
