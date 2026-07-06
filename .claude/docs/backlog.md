@@ -1349,11 +1349,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Frontend-Abhängigkeiten: npm-audit-Advisories beheben (vite 5 → 8)
 
-- Status: Backlog
+- Status: Erledigt (Feature-Branch `feature/frontend-audit-vite` → PR nach beta, 06.07.2026)
 - Priorität: Mittel
 - Kategorie: Wartung / Sicherheit / Frontend
 - Skills: geraetehaus-patterns, tests, review
 - Plan: Ja
+- Umsetzung (06.07.2026): Build-Toolchain auf aktuelle Majors gehoben – `vite`
+  5→**8**, `vitest` 2→**4**, `vite-plugin-pwa` 0.20→**1.3**, `@vitejs/plugin-react`
+  4→**6** (Node 20.20 erfüllt Vite-8-Engine ≥20.19). `@zxing/browser` bewusst exakt
+  auf `0.2.0` gepinnt (0.2.1 verlangt `@zxing/library ^0.23`; Pin hält das Verhalten
+  stabil und macht die frische Auflösung im Dockerfile-`npm install` deterministisch).
+  `npm audit --audit-level=high` = **0** (vorher 4 moderate/1 high/1 critical),
+  `npm ci` + `npm run build` (Vite 8/rolldown, PWA-SW) + `npm run test` (15 Tests) grün.
+  Config (`vite.config.ts`) unverändert kompatibel.
 - Beschreibung: Der neue `npm audit`-CI-Job meldet 3 Advisories (2 moderate, 1 high)
   in der Build-Toolchain: `esbuild <=0.24.2` (GHSA-67mh-4wv8-2f99 – Dev-Server nimmt
   beliebige Requests an) → `vite <=6.4.2` → `vite-plugin-pwa`. Betrifft die
