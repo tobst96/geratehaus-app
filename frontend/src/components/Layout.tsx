@@ -2,6 +2,7 @@ import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useConfig } from "../context/ConfigContext";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../hooks/useTheme";
+import { useKioskAutolock } from "../hooks/useKioskAutolock";
 
 function startseite(moderatorAngemeldet: boolean, angezeigterName: string | null): string {
   if (moderatorAngemeldet) return "/moderator/dashboard";
@@ -19,6 +20,7 @@ export function Layout() {
   const { moderatorAngemeldet, angezeigterName } = useAuth();
   const { theme, umschalten } = useTheme();
   const navigate = useNavigate();
+  useKioskAutolock();
   const logoQuelle =
     theme === "dark" && config?.logo_url_dark ? config.logo_url_dark : config?.logo_url;
 

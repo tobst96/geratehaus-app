@@ -32,6 +32,8 @@ class OeffentlicheKonfiguration(BaseModel):
     modul_dienststunden_aussenzugriff: bool
     modul_fahrzeugbuchung_aussenzugriff: bool
     modul_formular_aussenzugriff: bool
+    # Kiosk-Auto-Sperre: Sekunden Inaktivität bis Rücksprung zur Startseite (0 = aus).
+    kiosk_autolock_sekunden: int = 0
     # Fehler-Monitoring (Sentry) im Frontend: nur senden, wenn die Instanz
     # zugestimmt hat. `sentry_dsn` ist leer, solange die Zustimmung fehlt.
     # `sentry_environment` (beta/production) steuert u. a. das Session Replay

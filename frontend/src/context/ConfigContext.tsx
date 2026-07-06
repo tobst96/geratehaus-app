@@ -24,6 +24,7 @@ const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   modul_fahrzeugbuchung_aktiv: true,
   modul_formular_aktiv: false,
   modul_barcode_aktiv: false,
+  kiosk_autolock_sekunden: 0,
   modul_einsatztagebuch_startseite: true,
   modul_dienstbuch_startseite: true,
   modul_dienststunden_startseite: true,

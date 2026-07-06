@@ -1234,7 +1234,15 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Kiosk-Autolock / Inaktivitäts-Reset
 
-- Status: Backlog
+- Status: Review (Feature-Branch `feature/kiosk-autolock` → PR nach beta, 06.07.2026)
+- Umsetzung (06.07.2026): Config-Key `kiosk_autolock_sekunden` (Default 0 = aus) in
+  `config_defaults` + über `/oeffentliche-konfiguration` ans Frontend geliefert. Neuer
+  Hook `useKioskAutolock` (in `Layout` gemountet): aktiv nur auf dem Kiosk
+  (`localStorage.kiosk_token`) und bei Schwelle > 0; springt nach X Sekunden ohne
+  Interaktion zurück zur Kiosk-Startseite `/kiosk/<token>`, jede Aktivität
+  (Klick/Taste/Touch/Scroll) und jeder Seitenwechsel setzt den Timer zurück. UI: Feld
+  „Auto-Sperre" in der Kiosk-Geräte-Verwaltung. Tests `useKioskAutolock.test.tsx` (4) +
+  `test_kiosk_autolock_config.py` (2); Suite 323 grün, `npm run test`/`build` grün.
 - Priorität: Mittel
 - Kategorie: Frontend / Kiosk / UX
 - Skills: geraetehaus-patterns, review

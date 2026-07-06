@@ -62,6 +62,9 @@ DEFAULTS: list[ConfigDefault] = [
     # Intervall (Tage) für die Erinnerungsmail an Personen ohne gesetzten PIN
     # (nur relevant, wenn das Barcode-Modul AUS ist). Einstellbar im Modul Personal.
     ConfigDefault("pin_erinnerung_intervall_tage", "7", ConfigTyp.INT, "Intervall (Tage) der PIN-Erinnerungsmail"),
+    # Kiosk-Auto-Sperre: nach so vielen Sekunden Inaktivität springt das Kiosk-Tablet
+    # zurück zur Kiosk-Startseite (verhindert hängende Sitzungen). 0 = deaktiviert.
+    ConfigDefault("kiosk_autolock_sekunden", "0", ConfigTyp.INT, "Kiosk: Sekunden Inaktivität bis Rücksprung zur Startseite (0 = aus)"),
     # Brute-Force-Schutz für den öffentlichen Name+PIN-Login: nach so vielen
     # aufeinanderfolgenden Fehlversuchen wird der PIN-Login der betroffenen Person
     # für die angegebene Dauer gesperrt (0 Fehlversuche = Sperre deaktiviert).
