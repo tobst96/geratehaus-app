@@ -350,6 +350,18 @@ export const kioskTokenLoeschen = (id: number) =>
 export const setzeKioskStartseiteModule = (id: number, keys: string[] | null) =>
   apiPatch<KioskTokenOut>(`/moderator/barcodes/kiosk/${id}`, { startseite_module: keys });
 
+export async function ladeKioskPdf(id: number, bezeichnung: string): Promise<void> {
+  const blob = await apiGet<Blob>(`/moderator/barcodes/kiosk/${id}/pdf`);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `kiosk-${bezeichnung.replace(/[^\w.-]+/g, "_") || id}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 // --- Buchungsmanagement -----------------------------------------------------
 
 export const holeKonfliktvergleich = (buchungId: number) =>
