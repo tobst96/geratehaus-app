@@ -7,6 +7,18 @@
 {% if dienstbuch.notizen %}
 <p>{{ dienstbuch.notizen }}</p>
 {% endif %}
+{% if zusatzfelder_anzeige %}
+<table>
+    <tbody>
+        {% for zf in zusatzfelder_anzeige %}
+        <tr>
+            <td><strong>{{ zf.label }}</strong></td>
+            <td>{{ zf.wert }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
 <table>
     <thead>
         <tr>

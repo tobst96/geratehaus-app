@@ -16,7 +16,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Dienstbuch-Felder analog Einsatz-Felder (+ Typ „Auswahl")
 
-- Status: Backlog
+- Status: Erledigt (Feature-Branch `feature/dienstbuch-zusatzfelder` → PR nach beta, 06.07.2026)
 - Priorität: Mittel
 - Kategorie: Neues Modul / Feature
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -29,6 +29,20 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   überall ergänzt (`ERLAUBTE_TYPEN`, `TYP_LABEL`, Typ-Union in `types.ts`,
   Rendering-Switches); Migration; Tests.
 - Notizen: Größerer Umbau – eigener Feature-Branch + PR laut Projektkonvention.
+- Umsetzung (06.07.2026): Migration 0057 (`dienstbuch_feld_definitionen` inkl.
+  `optionen`-JSONB + `dienstbuecher.zusatzfelder`-JSONB), Model
+  `DienstbuchFeldDefinition`, Schemas (`ERLAUBTE_TYPEN` = text/mehrzeilig/checkbox/
+  **auswahl**), Service-CRUD + `zusatzfelder_aktualisieren`, Router (Moderator-CRUD
+  `/moderator/stammdaten/dienstbuch-felder` unter `stammdaten`-Recht; öffentlich
+  gegatet `/dienstbuecher/feld-definitionen` + `PATCH /dienstbuecher/{id}/zusatzfelder`).
+  PDF-Export gibt Zusatzfelder aus. Frontend: `DienstbuchFelderVerwaltung`
+  (Modul-Unterseite Dienstbuch, inkl. Optionen-Editor), Rendering aller Feldtypen im
+  Dienstbuch-Anlegen-Formular + Anzeige in der Liste. Tests `test_dienstbuch_felder.py`
+  (4). Volle Suite 332 grün, `npm run build` grün.
+- **Follow-up (offen, niedrig):** Typ „auswahl" auch für **Einsatz**-Felder
+  nachrüsten (braucht `optionen`-Spalte auf `einsatz_feld_definitionen` + Anpassung
+  Einsatz-Formular/PDF). Bewusst separat, um das laufende Einsatz-Flow nicht zu
+  gefährden.
 
 ---
 

@@ -82,7 +82,18 @@ async def einsatz_pdf(db: AsyncSession, einsatz: Any) -> bytes:
 
 
 async def dienstbuch_pdf(db: AsyncSession, dienstbuch: Any) -> bytes:
-    pdf = await _rendern(db, "dienstbuch.html", dienstbuch=dienstbuch)
+    from app.services import dienstbuch_service
+
+    felder = await dienstbuch_service.liste_dienstbuch_felder(db, nur_aktive=True)
+    zusatzfelder_anzeige = []
+    for f in felder:
+        wert = dienstbuch.zusatzfelder.get(f.schluessel)
+        if wert in (None, "", False):
+            continue
+        zusatzfelder_anzeige.append({"label": f.label, "wert": "Ja" if wert is True else wert})
+    pdf = await _rendern(
+        db, "dienstbuch.html", dienstbuch=dienstbuch, zusatzfelder_anzeige=zusatzfelder_anzeige
+    )
     await _archiviere(db, f"dienstbuecher/dienstbuch-{getattr(dienstbuch, 'id', 'x')}.pdf", pdf)
     from app.services import minio_service
 

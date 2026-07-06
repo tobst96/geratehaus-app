@@ -2,6 +2,7 @@ import { apiDelete, apiGet, apiPatch, apiPost, apiPut, apiUpload } from "./clien
 import type {
   AmpelEintrag,
   BuchungOut,
+  DienstbuchFeldDefinition,
   DienstbuchOut,
   DienststundenSummeOut,
   EinsatzFeldDefinition,
@@ -250,6 +251,28 @@ export const einsatzFeldAktualisieren = (
 ) => apiPut<EinsatzFeldDefinition>(`/moderator/stammdaten/einsatz-felder/${id}`, daten);
 export const einsatzFeldLoeschen = (id: number) =>
   apiDelete<void>(`/moderator/stammdaten/einsatz-felder/${id}`);
+
+export const holeAlleDienstbuchFelder = () =>
+  apiGet<DienstbuchFeldDefinition[]>("/moderator/stammdaten/dienstbuch-felder");
+export const dienstbuchFeldAnlegen = (daten: {
+  label: string;
+  typ: DienstbuchFeldDefinition["typ"];
+  optionen: string[];
+  reihenfolge: number;
+  aktiv: boolean;
+}) => apiPost<DienstbuchFeldDefinition>("/moderator/stammdaten/dienstbuch-felder", daten);
+export const dienstbuchFeldAktualisieren = (
+  id: number,
+  daten: Partial<{
+    label: string;
+    typ: DienstbuchFeldDefinition["typ"];
+    optionen: string[];
+    reihenfolge: number;
+    aktiv: boolean;
+  }>
+) => apiPut<DienstbuchFeldDefinition>(`/moderator/stammdaten/dienstbuch-felder/${id}`, daten);
+export const dienstbuchFeldLoeschen = (id: number) =>
+  apiDelete<void>(`/moderator/stammdaten/dienstbuch-felder/${id}`);
 
 export const holeAllePersonen = () => apiGet<Person[]>("/moderator/stammdaten/personen");
 export const holeAmpelUebersicht = () =>

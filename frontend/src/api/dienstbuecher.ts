@@ -1,5 +1,5 @@
 import { apiGet, apiPatch, apiPost, apiPut } from "./client";
-import type { DienstbuchOut, TeilnehmerOut } from "./types";
+import type { DienstbuchFeldDefinition, DienstbuchOut, TeilnehmerOut } from "./types";
 
 export const holeLetzteDienstbuecher = () =>
   apiGet<DienstbuchOut[]>("/dienstbuecher/letzte");
@@ -7,8 +7,26 @@ export const holeLetzteDienstbuecher = () =>
 export const holeDienstbuch = (id: number) =>
   apiGet<DienstbuchOut>(`/dienstbuecher/${id}`);
 
-export const dienstbuchAnlegen = (titel: string, eroeffnetAm: string, notizen: string | null) =>
-  apiPost<DienstbuchOut>("/dienstbuecher", { titel, eroeffnet_am: eroeffnetAm, notizen });
+export const holeDienstbuchFelder = () =>
+  apiGet<DienstbuchFeldDefinition[]>("/dienstbuecher/feld-definitionen");
+
+export const dienstbuchAnlegen = (
+  titel: string,
+  eroeffnetAm: string,
+  notizen: string | null,
+  zusatzfelder: Record<string, string | boolean> = {}
+) =>
+  apiPost<DienstbuchOut>("/dienstbuecher", {
+    titel,
+    eroeffnet_am: eroeffnetAm,
+    notizen,
+    zusatzfelder,
+  });
+
+export const dienstbuchZusatzfelderSpeichern = (
+  dienstbuchId: number,
+  zusatzfelder: Record<string, string | boolean>
+) => apiPatch<DienstbuchOut>(`/dienstbuecher/${dienstbuchId}/zusatzfelder`, { zusatzfelder });
 
 export const dienstbuchReservierungAnlegen = (dienstbuchId: number) =>
   apiPost<{ token: string; ablauf_am: string }>(`/dienstbuecher/${dienstbuchId}/reservierung`);

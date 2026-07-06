@@ -13,7 +13,9 @@ from app.schemas.dienstbuch import (
     TeilnehmerAktualisieren,
     TeilnehmerAnlegen,
     TeilnehmerOut,
+    ZusatzfelderSetzen,
 )
+from app.schemas.dienstbuch_feld import DienstbuchFeldDefinitionOut
 from app.schemas.dienstbuch_reservierung import DienstbuchReservierungOut
 from app.services import dienstbuch_reservierung_service, dienstbuch_service, pdf_service
 
@@ -70,6 +72,13 @@ async def anwesenheit(
     )
 
 
+@router.get("/feld-definitionen", response_model=list[DienstbuchFeldDefinitionOut])
+async def feld_definitionen_liste(db: DbSession) -> list[DienstbuchFeldDefinitionOut]:
+    """Aktive Zusatzfeld-Definitionen fürs Ausfüllen im Dienstbuch-Formular.
+    Muss vor '/{dienstbuch_id}' stehen, sonst wird der Pfad als ID gedeutet."""
+    return await dienstbuch_service.liste_dienstbuch_felder(db, nur_aktive=True)
+
+
 @router.get("/{dienstbuch_id}", response_model=DienstbuchOut)
 async def detail(db: DbSession, dienstbuch_id: int) -> DienstbuchOut:
     dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
@@ -78,6 +87,18 @@ async def detail(db: DbSession, dienstbuch_id: int) -> DienstbuchOut:
             status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden."
         )
     return dienstbuch
+
+
+@router.patch("/{dienstbuch_id}/zusatzfelder", response_model=DienstbuchOut)
+async def zusatzfelder_aktualisieren(
+    db: DbSession, dienstbuch_id: int, daten: ZusatzfelderSetzen
+) -> DienstbuchOut:
+    dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
+    if dienstbuch is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden."
+        )
+    return await dienstbuch_service.zusatzfelder_aktualisieren(db, dienstbuch, daten.zusatzfelder)
 
 
 @router.get("/{dienstbuch_id}/pdf")

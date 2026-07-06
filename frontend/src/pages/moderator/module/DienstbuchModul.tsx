@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { holeEinstellungen, schreibeEinstellungen } from "../../../api/moderator";
 import { ApiError } from "../../../api/client";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";
+import { DienstbuchFelderVerwaltung } from "../verwaltung/DienstbuchFelderVerwaltung";
 
 export function DienstbuchModul() {
   const [geladen, setGeladen] = useState(false);
@@ -82,6 +83,11 @@ export function DienstbuchModul() {
         </button>
         {gespeichert && <span style={{ marginLeft: 10, color: "var(--farbe-text-mute)" }}>✓ gespeichert</span>}
         {fehler && <p className="fehlertext">{fehler}</p>}
+      </div>
+
+      <div className="karte">
+        <h2>Zusatzfelder</h2>
+        <DienstbuchFelderVerwaltung />
       </div>
     </div>
   );

@@ -195,6 +195,16 @@ export interface TeilnehmerOut {
   atemschutzminuten: number;
 }
 
+export interface DienstbuchFeldDefinition {
+  id: number;
+  schluessel: string;
+  label: string;
+  typ: "text" | "mehrzeilig" | "checkbox" | "auswahl";
+  optionen: string[];
+  reihenfolge: number;
+  aktiv: boolean;
+}
+
 export interface DienstbuchOut {
   id: number;
   titel: string;
@@ -203,6 +213,7 @@ export interface DienstbuchOut {
   archiviert: boolean;
   geschlossen: boolean;
   relevant: boolean;
+  zusatzfelder: Record<string, string | boolean>;
   teilnehmer: TeilnehmerOut[];
 }
 
