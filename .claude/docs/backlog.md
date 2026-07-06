@@ -1343,8 +1343,11 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   neuen 2FA-Login-Flow ab: normaler Login navigiert, 2FA-erforderlich zeigt den
   Code-Schritt). CI-Frontend-Job um „Tests (vitest)"-Step erweitert. 4 Tests grün,
   `npm run build` weiterhin grün.
-- Notiz: Bewusst mit den wichtigsten/aktuellsten Flows gestartet (Login inkl. 2FA);
-  Kiosk-Eintragung + Formular-Ausfüllen als nächste Testfälle offen.
+- Fortschritt (06.07.2026): **Formular-Ausfüllen-Flow getestet** (`FormularAusfuellen.test.tsx`):
+  Pflichtfeld-Validierung blockiert das Absenden; ausgefülltes Formular wird gesendet und
+  zeigt den Dank. `npm run test` (9 Tests) + `npm run build` grün.
+- Notiz: Login (inkl. 2FA) und Formular-Ausfüllen abgedeckt; **Kiosk-Eintragung** als
+  letzter der drei Flows noch offen.
 - Priorität: Mittel
 - Kategorie: Tests / Frontend
 - Skills: tests, review
