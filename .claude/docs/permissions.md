@@ -1,43 +1,71 @@
 # Berechtigungen
 
-Reales Zugriffsmodell aus `backend/app/api/deps.py`, `app/core/security.py` und
-`app/core/pin_session.py`. Es gibt **keine** einfache lineare Hierarchie – es
-existieren mehrere unabhängige Identitätsarten.
+Reales Zugriffsmodell aus `backend/app/api/deps.py`, `app/core/security.py`,
+`app/core/mitglied_session.py` und dem granularen Berechtigungssystem
+(`services/berechtigungs_service.py` + `services/modul_service.py`). Es gibt
+**keine** einfache lineare Hierarchie – mehrere unabhängige Identitätsarten.
 
 ## Identitätsarten
 
 | Ebene | Dependency / Mechanismus | Nachweis |
 | --- | --- | --- |
-| **Admin** | `CurrentAdmin` | JWT-Bearer-Token + `Moderator.rolle == "admin"` |
-| **Moderator (Gruppenführer)** | `CurrentModerator` | JWT-Bearer-Token (jede Rolle) |
-| **Mitglied (Kiosk)** | `CurrentPerson` | Cookie `geraetehaus_name` (kein Login; Person wird bei Bedarf angelegt) |
-| **Kiosk-Gerät** | `kiosk_token_service` | Geräte-Token in der URL (`/kiosk/:token`) |
-| **Öffentlicher Mitglied-Login** | `pin_session`-Cookie | signiert, an `person_id` gebunden, 30 Tage gültig |
-| **Einmal-Token-Flows** | dedizierte Tokens | Barcode-vergessen-QR, Buchung Annehmen/Ablehnen, Profilbild-Upload |
+| **Admin** | `CurrentAdmin` | JWT-Bearer + `Moderator.rolle == "admin"` |
+| **Moderator (Gruppenführer)** | `CurrentModerator` | JWT-Bearer (jede Rolle) |
+| **Granularer Modul-Zugriff** | `require_modul_zugriff("<key>")` | JWT-Bearer + Freigabe des Moduls **oder** Admin-Bypass |
+| **Mitglied** | `CurrentPerson` | **signiertes** Cookie `geraetehaus_name` (`mitglied_session`), nur nach echter Identifikation (Barcode / Name+PIN) |
+| **Kiosk-Gerät** | Header `X-Kiosk-Token` | Geräte-Token (`/kiosk/:token`) |
+| **Daten-Gate** | `require_zugriff` | Kiosk-Token **oder** Mitglied-Cookie **oder** Moderator-JWT |
+| **Einmal-/Token-Flows** | dedizierte Tokens | Barcode-vergessen-QR, Buchung Annehmen/Ablehnen, Profilbild-Upload, Dienststunden-Stempel |
 
-Wichtig: **Admin und Gruppenführer sind derselbe `Moderator`-Datensatztyp** –
-unterschieden nur über das Feld `rolle`. „Gast" existiert nicht als Rolle;
-öffentliche Endpunkte sind explizit als solche gebaut (`oeffentlich`-Router,
-Token-Flows).
+Wichtig: **Admin und Gruppenführer sind derselbe `Moderator`-Typ** – unterschieden
+über `rolle`. „Gast" existiert nicht; öffentliche Endpunkte sind explizit gebaut
+(`oeffentlich`-Router, Token-Flows).
 
-## Rollen-Trennung Moderator vs. Admin
+## Zwei-Faktor (Moderator/Admin)
 
-- `CurrentModerator`: Dashboard, Listen, Einsatz-/Dienstbuch-Details,
-  Fahrzeugbuchungen.
-- `CurrentAdmin` (zusätzlich `rolle == "admin"`): Personal, Stammdaten, Barcodes,
-  Kiosk-Geräte, Benachrichtigungen, Einstellungen, Update.
-- Frontend spiegelt das über `ModeratorRoute` / `AdminRoute` in `src/App.tsx` –
-  die serverseitige Prüfung in `deps.py` ist maßgeblich, das Frontend nur zusätzlich.
+Opt-in pro Zugang (`Moderator.zwei_faktor_aktiv`). Nach korrektem Passwort verlangt
+`POST /auth/moderator/login` bei unbekanntem Gerät einen E-Mail-OTP
+(`POST /auth/moderator/2fa`, `zwei_faktor_service`); Trusted-Device-Cookie (30 Tage)
+überspringt ihn. Recovery-Codes + Admin-Reset gegen Aussperren.
 
-## Modul-Freischaltung
+## Granulares Berechtigungssystem (`require_modul_zugriff`)
+
+- Modul-Registry: `modul_service.MODUL_REGISTRY` (Keys u. a. `einsatztagebuch`,
+  `dienstbuch`, `dienststunden`, `fahrzeugbuchung`, `personal`, `stammdaten`,
+  `barcodes`, `kiosk-geraete`, `benachrichtigungen`, `einstellungen`,
+  `berechtigungen`), idempotent geseedet über `ensure_module()`.
+- Freigabe je Moderator in Tabelle `berechtigungen`; `berechtigungs_service.hat_zugriff`
+  entscheidet – **Admins immer (Bypass)**, sonst nur bei vorhandener Freigabe.
+- `require_modul_zugriff("<key>")` (deps.py) gibt den Moderator zurück oder **403**.
+
+**Bereits granular gegatet** (non-breaking, Admins via Bypass; Gruppenführer erst
+mit Freigabe): `einstellungen`, `module`, `update`, `berechtigungen`, **`barcodes`**,
+**`kiosk-geraete`**, sowie `moderator_stammdaten` (Config → `stammdaten`,
+Personen-Mutationen → `personal`). Die drei bewusst offenen `CurrentModerator`-
+Endpunkte in `moderator_stammdaten` (Personen-Liste, Ampel, PIN-Entsperren) bleiben
+für alle Moderatoren erreichbar.
+
+**Noch NICHT umgestellt / offen (Etappe P2-Rest):**
+- Frontend-Nav-Surfacing, damit berechtigte Gruppenführer die freigeschalteten
+  Bereiche (Module-Unterseiten) im Menü sehen/erreichen (Nav + `ModulUnterseite`-
+  Route sind derzeit noch admin- bzw. `einstellungen`-gegated).
+- Bewusst admin-only (nicht grantbar): `audit`, `backup`, `minio`.
+- „Breaking" Schlussphase: Rechte-Seed gegen Aussperren + Ablösung des reinen
+  Rollenmodells (`rolle`) durch das Rechte-Modell.
+
+## Modul-Freischaltung (fachliche Aktivierung, nicht Zugriff)
 
 - `require_modul_aktiv("modul_<name>_aktiv")` sperrt eine Route mit **404**, wenn
-  das Modul über den Moderator-Bereich deaktiviert wurde.
-- `modul_<name>_aussenzugriff` steuert, ob ein Modul über den öffentlichen
-  Mitglied-Login (außerhalb des Kiosks) nutzbar ist.
+  das Feature-Modul im Moderator-Bereich deaktiviert ist.
+- `modul_<name>_aussenzugriff` steuert die Nutzung über den öffentlichen
+  Mitglied-Login (außerhalb des Kiosks).
 
 ## Regeln
 
-- Immer die vorhandenen Dependencies verwenden, keine eigenen Rollenprüfungen bauen.
-- Neue Modul-Endpunkte mit `require_modul_aktiv(...)` absichern.
-- Berechtigungen **immer serverseitig** prüfen; Frontend-Guards sind nur UX.
+- Immer vorhandene Dependencies nutzen (`CurrentModerator`, `CurrentAdmin`,
+  `CurrentPerson`, `require_modul_zugriff`, `require_modul_aktiv`, `require_zugriff`) –
+  keine eigenen Rollenprüfungen bauen.
+- Neue Admin-Management-Endpunkte granular über `require_modul_zugriff("<key>")`
+  absichern (Admins bypassen automatisch → non-breaking).
+- Berechtigungen **immer serverseitig** prüfen; Frontend-Guards (`AdminRoute` /
+  `BerechtigungRoute`) sind nur UX.

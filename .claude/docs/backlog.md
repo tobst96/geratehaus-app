@@ -1002,10 +1002,14 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - `benachrichtigungen` ist kein eigener Router → wird über das bereits gegatete
   `einstellungen`-Modul bedient (NotifierEinstellungen nutzt `/moderator/einstellungen`);
   nur der Frontend-Route-Guard bleibt anzugleichen.
-- Noch offen: Nav-Surfacing, damit berechtigte Gruppenführer die freigeschalteten
-  Bereiche (barcodes/kiosk-geraete/stammdaten/personal) im Menü sehen und erreichen;
-  breaking Gruppenführer-Bereiche + Rechte-Seed; altes Rollenmodell ablösen (Phase 5);
-  `permissions.md`/`CLAUDE.md`.
+- Fortschritt (06.07.2026): **`permissions.md` aktualisiert** – dokumentiert jetzt den
+  Ist-Stand (granulares `require_modul_zugriff` inkl. Admin-Bypass + gegatete Router,
+  signierte Mitglieder-Session, `require_zugriff`-Datentor, 2FA) statt des veralteten
+  reinen Rollenmodells.
+- Noch offen: **Nav-Surfacing** (zentrale Nav-/`ModulUnterseite`-Route sind noch admin-/
+  `einstellungen`-gegated → berechtigte Gruppenführer sehen die freigeschalteten
+  Module-Unterseiten noch nicht; Design-Entscheidung nötig, wo sie erscheinen);
+  breaking Gruppenführer-Bereiche + Rechte-Seed; altes Rollenmodell ablösen (Phase 5).
 - Fortschritt (05.07.2026): **Frontend-Guards** begonnen – neuer Endpunkt
   `GET /moderator/meta/meine-berechtigungen` + `berechtigungs_service.meine_keys`;
   AuthContext lädt eigene Modul-Rechte und bietet `hatModulZugriff(key)`; neuer
