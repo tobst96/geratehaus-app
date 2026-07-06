@@ -675,6 +675,20 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ## Benachrichtigungen
 
+### Bug: Barcode-Erneuerungsmail trotz deaktiviertem Barcode-Modul
+
+- Status: Erledigt
+- Priorität: Hoch
+- Kategorie: Bug / Backend
+- Skills: bugfix, tests
+- Beschreibung: Bei deaktiviertem Barcode-Modul (Login per Name+PIN) verschickte der
+  tägliche `_barcode_erneuerung_job` trotzdem neue Barcodes per Mail, weil weder Job
+  noch Service `modul_barcode_aktiv` prüften.
+- Erledigt (06.07.2026, direkt auf beta): Guard in `barcode_service.erneuerung_mail_senden`
+  (dem zentralen Choke-Point aller Erneuerungs-Aufrufer – Scheduler-Job, Moderator-
+  Trigger, Login-Hintergrundtask): bei `modul_barcode_aktiv=false` sofortiger Abbruch,
+  keine Neuerzeugung/kein Versand. Regressionstest `test_barcode_modul_aus.py`.
+
 ### Personal-Filter nach Benachrichtigungs-Freigaben
 
 - Status: Erledigt

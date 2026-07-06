@@ -82,6 +82,11 @@ async def erneuerung_mail_senden(db: AsyncSession, person: Person) -> None:
     from app.services.notifier.email import EmailNotifier  # lokaler Import vermeidet Zirkel
     from app.services import email_template_service
 
+    # Ist das Barcode-Modul aus (Login per Name+PIN), gibt es keine Barcodes –
+    # dann darf auch keine (automatische) Barcode-Erneuerungsmail rausgehen.
+    modul_barcode_aktiv = await config_service.get(db, "modul_barcode_aktiv", False)
+    if not modul_barcode_aktiv:
+        return
     email_aktiv = await config_service.get(db, "notifier_email_aktiv", False)
     if not email_aktiv:
         return
