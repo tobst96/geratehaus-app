@@ -281,7 +281,15 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### (1) E-Mail-Adresse pro Moderatoren-Zugang
 
-- Status: Backlog
+- Status: Review (Feature-Branch `feature/moderator-email` → PR nach beta, 06.07.2026)
+- Umsetzung (06.07.2026): Migration 0055 (`moderatoren.email` nullable), Model +
+  Schemas (`ModeratorOut.email`, `ModeratorAnlegen.email`, neues
+  `ModeratorAktualisieren`), Service (`moderator_anlegen(email)` +
+  `moderator_email_setzen`, leer→NULL). API: `email` beim Anlegen +
+  neuer `PATCH /moderator/einstellungen/moderatoren/{id}` (Audit-Hook
+  `moderator_email_geaendert`). Frontend: E-Mail-Spalte + „E-Mail"-Button (Prompt)
+  je Zugang und E-Mail-Feld im Anlegen-Formular (`Einstellungen.tsx`). Tests
+  `test_moderator_email.py` (3); Suite 291 grün, `npm run build` grün.
 - Priorität: Mittel
 - Kategorie: Feature / Datenbank / Backend
 - Skills: geraetehaus-patterns, tests, review
@@ -289,7 +297,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   `moderator_anlegen`/`moderator_aktualisieren` erweitern, E-Mail-Feld in
   `Einstellungen.tsx` (Bereich Admin-/Gruppenführer-Zugänge).
 - Akzeptanzkriterien: E-Mail pro Moderator speicherbar; Migration; Test.
-- Notizen: Voraussetzung für (2).
+- Notizen: Voraussetzung für (2) **und** für E-Mail-OTP-2FA (Etappe P4).
 
 ### (2) Benachrichtigungen pro Moderatoren-Zugang statt global
 

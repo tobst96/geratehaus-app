@@ -38,13 +38,22 @@ export interface ModeratorKonto {
   id: number;
   username: string;
   rolle: string;
+  email: string | null;
 }
 
 export const holeModeratoren = () =>
   apiGet<ModeratorKonto[]>("/moderator/einstellungen/moderatoren");
 
-export const moderatorAnlegen = (username: string, passwort: string, rolle: string) =>
-  apiPost<ModeratorKonto>("/moderator/einstellungen/moderatoren", { username, passwort, rolle });
+export const moderatorAnlegen = (
+  username: string,
+  passwort: string,
+  rolle: string,
+  email: string | null = null
+) =>
+  apiPost<ModeratorKonto>("/moderator/einstellungen/moderatoren", { username, passwort, rolle, email });
+
+export const moderatorEmailAendern = (id: number, email: string | null) =>
+  apiPatch<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}`, { email });
 
 export const moderatorPasswortAendern = (id: number, passwort: string) =>
   apiPut<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}/passwort`, { passwort });

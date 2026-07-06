@@ -79,11 +79,31 @@ async def get_moderator_by_username(db: AsyncSession, username: str) -> Moderato
     return result.scalar_one_or_none()
 
 
+def _email_normalisieren(email: str | None) -> str | None:
+    """Leeren/whitespace-String als „keine E-Mail" (NULL) behandeln."""
+    if email is None:
+        return None
+    wert = email.strip()
+    return wert or None
+
+
 async def moderator_anlegen(
-    db: AsyncSession, username: str, passwort: str, rolle: str = "admin"
+    db: AsyncSession, username: str, passwort: str, rolle: str = "admin", email: str | None = None
 ) -> Moderator:
-    moderator = Moderator(username=username, passwort_hash=hash_secret(passwort), rolle=rolle)
+    moderator = Moderator(
+        username=username,
+        passwort_hash=hash_secret(passwort),
+        rolle=rolle,
+        email=_email_normalisieren(email),
+    )
     db.add(moderator)
+    await db.commit()
+    await db.refresh(moderator)
+    return moderator
+
+
+async def moderator_email_setzen(db: AsyncSession, moderator: Moderator, email: str | None) -> Moderator:
+    moderator.email = _email_normalisieren(email)
     await db.commit()
     await db.refresh(moderator)
     return moderator

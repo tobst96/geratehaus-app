@@ -17,6 +17,9 @@ class Moderator(Base, TimestampMixin):
     username: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     passwort_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     rolle: Mapped[str] = mapped_column(String(64), default="admin", nullable=False)
+    # Optionale E-Mail des Zugangs – Grundlage für pro-Zugang-Benachrichtigungen
+    # und E-Mail-OTP-2FA.
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # Brute-Force-Schutz für den Moderator-Login: Zähler aufeinanderfolgender
     # Fehlversuche und Zeitpunkt, bis zu dem der Login gesperrt ist (NULL = frei;
     # nach Ablauf automatisch wieder frei).
