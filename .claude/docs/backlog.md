@@ -1172,10 +1172,17 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Akzeptanzkriterien: ~~Security-Header geprüft/ergänzt~~ ✓; ~~Dependency-/Secret-Scan
   in CI~~ ✓; ~~Rate-Limit auf öffentlichen POSTs~~ ✓; CSP als Report-Only aktiv (Enforcing
   folgt nach Auswertung).
-- Notizen: **Nächster Schritt (offen):** Report-Only ein paar Tage live beobachten
-  (Browser-Konsole/ggf. Report-Endpoint ergänzen), dann die identische Policy als
-  enforcing `Content-Security-Policy` übernehmen. Erwägenswert: Google Fonts self-hosten,
-  um die externen `fonts.googleapis.com`/`fonts.gstatic.com`-Ausnahmen zu streichen.
+- Fortschritt (06.07.2026): **CSP-Report-Collector ergänzt (direkt auf beta).** Die
+  Report-Only-CSP hat jetzt `report-uri /api/v1/csp-report`; neuer öffentlicher,
+  ratenbegrenzter Endpunkt `csp_report.py` protokolliert **distinkte** Verstöße
+  (`csp_verstoss` auf INFO → Logs/Sentry-Breadcrumb, kein Issue-Spam; In-Memory-Dedup).
+  Damit lässt sich vor dem Scharfschalten sehen, was blockiert würde (z. B. externes
+  Logo). Tests `test_csp_report.py`. `nginx -t` grün.
+- Notizen: **Nächster Schritt (offen):** ein paar Tage Verstöße sammeln
+  (`docker compose logs backend | grep csp_verstoss`), auswerten, dann die Policy als
+  enforcing `Content-Security-Policy` übernehmen (ggf. `img-src` um ein externes Logo
+  ergänzen, falls gemeldet). Erwägenswert: Google Fonts self-hosten, um die externen
+  `fonts.googleapis.com`/`fonts.gstatic.com`-Ausnahmen zu streichen.
 
 ---
 

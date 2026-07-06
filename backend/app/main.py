@@ -9,6 +9,7 @@ from app.api.v1 import (
     auth,
     buchung_aktionen,
     buchungen,
+    csp_report,
     dienstbuch_reservierungen,
     dienstbuecher,
     dienststunden,
@@ -149,6 +150,7 @@ app.include_router(moderator_buchungen.router, prefix="/api/v1")
 app.include_router(push.router, prefix="/api/v1")
 app.include_router(divera.router, prefix="/api/v1")
 app.include_router(oeffentlich.router, prefix="/api/v1")
+app.include_router(csp_report.router, prefix="/api/v1")
 app.include_router(pin.router, prefix="/api/v1")
 app.include_router(reservierungen.router, prefix="/api/v1")
 app.include_router(mitglied_login_reservierungen.router, prefix="/api/v1")
