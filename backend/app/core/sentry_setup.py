@@ -30,6 +30,7 @@ verfügbar ist, aber nichts über die tatsächlich laufende Version aussagt.
 Die genaue Versionsnummer geht zusätzlich als `release` mit, für
 Versions-genaue Auswertung in Sentry."""
 
+import asyncio
 import logging
 
 import sentry_sdk
@@ -79,10 +80,31 @@ def _sentry_umgebung(version: str) -> str:
 _UNTERDRUECKTE_LOG_EVENTS = ("backup_fehlgeschlagen",)
 
 
+def _ist_cancelled_error(event, hint) -> bool:
+    """Erkennt `asyncio.CancelledError` – entsteht z. B. beim Recyceln/Beenden
+    einer DB-Pool-Verbindung oder bei einem Client-Disconnect. Das ist kein
+    Code-Fehler, sondern erwartetes Rauschen und soll kein Sentry-Issue erzeugen.
+    Prüft sowohl die rohe Exception (`hint`) als auch die von Sentry
+    serialisierten Exception-Typen im Event."""
+    exc_info = hint.get("exc_info")
+    if exc_info and exc_info[0] is not None:
+        try:
+            if issubclass(exc_info[0], asyncio.CancelledError):
+                return True
+        except TypeError:
+            pass
+    for wert in ((event.get("exception") or {}).get("values") or []):
+        if wert.get("type") == "CancelledError":
+            return True
+    return False
+
+
 def _before_send(event, hint):
     """Verwirft Sentry-Events für bereits behandelte Betriebsfehler (z. B. ein
-    fehlgeschlagenes Backup wegen falsch konfiguriertem Ziel). Echte,
-    unerwartete Fehler/Exceptions bleiben unberührt."""
+    fehlgeschlagenes Backup wegen falsch konfiguriertem Ziel) sowie erwartetes
+    Rauschen (`CancelledError`). Echte, unerwartete Fehler bleiben unberührt."""
+    if _ist_cancelled_error(event, hint):
+        return None
     # Bei via LoggingIntegration erzeugten Events keine Exception -> nur wenn
     # es KEIN Exception-Event ist, überhaupt filtern.
     if "exc_info" in hint:
