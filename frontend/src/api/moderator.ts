@@ -55,6 +55,27 @@ export const moderatorAnlegen = (
 export const moderatorEmailAendern = (id: number, email: string | null) =>
   apiPatch<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}`, { email });
 
+export const moderator2faZuruecksetzen = (id: number) =>
+  apiPost<void>(`/moderator/einstellungen/moderatoren/${id}/2fa-zuruecksetzen`);
+
+// --- Eigenes Konto: Zwei-Faktor (jeder Moderator, auch Gruppenführer) --------
+export interface ZweiFaktorStatus {
+  aktiv: boolean;
+  email_gesetzt: boolean;
+}
+
+export const holeZweiFaktorStatus = () =>
+  apiGet<ZweiFaktorStatus>("/moderator/konto/2fa");
+
+export const zweiFaktorAktivieren = () =>
+  apiPost<{ codes: string[] }>("/moderator/konto/2fa/aktivieren");
+
+export const zweiFaktorRecoveryNeu = () =>
+  apiPost<{ codes: string[] }>("/moderator/konto/2fa/recovery-codes-neu");
+
+export const zweiFaktorDeaktivieren = () =>
+  apiPost<void>("/moderator/konto/2fa/deaktivieren");
+
 export const moderatorPasswortAendern = (id: number, passwort: string) =>
   apiPut<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}/passwort`, { passwort });
 

@@ -72,6 +72,23 @@ class ModeratorToken(BaseModel):
     token_type: str = "bearer"
 
 
+class ModeratorLoginErgebnis(BaseModel):
+    """Login-Ergebnis: entweder direkt ein Token, oder – bei aktivem 2FA auf einem
+    unbekannten Gerät – die Aufforderung, den per E-Mail gesendeten Code einzugeben
+    (mit kurzlebigem `challenge`-Token für den zweiten Schritt)."""
+
+    access_token: str | None = None
+    token_type: str = "bearer"
+    zwei_faktor_erforderlich: bool = False
+    challenge: str | None = None
+
+
+class Moderator2FA(BaseModel):
+    challenge: str
+    code: str
+    angemeldet_bleiben: bool = False
+
+
 class MeinProfil(BaseModel):
     name: str
     bild_url: str | None

@@ -29,6 +29,7 @@ from app.api.v1 import (
     moderator_buchungen,
     moderator_dashboard,
     moderator_einstellungen,
+    moderator_konto,
     moderator_listen,
     moderator_meta,
     moderator_feature_module,
@@ -134,6 +135,7 @@ app.include_router(moderator_barcodes.router, prefix="/api/v1")
 app.include_router(moderator_backup.router, prefix="/api/v1")
 app.include_router(moderator_minio.router, prefix="/api/v1")
 app.include_router(moderator_einstellungen.router, prefix="/api/v1")
+app.include_router(moderator_konto.router, prefix="/api/v1")
 app.include_router(moderator_stammdaten.router, prefix="/api/v1")
 app.include_router(person_bild_reservierungen.router, prefix="/api/v1")
 app.include_router(moderator_dashboard.router, prefix="/api/v1")

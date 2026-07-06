@@ -26,3 +26,12 @@ class ModeratorAktualisieren(BaseModel):
 
 class ModeratorPasswortAendern(BaseModel):
     passwort: str = Field(min_length=8)
+
+
+class ZweiFaktorStatus(BaseModel):
+    aktiv: bool
+    email_gesetzt: bool
+
+
+class RecoveryCodesOut(BaseModel):
+    codes: list[str]
