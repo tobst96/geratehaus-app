@@ -36,7 +36,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Personal-Seite: Detailansicht-Navigation auf Mobile (Screenshot-Befund)
 
-- Status: Backlog
+- Status: Erledigt (Commit 57de26d, Etappe D + E; verifiziert 06.07.2026)
 - Priorität: Mittel
 - Kategorie: Frontend / Design / UX
 - Skills: geraetehaus-patterns, review
@@ -174,7 +174,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Kacheln im Mitgliederbereich werden seitlich abgeschnitten (Screenshot-Befund)
 
-- Status: Backlog
+- Status: Erledigt (Commit 57de26d, Etappe D + E; verifiziert 06.07.2026)
 - Priorität: Niedrig
 - Kategorie: Bug / Frontend / Design
 - Skills: bugfix, review
@@ -193,7 +193,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### (1) Kompakte Profil-Zeile statt Begrüßungsblock
 
-- Status: Backlog
+- Status: Erledigt (Commit 57de26d, Etappe D + E; verifiziert 06.07.2026)
 - Priorität: Niedrig
 - Kategorie: Frontend / Design
 - Skills: geraetehaus-patterns, review
@@ -204,7 +204,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### (2) Kacheln 2-spaltig im CSS-Grid
 
-- Status: Backlog
+- Status: Erledigt (Commit 57de26d, Etappe D + E; verifiziert 06.07.2026)
 - Priorität: Niedrig
 - Kategorie: Frontend / Design
 - Skills: geraetehaus-patterns, review
@@ -215,7 +215,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### (3) Einheitliche Kachel-Styles
 
-- Status: Backlog
+- Status: Erledigt (Commit 57de26d, Etappe D + E; verifiziert 06.07.2026)
 - Priorität: Niedrig
 - Kategorie: Frontend / Design
 - Skills: geraetehaus-patterns, review
@@ -226,7 +226,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### (4) „Abmelden" in die Profil-Zeile integrieren
 
-- Status: Backlog
+- Status: Erledigt (Commit 57de26d, Etappe D + E; verifiziert 06.07.2026)
 - Priorität: Niedrig
 - Kategorie: Frontend / Design
 - Skills: geraetehaus-patterns, review
