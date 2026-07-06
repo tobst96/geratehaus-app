@@ -981,7 +981,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (2) Berechtigungssystem fertigstellen
 
-- Status: In Bearbeitung (Teil 1 = PR #28 gemergt + deployt 05.07.2026; Rest offen)
+- Status: In Bearbeitung (Teil 1 = PR #28; Barcodes/Kiosk gegated = PR 06.07.2026; Rest offen)
+- Fortschritt (06.07.2026, non-breaking): **Barcodes- und Kiosk-Geräte-Router granular
+  geschaltet.** Alle bislang `CurrentAdmin`-Endpunkte in `moderator_barcodes.py` nutzen
+  jetzt `require_modul_zugriff` – Barcode-Endpunkte Key `barcodes`, Kiosk-Endpunkte Key
+  `kiosk-geraete` (bewusst getrennt). Non-breaking: Admins passieren via Bypass,
+  Gruppenführer sind erst mit erteiltem Recht zugelassen (vorher gar kein Zugriff → kein
+  Aussperren). Frontend: `/moderator/barcodes` und `/moderator/kiosk-geraete` von
+  `AdminRoute` auf `BerechtigungRoute` umgestellt. Tests `test_p2_gate_barcodes_kiosk.py`
+  (5: Admin-Bypass, GF ohne Recht → 403, GF mit Recht → 200, getrennte Rechte). Suite 316
+  grün, `npm run build` grün.
+- Noch offen: `benachrichtigungen`- und `stammdaten`/`personal`-Endpunkte gaten;
+  Nav-Surfacing für berechtigte Gruppenführer; breaking Gruppenführer-Bereiche +
+  Rechte-Seed; altes Rollenmodell ablösen (Phase 5); `permissions.md`/`CLAUDE.md`.
 - Fortschritt (05.07.2026): **Frontend-Guards** begonnen – neuer Endpunkt
   `GET /moderator/meta/meine-berechtigungen` + `berechtigungs_service.meine_keys`;
   AuthContext lädt eigene Modul-Rechte und bietet `hatModulZugriff(key)`; neuer

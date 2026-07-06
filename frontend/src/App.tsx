@@ -70,10 +70,15 @@ export function App() {
               {/* Noch admin-only (Backend nutzt CurrentAdmin): Barcodes,
                   Kiosk-Geräte, Benachrichtigungen. */}
               <Route element={<AdminRoute />}>
-                <Route path="barcodes" element={<BarcodeGenerator />} />
-                <Route path="kiosk-geraete" element={<KioskGeraete />} />
                 <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />
                 <Route path="audit" element={<AuditLog />} />
+              </Route>
+              {/* Granular schaltbar (Backend: require_modul_zugriff, Admins via Bypass). */}
+              <Route element={<BerechtigungRoute modulKeys={["barcodes"]} />}>
+                <Route path="barcodes" element={<BarcodeGenerator />} />
+              </Route>
+              <Route element={<BerechtigungRoute modulKeys={["kiosk-geraete"]} />}>
+                <Route path="kiosk-geraete" element={<KioskGeraete />} />
               </Route>
               {/* Backend granular über require_modul_zugriff geschützt – hier
                   individuell per hat_zugriff statt Rolle (Admins via Bypass). */}
