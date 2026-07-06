@@ -73,11 +73,15 @@ def _sentry_umgebung(version: str) -> str:
         return "production"
 
 
-# Log-Events, die bereits an anderer Stelle sauber behandelt und dem Admin
-# gemeldet werden (Fehler-Mail + Status im Backup-Browser) und deshalb keinen
-# unerwarteten Code-Fehler darstellen. Sie sollen als Log-Zeile erhalten
-# bleiben, aber kein eigenes Sentry-Issue erzeugen (sonst nur Rauschen).
-_UNTERDRUECKTE_LOG_EVENTS = ("backup_fehlgeschlagen",)
+# Log-Events, die bereits an anderer Stelle sauber behandelt bzw. bewusst
+# toleriert werden und deshalb keinen unerwarteten Code-Fehler darstellen. Sie
+# sollen als Log-Zeile erhalten bleiben, aber kein eigenes Sentry-Issue erzeugen
+# (sonst nur Rauschen):
+# - backup_fehlgeschlagen: dem Admin per Fehler-Mail + Backup-Browser gemeldet.
+# - divera_person_unvollstaendig: ein Divera-Datensatz ohne id/user_id oder Name
+#   wird beim Personal-Sync bewusst übersprungen (kein Absturz). Jede Person
+#   erzeugte sonst ein eigenes Warning-Issue → reines Rauschen.
+_UNTERDRUECKTE_LOG_EVENTS = ("backup_fehlgeschlagen", "divera_person_unvollstaendig")
 
 
 def _ist_cancelled_error(event, hint) -> bool:

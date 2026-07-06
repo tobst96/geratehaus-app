@@ -22,6 +22,20 @@ def test_behandelter_backup_fehler_wird_verworfen():
     assert _before_send(event, {}) is None
 
 
+def test_unvollstaendige_divera_person_wird_verworfen():
+    # Divera-Personal-Sync überspringt Datensätze ohne id/Name bewusst und loggt
+    # eine Warnung – daraus soll kein eigenes Sentry-Issue je Person entstehen.
+    event = {
+        "logentry": {
+            "message": (
+                "{'roh': {'firstname': 'Max', 'lastname': 'Muster'}, "
+                "'event': 'divera_person_unvollstaendig', 'level': 'warning'}"
+            )
+        }
+    }
+    assert _before_send(event, {}) is None
+
+
 def test_echter_fehler_bleibt_erhalten():
     hint = {"exc_info": (ValueError, ValueError("kaputt"), None)}
     event = {"exception": {"values": [{"type": "ValueError", "value": "kaputt"}]}}
