@@ -75,3 +75,10 @@ class EinsatzEreignisOut(BaseModel):
 class EinsatzFehlversuchAnlegen(BaseModel):
     grund: str = Field(min_length=1, max_length=255)
     ort: str | None = Field(default=None, max_length=255)
+
+
+class EinsatzJahresStatistikOut(BaseModel):
+    jahr: int
+    anzahl: int
+    vorjahr: int
+    differenz: int

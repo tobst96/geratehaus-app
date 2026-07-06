@@ -14,10 +14,53 @@ from app.services import (
     pdf_service,
     stammdaten_service,
 )
+from app.core import zeit
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
 logger = structlog.get_logger(__name__)
+
+
+async def jahres_statistik(db: AsyncSession) -> dict:
+    """Einsatz-Anzahl im laufenden Jahr (bis heute) inkl. Vergleich zum Vorjahr
+    zum selben Stichtag (gleicher Kalendertag). Zählbasis: **angelegte** Einsätze
+    nach `zeitpunkt` (unabhängig von Status/Archiv). Ein konfigurierbarer
+    Startwert (`einsatz_statistik_offset` für `einsatz_statistik_offset_jahr`)
+    berücksichtigt Einsätze aus der Zeit vor der App-Einführung. Stichtag/Jahr
+    zeitzonenkorrekt (app_config `zeitzone`)."""
+    jetzt = await zeit.jetzt_lokal(db)
+    tz = jetzt.tzinfo
+    jahr = jetzt.year
+    offset = int(await config_service.get(db, "einsatz_statistik_offset", 0) or 0)
+    offset_jahr = int(await config_service.get(db, "einsatz_statistik_offset_jahr", 0) or 0)
+
+    async def _count(von: datetime, bis: datetime) -> int:
+        stmt = (
+            select(func.count())
+            .select_from(Einsatz)
+            .where(Einsatz.zeitpunkt >= von, Einsatz.zeitpunkt <= bis)
+        )
+        return int((await db.execute(stmt)).scalar_one())
+
+    jahr_start = datetime(jahr, 1, 1, tzinfo=tz)
+    anzahl = await _count(jahr_start, jetzt) + (offset if offset_jahr == jahr else 0)
+
+    vorjahr = jahr - 1
+    vorjahr_start = datetime(vorjahr, 1, 1, tzinfo=tz)
+    try:
+        vorjahr_stichtag = jetzt.replace(year=vorjahr)
+    except ValueError:  # 29.02. im Nicht-Schaltjahr → 28.02.
+        vorjahr_stichtag = jetzt.replace(year=vorjahr, day=28)
+    vorjahr_anzahl = await _count(vorjahr_start, vorjahr_stichtag) + (
+        offset if offset_jahr == vorjahr else 0
+    )
+
+    return {
+        "jahr": jahr,
+        "anzahl": anzahl,
+        "vorjahr": vorjahr_anzahl,
+        "differenz": anzahl - vorjahr_anzahl,
+    }
 
 
 async def ereignis_protokollieren(

@@ -5,6 +5,7 @@ from app.schemas.einsatz import (
     EinsatzAnlegen,
     EinsatzEreignisOut,
     EinsatzFehlversuchAnlegen,
+    EinsatzJahresStatistikOut,
     EinsatzOut,
     EinsatzZusatzfelderAktualisieren,
     TeilnahmeAnlegen,
@@ -46,6 +47,13 @@ async def feld_definitionen_liste(db: DbSession) -> list[EinsatzFeldDefinitionOu
     """Frei konfigurierte Zusatzfelder (Einsatzleiter, Erste Lage, …) – im
     Gerätehaus ohne Moderator-Login lesbar, damit das Formular gerendert werden kann."""
     return await stammdaten_service.liste_einsatz_felder(db, nur_aktive=True)
+
+
+@router.get("/statistik", response_model=EinsatzJahresStatistikOut, dependencies=[])
+async def einsatz_statistik(db: DbSession) -> EinsatzJahresStatistikOut:
+    """Jahres-Einsatzzahl (bis heute) mit Vorjahresvergleich zum selben Stichtag.
+    Muss vor '/{einsatz_id}' stehen, sonst würde 'statistik' als ID gedeutet."""
+    return EinsatzJahresStatistikOut(**await einsatz_service.jahres_statistik(db))
 
 
 @router.get("/{einsatz_id}", response_model=EinsatzOut, dependencies=[])

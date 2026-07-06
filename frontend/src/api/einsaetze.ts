@@ -13,6 +13,16 @@ export const einsatzAnlegen = (titel: string, zeitpunkt: string) =>
 export const holeEinsatzFelder = () =>
   apiGet<EinsatzFeldDefinition[]>("/einsaetze/feld-definitionen");
 
+export interface EinsatzJahresStatistik {
+  jahr: number;
+  anzahl: number;
+  vorjahr: number;
+  differenz: number;
+}
+
+export const holeEinsatzStatistik = () =>
+  apiGet<EinsatzJahresStatistik>("/einsaetze/statistik");
+
 export const einsatzZusatzfelderAktualisieren = (
   einsatzId: number,
   zusatzfelder: Record<string, string | boolean>

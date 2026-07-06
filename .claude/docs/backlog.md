@@ -685,10 +685,22 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Einsatz-Statistik: Jahresanzahl mit Vorjahresvergleich zum Stichtag
 
-- Status: Backlog
+- Status: Erledigt (direkt auf beta, 07.07.2026)
 - Priorität: Niedrig
 - Kategorie: Feature / Backend / Frontend
 - Skills: geraetehaus-patterns, tests, review
+- Umsetzung (07.07.2026): `einsatz_service.jahres_statistik` (Zählbasis = **angelegte**
+  Einsätze nach `zeitpunkt`, zeitzonenkorrekt via `zeit.jetzt_lokal`; Vorjahr bis
+  gleicher Kalendertag, 29.02.→28.02. abgefangen). Config `einsatz_statistik_offset`
+  (+ `_offset_jahr`) als Startwert vor App-Einführung. Endpunkt `GET /einsaetze/statistik`
+  (gegatet wie die Liste). Frontend: Statistik-Zeile im Einsatztagebuch
+  („<Jahr>: <n> Einsätze ±diff (Stichtag heute)"), Startwert-Felder in der
+  Einsatztagebuch-Modul-Unterseite. Tests `test_einsatz_statistik.py` (4). Suite 340
+  grün, `npm run build` grün.
+- **Abweichung/Follow-up:** Der Startwert wird bewusst in der **Modul-Unterseite**
+  gepflegt statt im Setup-Wizard – der First-Run-Wizard bleibt schlank (Branding/
+  Admin), org-/modulspezifische Werte gehören laut CLAUDE.md in die Modul-Unterseite.
+  Falls der Wizard-Punkt gewünscht ist, wäre das ein kleiner Zusatz.
 - Beschreibung: Im Einsatztagebuch die Gesamtzahl der Einsätze im **laufenden Jahr**
   anzeigen und mit dem **Vorjahr zum selben Stichtag (gleicher Tag im Jahr)**
   vergleichen. Anzeigeformat z. B. „2026: 50 Einsätze +4" – die +4 ist die Differenz

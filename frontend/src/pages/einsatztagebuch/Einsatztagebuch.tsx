@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { einsatzAnlegen, holeEinsaetze } from "../../api/einsaetze";
+import { einsatzAnlegen, holeEinsaetze, holeEinsatzStatistik, type EinsatzJahresStatistik } from "../../api/einsaetze";
 import { holeFahrzeuge, holeFunktionenEinsatz } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import { EinsatzDiagramm } from "./EinsatzDiagramm";
@@ -23,6 +23,7 @@ export function Einsatztagebuch() {
   const [formularOffen, setFormularOffen] = useState(false);
   const [neuerTitel, setNeuerTitel] = useState("");
   const [neuerZeitpunkt, setNeuerZeitpunkt] = useState(jetztAlsDatetimeLocal());
+  const [statistik, setStatistik] = useState<EinsatzJahresStatistik | null>(null);
 
   const bekannteIds = useRef<Set<number> | null>(null);
   const selectedEinsatzIdRef = useRef<number | null>(null);
@@ -30,11 +31,13 @@ export function Einsatztagebuch() {
 
   async function laden() {
     try {
-      const [e, f, fn] = await Promise.all([
+      const [e, f, fn, stat] = await Promise.all([
         holeEinsaetze(),
         holeFahrzeuge(),
         holeFunktionenEinsatz(),
+        holeEinsatzStatistik().catch(() => null),
       ]);
+      setStatistik(stat);
 
       if (bekannteIds.current === null) {
         // Erster Ladevorgang: nur merken, nicht automatisch öffnen.
@@ -100,6 +103,18 @@ export function Einsatztagebuch() {
   return (
     <div>
       <h1>Einsatztagebuch</h1>
+
+      {statistik && (
+        <p style={{ margin: "0 0 12px", color: "var(--farbe-text-mute)" }}>
+          <strong style={{ color: "var(--farbe-text)" }}>
+            {statistik.jahr}: {statistik.anzahl} Einsätze
+          </strong>{" "}
+          {statistik.differenz === 0
+            ? "±0 zum Vorjahr"
+            : `${statistik.differenz > 0 ? "+" : ""}${statistik.differenz} zum Vorjahr`}{" "}
+          (Stichtag heute)
+        </p>
+      )}
 
       {!formularOffen && (
         <button style={{ marginBottom: 16 }} onClick={() => setFormularOffen(true)}>

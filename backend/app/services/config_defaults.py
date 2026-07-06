@@ -149,6 +149,18 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.INT,
         "Minuten bis zum automatischen Abschluss, nachdem im Gerätehaus 'Alle eingetragen' geklickt wurde",
     ),
+    ConfigDefault(
+        "einsatz_statistik_offset",
+        "0",
+        ConfigTyp.INT,
+        "Startwert: bereits im laufenden Jahr abgearbeitete Einsätze vor App-Einführung (fließt in die Jahresstatistik ein)",
+    ),
+    ConfigDefault(
+        "einsatz_statistik_offset_jahr",
+        "0",
+        ConfigTyp.INT,
+        "Jahr, für das der Einsatz-Startwert gilt (0 = keiner)",
+    ),
     # Barcodes
     ConfigDefault(
         "barcode_gueltigkeit_tage",
