@@ -23,6 +23,9 @@ export interface OeffentlicheKonfiguration {
   modul_dienststunden_aussenzugriff: boolean;
   modul_fahrzeugbuchung_aussenzugriff: boolean;
   modul_formular_aussenzugriff: boolean;
+  fehlerberichte_aktiv: boolean;
+  sentry_dsn: string;
+  sentry_environment: string;
 }
 
 export interface SetupStatus {

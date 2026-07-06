@@ -874,6 +874,34 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ---
 
+## Monitoring & Fehler-Analyse (Sentry)
+
+### Sentry-Ausbau: Cron-Monitoring, Tracing, Frontend + Session Replay
+
+- Status: Review (Feature-Branch `feature/sentry-ausbau` → PR nach beta, 06.07.2026)
+- Priorität: Mittel
+- Kategorie: Feature / Backend / Frontend / DevOps
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Bestehende Sentry-Anbindung (Backend-Fehler/Logs, opt-in via
+  `fehlerberichte_aktiv`) vollständig ausbauen – u. a. Schedule-/Cron-Überwachung.
+- Umsetzung (06.07.2026):
+  - **Backend**: Performance-Tracing + Profiling (`traces_/profiles_sample_rate=0.15`),
+    `AsyncioIntegration`; öffentlicher Helper `sentry_setup.aktuelle_umgebung()`.
+  - **Cron-Monitoring**: Dekorator `_ueberwacht` in `scheduler.py` meldet jeden der 14
+    Jobs als Sentry-Cron-Check-in (Slug + Schedule) → Sentry erkennt ausgefallene/
+    verspätete Läufe und misst die Laufzeit; No-op, wenn Sentry aus ist.
+  - **Frontend**: `@sentry/react` (`frontend/src/sentry.ts`), init über die öffentliche
+    Konfiguration (`fehlerberichte_aktiv`/`sentry_dsn`/`sentry_environment`), Browser-
+    Tracing; **Session Replay NUR in der Beta** (Text maskiert, Medien blockiert; in
+    Produktion Sample-Rate 0 = aus). Zustimmung/DSN werden über
+    `/oeffentliche-konfiguration` geliefert (DSN nur bei Zustimmung).
+  - **Datenschutz** um Abschnitt „Fehler-Monitoring (Sentry)" inkl. Session-Replay-
+    Hinweis (nur Beta, EU/DE-Verarbeitung) ergänzt.
+  - Tests `test_sentry_config.py`; volle Suite 277 grün; `npm run build` grün.
+- Notizen: Alarme/Dashboards werden in der Sentry-UI konfiguriert (nicht im Code).
+
+---
+
 ## Etappe P – Sicherheits-Roadmap öffentliche Instanz (Priorität hoch)
 
 > Übertragen aus `Vorschlag.md` (05.07.2026). Kontext: Instanz **voll öffentlich

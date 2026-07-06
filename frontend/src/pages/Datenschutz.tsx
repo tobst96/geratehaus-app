@@ -147,6 +147,26 @@ export function Datenschutz() {
           – bei einem externen Anbieter geführt werden; externe Anbieter handeln als Auftragsverarbeiter
           der verantwortlichen Stelle.
         </p>
+
+        <h2>Fehler-Monitoring (Sentry)</h2>
+        <p>
+          Sofern die Organisation zugestimmt hat (Einstellung „Fehlerberichte", standardmäßig
+          <strong> aus</strong>), werden technische Fehler- und Absturzdaten der Anwendung an das
+          Monitoring-Werkzeug <strong>Sentry</strong> übermittelt, um Störungen zu erkennen und zu
+          beheben. Übertragen werden ausschließlich <strong>technische Angaben</strong> (Fehlermeldung,
+          Programmstelle/Stacktrace, aufgerufener Pfad, Browser-/Servertyp, Version); es werden
+          <strong> keine personenbezogenen Zusatzdaten</strong> wie IP-Adresse, Cookies oder
+          Formularinhalte mitgesendet. Die Daten werden in einem Rechenzentrum in der
+          <strong> EU (Deutschland)</strong> verarbeitet; der Anbieter handelt als Auftragsverarbeiter.
+        </p>
+        <p>
+          In der <strong>Beta-Version</strong> der Anwendung ist zusätzlich <strong>Session Replay</strong>
+          aktiv: Dabei wird der Ablauf der Bedienung (Klicks/Seitenwechsel) aufgezeichnet, um Fehler
+          nachvollziehen zu können. Angezeigte <strong>Texte werden maskiert</strong> und
+          <strong> Medien/Bilder blockiert</strong>, sodass keine Namen, PINs oder Bilder im Replay
+          sichtbar sind. In der regulären (Produktiv-)Version ist Session Replay
+          <strong> deaktiviert</strong>.
+        </p>
       </div>
     </div>
   );
