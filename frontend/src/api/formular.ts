@@ -120,7 +120,19 @@ export const holeSichtbareFormulare = () =>
   apiGet<Formular[]>("/moderator/formulare/sichtbar");
 export const formularDuplizieren = (id: number) =>
   apiPost<Formular>(`/moderator/formulare/${id}/duplizieren`);
-export const formularExportUrl = (id: number) => `/api/v1/moderator/formulare/${id}/export.csv`;
+/** CSV-Export herunterladen. Über einen authentifizierten Blob-Request (nicht als
+ * <a href>, denn ein Link kann den Bearer-Token nicht mitsenden → 401). */
+export async function formularCsvHerunterladen(id: number, name: string): Promise<void> {
+  const blob = await apiGet<Blob>(`/moderator/formulare/${id}/export.csv`);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `formular-${name.replace(/[^\w.-]+/g, "_") || id}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 // --- Öffentlich / Mitglied ---------------------------------------------------
 
