@@ -1,10 +1,10 @@
 import secrets
 import structlog
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 
-from app.api.deps import CurrentAdmin, DbSession
+from app.api.deps import DbSession, require_modul_zugriff
 from app.models.barcode_token import FahrzeugToken
 from app.models.kiosk_token import KioskToken
 from app.models.person import Person
@@ -16,10 +16,10 @@ logger = structlog.get_logger(__name__)
 router = APIRouter(prefix="/moderator/barcodes", tags=["moderator:barcodes"])
 
 
-@router.post("/alle-erneuern-und-senden")
-async def alle_barcodes_erneuern_und_senden(
-    db: DbSession, _admin: CurrentAdmin
-) -> dict[str, int]:
+@router.post(
+    "/alle-erneuern-und-senden", dependencies=[Depends(require_modul_zugriff("barcodes"))]
+)
+async def alle_barcodes_erneuern_und_senden(db: DbSession) -> dict[str, int]:
     """Erneuert alle Barcodes und sendet sie per Mail an alle Personen mit
     aktivierten Benachrichtigungen und hinterlegter E-Mail-Adresse."""
     result = await db.execute(
@@ -40,9 +40,9 @@ async def alle_barcodes_erneuern_und_senden(
     return {"gesendet": gesendet, "fehler": fehler}
 
 
-@router.post("/person/{person_id}")
+@router.post("/person/{person_id}", dependencies=[Depends(require_modul_zugriff("barcodes"))])
 async def generate_barcode_for_person(
-    db: DbSession, _admin: CurrentAdmin, person_id: int
+    db: DbSession, person_id: int
 ) -> dict[str, str | None]:
     """Generate a new barcode token for a person, valid for the configured
     Gültigkeitsdauer (Einstellungen > Barcodes, Default 2 Jahre)."""
@@ -68,9 +68,9 @@ async def barcode_bild_rendern(token: str) -> Response:
     return Response(content=barcode_service.render_png(token), media_type="image/png")
 
 
-@router.post("/fahrzeug/{fahrzeug_id}")
+@router.post("/fahrzeug/{fahrzeug_id}", dependencies=[Depends(require_modul_zugriff("barcodes"))])
 async def generate_token_for_fahrzeug(
-    db: DbSession, _admin: CurrentAdmin, fahrzeug_id: int
+    db: DbSession, fahrzeug_id: int
 ) -> dict[str, str]:
     """Generate a new access token for a vehicle (iPad display)."""
     fahrzeug = await stammdaten_service.get_fahrzeug(db, fahrzeug_id)
@@ -96,21 +96,32 @@ async def generate_token_for_fahrzeug(
 # --- Kiosk-Tokens (ein Token pro Tablet/Gerät im Gerätehaus) ------------------
 
 
-@router.get("/kiosk", response_model=list[KioskTokenOut])
-async def kiosk_tokens_liste(db: DbSession, _admin: CurrentAdmin) -> list[KioskTokenOut]:
+@router.get(
+    "/kiosk",
+    response_model=list[KioskTokenOut],
+    dependencies=[Depends(require_modul_zugriff("kiosk-geraete"))],
+)
+async def kiosk_tokens_liste(db: DbSession) -> list[KioskTokenOut]:
     return await kiosk_token_service.liste(db)
 
 
-@router.post("/kiosk", response_model=KioskTokenOut, status_code=status.HTTP_201_CREATED)
-async def kiosk_token_anlegen(
-    db: DbSession, _admin: CurrentAdmin, daten: KioskTokenAnlegen
-) -> KioskTokenOut:
+@router.post(
+    "/kiosk",
+    response_model=KioskTokenOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_modul_zugriff("kiosk-geraete"))],
+)
+async def kiosk_token_anlegen(db: DbSession, daten: KioskTokenAnlegen) -> KioskTokenOut:
     return await kiosk_token_service.anlegen(db, daten.bezeichnung)
 
 
-@router.patch("/kiosk/{kiosk_token_id}", response_model=KioskTokenOut)
+@router.patch(
+    "/kiosk/{kiosk_token_id}",
+    response_model=KioskTokenOut,
+    dependencies=[Depends(require_modul_zugriff("kiosk-geraete"))],
+)
 async def kiosk_token_startseite_setzen(
-    db: DbSession, _admin: CurrentAdmin, kiosk_token_id: int, daten: KioskTokenStartseiteModule
+    db: DbSession, kiosk_token_id: int, daten: KioskTokenStartseiteModule
 ) -> KioskToken:
     """Legt fest, welche Module auf der Startseite dieses Kiosk-Links erscheinen
     (None = globale Einstellung)."""
@@ -120,8 +131,10 @@ async def kiosk_token_startseite_setzen(
     return await kiosk_token_service.set_startseite_module(db, kiosk_token, daten.startseite_module)
 
 
-@router.get("/kiosk/{kiosk_token_id}/pdf")
-async def kiosk_token_pdf(db: DbSession, _admin: CurrentAdmin, kiosk_token_id: int) -> Response:
+@router.get(
+    "/kiosk/{kiosk_token_id}/pdf", dependencies=[Depends(require_modul_zugriff("kiosk-geraete"))]
+)
+async def kiosk_token_pdf(db: DbSession, kiosk_token_id: int) -> Response:
     """Ausdruckbares QR-PDF-Poster für ein Kiosk-Gerät (Logo, Gerätename, QR auf
     den Kiosk-Link, Einrichtungs-Anleitung)."""
     kiosk_token = await kiosk_token_service.get(db, kiosk_token_id)
@@ -135,8 +148,12 @@ async def kiosk_token_pdf(db: DbSession, _admin: CurrentAdmin, kiosk_token_id: i
     )
 
 
-@router.delete("/kiosk/{kiosk_token_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def kiosk_token_loeschen(db: DbSession, _admin: CurrentAdmin, kiosk_token_id: int) -> None:
+@router.delete(
+    "/kiosk/{kiosk_token_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_modul_zugriff("kiosk-geraete"))],
+)
+async def kiosk_token_loeschen(db: DbSession, kiosk_token_id: int) -> None:
     kiosk_token = await kiosk_token_service.get(db, kiosk_token_id)
     if kiosk_token is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kiosk-Token nicht gefunden.")
