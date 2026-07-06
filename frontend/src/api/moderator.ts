@@ -350,17 +350,26 @@ export const kioskTokenLoeschen = (id: number) =>
 export const setzeKioskStartseiteModule = (id: number, keys: string[] | null) =>
   apiPatch<KioskTokenOut>(`/moderator/barcodes/kiosk/${id}`, { startseite_module: keys });
 
-export async function ladeKioskPdf(id: number, bezeichnung: string): Promise<void> {
-  const blob = await apiGet<Blob>(`/moderator/barcodes/kiosk/${id}/pdf`);
+async function pdfHerunterladen(pfad: string, dateiname: string): Promise<void> {
+  const blob = await apiGet<Blob>(pfad);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `kiosk-${bezeichnung.replace(/[^\w.-]+/g, "_") || id}.pdf`;
+  a.download = dateiname;
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+export const ladeKioskPdf = (id: number, bezeichnung: string) =>
+  pdfHerunterladen(`/moderator/barcodes/kiosk/${id}/pdf`, `kiosk-${bezeichnung.replace(/[^\w.-]+/g, "_") || id}.pdf`);
+
+export const ladeFunktionStempelPdf = (id: number, name: string) =>
+  pdfHerunterladen(
+    `/moderator/stammdaten/funktionen-dienststunden/${id}/pdf`,
+    `dienststunden-stempel-${name.replace(/[^\w.-]+/g, "_") || id}.pdf`
+  );
 
 // --- Buchungsmanagement -----------------------------------------------------
 

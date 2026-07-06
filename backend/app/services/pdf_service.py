@@ -106,6 +106,23 @@ async def kiosk_link_pdf(db: AsyncSession, kiosk_token: Any) -> bytes:
     )
 
 
+async def dienststunden_stempel_pdf(db: AsyncSession, funktion: Any) -> bytes:
+    """Ausdruckbares „Stempel"-Poster pro Dienststunden-Funktion: Logo/Org-Name,
+    Funktionsname, großer QR-Code auf den dauerhaften Stempel-Link
+    (`/dienststunden-stempel/<funktion_id>`) und eine kurze Anleitung. Scan →
+    Login → Stunden für heute eintragen (Funktion fest)."""
+    basis_url = str(await config_service.get(db, "oeffentliche_basis_url", "")).rstrip("/")
+    stempel_link = f"{basis_url}/dienststunden-stempel/{funktion.id}"
+    qr_data_uri = segno.make(stempel_link, error="m").png_data_uri(scale=8, border=2)
+    return await _rendern(
+        db,
+        "dienststunden_stempel.html",
+        funktion_name=funktion.name,
+        stempel_link=stempel_link,
+        qr_data_uri=qr_data_uri,
+    )
+
+
 async def liste_pdf(
     db: AsyncSession, titel: str, spalten: list[dict[str, str]], zeilen: list[dict[str, Any]]
 ) -> bytes:

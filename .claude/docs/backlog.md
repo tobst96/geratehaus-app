@@ -1570,7 +1570,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Dienststunden-Funktions-QR-PDF (Stempel-Poster)
 
-- Status: Backlog
+- Status: Review (Feature-Branch `feature/dienststunden-stempel` → PR nach beta, 06.07.2026)
+- Umsetzung (06.07.2026): Öffentlicher, dauerhafter Link `/dienststunden-stempel/<funktion_id>`.
+  Backend: öffentliches Info-Endpoint `GET /dienststunden-stempel/{id}` (rate-limitiert,
+  Funktionsname + `aktiv`=Funktion&Modul aktiv); QR-PDF `pdf_service.dienststunden_stempel_pdf`
+  + Template `dienststunden_stempel.html` (segno-QR aufs Stempel-Link) + Admin-Endpunkt
+  `GET /moderator/stammdaten/funktionen-dienststunden/{id}/pdf`. Die Erfassung selbst nutzt
+  den bestehenden `POST /dienststunden` (Login per Mitglieds-Cookie/Barcode via
+  `require_zugriff`/`CurrentPerson`) – kein neuer Schreib-Endpunkt nötig, Funktion fix.
+  Frontend: neue öffentliche Seite `DienststundenStempel.tsx` (Route
+  `/dienststunden-stempel/:funktionId`): Funktionsname + Datum heute fest, Stundenwahl
+  (Chips/Stepper, wie Reservierungs-Eintrag), Login über `PersonIdentifikation`, Eintrag
+  über `stundenErfassen`. „QR-PDF"-Button je Funktion in `FunktionenDienststundenVerwaltung.tsx`.
+  Tests `test_dienststunden_stempel.py` (5); Suite 288 grün, `npm run build` grün.
 - Priorität: Mittel
 - Kategorie: Neues Feature / Frontend / Backend
 - Skills: planner, geraetehaus-patterns, tests, review

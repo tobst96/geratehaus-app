@@ -39,6 +39,7 @@ import { FahrzeugView } from "./pages/fahrzeug/FahrzeugView";
 import { ManuelleEintragung } from "./pages/ManuelleEintragung";
 import { DienstbuchManuelleEintragung } from "./pages/DienstbuchManuelleEintragung";
 import { DienststundenManuelleEintragung } from "./pages/DienststundenManuelleEintragung";
+import { DienststundenStempel } from "./pages/DienststundenStempel";
 import { FahrzeugbuchungManuelleEintragung } from "./pages/FahrzeugbuchungManuelleEintragung";
 import { PersonBildHochladen } from "./pages/PersonBildHochladen";
 import { PinSetzen } from "./pages/PinSetzen";
@@ -92,6 +93,7 @@ export function App() {
           <Route path="/einsatztagebuch/:id" element={<EinsatzDetail />} />
           <Route path="/dienstbuch" element={<Dienstbuch />} />
           <Route path="/dienststunden" element={<Dienststunden />} />
+          <Route path="/dienststunden-stempel/:funktionId" element={<DienststundenStempel />} />
           <Route path="/fahrzeugbuchung" element={<Fahrzeugbuchung />} />
           <Route path="/formulare" element={<FormularListe />} />
           <Route path="/formular/:id" element={<FormularAusfuellen />} />

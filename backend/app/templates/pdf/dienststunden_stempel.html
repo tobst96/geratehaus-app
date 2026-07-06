@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block inhalt %}
+<style>
+    .stempel-poster {
+        text-align: center;
+        margin-top: 12px;
+    }
+    .stempel-poster .label {
+        font-size: 12pt;
+        color: #555;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+    .stempel-poster h1 {
+        font-size: 26pt;
+        margin: 0 0 22px;
+        color: {{ farbe_primaer }};
+    }
+    .stempel-poster .qr {
+        width: 9.5cm;
+        height: 9.5cm;
+        margin: 0 auto 16px;
+    }
+    .stempel-poster .qr img {
+        width: 100%;
+        height: 100%;
+    }
+    .stempel-poster .link {
+        font-size: 10pt;
+        color: #333;
+        word-break: break-all;
+        margin-bottom: 28px;
+    }
+    .stempel-anleitung {
+        text-align: left;
+        max-width: 14cm;
+        margin: 0 auto;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 14px 18px;
+        background: #f7f7f7;
+    }
+    .stempel-anleitung h2 {
+        font-size: 12pt;
+        margin: 0 0 8px;
+        color: {{ farbe_primaer }};
+    }
+    .stempel-anleitung ol {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 10.5pt;
+        line-height: 1.55;
+    }
+</style>
+<div class="stempel-poster">
+    <div class="label">Dienststunden eintragen</div>
+    <h1>{{ funktion_name }}</h1>
+
+    <div class="qr"><img src="{{ qr_data_uri }}" alt="QR-Code Dienststunden-Stempel"></div>
+
+    <div class="link">{{ stempel_link }}</div>
+
+    <div class="stempel-anleitung">
+        <h2>So trägst du deine Stunden ein</h2>
+        <ol>
+            <li>QR-Code oben mit der Handy-Kamera scannen.</li>
+            <li>Mit Name und PIN (bzw. Barcode) anmelden.</li>
+            <li>Deine Stundenzahl für <strong>heute</strong> wählen – die Funktion
+                „{{ funktion_name }}“ ist bereits vorgegeben.</li>
+            <li>„Eintragen“ tippen – fertig.</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}

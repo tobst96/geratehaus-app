@@ -13,6 +13,7 @@ from app.api.v1 import (
     dienstbuecher,
     dienststunden,
     dienststunden_reservierungen,
+    dienststunden_stempel,
     divera,
     einsaetze,
     fahrzeugbuchung_reservierungen,
@@ -124,6 +125,7 @@ app.include_router(dienstbuecher.router, prefix="/api/v1")
 app.include_router(dienstbuch_reservierungen.router, prefix="/api/v1")
 app.include_router(dienststunden.router, prefix="/api/v1")
 app.include_router(dienststunden_reservierungen.router, prefix="/api/v1")
+app.include_router(dienststunden_stempel.router, prefix="/api/v1")
 app.include_router(fahrzeugbuchung_reservierungen.router, prefix="/api/v1")
 app.include_router(buchungen.router, prefix="/api/v1")
 app.include_router(buchung_aktionen.router, prefix="/api/v1")
