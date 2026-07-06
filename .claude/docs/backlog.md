@@ -241,17 +241,22 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Fahrzeugbuchung „Barcode vergessen": Profilbild/Name nach Login zeigen
 
-- Status: Backlog
+- Status: Erledigt
 - Priorität: Mittel
 - Kategorie: Frontend
 - Skills: geraetehaus-patterns, review
 - Beschreibung: Sobald die Person sich am Handy mit Name und PIN eingeloggt hat,
   neben dem QR-Code sofort Profilbild und Name anzeigen.
 - Akzeptanzkriterien: Nach Login erscheint Bild+Name beim QR-Code der Buchung.
+- Erledigt (06.07.2026, verifiziert): Bereits umgesetzt in
+  `pages/fahrzeugbuchung/Fahrzeugbuchung.tsx` – die QR-Ansicht pollt
+  `holeFahrzeugbuchungReservierung` und zeigt nach dem PIN-Login der Person
+  `vorschau_person_name` + `vorschau_bild_url` (mit Initialen-Fallback) neben dem
+  QR-Code an (min. 3 s sichtbar). Status war irrtümlich noch „Backlog".
 
 ### „Barcode vergessen": überall Name+PIN erzwingen
 
-- Status: Review (Feature-Branch `feature/barcode-vergessen-kein-bild-leak` → PR nach beta, 06.07.2026)
+- Status: Erledigt (PR #33 gemergt + auf beta deployt, 06.07.2026)
 - Priorität: Hoch
 - Kategorie: Bug / Sicherheit
 - Skills: geraetehaus-patterns, tests, review
@@ -281,7 +286,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### (1) E-Mail-Adresse pro Moderatoren-Zugang
 
-- Status: Review (Feature-Branch `feature/moderator-email` → PR nach beta, 06.07.2026)
+- Status: Erledigt (PR #37 gemergt + auf beta deployt, 06.07.2026)
 - Umsetzung (06.07.2026): Migration 0055 (`moderatoren.email` nullable), Model +
   Schemas (`ModeratorOut.email`, `ModeratorAnlegen.email`, neues
   `ModeratorAktualisieren`), Service (`moderator_anlegen(email)` +
@@ -898,7 +903,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Sentry-Ausbau: Cron-Monitoring, Tracing, Frontend + Session Replay
 
-- Status: Review (Feature-Branch `feature/sentry-ausbau` → PR nach beta, 06.07.2026)
+- Status: Erledigt (PR #34 gemergt + auf beta deployt, 06.07.2026)
 - Priorität: Mittel
 - Kategorie: Feature / Backend / Frontend / DevOps
 - Skills: geraetehaus-patterns, tests, review
@@ -1082,8 +1087,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (4) Admin-/Moderator-Login härten + 2FA
 
-- Status: Review (E-Mail-OTP-2FA = Feature-Branch `feature/moderator-2fa-email-otp` → PR
-  nach beta, 06.07.2026; Login-Lockout = Phase 1 bereits live)
+- Status: Erledigt (E-Mail-OTP-2FA = PR #38 gemergt + auf beta deployt, 06.07.2026;
+  Login-Lockout = Phase 1 bereits live)
 - Fortschritt (06.07.2026, Phase 2 – E-Mail-OTP-2FA, opt-in): Migration 0056
   (`moderatoren.zwei_faktor_aktiv`/`otp_*` + Tabellen `moderator_recovery_codes`,
   `moderator_trusted_devices`). Service `zwei_faktor_service` (OTP erzeugen/senden/
