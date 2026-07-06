@@ -8,8 +8,10 @@ from app.schemas.moderator import (
     ModeratorAnlegen,
     ModeratorOut,
     ModeratorPasswortAendern,
+    RecoveryCodesOut,
+    ZweiFaktorStatus,
 )
-from app.services import archive_service, audit_service, logo_service, moderator_service
+from app.services import archive_service, audit_service, logo_service, moderator_service, zwei_faktor_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -153,4 +155,19 @@ async def moderator_loeschen(db: DbSession, admin: CurrentModerator, moderator_i
     await moderator_service.moderator_loeschen(db, ziel)
     await audit_service.protokolliere(
         db, admin.username, "moderator_geloescht", "moderator", moderator_id, name
+    )
+
+
+@router.post("/moderatoren/{moderator_id}/2fa-zuruecksetzen", status_code=status.HTTP_204_NO_CONTENT)
+async def moderator_2fa_zuruecksetzen(
+    db: DbSession, akteur: CurrentModerator, moderator_id: int
+) -> None:
+    """Admin-Reset: schaltet die 2FA eines Zugangs ab und räumt OTP/Recovery/
+    Trusted-Devices ab – hebt ein Aussperren auf (z. B. Postfach nicht erreichbar)."""
+    ziel = await moderator_service.get_moderator(db, moderator_id)
+    if ziel is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moderator nicht gefunden.")
+    await zwei_faktor_service.deaktivieren(db, ziel)
+    await audit_service.protokolliere(
+        db, akteur.username, "moderator_2fa_zurueckgesetzt", "moderator", moderator_id, ziel.username
     )

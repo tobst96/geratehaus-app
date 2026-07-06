@@ -7,6 +7,13 @@ export interface ModeratorToken {
   token_type: string;
 }
 
+export interface ModeratorLoginErgebnis {
+  access_token: string | null;
+  token_type: string;
+  zwei_faktor_erforderlich: boolean;
+  challenge: string | null;
+}
+
 export interface BarcodeIdentitaet {
   name: string;
 }
@@ -99,16 +106,40 @@ export const barcodeVorschau = (token: string) =>
 
 /** Eigener Aufruf statt apiPost: FastAPIs OAuth2PasswordRequestForm erwartet
  * application/x-www-form-urlencoded, nicht JSON. */
-export async function moderatorLogin(username: string, passwort: string): Promise<ModeratorToken> {
+export async function moderatorLogin(
+  username: string,
+  passwort: string
+): Promise<ModeratorLoginErgebnis> {
   const body = new URLSearchParams({ username, password: passwort });
   const response = await fetch(`${BASIS_URL}/auth/moderator/login`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    // credentials für das httponly Trusted-Device-Cookie (2FA-Überspringen).
+    credentials: "include",
     body,
   });
   if (!response.ok) {
     const daten = await response.json().catch(() => ({}));
     throw new ApiError(response.status, daten.detail ?? "Anmeldung fehlgeschlagen.");
+  }
+  return response.json();
+}
+
+/** Zweiter Login-Schritt bei aktivem 2FA: E-Mail-Code oder Recovery-Code. */
+export async function moderator2fa(
+  challenge: string,
+  code: string,
+  angemeldetBleiben: boolean
+): Promise<ModeratorLoginErgebnis> {
+  const response = await fetch(`${BASIS_URL}/auth/moderator/2fa`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ challenge, code, angemeldet_bleiben: angemeldetBleiben }),
+  });
+  if (!response.ok) {
+    const daten = await response.json().catch(() => ({}));
+    throw new ApiError(response.status, daten.detail ?? "Code ungültig.");
   }
   return response.json();
 }

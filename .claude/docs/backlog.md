@@ -1035,7 +1035,26 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (4) Admin-/Moderator-Login härten + 2FA
 
-- Status: In Bearbeitung (Login-Lockout als PR 05.07.2026 – `feature/moderator-login-lockout-p4`)
+- Status: Review (E-Mail-OTP-2FA = Feature-Branch `feature/moderator-2fa-email-otp` → PR
+  nach beta, 06.07.2026; Login-Lockout = Phase 1 bereits live)
+- Fortschritt (06.07.2026, Phase 2 – E-Mail-OTP-2FA, opt-in): Migration 0056
+  (`moderatoren.zwei_faktor_aktiv`/`otp_*` + Tabellen `moderator_recovery_codes`,
+  `moderator_trusted_devices`). Service `zwei_faktor_service` (OTP erzeugen/senden/
+  prüfen, Recovery-Codes bcrypt, Trusted-Device SHA-256 30 Tage, aktivieren/
+  deaktivieren=Admin-Reset). Login-Flow: `POST /auth/moderator/login` liefert bei
+  aktivem 2FA (und unbekanntem Gerät) `zwei_faktor_erforderlich`+`challenge`
+  (signiert, 10 Min) statt Token und mailt den 6-stelligen Code; `POST /auth/moderator/2fa`
+  prüft OTP **oder** Recovery-Code, stellt Token aus und setzt optional ein
+  Trusted-Device-Cookie. Selbstverwaltung `moderator_konto` (`/moderator/konto/2fa*`,
+  für ALLE Moderatoren, nicht einstellungs-gegated); Admin-Reset
+  `POST /moderator/einstellungen/moderatoren/{id}/2fa-zuruecksetzen`. Audit-Hooks.
+  Frontend: 2-Schritt-Login (`ModeratorLogin.tsx`, „Gerät 30 Tage vertrauen"),
+  Selbst-2FA-Karte + „2FA zurücksetzen"-Button (`Einstellungen.tsx`). Tests
+  `test_moderator_2fa.py` (9); Suite 300 grün, `npm run build` grün.
+  **Offen (Phase 3):** Passkeys/WebAuthn als optionale Alternative; 2FA-Aktivierung
+  ggf. mit Bestätigungs-OTP absichern; Selbst-2FA-UI auch für reine Gruppenführer
+  (Backend erlaubt es bereits, UI liegt derzeit unter Einstellungen).
+- Status-alt: In Bearbeitung (Login-Lockout als PR 05.07.2026 – `feature/moderator-login-lockout-p4`)
 - Priorität: Hoch
 - Kategorie: Backend / Frontend / Sicherheit / Auth
 - Skills: planner, geraetehaus-patterns, tests, review

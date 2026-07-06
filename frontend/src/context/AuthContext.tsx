@@ -3,6 +3,7 @@ import { getModeratorToken, setModeratorToken } from "../api/client";
 import {
   barcodeEinscannen as barcodeEinscannenApi,
   mitgliedAbmelden as mitgliedAbmeldenApi,
+  moderator2fa,
   moderatorLogin,
   namePinLogin,
 } from "../api/auth";
@@ -39,7 +40,15 @@ interface AuthContextValue {
   berechtigungenGeladen: boolean;
   /** Ob der angemeldete Moderator auf ein Modul zugreifen darf (Admin: immer true). */
   hatModulZugriff: (modulKey: string) => boolean;
-  moderatorAnmelden: (username: string, passwort: string) => Promise<void>;
+  moderatorAnmelden: (
+    username: string,
+    passwort: string
+  ) => Promise<{ zweiFaktorErforderlich: boolean; challenge: string | null }>;
+  moderator2faAbschliessen: (
+    challenge: string,
+    code: string,
+    angemeldetBleiben: boolean
+  ) => Promise<void>;
   moderatorAbmelden: () => void;
   mitgliedAbmelden: () => Promise<void>;
 }
@@ -122,11 +131,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await mitgliedAbmeldenApi();
   }
 
-  async function moderatorAnmelden(username: string, passwort: string): Promise<void> {
-    const token = await moderatorLogin(username, passwort);
-    setModeratorToken(token.access_token);
+  function sitzungSetzen(accessToken: string): void {
+    setModeratorToken(accessToken);
     setModeratorAngemeldet(true);
-    setModeratorRolle(rolleAusToken(token.access_token));
+    setModeratorRolle(rolleAusToken(accessToken));
+  }
+
+  /** Login Schritt 1. Liefert `{ zweiFaktorErforderlich, challenge }`: ist 2FA
+   * nötig, muss der Aufrufer `moderator2faAbschliessen` mit dem Code aufrufen. */
+  async function moderatorAnmelden(
+    username: string,
+    passwort: string
+  ): Promise<{ zweiFaktorErforderlich: boolean; challenge: string | null }> {
+    const ergebnis = await moderatorLogin(username, passwort);
+    if (ergebnis.access_token) {
+      sitzungSetzen(ergebnis.access_token);
+      return { zweiFaktorErforderlich: false, challenge: null };
+    }
+    return { zweiFaktorErforderlich: ergebnis.zwei_faktor_erforderlich, challenge: ergebnis.challenge };
+  }
+
+  async function moderator2faAbschliessen(
+    challenge: string,
+    code: string,
+    angemeldetBleiben: boolean
+  ): Promise<void> {
+    const ergebnis = await moderator2fa(challenge, code, angemeldetBleiben);
+    if (!ergebnis.access_token) throw new Error("Kein Token erhalten.");
+    sitzungSetzen(ergebnis.access_token);
   }
 
   function moderatorAbmelden(): void {
@@ -158,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         berechtigungenGeladen: modulRechte !== null || moderatorRolle === "admin",
         hatModulZugriff,
         moderatorAnmelden,
+        moderator2faAbschliessen,
         moderatorAbmelden,
         mitgliedAbmelden,
       }}
