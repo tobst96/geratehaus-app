@@ -7,6 +7,7 @@ import {
   fuehreArchivierungAus,
   holeModeratoren,
   moderatorAnlegen,
+  moderatorEmailAendern,
   moderatorPasswortAendern,
   moderatorLoeschen,
   type ModeratorKonto,
@@ -23,6 +24,7 @@ function ModeratorenVerwaltung() {
   const [neuerUsername, setNeuerUsername] = useState("");
   const [neuesPasswort, setNeuesPasswort] = useState("");
   const [neueRolle, setNeueRolle] = useState("gruppenfuehrer");
+  const [neueEmail, setNeueEmail] = useState("");
 
   async function laden() {
     try {
@@ -44,9 +46,10 @@ function ModeratorenVerwaltung() {
       return;
     }
     try {
-      await moderatorAnlegen(neuerUsername.trim(), neuesPasswort, neueRolle);
+      await moderatorAnlegen(neuerUsername.trim(), neuesPasswort, neueRolle, neueEmail.trim() || null);
       setNeuerUsername("");
       setNeuesPasswort("");
+      setNeueEmail("");
       await laden();
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Anlegen fehlgeschlagen.");
@@ -60,6 +63,17 @@ function ModeratorenVerwaltung() {
       await moderatorPasswortAendern(m.id, neues);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Passwort konnte nicht geändert werden.");
+    }
+  }
+
+  async function emailAendern(m: ModeratorKonto) {
+    const neue = prompt(`E-Mail für ${m.username} (leer = entfernen):`, m.email ?? "");
+    if (neue === null) return;
+    try {
+      await moderatorEmailAendern(m.id, neue.trim() || null);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "E-Mail konnte nicht geändert werden.");
     }
   }
 
@@ -89,6 +103,7 @@ function ModeratorenVerwaltung() {
             <tr>
               <th>Benutzername</th>
               <th>Rolle</th>
+              <th>E-Mail</th>
               <th></th>
             </tr>
           </thead>
@@ -97,7 +112,13 @@ function ModeratorenVerwaltung() {
               <tr key={m.id}>
                 <td>{m.username}</td>
                 <td>{m.rolle === "admin" ? "Admin" : "Gruppenführer"}</td>
+                <td style={{ color: m.email ? undefined : "var(--farbe-text-mute)" }}>
+                  {m.email ?? "—"}
+                </td>
                 <td style={{ display: "flex", gap: 8 }}>
+                  <button type="button" className="sekundaer" onClick={() => emailAendern(m)}>
+                    E-Mail
+                  </button>
                   <button type="button" className="sekundaer" onClick={() => passwortAendern(m)}>
                     Passwort ändern
                   </button>
@@ -123,6 +144,13 @@ function ModeratorenVerwaltung() {
           placeholder="Passwort (mind. 8 Zeichen)"
           value={neuesPasswort}
           onChange={(e) => setNeuesPasswort(e.target.value)}
+          autoComplete="off"
+        />
+        <input
+          type="email"
+          placeholder="E-Mail (optional)"
+          value={neueEmail}
+          onChange={(e) => setNeueEmail(e.target.value)}
           autoComplete="off"
         />
         <select value={neueRolle} onChange={(e) => setNeueRolle(e.target.value)}>

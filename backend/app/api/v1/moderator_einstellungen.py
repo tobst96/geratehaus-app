@@ -3,7 +3,12 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
 from app.api.deps import CurrentModerator, DbSession, require_modul_zugriff
-from app.schemas.moderator import ModeratorAnlegen, ModeratorOut, ModeratorPasswortAendern
+from app.schemas.moderator import (
+    ModeratorAktualisieren,
+    ModeratorAnlegen,
+    ModeratorOut,
+    ModeratorPasswortAendern,
+)
 from app.services import archive_service, audit_service, logo_service, moderator_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
@@ -91,12 +96,28 @@ async def moderator_anlegen(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Benutzername bereits vergeben."
         )
-    neu = await moderator_service.moderator_anlegen(db, daten.username, daten.passwort, daten.rolle)
+    neu = await moderator_service.moderator_anlegen(
+        db, daten.username, daten.passwort, daten.rolle, daten.email
+    )
     await audit_service.protokolliere(
         db, akteur.username, "moderator_angelegt", "moderator", neu.id,
         f"{neu.username} (Rolle {neu.rolle})",
     )
     return neu
+
+
+@router.patch("/moderatoren/{moderator_id}", response_model=ModeratorOut)
+async def moderator_aktualisieren(
+    db: DbSession, akteur: CurrentModerator, moderator_id: int, daten: ModeratorAktualisieren
+) -> ModeratorOut:
+    ziel = await moderator_service.get_moderator(db, moderator_id)
+    if ziel is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moderator nicht gefunden.")
+    ergebnis = await moderator_service.moderator_email_setzen(db, ziel, daten.email)
+    await audit_service.protokolliere(
+        db, akteur.username, "moderator_email_geaendert", "moderator", moderator_id, ziel.username
+    )
+    return ergebnis
 
 
 @router.put("/moderatoren/{moderator_id}/passwort", response_model=ModeratorOut)
