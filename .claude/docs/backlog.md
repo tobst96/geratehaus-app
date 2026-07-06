@@ -1287,7 +1287,15 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Erste Frontend-Tests (Vitest + Testing Library)
 
-- Status: Backlog
+- Status: Review (Feature-Branch `feature/frontend-tests-vitest` → PR nach beta, 06.07.2026)
+- Umsetzung (06.07.2026): Vitest + @testing-library/react eingerichtet (jsdom, Setup
+  `src/test/setup.ts`, `test`-Block in `vite.config.ts`, Script `npm run test`). Erste
+  Tests: `oeffentlicheUrl.test.ts` (pure util) und `ModeratorLogin.test.tsx` (deckt den
+  neuen 2FA-Login-Flow ab: normaler Login navigiert, 2FA-erforderlich zeigt den
+  Code-Schritt). CI-Frontend-Job um „Tests (vitest)"-Step erweitert. 4 Tests grün,
+  `npm run build` weiterhin grün.
+- Notiz: Bewusst mit den wichtigsten/aktuellsten Flows gestartet (Login inkl. 2FA);
+  Kiosk-Eintragung + Formular-Ausfüllen als nächste Testfälle offen.
 - Priorität: Mittel
 - Kategorie: Tests / Frontend
 - Skills: tests, review
