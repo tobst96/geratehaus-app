@@ -4,6 +4,7 @@ import {
   kioskTokenAnlegen,
   kioskTokenLoeschen,
   ladeKioskPdf,
+  schreibeEinstellungen,
   setzeKioskStartseiteModule,
   type KioskTokenOut,
 } from "../../api/moderator";
@@ -21,10 +22,23 @@ const STARTSEITE_MODULE: { key: string; label: string }[] = [
 ];
 
 export function KioskGeraete() {
-  const { config } = useConfig();
+  const { config, neuLaden } = useConfig();
   const [geraete, setGeraete] = useState<KioskTokenOut[] | null>(null);
   const [bezeichnung, setBezeichnung] = useState("");
   const [fehler, setFehler] = useState<string | null>(null);
+  const [autolock, setAutolock] = useState<number>(config?.kiosk_autolock_sekunden ?? 0);
+  const [autolockGespeichert, setAutolockGespeichert] = useState(false);
+
+  async function autolockSpeichern() {
+    try {
+      await schreibeEinstellungen({ kiosk_autolock_sekunden: autolock });
+      await neuLaden();
+      setAutolockGespeichert(true);
+      setTimeout(() => setAutolockGespeichert(false), 2000);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Speichern fehlgeschlagen.");
+    }
+  }
 
   async function laden() {
     try {
@@ -104,6 +118,29 @@ export function KioskGeraete() {
         Jedes Tablet im Gerätehaus braucht einen eigenen Link. Diesen Link einmalig als Lesezeichen /
         Startbildschirm-Symbol auf dem jeweiligen Tablet hinterlegen.
       </p>
+
+      <div className="karte">
+        <h2 style={{ marginTop: 0 }}>Auto-Sperre</h2>
+        <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.9rem" }}>
+          Nach dieser Zeit ohne Bedienung springt das Kiosk-Tablet automatisch zurück zur
+          Startseite (verhindert hängende Sitzungen mit gewählter Person). 0 = aus.
+        </p>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <label htmlFor="kiosk-autolock">Sekunden bis Rücksprung</label>
+          <input
+            id="kiosk-autolock"
+            type="number"
+            min={0}
+            value={autolock}
+            onChange={(e) => setAutolock(Math.max(0, Number(e.target.value)))}
+            style={{ width: 120 }}
+          />
+          <button type="button" onClick={autolockSpeichern}>
+            Speichern
+          </button>
+          {autolockGespeichert && <span style={{ color: "green" }}>✓ gespeichert</span>}
+        </div>
+      </div>
 
       <form onSubmit={anlegen} className="karte" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <input

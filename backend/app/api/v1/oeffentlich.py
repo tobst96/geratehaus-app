@@ -56,6 +56,7 @@ async def oeffentliche_konfiguration(db: DbSession) -> OeffentlicheKonfiguration
         modul_dienststunden_aussenzugriff=werte.get("modul_dienststunden_aussenzugriff", False),
         modul_fahrzeugbuchung_aussenzugriff=werte.get("modul_fahrzeugbuchung_aussenzugriff", False),
         modul_formular_aussenzugriff=werte.get("modul_formular_aussenzugriff", False),
+        kiosk_autolock_sekunden=werte.get("kiosk_autolock_sekunden", 0),
         fehlerberichte_aktiv=fehlerberichte_aktiv,
         # DSN nur ausliefern, wenn die Instanz zugestimmt hat (sonst kein Frontend-Sentry).
         sentry_dsn=sentry_setup._aktive_dsn() if fehlerberichte_aktiv else "",

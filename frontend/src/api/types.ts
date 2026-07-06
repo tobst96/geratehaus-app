@@ -13,6 +13,7 @@ export interface OeffentlicheKonfiguration {
   modul_fahrzeugbuchung_aktiv: boolean;
   modul_formular_aktiv: boolean;
   modul_barcode_aktiv: boolean;
+  kiosk_autolock_sekunden: number;
   modul_einsatztagebuch_startseite: boolean;
   modul_dienstbuch_startseite: boolean;
   modul_dienststunden_startseite: boolean;
