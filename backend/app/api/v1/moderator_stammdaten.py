@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, Response, UploadFile, status
 
 from app.api.deps import CurrentAdmin, CurrentModerator, DbSession
 from app.schemas.dienststunden import DienststundenEintragOut, DienststundenErfassen, DienststundenSummeOut
@@ -31,7 +31,7 @@ from app.schemas.stammdaten import (
     GruppeOut,
     GruppeUpdate,
 )
-from app.services import ampel_service, audit_service, barcode_service, dienststunden_service, divera_personal_service, email_template_service, person_bild_reservierung_service, stammdaten_service
+from app.services import ampel_service, audit_service, barcode_service, dienststunden_service, divera_personal_service, email_template_service, pdf_service, person_bild_reservierung_service, stammdaten_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -149,6 +149,22 @@ async def funktionen_dienststunden_liste(
     db: DbSession, _admin: CurrentAdmin
 ) -> list[FunktionDienststundenOut]:
     return await stammdaten_service.liste_funktionen_dienststunden(db, nur_aktive=False)
+
+
+@router.get("/funktionen-dienststunden/{funktion_id}/pdf")
+async def funktion_dienststunden_stempel_pdf(
+    db: DbSession, _admin: CurrentAdmin, funktion_id: int
+) -> Response:
+    """Ausdruckbares Stempel-QR-PDF-Poster für eine Dienststunden-Funktion."""
+    funktion = await stammdaten_service.get_funktion_dienststunden(db, funktion_id)
+    if funktion is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Funktion nicht gefunden.")
+    pdf_bytes = await pdf_service.dienststunden_stempel_pdf(db, funktion)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="dienststunden-stempel-{funktion_id}.pdf"'},
+    )
 
 
 @router.post(
