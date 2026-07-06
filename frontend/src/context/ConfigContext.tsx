@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { apiGet } from "../api/client";
 import type { OeffentlicheKonfiguration } from "../api/types";
+import { sentryInitialisieren } from "../sentry";
 
 interface ConfigContextValue {
   config: OeffentlicheKonfiguration | null;
@@ -33,6 +34,9 @@ const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   modul_dienststunden_aussenzugriff: false,
   modul_fahrzeugbuchung_aussenzugriff: false,
   modul_formular_aussenzugriff: false,
+  fehlerberichte_aktiv: false,
+  sentry_dsn: "",
+  sentry_environment: "production",
 };
 
 const ConfigContext = createContext<ConfigContextValue>({
@@ -73,6 +77,8 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
         if (abgebrochen) return;
         setConfig(daten);
         farbenInjizieren(daten);
+        // Fehler-Monitoring initialisieren, sobald die Zustimmung/DSN bekannt ist.
+        sentryInitialisieren(daten);
         setLadeFehler(null);
       })
       .catch(() => {

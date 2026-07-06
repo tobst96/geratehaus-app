@@ -35,6 +35,7 @@ import logging
 import sentry_sdk
 import structlog
 from packaging.version import InvalidVersion, Version
+from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from app.core.config import settings
@@ -49,6 +50,12 @@ PROJECT_DSN = (
 
 def _aktive_dsn() -> str:
     return settings.sentry_dsn if settings.sentry_dsn is not None else PROJECT_DSN
+
+
+def aktuelle_umgebung() -> str:
+    """Öffentlich nutzbar (z. B. für die Frontend-Konfiguration): beta/production
+    anhand der tatsächlich installierten Version."""
+    return _sentry_umgebung(installierte_version())
 
 
 def _sentry_umgebung(version: str) -> str:
@@ -103,7 +110,11 @@ def init_sentry_wenn_aktiviert(fehlerberichte_aktiv: bool) -> bool:
         # Keine personenbezogenen Daten (IP, Cookies, Request-Body) mitsenden –
         # nur technische Fehlerdetails (Stacktrace, Request-Pfad/-Methode).
         send_default_pii=False,
-        traces_sample_rate=0.0,
+        # Performance-Monitoring (Transaktionen/Spans) + Profiling für einen
+        # Bruchteil der Requests – genug für Trends, ohne die Instanz zu belasten
+        # oder das Sentry-Kontingent zu sprengen.
+        traces_sample_rate=0.15,
+        profiles_sample_rate=0.15,
         before_send=_before_send,
         # Aktiviert die Sentry Logs API (sichtbar unter "Logs" in der Sentry-UI)
         # zusätzlich zu den klassischen Issues.
@@ -114,6 +125,10 @@ def init_sentry_wenn_aktiviert(fehlerberichte_aktiv: bool) -> bool:
             # Sentry-Event gemeldet, auch ohne dass dabei eine Exception
             # geworfen wurde (z. B. fehlgeschlagener E-Mail-Versand).
             LoggingIntegration(level=logging.INFO, event_level=logging.WARNING),
+            # Korrekte Trace-Verknüpfung über die vielen asyncio-Tasks
+            # (Scheduler-Jobs, Hintergrund-Tasks). FastAPI/Starlette/SQLAlchemy
+            # werden von sentry-sdk[fastapi] automatisch instrumentiert.
+            AsyncioIntegration(),
         ],
     )
     logger.info("sentry_aktiviert", environment=umgebung, version=version)

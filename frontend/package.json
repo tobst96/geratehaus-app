@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@sentry/react": "^8.55.2",
     "@zxing/browser": "^0.2.0",
     "@zxing/library": "^0.22.0",
     "date-fns": "^3.6.0",
