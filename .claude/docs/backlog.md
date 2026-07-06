@@ -1016,10 +1016,16 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `person-<id>`-Dateien beim App-Start. Gilt auch für den „Barcode-vergessen"-Upload
   (nutzt dieselbe Funktion). Formular-Uploads nutzen bereits Zufallsnamen. Tests in
   `test_person_bild_schutz.py`.
-  **Offen (Phase 2):** echter Zugriffsschutz statt Capability-URL – **kurzlebige,
+- Fortschritt (06.07.2026, Phase 2 – Formular-Upload-Härtung, direkt auf beta):
+  `formular_service.datei_speichern` prüfte bisher nur den (spoofbaren) Content-Type
+  und speicherte die Bytes **unverändert**. Jetzt neuer `_datei_bereinigen`: Bilder
+  (PNG/JPEG/WebP) werden über Pillow **neu kodiert → EXIF/Metadaten entfernt** und per
+  **Magic-Bytes** validiert; PDFs per `%PDF-`-Magic geprüft; sonst 415. Tests
+  `test_formular_datei.py` (4, inkl. EXIF-Strip + gefälschtes Bild). Suite 311 grün.
+  **Offen (Rest Phase 2):** echter Zugriffsschutz statt Capability-URL – **kurzlebige,
   signierte Token-Links** je Datei, kein dauerhaft öffentlicher `/uploads`-Pfad
   (Kiosk/Moderator/Mitglied-Kontext beachten: `<img>` sendet keine Auth-Header →
-  signierte Query-Token); Magic-Bytes/EXIF auch für Formular-Bild-Uploads.
+  signierte Query-Token).
 - Priorität: Mittel
 - Kategorie: Backend / Sicherheit / Datenschutz
 - Skills: planner, geraetehaus-patterns, tests, review

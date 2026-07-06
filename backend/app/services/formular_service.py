@@ -11,6 +11,7 @@ from uuid import uuid4
 
 import structlog
 from fastapi import HTTPException, UploadFile, status
+from PIL import Image, UnidentifiedImageError
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -566,9 +567,49 @@ async def ablauf_zusammenfassungen_versenden(db: AsyncSession) -> int:
 # --- Datei-Upload / Duplizieren / Export / Aufbewahrung ----------------------
 
 
+def _datei_bereinigen(inhalt: bytes, content_type: str) -> tuple[bytes, str]:
+    """Prüft die Bytes nach ihrem TATSÄCHLICHEN Inhalt (nicht nur am spoofbaren
+    Content-Type) und gibt bereinigte Bytes + Dateiendung zurück:
+    - Bilder (PNG/JPEG/WebP): über Pillow neu kodiert → **EXIF/Metadaten entfernt**
+      und zugleich Magic-Bytes-Prüfung.
+    - PDF: Magic-Bytes-Prüfung (`%PDF-`), Inhalt unverändert.
+    Ungültige/uneindeutige Dateien → 415."""
+    if content_type == "application/pdf":
+        if not inhalt.startswith(b"%PDF-"):
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail="Datei ist kein gültiges PDF.",
+            )
+        return inhalt, ".pdf"
+
+    try:
+        bild = Image.open(io.BytesIO(inhalt))
+        bild.load()
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Datei ist kein gültiges Bild.",
+        )
+    ausgabe = io.BytesIO()
+    if bild.format == "PNG":
+        bild.save(ausgabe, format="PNG")
+        return ausgabe.getvalue(), ".png"
+    if bild.format == "JPEG":
+        bild.convert("RGB").save(ausgabe, format="JPEG", quality=88)
+        return ausgabe.getvalue(), ".jpg"
+    if bild.format == "WEBP":
+        bild.save(ausgabe, format="WEBP")
+        return ausgabe.getvalue(), ".webp"
+    raise HTTPException(
+        status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+        detail="Bild muss PNG, JPEG oder WebP sein.",
+    )
+
+
 async def datei_speichern(datei: UploadFile) -> str:
     """Speichert eine hochgeladene Formular-Datei (Bild/PDF) unter einem zufälligen
-    Namen und gibt die öffentliche Referenz (/uploads/formulare/…) zurück."""
+    Namen und gibt die öffentliche Referenz (/uploads/formulare/…) zurück. Bilder
+    werden re-kodiert (EXIF entfernt), alle Typen per Magic-Bytes geprüft."""
     if datei.content_type not in _DATEI_ERLAUBT:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
@@ -580,10 +621,11 @@ async def datei_speichern(datei: UploadFile) -> str:
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail="Die Datei darf maximal 10 MB groß sein.",
         )
+    bytes_bereinigt, endung = _datei_bereinigen(inhalt, datei.content_type)
     verzeichnis = Path(settings.upload_dir) / "formulare"
     verzeichnis.mkdir(parents=True, exist_ok=True)
-    dateiname = f"{uuid4().hex}{_DATEI_ERLAUBT[datei.content_type]}"
-    (verzeichnis / dateiname).write_bytes(inhalt)
+    dateiname = f"{uuid4().hex}{endung}"
+    (verzeichnis / dateiname).write_bytes(bytes_bereinigt)
     return f"/uploads/formulare/{dateiname}"
 
 
