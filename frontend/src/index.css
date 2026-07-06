@@ -297,6 +297,29 @@ a {
   box-shadow: var(--schatten-karte-hover);
 }
 
+/* Klickbare Karten (z. B. Formular-Liste, Modul-Auflistungen): ein <button> mit
+   .karte soll wie eine Karte aussehen – NICHT wie der orange Primär-Button. Ohne
+   diese Regel erbt der Button `color: var(--farbe-akzent)` (dunkel) und wird im
+   Dark Mode unlesbar (dunkle Schrift auf dunkler Fläche). */
+button.karte {
+  display: block;
+  width: 100%;
+  text-align: left;
+  color: var(--farbe-text);
+  background: var(--farbe-oberflaeche);
+  font-weight: 400;
+  box-shadow: var(--schatten-karte);
+}
+button.karte:hover:not(:disabled) {
+  transform: none;
+  border-color: var(--farbe-primaer);
+  box-shadow: var(--schatten-karte-hover);
+}
+button.karte strong {
+  color: var(--farbe-text);
+  font-size: 1.05rem;
+}
+
 h1, h2, h3 {
   margin: 0 0 8px 0;
   color: var(--farbe-text);

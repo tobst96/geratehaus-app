@@ -12,7 +12,7 @@ import {
   formularAktualisieren,
   formularAnlegen,
   formularDuplizieren,
-  formularExportUrl,
+  formularCsvHerunterladen,
   formularLoeschen,
   holeEinreichungen,
   holeFormulare,
@@ -382,9 +382,13 @@ export function FormularModul() {
                   >
                     Link kopieren
                   </button>
-                  <a className="sekundaer" href={formularExportUrl(ausgewaehlt.id)}>
+                  <button
+                    type="button"
+                    className="sekundaer"
+                    onClick={() => formularCsvHerunterladen(ausgewaehlt.id, ausgewaehlt.name)}
+                  >
                     CSV-Export
-                  </a>
+                  </button>
                   <button type="button" className="sekundaer" onClick={() => duplizieren(ausgewaehlt)}>
                     Duplizieren
                   </button>
