@@ -16,6 +16,9 @@ import {
   holeAlleGruppen,
   holeAlleFunktionenDienststunden,
   holeAmpelUebersicht,
+  personenCsvImportieren,
+  personenCsvVorlageHerunterladen,
+  type PersonCsvImportErgebnis,
 } from "../../api/moderator";
 import { holePersonBildReservierung } from "../../api/personBildReservierungen";
 import {
@@ -164,6 +167,11 @@ export function Personal() {
 
   const [zeigeAnlegenModal, setZeigeAnlegenModal] = useState(false);
   const [zeigeEinstellungen, setZeigeEinstellungen] = useState(false);
+  const [zeigeImportModal, setZeigeImportModal] = useState(false);
+  const [importDatei, setImportDatei] = useState<File | null>(null);
+  const [importErgebnis, setImportErgebnis] = useState<PersonCsvImportErgebnis | null>(null);
+  const [importFehler, setImportFehler] = useState<string | null>(null);
+  const [importLaeuft, setImportLaeuft] = useState(false);
   const [neuerVorname, setNeuerVorname] = useState("");
   const [neuerZwischenname, setNeuerZwischenname] = useState("");
   const [neuerNachname, setNeuerNachname] = useState("");
@@ -275,6 +283,29 @@ export function Personal() {
       setBildQr(await bildQrErzeugen(person.id));
     } catch (err) {
       setAnlegenFehler(err instanceof ApiError ? String(err.detail) : "Person konnte nicht angelegt werden.");
+    }
+  }
+
+  function importModalOeffnen() {
+    setImportDatei(null);
+    setImportErgebnis(null);
+    setImportFehler(null);
+    setZeigeImportModal(true);
+  }
+
+  async function csvImportieren() {
+    if (!importDatei) return;
+    setImportLaeuft(true);
+    setImportFehler(null);
+    setImportErgebnis(null);
+    try {
+      const ergebnis = await personenCsvImportieren(importDatei);
+      setImportErgebnis(ergebnis);
+      if (ergebnis.angelegt > 0) await laden();
+    } catch (err) {
+      setImportFehler(err instanceof ApiError ? String(err.detail) : "Import fehlgeschlagen.");
+    } finally {
+      setImportLaeuft(false);
     }
   }
 
@@ -448,6 +479,9 @@ export function Personal() {
             <button type="button" className="sekundaer" onClick={() => setZeigeEinstellungen(true)}>
               Personal-Einstellungen
             </button>
+            <button type="button" className="sekundaer" onClick={importModalOeffnen}>
+              CSV-Import
+            </button>
             <button type="button" onClick={anlegenModalOeffnen}>
               + Person hinzufügen
             </button>
@@ -489,6 +523,86 @@ export function Personal() {
               </button>
             </div>
             <PersonalEinstellungen />
+          </div>
+        </div>
+      )}
+
+      {zeigeImportModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "center",
+            padding: "5vh 1rem",
+            overflowY: "auto",
+            zIndex: 1000,
+          }}
+          onClick={() => setZeigeImportModal(false)}
+        >
+          <div
+            className="karte"
+            style={{ width: 520, maxWidth: "95vw" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 style={{ margin: 0 }}>Personen per CSV importieren</h2>
+              <button type="button" className="sekundaer" onClick={() => setZeigeImportModal(false)}>
+                Schließen
+              </button>
+            </div>
+            <p style={{ marginTop: 12 }}>
+              CSV mit den Spalten <code>vorname;zwischenname;nachname;email;gruppe;funktion</code>.
+              Gruppe und Funktion werden über den Namen zugeordnet (leer = keine). Fehlerhafte
+              Zeilen werden übersprungen und unten aufgelistet.
+            </p>
+            <button
+              type="button"
+              className="sekundaer"
+              onClick={() => void personenCsvVorlageHerunterladen()}
+            >
+              Beispiel-CSV herunterladen
+            </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(e) => {
+                  setImportDatei(e.target.files?.[0] ?? null);
+                  setImportErgebnis(null);
+                  setImportFehler(null);
+                }}
+              />
+              <button
+                type="button"
+                disabled={!importDatei || importLaeuft}
+                onClick={() => void csvImportieren()}
+              >
+                {importLaeuft ? "Importiere…" : "Import starten"}
+              </button>
+            </div>
+            {importFehler && <p className="fehlertext">{importFehler}</p>}
+            {importErgebnis && (
+              <div style={{ marginTop: 12 }}>
+                <p style={{ fontWeight: 600 }}>
+                  {importErgebnis.angelegt} Person(en) angelegt
+                  {importErgebnis.fehler.length > 0
+                    ? `, ${importErgebnis.fehler.length} Zeile(n) übersprungen`
+                    : "."}
+                </p>
+                {importErgebnis.fehler.length > 0 && (
+                  <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
+                    {importErgebnis.fehler.map((f) => (
+                      <li key={f.zeile} className="fehlertext">
+                        Zeile {f.zeile}: {f.fehler}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

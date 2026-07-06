@@ -279,6 +279,26 @@ export const personPinSetzen = (id: number, pin: string) =>
   apiPut<Person>(`/moderator/stammdaten/personen/${id}/pin`, { pin });
 export const personPinEntsperren = (id: number) =>
   apiPost<Person>(`/moderator/stammdaten/personen/${id}/pin-entsperren`);
+
+export interface PersonCsvImportErgebnis {
+  angelegt: number;
+  fehler: { zeile: number; fehler: string }[];
+}
+export const personenCsvImportieren = (datei: File) =>
+  apiUpload<PersonCsvImportErgebnis>("/moderator/stammdaten/personen/csv-import", datei);
+/** Beispiel-CSV herunterladen. Authentifizierter Blob-Request (nicht als <a href>,
+ * da der Bearer-Token sonst nicht mitgeht → 401). */
+export async function personenCsvVorlageHerunterladen(): Promise<void> {
+  const blob = await apiGet<Blob>("/moderator/stammdaten/personen/csv-vorlage");
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "personen-vorlage.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 export const holePersonTimeline = (id: number) =>
   apiGet<PersonEreignis[]>(`/moderator/stammdaten/personen/${id}/timeline`);
 export const holePersonDienststunden = (id: number) =>

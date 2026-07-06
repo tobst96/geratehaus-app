@@ -14,6 +14,7 @@ from app.schemas.einsatz_feld import (
 from app.schemas.person import (
     AmpelEintragOut,
     PersonCreate,
+    PersonCsvImportErgebnis,
     PersonEreignisOut,
     PersonOut,
     PersonPinSetzen,
@@ -268,6 +269,27 @@ async def personen_ampel(db: DbSession, _moderator: CurrentModerator) -> list[Am
 async def person_anlegen(db: DbSession, _admin: PersonalZugriff, daten: PersonCreate) -> PersonOut:
     person = await stammdaten_service.person_anlegen(db, daten)
     return await stammdaten_service.person_zu_out(db, person)
+
+
+@router.get("/personen/csv-vorlage")
+async def personen_csv_vorlage(_admin: PersonalZugriff) -> Response:
+    """Beispiel-CSV zum Download neben dem Upload-Button."""
+    return Response(
+        content=stammdaten_service.CSV_IMPORT_VORLAGE,
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="personen-vorlage.csv"'},
+    )
+
+
+@router.post("/personen/csv-import", response_model=PersonCsvImportErgebnis)
+async def personen_csv_import(
+    db: DbSession, _admin: PersonalZugriff, datei: Annotated[UploadFile, File()]
+) -> PersonCsvImportErgebnis:
+    inhalt = await datei.read()
+    if not inhalt:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Leere Datei.")
+    angelegt, fehler = await stammdaten_service.personen_csv_importieren(db, inhalt)
+    return PersonCsvImportErgebnis(angelegt=angelegt, fehler=fehler)
 
 
 @router.put("/personen/{person_id}", response_model=PersonOut)
