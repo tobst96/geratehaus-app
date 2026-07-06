@@ -5,8 +5,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.dienstbuch import Dienstbuch, DienstbuchPerson
+from app.models.dienstbuch import Dienstbuch, DienstbuchFeldDefinition, DienstbuchPerson
 from app.schemas.dienstbuch import DienstbuchAnlegen, TeilnehmerAktualisieren, TeilnehmerAnlegen
+from app.schemas.dienstbuch_feld import (
+    DienstbuchFeldDefinitionCreate,
+    DienstbuchFeldDefinitionUpdate,
+    schluessel_aus_label,
+)
 from app.services import (
     benachrichtigungskanal_service,
     notifier_service,
@@ -49,7 +54,10 @@ async def get_dienstbuch(db: AsyncSession, dienstbuch_id: int) -> Dienstbuch | N
 
 async def dienstbuch_anlegen(db: AsyncSession, daten: DienstbuchAnlegen) -> Dienstbuch:
     dienstbuch = Dienstbuch(
-        titel=daten.titel, eroeffnet_am=daten.eroeffnet_am, notizen=daten.notizen
+        titel=daten.titel,
+        eroeffnet_am=daten.eroeffnet_am,
+        notizen=daten.notizen,
+        zusatzfelder=daten.zusatzfelder or {},
     )
     db.add(dienstbuch)
     await db.commit()
@@ -59,6 +67,86 @@ async def dienstbuch_anlegen(db: AsyncSession, daten: DienstbuchAnlegen) -> Dien
     geladen = await get_dienstbuch(db, dienstbuch.id)
     assert geladen is not None
     return geladen
+
+
+async def zusatzfelder_aktualisieren(
+    db: AsyncSession, dienstbuch: Dienstbuch, zusatzfelder: dict
+) -> Dienstbuch:
+    dienstbuch.zusatzfelder = {**dienstbuch.zusatzfelder, **zusatzfelder}
+    await db.commit()
+    geladen = await get_dienstbuch(db, dienstbuch.id)
+    assert geladen is not None
+    return geladen
+
+
+# --- Zusatzfeld-Definitionen (frei konfigurierbar, analog Einsatz-Felder) -------
+
+
+async def liste_dienstbuch_felder(
+    db: AsyncSession, nur_aktive: bool = True
+) -> list[DienstbuchFeldDefinition]:
+    stmt = select(DienstbuchFeldDefinition).order_by(DienstbuchFeldDefinition.reihenfolge)
+    if nur_aktive:
+        stmt = stmt.where(DienstbuchFeldDefinition.aktiv.is_(True))
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def dienstbuch_feld_anlegen(
+    db: AsyncSession, daten: DienstbuchFeldDefinitionCreate
+) -> DienstbuchFeldDefinition:
+    basis_schluessel = schluessel_aus_label(daten.label)
+    schluessel = basis_schluessel
+    zaehler = 1
+    while (
+        await db.execute(
+            select(DienstbuchFeldDefinition).where(
+                DienstbuchFeldDefinition.schluessel == schluessel
+            )
+        )
+    ).scalar_one_or_none() is not None:
+        zaehler += 1
+        schluessel = f"{basis_schluessel}_{zaehler}"
+
+    feld = DienstbuchFeldDefinition(
+        schluessel=schluessel,
+        label=daten.label,
+        typ=daten.typ,
+        optionen=daten.optionen if daten.typ == "auswahl" else [],
+        reihenfolge=daten.reihenfolge,
+        aktiv=daten.aktiv,
+    )
+    db.add(feld)
+    await db.commit()
+    await db.refresh(feld)
+    return feld
+
+
+async def dienstbuch_feld_aktualisieren(
+    db: AsyncSession, feld: DienstbuchFeldDefinition, daten: DienstbuchFeldDefinitionUpdate
+) -> DienstbuchFeldDefinition:
+    for name, wert in daten.model_dump(exclude_unset=True).items():
+        setattr(feld, name, wert)
+    # Optionen sind nur für „auswahl" sinnvoll – bei anderem Typ leeren.
+    if feld.typ != "auswahl":
+        feld.optionen = []
+    await db.commit()
+    await db.refresh(feld)
+    return feld
+
+
+async def dienstbuch_feld_loeschen(db: AsyncSession, feld: DienstbuchFeldDefinition) -> None:
+    await db.delete(feld)
+    await db.commit()
+
+
+async def get_dienstbuch_feld(
+    db: AsyncSession, feld_id: int
+) -> DienstbuchFeldDefinition | None:
+    result = await db.execute(
+        select(DienstbuchFeldDefinition).where(DienstbuchFeldDefinition.id == feld_id)
+    )
+    return result.scalar_one_or_none()
 
 
 async def teilnehmer_eintragen(

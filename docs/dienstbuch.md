@@ -25,9 +25,19 @@ Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Login).
 - Optional **PDF per Mail** an die Abonnenten bei Abschluss (siehe
   [benachrichtigungen.md](benachrichtigungen.md)).
 
+## Zusatzfelder
+
+Frei konfigurierbare Felder je Dienstbuch (z. B. Ausbildungsthema, Art des
+Dienstes) – analog zu den Einsatz-Zusatzfeldern. Typen: Text, Mehrzeilig,
+Checkbox und **Auswahl** (Dropdown mit konfigurierbaren Optionen). Die Felder
+werden beim Anlegen eines Dienstbuchs abgefragt, in der Liste angezeigt und im
+**PDF-Export** ausgegeben. Pflege in der Modul-Unterseite (Abschnitt
+„Zusatzfelder").
+
 ## Admin (Modul-Unterseite)
 
-An/Aus, „Auf Kiosk anzeigen", Außenzugriff und die Abschluss-Uhrzeit.
+An/Aus, „Auf Kiosk anzeigen", Außenzugriff, die Abschluss-Uhrzeit und die
+**Zusatzfelder**.
 
 ## Objektspeicher
 

@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -19,6 +20,8 @@ class Dienstbuch(Base, TimestampMixin):
     archiviert: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     geschlossen: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     relevant: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Werte der frei konfigurierbaren Zusatzfelder, keyed by DienstbuchFeldDefinition.schluessel.
+    zusatzfelder: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
 
     teilnehmer: Mapped[list["DienstbuchPerson"]] = relationship(
         back_populates="dienstbuch",
@@ -49,3 +52,21 @@ class DienstbuchPerson(Base, TimestampMixin):
     @property
     def gruppe_name(self) -> str | None:
         return self.gruppe.name if self.gruppe else None
+
+
+class DienstbuchFeldDefinition(Base, TimestampMixin):
+    """Frei vom Moderator konfigurierbares Zusatzfeld für Dienstbücher (analog
+    EinsatzFeldDefinition). Werte selbst liegen pro Dienstbuch in
+    Dienstbuch.zusatzfelder (JSONB, keyed by schluessel). Typ ``auswahl`` nutzt
+    zusätzlich ``optionen`` (Liste auswählbarer Werte)."""
+
+    __tablename__ = "dienstbuch_feld_definitionen"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    schluessel: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    label: Mapped[str] = mapped_column(String(255), nullable=False)
+    # "text", "mehrzeilig", "checkbox" oder "auswahl"
+    typ: Mapped[str] = mapped_column(String(32), nullable=False, default="text")
+    optionen: Mapped[list] = mapped_column(JSONB, default=list, nullable=False)
+    reihenfolge: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    aktiv: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

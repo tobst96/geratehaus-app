@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { holeLetzteDienstbuecher, dienstbuchAnlegen } from "../../api/dienstbuecher";
+import { holeLetzteDienstbuecher, dienstbuchAnlegen, holeDienstbuchFelder } from "../../api/dienstbuecher";
 import { holeGruppen } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import { DienstbuchDiagramm } from "./DienstbuchDiagramm";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
-import type { DienstbuchOut, Gruppe } from "../../api/types";
+import type { DienstbuchFeldDefinition, DienstbuchOut, Gruppe } from "../../api/types";
 
 function jetztAlsDatetimeLocal(): string {
   const jetzt = new Date();
@@ -18,20 +18,35 @@ export function Dienstbuch() {
   const [fehler, setFehler] = useState<string | null>(null);
   const [selectedDienstbuchId, setSelectedDienstbuchId] = useState<number | null>(null);
 
+  const [felder, setFelder] = useState<DienstbuchFeldDefinition[]>([]);
   const [formularOffen, setFormularOffen] = useState(false);
   const [titel, setTitel] = useState("");
   const [eroeffnetAm, setEroeffnetAm] = useState(jetztAlsDatetimeLocal());
   const [notizen, setNotizen] = useState("");
+  const [zusatzfelder, setZusatzfelder] = useState<Record<string, string | boolean>>({});
 
   async function laden() {
     try {
-      const [d, g] = await Promise.all([holeLetzteDienstbuecher(), holeGruppen()]);
+      const [d, g, f] = await Promise.all([
+        holeLetzteDienstbuecher(),
+        holeGruppen(),
+        holeDienstbuchFelder(),
+      ]);
       setDienstbuecher(d);
       setGruppen(g);
+      setFelder(f);
       setFehler(null);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Dienstbücher konnten nicht geladen werden.");
     }
+  }
+
+  function feldWert(schluessel: string): string | boolean {
+    return zusatzfelder[schluessel] ?? "";
+  }
+
+  function feldSetzen(schluessel: string, wert: string | boolean) {
+    setZusatzfelder((z) => ({ ...z, [schluessel]: wert }));
   }
 
   useEffect(() => {
@@ -57,9 +72,15 @@ export function Dienstbuch() {
     e.preventDefault();
     if (!titel.trim()) return;
     try {
-      const neu = await dienstbuchAnlegen(titel.trim(), new Date(eroeffnetAm).toISOString(), notizen || null);
+      const neu = await dienstbuchAnlegen(
+        titel.trim(),
+        new Date(eroeffnetAm).toISOString(),
+        notizen || null,
+        zusatzfelder
+      );
       setTitel("");
       setNotizen("");
+      setZusatzfelder({});
       setFormularOffen(false);
       await laden();
       setSelectedDienstbuchId(neu.id);
@@ -96,6 +117,45 @@ export function Dienstbuch() {
             <label htmlFor="db-notizen">Notizen (optional)</label>
             <textarea id="db-notizen" value={notizen} onChange={(e) => setNotizen(e.target.value)} rows={3} />
           </div>
+          {felder.map((f) => (
+            <div className="formular-feld" key={f.id}>
+              <label htmlFor={`db-feld-${f.id}`}>{f.label}</label>
+              {f.typ === "mehrzeilig" ? (
+                <textarea
+                  id={`db-feld-${f.id}`}
+                  value={String(feldWert(f.schluessel) || "")}
+                  onChange={(e) => feldSetzen(f.schluessel, e.target.value)}
+                  rows={3}
+                />
+              ) : f.typ === "checkbox" ? (
+                <input
+                  id={`db-feld-${f.id}`}
+                  type="checkbox"
+                  checked={feldWert(f.schluessel) === true}
+                  onChange={(e) => feldSetzen(f.schluessel, e.target.checked)}
+                />
+              ) : f.typ === "auswahl" ? (
+                <select
+                  id={`db-feld-${f.id}`}
+                  value={String(feldWert(f.schluessel) || "")}
+                  onChange={(e) => feldSetzen(f.schluessel, e.target.value)}
+                >
+                  <option value="">– bitte wählen –</option>
+                  {f.optionen.map((o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  id={`db-feld-${f.id}`}
+                  value={String(feldWert(f.schluessel) || "")}
+                  onChange={(e) => feldSetzen(f.schluessel, e.target.value)}
+                />
+              )}
+            </div>
+          ))}
           <button type="submit">Anlegen</button>{" "}
           <button type="button" className="sekundaer" onClick={() => setFormularOffen(false)}>
             Abbrechen
@@ -113,6 +173,19 @@ export function Dienstbuch() {
                 {new Date(d.eroeffnet_am).toLocaleString("de-DE")} · {d.teilnehmer.length} Teilnehmer
               </div>
               {d.notizen && <p style={{ margin: "0.25rem 0 0" }}>{d.notizen}</p>}
+              {felder
+                .filter((f) => {
+                  const w = d.zusatzfelder?.[f.schluessel];
+                  return w !== undefined && w !== "" && w !== false;
+                })
+                .map((f) => {
+                  const w = d.zusatzfelder[f.schluessel];
+                  return (
+                    <div key={f.id} style={{ fontSize: "0.85rem" }}>
+                      <strong>{f.label}:</strong> {w === true ? "Ja" : String(w)}
+                    </div>
+                  );
+                })}
             </div>
             <button onClick={() => setSelectedDienstbuchId(d.id)}>Öffnen</button>
           </div>

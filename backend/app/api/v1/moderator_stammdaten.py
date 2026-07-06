@@ -4,6 +4,11 @@ from typing import Annotated
 
 from app.api.deps import CurrentModerator, DbSession, require_modul_zugriff
 from app.models.moderator import Moderator
+from app.schemas.dienstbuch_feld import (
+    DienstbuchFeldDefinitionCreate,
+    DienstbuchFeldDefinitionOut,
+    DienstbuchFeldDefinitionUpdate,
+)
 from app.schemas.dienststunden import DienststundenEintragOut, DienststundenErfassen, DienststundenSummeOut
 from app.schemas.divera_vorschlag import DiveraVorschlagEntscheidung, DiveraVorschlagOut
 from app.schemas.einsatz_feld import (
@@ -35,7 +40,7 @@ from app.schemas.stammdaten import (
     GruppeOut,
     GruppeUpdate,
 )
-from app.services import ampel_service, audit_service, barcode_service, dienststunden_service, divera_personal_service, email_template_service, pdf_service, person_bild_reservierung_service, stammdaten_service
+from app.services import ampel_service, audit_service, barcode_service, dienstbuch_service, dienststunden_service, divera_personal_service, email_template_service, pdf_service, person_bild_reservierung_service, stammdaten_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -243,6 +248,45 @@ async def einsatz_feld_loeschen(db: DbSession, _admin: StammdatenZugriff, feld_i
     if feld is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Feld nicht gefunden.")
     await stammdaten_service.einsatz_feld_loeschen(db, feld)
+
+
+# --- Dienstbuch-Felder (frei konfigurierbare Zusatzfelder) ---------------------
+
+
+@router.get("/dienstbuch-felder", response_model=list[DienstbuchFeldDefinitionOut])
+async def dienstbuch_felder_liste(
+    db: DbSession, _admin: StammdatenZugriff
+) -> list[DienstbuchFeldDefinitionOut]:
+    return await dienstbuch_service.liste_dienstbuch_felder(db, nur_aktive=False)
+
+
+@router.post(
+    "/dienstbuch-felder",
+    response_model=DienstbuchFeldDefinitionOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def dienstbuch_feld_anlegen(
+    db: DbSession, _admin: StammdatenZugriff, daten: DienstbuchFeldDefinitionCreate
+) -> DienstbuchFeldDefinitionOut:
+    return await dienstbuch_service.dienstbuch_feld_anlegen(db, daten)
+
+
+@router.put("/dienstbuch-felder/{feld_id}", response_model=DienstbuchFeldDefinitionOut)
+async def dienstbuch_feld_aktualisieren(
+    db: DbSession, _admin: StammdatenZugriff, feld_id: int, daten: DienstbuchFeldDefinitionUpdate
+) -> DienstbuchFeldDefinitionOut:
+    feld = await dienstbuch_service.get_dienstbuch_feld(db, feld_id)
+    if feld is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Feld nicht gefunden.")
+    return await dienstbuch_service.dienstbuch_feld_aktualisieren(db, feld, daten)
+
+
+@router.delete("/dienstbuch-felder/{feld_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def dienstbuch_feld_loeschen(db: DbSession, _admin: StammdatenZugriff, feld_id: int) -> None:
+    feld = await dienstbuch_service.get_dienstbuch_feld(db, feld_id)
+    if feld is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Feld nicht gefunden.")
+    await dienstbuch_service.dienstbuch_feld_loeschen(db, feld)
 
 
 # --- Personen -----------------------------------------------------------------

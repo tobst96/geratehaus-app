@@ -7,6 +7,11 @@ class DienstbuchAnlegen(BaseModel):
     titel: str = Field(min_length=1, max_length=255)
     eroeffnet_am: datetime
     notizen: str | None = None
+    zusatzfelder: dict[str, str | bool] = {}
+
+
+class ZusatzfelderSetzen(BaseModel):
+    zusatzfelder: dict[str, str | bool]
 
 
 class TeilnehmerAnlegen(BaseModel):
@@ -63,4 +68,5 @@ class DienstbuchOut(BaseModel):
     archiviert: bool
     geschlossen: bool
     relevant: bool
+    zusatzfelder: dict[str, str | bool] = {}
     teilnehmer: list[TeilnehmerOut] = []
