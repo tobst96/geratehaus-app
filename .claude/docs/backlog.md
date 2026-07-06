@@ -1336,7 +1336,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Erste Frontend-Tests (Vitest + Testing Library)
 
-- Status: Review (Feature-Branch `feature/frontend-tests-vitest` → PR nach beta, 06.07.2026)
+- Status: Erledigt (06.07.2026 – alle drei kritischen Flows abgedeckt)
 - Umsetzung (06.07.2026): Vitest + @testing-library/react eingerichtet (jsdom, Setup
   `src/test/setup.ts`, `test`-Block in `vite.config.ts`, Script `npm run test`). Erste
   Tests: `oeffentlicheUrl.test.ts` (pure util) und `ModeratorLogin.test.tsx` (deckt den
@@ -1346,8 +1346,11 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Fortschritt (06.07.2026): **Formular-Ausfüllen-Flow getestet** (`FormularAusfuellen.test.tsx`):
   Pflichtfeld-Validierung blockiert das Absenden; ausgefülltes Formular wird gesendet und
   zeigt den Dank. `npm run test` (9 Tests) + `npm run build` grün.
-- Notiz: Login (inkl. 2FA) und Formular-Ausfüllen abgedeckt; **Kiosk-Eintragung** als
-  letzter der drei Flows noch offen.
+- Fortschritt (06.07.2026): **Kiosk-Eintragung getestet** (`ManuelleEintragung.test.tsx`):
+  „Ohne Barcode eintragen" – Name+PIN wählen → Eintragen → Bestätigung; Personen ohne
+  gesetzten PIN werden blockiert. `npm run test` (11 Tests) + `npm run build` grün.
+- **Alle drei Zielflows (Login/2FA, Formular-Ausfüllen, Kiosk-Eintragung) abgedeckt** →
+  Akzeptanzkriterien erfüllt.
 - Priorität: Mittel
 - Kategorie: Tests / Frontend
 - Skills: tests, review
