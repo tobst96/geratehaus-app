@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { formatiereDatumZeit } from "../../utils/datum";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   holeEinsaetzeListe,
@@ -134,7 +135,7 @@ function EinsaetzeTab() {
                 <td>
                   <Link to={`/moderator/einsaetze/${e.id}`}>{e.titel}</Link>
                 </td>
-                <td>{new Date(e.zeitpunkt).toLocaleString("de-DE")}</td>
+                <td>{formatiereDatumZeit(e.zeitpunkt)}</td>
                 <td>{e.quelle}</td>
                 <td>{e.status}</td>
                 <td>{e.teilnahmen.length}</td>
@@ -215,7 +216,7 @@ function DienstbuecherTab() {
                 <td>
                   <Link to={`/moderator/dienstbuecher/${d.id}`}>{d.titel}</Link>
                 </td>
-                <td>{new Date(d.eroeffnet_am).toLocaleString("de-DE")}</td>
+                <td>{formatiereDatumZeit(d.eroeffnet_am)}</td>
                 <td>{d.geschlossen ? "Geschlossen" : "Offen"}</td>
                 <td>{d.teilnehmer.length}</td>
                 <td>{d.archiviert ? "Ja" : ""}</td>
@@ -447,8 +448,8 @@ function BuchungenTab() {
             {daten.map((b) => (
               <tr key={b.id}>
                 <td>{b.fahrzeug_name}</td>
-                <td>{new Date(b.von).toLocaleString("de-DE")}</td>
-                <td>{new Date(b.bis).toLocaleString("de-DE")}</td>
+                <td>{formatiereDatumZeit(b.von)}</td>
+                <td>{formatiereDatumZeit(b.bis)}</td>
                 <td>{b.zweck}</td>
                 <td>{b.verantwortliche_person_name}</td>
                 <td>{b.status}</td>
@@ -490,7 +491,7 @@ function NamensabweichungenTab() {
           <tr key={d.id}>
             <td>{d.cookie_name}</td>
             <td>{d.eingetragener_name}</td>
-            <td>{new Date(d.zeitstempel).toLocaleString("de-DE")}</td>
+            <td>{formatiereDatumZeit(d.zeitstempel)}</td>
           </tr>
         ))}
       </tbody>
@@ -615,7 +616,7 @@ function FormulareTab() {
               style={{ border: "1px solid var(--farbe-rand)", borderRadius: 8, padding: 12, marginBottom: 8 }}
             >
               <div style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)", marginBottom: 6 }}>
-                {new Date(e.erstellt_am).toLocaleString("de-DE")}
+                {formatiereDatumZeit(e.erstellt_am)}
                 {e.person_name ? ` · ${e.person_name}` : ""}
               </div>
               {e.antworten.map((a) => (

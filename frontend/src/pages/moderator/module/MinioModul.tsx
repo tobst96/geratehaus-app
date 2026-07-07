@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { formatiereDatumZeit } from "../../../utils/datum";
 import { Link } from "react-router-dom";
 import {
   browseMinio,
@@ -242,7 +243,7 @@ export function MinioModul() {
                       <tr key={d.key}>
                         <td>📄 {basisname(d.key)}</td>
                         <td>{groesse(d.groesse)}</td>
-                        <td>{new Date(d.geaendert).toLocaleString("de-DE")}</td>
+                        <td>{formatiereDatumZeit(d.geaendert)}</td>
                         <td style={{ whiteSpace: "nowrap" }}>
                           <button type="button" className="sekundaer" onClick={() => ladeMinioObjekt(bucket, d.key)}>
                             Download

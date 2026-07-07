@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { formatiereDatumZeit } from "../../utils/datum";
 import { exportiereAuditLog, holeAuditLog, type AuditEintrag } from "../../api/audit";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
@@ -104,7 +105,7 @@ export function AuditLog() {
             {sichtbar.map((e) => (
               <tr key={e.id}>
                 <td style={{ whiteSpace: "nowrap" }}>
-                  {new Date(e.zeitpunkt).toLocaleString("de-DE")}
+                  {formatiereDatumZeit(e.zeitpunkt)}
                 </td>
                 <td>{e.akteur}</td>
                 <td>{aktionLabel(e.aktion)}</td>

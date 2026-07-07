@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatiereDatumZeit } from "../../../utils/datum";
 import { Link } from "react-router-dom";
 import {
   diveraEinsaetzeNachholen,
@@ -129,7 +130,7 @@ export function DiveraModul() {
         </div>
         {letzterSync ? (
           <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
-            Letzter Polling-Abruf: {new Date(letzterSync).toLocaleString("de-DE")} &middot;{" "}
+            Letzter Polling-Abruf: {formatiereDatumZeit(letzterSync)} &middot;{" "}
             {letzterSyncAnzahl} Alarm{letzterSyncAnzahl !== 1 ? "e" : ""} abgerufen
           </p>
         ) : (

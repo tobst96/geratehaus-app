@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatiereDatumZeit } from "../../utils/datum";
 import { holeSystemStatus, type SystemStatus } from "../../api/meta";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
@@ -126,7 +127,7 @@ export function Systemstatus() {
                     <td>{j.id}</td>
                     <td>
                       {j.naechster_lauf
-                        ? new Date(j.naechster_lauf).toLocaleString("de-DE")
+                        ? formatiereDatumZeit(j.naechster_lauf)
                         : "–"}
                     </td>
                   </tr>

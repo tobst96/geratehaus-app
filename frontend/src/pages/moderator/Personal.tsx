@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { formatiereDatum,formatiereDatumZeit,formatiereZeit } from "../../utils/datum";
 import QRCode from "qrcode";
 import {
   holeAllePersonen,
@@ -676,7 +677,7 @@ export function Personal() {
                 </p>
                 <img src={bildQr.bildUrl} alt="QR-Code für Foto-Upload" style={{ width: 220, height: 220 }} />
                 <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
-                  Gültig bis {new Date(bildQr.ablaufAm).toLocaleTimeString("de-DE")}
+                  Gültig bis {formatiereZeit(bildQr.ablaufAm)}
                 </p>
                 <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
                   <button type="button" className="sekundaer" onClick={anlegenModalSchliessen}>
@@ -728,7 +729,7 @@ export function Personal() {
                 </p>
                 <img src={bildQrStandalone.bildUrl} alt="QR-Code für Foto-Upload" style={{ width: 220, height: 220 }} />
                 <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
-                  Gültig bis {new Date(bildQrStandalone.ablaufAm).toLocaleTimeString("de-DE")}
+                  Gültig bis {formatiereZeit(bildQrStandalone.ablaufAm)}
                 </p>
                 <button type="button" className="sekundaer" onClick={bildQrStandaloneSchliessen}>
                   Schließen
@@ -1057,7 +1058,7 @@ export function Personal() {
                                 </div>
                                 {barcode.ablaufAm && (
                                   <div style={{ fontSize: "0.7rem", color: "var(--farbe-text-mute)" }}>
-                                    Gültig bis {new Date(barcode.ablaufAm).toLocaleDateString("de-DE")}
+                                    Gültig bis {formatiereDatum(barcode.ablaufAm)}
                                   </div>
                                 )}
                               </div>
@@ -1127,7 +1128,7 @@ export function Personal() {
                               <span
                                 style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)", minWidth: 130 }}
                               >
-                                {new Date(ereignis.zeitpunkt).toLocaleString("de-DE")}
+                                {formatiereDatumZeit(ereignis.zeitpunkt)}
                               </span>
                               <span>{ereignis.beschreibung}</span>
                             </li>

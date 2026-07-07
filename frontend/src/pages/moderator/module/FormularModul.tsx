@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatiereDatumZeit } from "../../../utils/datum";
 import QRCode from "qrcode";
 import { Link } from "react-router-dom";
 import { ApiError } from "../../../api/client";
@@ -560,7 +561,7 @@ export function FormularModul() {
                     }}
                   >
                     <div style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)", marginBottom: 6 }}>
-                      {new Date(e.erstellt_am).toLocaleString("de-DE")}
+                      {formatiereDatumZeit(e.erstellt_am)}
                       {e.person_name ? ` · ${e.person_name}` : ""}
                     </div>
                     {e.antworten.map((a) => (

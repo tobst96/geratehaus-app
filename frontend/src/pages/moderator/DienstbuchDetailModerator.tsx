@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatiereDatumZeit } from "../../utils/datum";
 import { useParams, Link } from "react-router-dom";
 import {
   holeDienstbuch,
@@ -83,7 +84,7 @@ export function DienstbuchDetailModerator() {
       <h1>{dienstbuch.titel}</h1>
       <div className="einsatz-status-zeile">
         <p style={{ color: "var(--farbe-text-mute)", margin: 0 }}>
-          {new Date(dienstbuch.eroeffnet_am).toLocaleString("de-DE")}
+          {formatiereDatumZeit(dienstbuch.eroeffnet_am)}
         </p>
         <span className="einsatz-status-badge">{dienstbuch.geschlossen ? "geschlossen" : "offen"}</span>
         {dienstbuch.archiviert && <span className="einsatz-status-badge">archiviert</span>}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { formatiereDatumZeit } from "../../../utils/datum";
 import { Link } from "react-router-dom";
 import {
   analysiereBackup,
@@ -453,7 +454,7 @@ export function BackupModul() {
               <tbody>
                 {backups.map((b) => (
                   <tr key={b.id}>
-                    <td>{new Date(b.erstellt_am).toLocaleString("de-DE")}</td>
+                    <td>{formatiereDatumZeit(b.erstellt_am)}</td>
                     <td>{groesse(b.groesse_bytes)}</td>
                     <td>{b.ziele || "–"}</td>
                     <td style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
@@ -501,7 +502,7 @@ export function BackupModul() {
           <div style={{ marginTop: 16 }}>
             <p>
               Backup vom{" "}
-              <strong>{analyse.erstellt_am ? new Date(analyse.erstellt_am).toLocaleString("de-DE") : "?"}</strong>
+              <strong>{analyse.erstellt_am ? formatiereDatumZeit(analyse.erstellt_am) : "?"}</strong>
               {analyse.app_version ? ` · Version ${analyse.app_version}` : ""}
             </p>
             <p style={{ fontWeight: 600, margin: "8px 0 4px" }}>Was importieren?</p>

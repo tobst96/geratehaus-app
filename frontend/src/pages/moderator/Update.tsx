@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatiereDatum } from "../../utils/datum";
 import { holeUpdateStatus, updateAusloesen, updateKanalSetzen, type UpdateStatus } from "../../api/moderator";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
@@ -114,7 +115,7 @@ export function Update() {
                 <td>
                   <strong>Veröffentlicht am</strong>
                 </td>
-                <td>{new Date(status.veroeffentlicht_am).toLocaleDateString("de-DE")}</td>
+                <td>{formatiereDatum(status.veroeffentlicht_am)}</td>
               </tr>
             )}
           </tbody>

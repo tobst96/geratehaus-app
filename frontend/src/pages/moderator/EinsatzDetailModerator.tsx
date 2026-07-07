@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatiereDatumZeit } from "../../utils/datum";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   holeEinsatz,
@@ -123,7 +124,7 @@ export function EinsatzDetailModerator() {
       <h1>{einsatz.titel}</h1>
       <div className="einsatz-status-zeile">
         <p style={{ color: "var(--farbe-text-mute)", margin: 0 }}>
-          {new Date(einsatz.zeitpunkt).toLocaleString("de-DE")} · {einsatz.quelle}
+          {formatiereDatumZeit(einsatz.zeitpunkt)} · {einsatz.quelle}
         </p>
         <span
           className={`einsatz-status-badge einsatz-status-badge-${einsatz.status}`}
@@ -279,7 +280,7 @@ export function EinsatzDetailModerator() {
                 {EREIGNIS_ICON[ereignis.typ] ?? "•"}
               </div>
               <div className="timeline-zeit">
-                {new Date(ereignis.zeitpunkt).toLocaleString("de-DE")}
+                {formatiereDatumZeit(ereignis.zeitpunkt)}
               </div>
               <div
                 className={`timeline-text ${
