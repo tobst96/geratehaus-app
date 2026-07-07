@@ -363,7 +363,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Personen-Auswertungsseite (Timeline + Punkteverlauf)
 
-- Status: Backlog
+- Status: Erledigt (07.07.2026 – Timeline filterbar; Punkteteil gegenstandslos)
 - Priorität: Mittel
 - Kategorie: Feature / Frontend / Backend
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -374,6 +374,13 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 - Akzeptanzkriterien: Timeline + Verlauf pro Person abrufbar/verlinkt.
 - Notizen: ⚠ Der Punkteverlauf-Teil kollidiert mit „Punktesystem entfernen"
   (Etappe N) – vor Umsetzung klären, ob der Punkteteil entfällt.
+- Umsetzung (07.07.2026): Der **Punkteverlauf-Teil entfällt** – ein Punktesystem
+  existiert im Code nicht (mehr). Eine **chronologische Personen-Timeline existiert
+  bereits inline** (Personal-Detail, Tab „Verlauf", `GET /personen/{id}/timeline`),
+  ein separater Endpunkt/eine eigene Route wären redundant. Verbleibender Nutzen –
+  **„filterbar"** – umgesetzt: Filter-Dropdown „Nach Ereignistyp" im Verlaufs-Tab
+  (dynamisch aus den vorhandenen `typ`-Werten, mit lesbaren Labels, Fallback auf
+  Rohwert; erscheint erst ab >1 Typ; robust bei Personenwechsel). `npm run build` grün.
 
 ### Timeline-Einträge im Admin-Bereich detaillierter
 

@@ -143,6 +143,22 @@ const PERSON_EREIGNIS_ICON: Record<string, string> = {
   inaktivitaets_warnung: "⚠️",
 };
 
+// Menschliche Labels für den Verlaufs-Filter; unbekannte Typen zeigen den Rohwert.
+const PERSON_EREIGNIS_LABEL: Record<string, string> = {
+  funktion_geaendert: "Funktion geändert",
+  stammdaten_geaendert: "Stammdaten geändert",
+  bild_geaendert: "Profilbild geändert",
+  pin_gesetzt: "PIN gesetzt",
+  pin_gesperrt: "PIN gesperrt",
+  pin_entsperrt: "PIN entsperrt",
+  pin_zugriff_verweigert: "PIN-Zugriff verweigert",
+  inaktivitaets_warnung: "Inaktivitäts-Warnung",
+};
+
+function ereignisLabel(typ: string): string {
+  return PERSON_EREIGNIS_LABEL[typ] ?? typ;
+}
+
 /** True, wenn der PIN-Login der Person aktuell (temporär) gesperrt ist. */
 function istPinGesperrt(person: Person): boolean {
   return !!person.pin_gesperrt_bis && new Date(person.pin_gesperrt_bis).getTime() > Date.now();
@@ -187,6 +203,7 @@ export function Personal() {
   const [bildQrStandaloneHochgeladen, setBildQrStandaloneHochgeladen] = useState(false);
 
   const [timeline, setTimeline] = useState<PersonEreignis[] | null>(null);
+  const [verlaufFilter, setVerlaufFilter] = useState("");
   const [barcode, setBarcode] = useState<{ token: string; ablaufAm: string | null } | null>(null);
   const [detailTab, setDetailTab] = useState("stammdaten");
 
@@ -1115,25 +1132,55 @@ export function Personal() {
                     ) : timeline.length === 0 ? (
                       <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Ereignisse.</p>
                     ) : (
-                      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                        {timeline
-                          .slice()
-                          .reverse()
-                          .map((ereignis) => (
-                            <li
-                              key={ereignis.id}
-                              style={{ display: "flex", gap: 8, alignItems: "baseline", padding: "4px 0" }}
-                            >
-                              <span>{PERSON_EREIGNIS_ICON[ereignis.typ] ?? "•"}</span>
-                              <span
-                                style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)", minWidth: 130 }}
-                              >
-                                {formatiereDatumZeit(ereignis.zeitpunkt)}
-                              </span>
-                              <span>{ereignis.beschreibung}</span>
-                            </li>
-                          ))}
-                      </ul>
+                      (() => {
+                        const typen = Array.from(new Set(timeline.map((e) => e.typ))).sort();
+                        const aktiverFilter = typen.includes(verlaufFilter) ? verlaufFilter : "";
+                        const gefiltert = timeline.filter((e) => !aktiverFilter || e.typ === aktiverFilter);
+                        return (
+                          <>
+                            {typen.length > 1 && (
+                              <div className="formular-feld" style={{ maxWidth: 260, marginBottom: 8 }}>
+                                <label htmlFor="verlauf-filter">Nach Ereignistyp filtern</label>
+                                <select
+                                  id="verlauf-filter"
+                                  value={aktiverFilter}
+                                  onChange={(e) => setVerlaufFilter(e.target.value)}
+                                >
+                                  <option value="">Alle Ereignisse</option>
+                                  {typen.map((t) => (
+                                    <option key={t} value={t}>
+                                      {ereignisLabel(t)}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+                            {gefiltert.length === 0 ? (
+                              <p style={{ color: "var(--farbe-text-mute)" }}>Keine Ereignisse für diesen Filter.</p>
+                            ) : (
+                              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                                {gefiltert
+                                  .slice()
+                                  .reverse()
+                                  .map((ereignis) => (
+                                    <li
+                                      key={ereignis.id}
+                                      style={{ display: "flex", gap: 8, alignItems: "baseline", padding: "4px 0" }}
+                                    >
+                                      <span>{PERSON_EREIGNIS_ICON[ereignis.typ] ?? "•"}</span>
+                                      <span
+                                        style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)", minWidth: 130 }}
+                                      >
+                                        {formatiereDatumZeit(ereignis.zeitpunkt)}
+                                      </span>
+                                      <span>{ereignis.beschreibung}</span>
+                                    </li>
+                                  ))}
+                              </ul>
+                            )}
+                          </>
+                        );
+                      })()
                     ),
                   },
                 ];
