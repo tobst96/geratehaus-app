@@ -1398,9 +1398,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (tastaturbedienbar, Fokusring greift) – kein `<div>`-Umbau nötig. Damit sind die
   konkret benannten Interaktionen (Fokusringe, Sterne-/Skala-Auswahl, Kacheln)
   versorgt.
-- **Noch offen:** vollständiger Screenreader-Durchlauf – braucht ein **manuelles
-  Audit** (headless nicht sinnvoll verifizierbar), daher hier nicht autonom
-  abschließbar.
+- Statik-Audit (07.07.2026): Alle `<img>` haben `alt` (Logos beschriftet, Personen-/
+  QR-Bilder mit Namen), es gibt **keine** Icon-only-Buttons ohne Namen (durchgehend
+  Text-Buttons), `<main>`-Landmarks im öffentlichen und Moderator-Layout vorhanden.
+  Keine offensichtlichen a11y-Lücken mehr statisch auffindbar.
+- **Noch offen (nicht autonom abschließbar):** vollständiger Screenreader-Durchlauf –
+  braucht ein **manuelles Audit** (headless nicht sinnvoll verifizierbar).
 
 ### Einheitliche Fehler-/Ladezustände
 
