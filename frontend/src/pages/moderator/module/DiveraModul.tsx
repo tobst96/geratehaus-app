@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Gespeichert } from "../../../components/Gespeichert";
 import { formatiereDatumZeit } from "../../../utils/datum";
 import { Link } from "react-router-dom";
 import {
@@ -145,7 +146,7 @@ export function DiveraModul() {
           {speichert ? "Speichert …" : "Speichern"}
         </button>
         {gespeichert && (
-          <span style={{ marginLeft: 10, color: "var(--farbe-text-mute)" }}>✓ gespeichert</span>
+          <Gespeichert />
         )}
         {fehler && <p className="fehlertext">{fehler}</p>}
       </div>

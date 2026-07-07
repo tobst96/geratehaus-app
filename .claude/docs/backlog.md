@@ -1454,11 +1454,14 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Fortschritt (07.07.2026): **`.hinweis-klein`** (0.8rem, gedämpft) analog für die
   8 exakten `style={{ fontSize: 0.8rem, color: var(--farbe-text-mute) }}`-Stellen.
   1:1 gleiche Optik; Build/Test grün.
+- Fortschritt (07.07.2026): **`<Gespeichert />`-Komponente** für den 6-fach identisch
+  kopierten „✓ gespeichert"-Erfolgs-Span (Modul-Einstellungsseiten) – DRY-Extraktion
+  in eine kleine Komponente. Build/Test grün.
 - **Weiter offen (schrittweise, geringer Nutzen):** die verbliebenen Inline-Styles
   sind überwiegend **einmalige/variantenreiche Flex-Layouts** (`display:flex` mit
   wechselndem gap/align/margin) – dafür lohnt keine Utility-Extraktion (Utility-
   Wildwuchs + Regressionsrisiko > Nutzen). Die klar wiederkehrenden Muster
-  (Modal-Overlay, Hinweistexte) sind damit erledigt.
+  (Modal-Overlay, Hinweistexte, „✓ gespeichert") sind damit erledigt.
 
 ### Mehrsprachigkeit vorbereiten (i18n)
 

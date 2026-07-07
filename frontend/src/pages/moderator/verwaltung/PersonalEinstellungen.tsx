@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Gespeichert } from "../../../components/Gespeichert";
 import { GruppenVerwaltung } from "./GruppenVerwaltung";
 import { holeEinstellungen, schreibeEinstellungen } from "../../../api/moderator";
 import { ApiError } from "../../../api/client";
@@ -169,7 +170,7 @@ export function PersonalEinstellungen() {
       <button style={{ marginTop: 16 }} onClick={speichern} disabled={speichert || !geladen}>
         {speichert ? "Speichert …" : "Speichern"}
       </button>
-      {gespeichert && <span style={{ marginLeft: 10, color: "var(--farbe-text-mute)" }}>✓ gespeichert</span>}
+      {gespeichert && <Gespeichert />}
       {fehler && <p className="fehlertext">{fehler}</p>}
     </div>
   );

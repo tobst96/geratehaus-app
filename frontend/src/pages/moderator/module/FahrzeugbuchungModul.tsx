@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Gespeichert } from "../../../components/Gespeichert";
 import { Link } from "react-router-dom";
 import { holeEinstellungen, schreibeEinstellungen } from "../../../api/moderator";
 import { ApiError } from "../../../api/client";
@@ -78,7 +79,7 @@ export function FahrzeugbuchungModul() {
             <button onClick={speichern} disabled={speichert}>
               {speichert ? "Speichert …" : "Speichern"}
             </button>
-            {gespeichert && <span style={{ marginLeft: 10, color: "var(--farbe-text-mute)" }}>✓ gespeichert</span>}
+            {gespeichert && <Gespeichert />}
           </>
         )}
         {fehler && <p className="fehlertext">{fehler}</p>}
