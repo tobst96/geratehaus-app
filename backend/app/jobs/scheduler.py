@@ -304,6 +304,17 @@ async def _backup_job() -> None:
             logger.warning("backup_job_fehlgeschlagen", exc_info=True)
 
 
+@_ueberwacht("backup_integritaet", {"type": "interval", "value": 24, "unit": "hour"})
+async def _backup_integritaet_job() -> None:
+    """Prüft täglich die Integrität des neuesten Backups (rein lesend, kein
+    Restore) und legt das Ergebnis fürs Admin-Reporting in app_config ab."""
+    async with AsyncSessionLocal() as db:
+        try:
+            await backup_service.integritaet_pruefen_und_speichern(db)
+        except Exception:
+            logger.warning("backup_integritaet_job_fehlgeschlagen", exc_info=True)
+
+
 def registriere_jobs() -> None:
     # Immer registriert; ob tatsächlich synchronisiert wird, entscheidet
     # _divera_polling_job anhand der app_config-Werte (Einstellungen-UI),
@@ -446,6 +457,13 @@ def registriere_jobs() -> None:
         "interval",
         minutes=15,
         id="backup",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        _backup_integritaet_job,
+        "interval",
+        hours=24,
+        id="backup_integritaet",
         replace_existing=True,
     )
     logger.info("backup_job_registriert")

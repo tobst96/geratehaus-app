@@ -701,6 +701,62 @@ def _kategorien_aus_manifest(manifest: dict) -> list[dict]:
     return ergebnis
 
 
+async def pruefe_integritaet(db: AsyncSession, backup: Backup) -> dict:
+    """Rein **lesende** Integritätsprüfung eines Backups (KEIN Restore in eine
+    echte DB): liest die Datei, entschlüsselt sie ggf., prüft die ZIP-CRCs, das
+    Vorhandensein/Parsen des Manifests und aller `db/*.json`. Wirft `BackupFehler`
+    bei einem Problem (z. B. beschädigt oder falsche/geänderte Passphrase)."""
+    passphrase = str(await config_service.get(db, "backup_passphrase", "") or "")
+    blob = await datei_lesen(db, backup)
+    zip_bytes = _entschluesseln(blob, passphrase) if backup.verschluesselt else blob
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+        beschaedigt = zf.testzip()
+        if beschaedigt is not None:
+            raise BackupFehler(f"Beschädigter Eintrag im Archiv: {beschaedigt}")
+        namen = zf.namelist()
+        if "manifest.json" not in namen:
+            raise BackupFehler("Keine gültige Backup-Datei (Manifest fehlt).")
+        json.loads(zf.read("manifest.json"))
+        tabellen = 0
+        for name in namen:
+            if name.startswith("db/") and name.endswith(".json"):
+                json.loads(zf.read(name))
+                tabellen += 1
+    return {"tabellen": tabellen, "groesse": len(zip_bytes)}
+
+
+async def integritaet_pruefen_und_speichern(db: AsyncSession) -> dict:
+    """Prüft das **neueste erfolgreiche** Backup und legt das Ergebnis in
+    app_config ab (fürs Admin-Reporting). Fehler werden als Ergebnis erfasst,
+    nicht geworfen."""
+    result = await db.execute(
+        select(Backup).where(Backup.status == "ok").order_by(Backup.id.desc()).limit(1)
+    )
+    backup = result.scalar_one_or_none()
+    jetzt = datetime.now(timezone.utc).isoformat()
+    if backup is None:
+        ergebnis = {"ok": None, "detail": "Kein Backup vorhanden.", "geprueft_am": jetzt, "datei": ""}
+    else:
+        try:
+            info = await pruefe_integritaet(db, backup)
+            ergebnis = {
+                "ok": True,
+                "detail": f"OK – {info['tabellen']} Tabellen, {info['groesse']} Bytes entpackt.",
+                "geprueft_am": jetzt,
+                "datei": backup.dateiname,
+            }
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("backup_integritaet_fehlgeschlagen", exc_info=True)
+            ergebnis = {"ok": False, "detail": str(exc), "geprueft_am": jetzt, "datei": backup.dateiname}
+    await config_service.set(db, "backup_integritaet_am", ergebnis["geprueft_am"])
+    await config_service.set(
+        db, "backup_integritaet_ok", "" if ergebnis["ok"] is None else str(ergebnis["ok"]).lower()
+    )
+    await config_service.set(db, "backup_integritaet_detail", ergebnis["detail"])
+    await config_service.set(db, "backup_integritaet_datei", ergebnis["datei"])
+    return ergebnis
+
+
 def analysiere(blob: bytes, passphrase: str) -> tuple[str, dict, list[dict]]:
     """Entschlüsselt, liest NUR das Manifest, legt die Klartext-ZIP-Bytes unter
     einem Token im RAM ab und liefert (token, manifest, kategorien)."""

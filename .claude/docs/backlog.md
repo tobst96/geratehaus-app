@@ -1522,7 +1522,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Automatischer Backup-Restore-Test
 
-- Status: Backlog
+- Status: Erledigt (Integritätsprüfung; Feature-Branch → PR, 07.07.2026)
 - Priorität: Mittel
 - Kategorie: Backend / DevOps / Backup
 - Skills: geraetehaus-patterns, tests, review
@@ -1533,6 +1533,18 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Akzeptanzkriterien: Automatischer Probe-Restore + Integritätsprüfung; Status-
   Reporting.
 - Notizen: Nutzen ⭐⭐⭐. Deckt zugleich Backup-Modul-Punkt „Restore-Test".
+- Umsetzung (07.07.2026): **Automatische Integritätsprüfung** (rein lesend, kein
+  Restore in eine echte DB – bewusst gewählt, da ein echter Probe-Restore riskant/
+  komplex ist): `backup_service.pruefe_integritaet` liest das neueste Backup,
+  entschlüsselt es, prüft die ZIP-CRCs (`testzip()`), Manifest und alle `db/*.json`.
+  `integritaet_pruefen_und_speichern` legt das Ergebnis in app_config ab (Reporting).
+  Täglicher Scheduler-Job `backup_integritaet`. Endpunkte
+  `GET/POST /moderator/backup/integritaet[-pruefen]`. Frontend: Status-Karte
+  „Integritätsprüfung" (Ampel + „Jetzt prüfen") im Backup-Modul. Erkennt beschädigte
+  Backups und geänderte Passphrasen. Tests `test_backup_integritaet.py` (5). Suite
+  357 grün, `npm run build` grün.
+- **Follow-up (offen):** echter Probe-Restore in eine Wegwerf-DB (riskanter/komplexer)
+  – bewusst separat gelassen; die lesende Integritätsprüfung deckt den Kern-Nutzen ab.
 
 ### System-Statuspanel im Admin (Observability)
 

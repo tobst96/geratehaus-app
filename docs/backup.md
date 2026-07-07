@@ -105,6 +105,17 @@ anderen trotzdem gesichert – das Backup gilt nur dann als fehlgeschlagen, wenn
 
 ---
 
+## Integritätsprüfung
+
+Das neueste Backup wird **täglich automatisch** geprüft – **rein lesend**, ohne
+Rückspielen in die Datenbank: Entschlüsselung, Archiv‑Prüfsummen (CRC), Manifest
+und alle Tabellen‑Dateien werden validiert. So fällt ein **beschädigtes Backup**
+oder eine **geänderte Passphrase** auf, bevor man das Backup im Ernstfall braucht.
+Die Karte **„Integritätsprüfung"** zeigt das letzte Ergebnis (OK/Fehler/unbekannt,
+Zeitpunkt); mit **„Jetzt prüfen"** lässt sich die Prüfung sofort anstoßen.
+
+---
+
 ## Wiederherstellen (Import)
 
 1. **Datei hochladen**: die `.ghb`‑Datei wählen. Bei abweichender Passphrase diese
