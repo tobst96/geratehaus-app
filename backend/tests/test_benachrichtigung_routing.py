@@ -147,10 +147,14 @@ async def test_mail_kanal_ohne_person_email_kein_versand(db, monkeypatch):
 
 
 async def test_abo_endpoints(client, db):
+    from app.services.config_service import config_service
+
     person = await _person(db, "Endpoint")
     token = await _admin_token(client, db)
     h = {"Authorization": f"Bearer {token}"}
 
+    # Einsatz-Ereignis wird nur bei aktivem Einsatztagebuch-Modul angeboten.
+    await config_service.set(db, "modul_einsatztagebuch_aktiv", True)
     typen = await client.get("/api/v1/moderator/ereignis-typen", headers=h)
     assert typen.status_code == 200
     assert "benachrichtigung_neuer_einsatz" in {t["key"] for t in typen.json()}

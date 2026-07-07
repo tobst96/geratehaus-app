@@ -23,6 +23,8 @@ class KanalSetzen(BaseModel):
 class EreignisTypOut(BaseModel):
     key: str
     label: str
+    modul: str | None = None
+    modul_label: str
 
 
 class AboSetzen(BaseModel):
