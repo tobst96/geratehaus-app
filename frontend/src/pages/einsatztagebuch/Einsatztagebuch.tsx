@@ -4,6 +4,7 @@ import { holeFahrzeuge, holeFunktionenEinsatz } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import { EinsatzDiagramm } from "./EinsatzDiagramm";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { SeitenFehler } from "../../components/SeitenFehler";
 import type { EinsatzOut, Fahrzeug, FunktionEinsatz } from "../../api/types";
 
 const POLL_INTERVALL_MS = 15_000;
@@ -68,7 +69,7 @@ export function Einsatztagebuch() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
+  if (fehler) return <SeitenFehler nachricht={fehler} onRetry={laden} />;
   if (!einsaetze) return <Ladeanzeige />;
 
   // Im Gerätehaus-Kiosk sollen nur offene Einsätze erscheinen – abgeschlossene

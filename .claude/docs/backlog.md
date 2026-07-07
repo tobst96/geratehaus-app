@@ -1330,7 +1330,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Einheitliche Fehler-/Ladezustände
 
-- Status: Backlog
+- Status: Backlog (Fortschritt 07.07.2026 – seitenfüllende Fehlerzustände vereinheitlicht)
 - Priorität: Niedrig
 - Kategorie: Frontend / UX
 - Skills: geraetehaus-patterns, review
@@ -1339,6 +1339,15 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `String(err.detail)`-Texte. `Ladeanzeige` existiert bereits.
 - Akzeptanzkriterien: Zentrales Fehler-/Toast-Muster; Retry; konsistent eingesetzt.
 - Notizen: Nutzen ⭐⭐.
+- Fortschritt (07.07.2026): Neue Komponente `SeitenFehler` (themed, dark-mode-tauglich
+  via CSS-Variablen statt hartem `color:red`, `role="alert"`, optionaler
+  „Erneut versuchen"-Button). Ersetzt die 6 verstreuten
+  `<div style={{color:"red"}}>Fehler: …</div>`-Blöcke (Einsatztagebuch,
+  EinsatzDetail, Dienstbuch, Dienststunden, Fahrzeugbuchung, FahrzeugView) – vier
+  davon mit Retry auf ihre `laden()`-Funktion. Test `SeitenFehler.test.tsx` (3).
+  `npm run build` + `npm run test` (21) grün.
+- **Noch offen:** Inline-Formularfehler (viele `<p className="fehlertext">`) und ein
+  echtes Toast-Muster – separater Folge-Slice.
 
 ### Inline-Styles → CSS-Klassen
 

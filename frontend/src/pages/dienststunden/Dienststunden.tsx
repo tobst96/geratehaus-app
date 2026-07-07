@@ -16,6 +16,7 @@ import {
   type PersonIdentifikationHandle,
 } from "../../components/PersonIdentifikation";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
+import { SeitenFehler } from "../../components/SeitenFehler";
 import type { DienststundenSummeOut, FunktionDienststunden } from "../../api/types";
 import "./Dienststunden.css";
 
@@ -179,7 +180,7 @@ export function Dienststunden() {
     }
   }
 
-  if (ladeFehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {ladeFehler}</div>;
+  if (ladeFehler) return <SeitenFehler nachricht={ladeFehler} />;
 
   return (
     <div>

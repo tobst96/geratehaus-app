@@ -4,6 +4,7 @@ import { holeGruppen } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import { DienstbuchDiagramm } from "./DienstbuchDiagramm";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { SeitenFehler } from "../../components/SeitenFehler";
 import type { DienstbuchFeldDefinition, DienstbuchOut, Gruppe } from "../../api/types";
 
 function jetztAlsDatetimeLocal(): string {
@@ -53,7 +54,7 @@ export function Dienstbuch() {
     laden();
   }, []);
 
-  if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
+  if (fehler) return <SeitenFehler nachricht={fehler} onRetry={laden} />;
   if (!dienstbuecher) return <Ladeanzeige />;
 
   const ausgewaehltesDienstbuch = dienstbuecher.find((d) => d.id === selectedDienstbuchId) ?? null;
