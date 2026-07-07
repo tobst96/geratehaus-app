@@ -320,7 +320,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### (2) Benachrichtigungen pro Moderatoren-Zugang statt global
 
-- Status: Backlog
+- Status: Erledigt (Feature-Branch `feature/g2-moderator-benachrichtigungen` → PR nach beta, 07.07.2026)
 - Priorität: Mittel
 - Kategorie: Feature / Backend
 - Skills: geraetehaus-patterns, tests, review
@@ -331,6 +331,24 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   aktiviertem Ereignis ab statt `notifier_email_recipients`.
 - Akzeptanzkriterien: Pro-Zugang-Steuerung wirkt; Migration; Test.
 - Notizen: baut auf (1) auf.
+- Umsetzung (07.07.2026, Scope + non-breaking Default mit Nutzer geklärt): Feld
+  `moderatoren.benachrichtigungen_aktiv` (Migration 0058, Default aus) statt eigener
+  Tabelle – die **admin-/betrieblichen** Mails betreffen faktisch nur wenige Ereignisse
+  (Buchungsanfrage-Aktionen, Backup-Status), daher ein Opt-in-Flag statt einer
+  Ereignis-Matrix. Zentraler Resolver `moderator_service.admin_benachrichtigungs_empfaenger`
+  = opted-in Moderatoren **∪ bestehende globale Liste `notifier_email_recipients`**
+  (case-insensitiv dedupliziert) → **non-breaking**, bestehende Empfänger behalten ihre
+  Mails, Moderatoren kommen additiv dazu. Eingehängt in `aktions_mail_versenden`
+  (Buchung) und beide Backup-Mail-Stellen. API: `benachrichtigungen_aktiv` in
+  ModeratorOut/Anlegen/Aktualisieren; PATCH nutzt `model_fields_set` (Teil-Update ohne
+  E-Mail-Verlust). Frontend: Checkbox-Spalte „Benachrichtigungen" in der
+  Moderatoren-Verwaltung (nur mit hinterlegter E-Mail aktivierbar). Tests
+  `test_g2_moderator_benachrichtigungen.py` (4). Suite 352 grün, `npm run build` grün.
+- **Bewusste Abweichung:** Die globalen `benachrichtigung_*`-Master-Schalter bleiben –
+  sie steuern die **Mitglieder**-Ereignis-Abos (anderer Zweck als die Admin-Empfänger)
+  und wurden **nicht** entfernt, um das Mitglieder-Notification-Verhalten nicht zu
+  ändern. Die globale `notifier_email_recipients`-Liste bleibt als non-breaking
+  Zusatzquelle/Backup-Ziel erhalten.
 
 ### (3) Mitglieder-Benachrichtigungen pro Modul
 

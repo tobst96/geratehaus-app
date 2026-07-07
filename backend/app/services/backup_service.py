@@ -508,8 +508,9 @@ async def _aktive_ziele(db: AsyncSession) -> list:
                 )
             )
     if await config_service.get(db, "backup_email_aktiv", False):
-        empf_roh = str(await config_service.get(db, "notifier_email_recipients", ""))
-        ziele.append(EmailZiel(db, [e.strip() for e in empf_roh.split(",") if e.strip()]))
+        from app.services import moderator_service
+
+        ziele.append(EmailZiel(db, await moderator_service.admin_benachrichtigungs_empfaenger(db)))
     return ziele
 
 
@@ -638,8 +639,9 @@ async def _mail_detailtext(db: AsyncSession, dateiname: str, kern: str) -> str:
 
 
 async def _fehler_mail(db: AsyncSession, betreff: str, text: str) -> None:
-    empfaenger_roh = str(await config_service.get(db, "notifier_email_recipients", ""))
-    empfaenger = [e.strip() for e in empfaenger_roh.split(",") if e.strip()]
+    from app.services import moderator_service
+
+    empfaenger = await moderator_service.admin_benachrichtigungs_empfaenger(db)
     if not empfaenger:
         return
     notifier = EmailNotifier()

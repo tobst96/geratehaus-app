@@ -20,6 +20,9 @@ class Moderator(Base, TimestampMixin):
     # Optionale E-Mail des Zugangs – Grundlage für pro-Zugang-Benachrichtigungen
     # und E-Mail-OTP-2FA.
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Opt-in: erhält Admin-/Betriebs-Benachrichtigungen (Buchungsanfragen,
+    # Backup-Status) an die hinterlegte E-Mail. Default aus.
+    benachrichtigungen_aktiv: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Brute-Force-Schutz für den Moderator-Login: Zähler aufeinanderfolgender
     # Fehlversuche und Zeitpunkt, bis zu dem der Login gesperrt ist (NULL = frei;
     # nach Ablauf automatisch wieder frei).

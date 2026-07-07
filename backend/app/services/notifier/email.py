@@ -91,8 +91,10 @@ class EmailNotifier(Notifier):
         die Buttons verlinken auf einmal verwendbare, ablaufende Tokens statt
         echten Login-geschützten Endpunkten. Best-effort wie send(), da diese
         Mail nicht der einzige Weg ist, eine Buchung zu entscheiden."""
-        empfaenger_roh = await config_service.get(db, "notifier_email_recipients", "")
-        empfaenger = [e.strip() for e in empfaenger_roh.split(",") if e.strip()]
+        # Admin-Empfänger: opted-in Moderatoren + globale Liste (non-breaking).
+        from app.services import moderator_service
+
+        empfaenger = await moderator_service.admin_benachrichtigungs_empfaenger(db)
         if not empfaenger:
             return
         try:

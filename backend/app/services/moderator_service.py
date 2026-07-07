@@ -88,15 +88,39 @@ def _email_normalisieren(email: str | None) -> str | None:
 
 
 async def moderator_anlegen(
-    db: AsyncSession, username: str, passwort: str, rolle: str = "admin", email: str | None = None
+    db: AsyncSession,
+    username: str,
+    passwort: str,
+    rolle: str = "admin",
+    email: str | None = None,
+    benachrichtigungen_aktiv: bool = False,
 ) -> Moderator:
     moderator = Moderator(
         username=username,
         passwort_hash=hash_secret(passwort),
         rolle=rolle,
         email=_email_normalisieren(email),
+        benachrichtigungen_aktiv=benachrichtigungen_aktiv,
     )
     db.add(moderator)
+    await db.commit()
+    await db.refresh(moderator)
+    return moderator
+
+
+async def moderator_aktualisieren(
+    db: AsyncSession,
+    moderator: Moderator,
+    email: str | None = None,
+    email_gesetzt: bool = False,
+    benachrichtigungen_aktiv: bool | None = None,
+) -> Moderator:
+    """Aktualisiert E-Mail und/oder das Benachrichtigungs-Opt-in. `email_gesetzt`
+    unterscheidet „E-Mail nicht mitgesendet" von „E-Mail auf leer/NULL gesetzt"."""
+    if email_gesetzt:
+        moderator.email = _email_normalisieren(email)
+    if benachrichtigungen_aktiv is not None:
+        moderator.benachrichtigungen_aktiv = benachrichtigungen_aktiv
     await db.commit()
     await db.refresh(moderator)
     return moderator
@@ -107,6 +131,29 @@ async def moderator_email_setzen(db: AsyncSession, moderator: Moderator, email: 
     await db.commit()
     await db.refresh(moderator)
     return moderator
+
+
+async def admin_benachrichtigungs_empfaenger(db: AsyncSession) -> list[str]:
+    """E-Mail-Empfänger für Admin-/Betriebs-Benachrichtigungen: Moderatoren mit
+    aktiviertem Opt-in **plus** die bestehende globale Liste
+    `notifier_email_recipients` (non-breaking – bestehende Empfänger behalten).
+    Case-insensitiv dedupliziert, Reihenfolge stabil (Moderatoren zuerst)."""
+    result = await db.execute(
+        select(Moderator.email).where(
+            Moderator.benachrichtigungen_aktiv.is_(True), Moderator.email.is_not(None)
+        )
+    )
+    moderatoren = [e for e in result.scalars().all() if e]
+    roh = str(await config_service.get(db, "notifier_email_recipients", "") or "")
+    legacy = [e.strip() for e in roh.split(",") if e.strip()]
+    gesehen: set[str] = set()
+    ergebnis: list[str] = []
+    for adresse in [*moderatoren, *legacy]:
+        schluessel = adresse.lower()
+        if schluessel not in gesehen:
+            gesehen.add(schluessel)
+            ergebnis.append(adresse)
+    return ergebnis
 
 
 async def moderator_passwort_aendern(db: AsyncSession, moderator: Moderator, passwort: str) -> Moderator:

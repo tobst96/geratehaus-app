@@ -10,6 +10,7 @@ class ModeratorOut(BaseModel):
     username: str
     rolle: str
     email: str | None = None
+    benachrichtigungen_aktiv: bool = False
 
 
 class ModeratorAnlegen(BaseModel):
@@ -17,11 +18,14 @@ class ModeratorAnlegen(BaseModel):
     passwort: str = Field(min_length=8)
     rolle: Literal["admin", "gruppenfuehrer"] = "gruppenfuehrer"
     email: str | None = Field(default=None, max_length=255)
+    benachrichtigungen_aktiv: bool = False
 
 
 class ModeratorAktualisieren(BaseModel):
-    # Leerer String → E-Mail entfernen; None → unverändert lassen.
+    # Nur mitgesendete Felder werden geändert (siehe model_fields_set im Endpunkt):
+    # email leerer String → entfernen; weggelassen → unverändert.
     email: str | None = Field(default=None, max_length=255)
+    benachrichtigungen_aktiv: bool | None = None
 
 
 class ModeratorPasswortAendern(BaseModel):
