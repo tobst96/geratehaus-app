@@ -524,7 +524,7 @@ export function Personal() {
             style={{ width: 640, maxWidth: "95vw" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div className="flex-zwischen">
               <h2 style={{ margin: 0 }}>Personal-Einstellungen</h2>
               <button type="button" className="sekundaer" onClick={() => setZeigeEinstellungen(false)}>
                 Schließen
@@ -545,7 +545,7 @@ export function Personal() {
             style={{ width: 520, maxWidth: "95vw" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div className="flex-zwischen">
               <h2 style={{ margin: 0 }}>Personen per CSV importieren</h2>
               <button type="button" className="sekundaer" onClick={() => setZeigeImportModal(false)}>
                 Schließen

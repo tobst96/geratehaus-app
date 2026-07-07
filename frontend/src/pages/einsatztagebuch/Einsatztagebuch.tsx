@@ -155,7 +155,7 @@ export function Einsatztagebuch() {
       {offeneEinsaetze.length === 0 && <p>Keine aktiven Einsätze.</p>}
       {offeneEinsaetze.map((e) => (
         <div key={e.id} className="karte">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className="flex-zwischen">
             <div>
               <strong>{e.titel}</strong>
               <div className="hinweistext">

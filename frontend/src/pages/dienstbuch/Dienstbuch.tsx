@@ -168,7 +168,7 @@ export function Dienstbuch() {
       {dienstbuecher.length === 0 && <p>Keine aktuellen Dienstbücher.</p>}
       {dienstbuecher.map((d) => (
         <div key={d.id} className="karte">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className="flex-zwischen">
             <div>
               <strong>{d.titel}</strong>
               <div className="hinweistext">

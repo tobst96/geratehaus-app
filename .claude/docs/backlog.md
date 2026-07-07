@@ -1457,11 +1457,16 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Fortschritt (07.07.2026): **`<Gespeichert />`-Komponente** für den 6-fach identisch
   kopierten „✓ gespeichert"-Erfolgs-Span (Modul-Einstellungsseiten) – DRY-Extraktion
   in eine kleine Komponente. Build/Test grün.
+- Fortschritt (07.07.2026): **`.flex-zwischen`** (Space-between-Zeile, vertikal
+  zentriert) für den 5-fach exakten `style={{ display:flex; justify-content:
+  space-between; align-items:center }}` – sauber, da ohne gap-Variation. Build/Test grün.
 - **Weiter offen (schrittweise, geringer Nutzen):** die verbliebenen Inline-Styles
-  sind überwiegend **einmalige/variantenreiche Flex-Layouts** (`display:flex` mit
-  wechselndem gap/align/margin) – dafür lohnt keine Utility-Extraktion (Utility-
-  Wildwuchs + Regressionsrisiko > Nutzen). Die klar wiederkehrenden Muster
-  (Modal-Overlay, Hinweistexte, „✓ gespeichert") sind damit erledigt.
+  sind überwiegend **gap-variantenreiche Flex-Zeilen** (`display:flex; align-items:
+  center; gap:4/6/8`) – eine Extraktion bräuchte gap-spezifische Klassen
+  (Utility-Wildwuchs) und würde bei Vereinheitlichung die Optik minimal ändern; daher
+  bewusst inline belassen. Die klar wiederkehrenden, sauber extrahierbaren Muster
+  (Modal-Overlay, Hinweistexte, „✓ gespeichert", Space-between-Zeile) sind damit
+  **erschöpft**.
 
 ### Mehrsprachigkeit vorbereiten (i18n)
 

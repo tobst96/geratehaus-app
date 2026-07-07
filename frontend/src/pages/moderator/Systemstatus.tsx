@@ -57,7 +57,7 @@ export function Systemstatus() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="flex-zwischen">
         <h1 style={{ margin: 0 }}>Systemstatus</h1>
         <button type="button" className="sekundaer" onClick={laden} disabled={laedt}>
           {laedt ? "Aktualisiere …" : "Aktualisieren"}
