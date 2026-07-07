@@ -131,6 +131,23 @@ a {
   color: var(--farbe-primaer);
 }
 
+/* Einheitliche, gut sichtbare Tastatur-Fokusringe (a11y). `:focus-visible` zeigt
+   den Ring nur bei Tastatur-Navigation, nicht bei Maus-/Touch-Klick – dadurch
+   klare Fokus-Zustände auf allen Steuerelementen (Buttons, Links, Eingaben,
+   Kacheln), ohne Maus-Nutzer zu stören. Der Ring folgt in modernen Browsern
+   automatisch dem border-radius des Elements. */
+:focus-visible {
+  outline: 3px solid var(--farbe-primaer);
+  outline-offset: 2px;
+}
+
+/* Kacheln/Karten-Buttons haben große Radien – etwas mehr Abstand für den Ring. */
+.mitglied-tile:focus-visible,
+.kachel:focus-visible,
+button.karte:focus-visible {
+  outline-offset: 3px;
+}
+
 .seite {
   flex: 1;
   width: min(calc(100% - 3rem), 1300px);

@@ -1316,7 +1316,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Barrierefreiheit (a11y)
 
-- Status: Backlog
+- Status: Backlog (Fortschritt 07.07.2026 – einheitliche Fokusringe)
 - Priorität: Niedrig
 - Kategorie: Frontend / UX
 - Skills: geraetehaus-patterns, review
@@ -1327,6 +1327,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Akzeptanzkriterien: Fokusringe + Tastaturbedienung + Labels auf kritischen
   Interaktionen; a11y-Durchlauf dokumentiert.
 - Notizen: Nutzen ⭐⭐.
+- Fortschritt (07.07.2026): **Einheitliche Tastatur-Fokusringe** via globalem
+  `:focus-visible` in `index.css` (3px `--farbe-primaer`, Offset; nur bei
+  Tastaturnavigation, folgt dem border-radius; extra Offset für Kacheln/Karten-
+  Buttons). Vorher gab es **gar keine** Fokus-Styles → uneinheitliche/teils
+  unsichtbare Browser-Defaults. `npm run build` grün.
+- **Noch offen:** Tastaturbedienung + `aria-*`/`role` für Sterne-/Skala-Auswahl und
+  ggf. als `<div>` umgesetzte Kacheln; Screenreader-Durchlauf.
 
 ### Einheitliche Fehler-/Ladezustände
 
