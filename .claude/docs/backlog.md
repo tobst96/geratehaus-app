@@ -384,7 +384,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Timeline-Einträge im Admin-Bereich detaillierter
 
-- Status: Backlog
+- Status: Erledigt/gegenstandslos (07.07.2026 – geprüft, kein Handlungsbedarf)
 - Priorität: Niedrig
 - Kategorie: Feature / Backend / Frontend
 - Skills: geraetehaus-patterns, review
@@ -394,6 +394,13 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   Mitglieder-Timeline separat/anders (eigener Punkt, offen).
 - Akzeptanzkriterien: Timeline-Einträge zeigen den relevanten Kontext.
 - Notizen: teilweise punktebezogen – siehe Etappe-N-Konflikt.
+- Prüfung (07.07.2026): Kein Handlungsbedarf. **Punkte** existieren im Code nicht
+  (mehr) → entfällt. **Einsatz-/Dienstbuch-Teilnahmen werden gar nicht in die
+  Personen-Timeline (`PersonEreignis`) geschrieben** – dort landen nur Stammdaten-/
+  PIN-/Bild-/Dienststunden-Ereignisse; Einsatz-/Dienstbuch-Verlauf liegt in
+  `EinsatzEreignis`/Dienstbuch. Die **Dienststunden-Einträge sind bereits detailliert**
+  („5 Stunden als Truppmann am …"). Damit sind die beschriebenen Anreicherungen
+  gegenstandslos bzw. bereits vorhanden.
 
 ---
 
@@ -1369,8 +1376,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   und `aria-pressed` für den ausgewählten Wert (Screenreader kennt Auswahlzustand).
   Test in `FormularAusfuellen.test.tsx` (Gruppe/Label/aria-pressed). `npm run build`
   + `npm run test` (26) grün.
-- **Noch offen:** als `<div>` umgesetzte Kacheln prüfen/umstellen; vollständiger
-  Screenreader-Durchlauf.
+- Prüfung (07.07.2026): Kiosk- und Mitglieder-Kacheln sind **bereits `<button>`**
+  (tastaturbedienbar, Fokusring greift) – kein `<div>`-Umbau nötig. Damit sind die
+  konkret benannten Interaktionen (Fokusringe, Sterne-/Skala-Auswahl, Kacheln)
+  versorgt.
+- **Noch offen:** vollständiger Screenreader-Durchlauf – braucht ein **manuelles
+  Audit** (headless nicht sinnvoll verifizierbar), daher hier nicht autonom
+  abschließbar.
 
 ### Einheitliche Fehler-/Ladezustände
 
