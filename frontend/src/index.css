@@ -333,6 +333,25 @@ button.karte:focus-visible {
   transition: all 0.3s ease;
 }
 
+/* Modal-Overlay: dunkler Vollbild-Hintergrund mit zentrierter Karte. Ersetzt die
+   zuvor mehrfach kopierten Inline-Style-Objekte (DRY, konsistent, ein Ort). */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Variante für hohe/scrollbare Inhalte: oben ausrichten, Innenabstand, scrollbar. */
+.modal-overlay--scroll {
+  align-items: flex-start;
+  padding: 5vh 1rem;
+  overflow-y: auto;
+}
+
 .karte:hover {
   box-shadow: var(--schatten-karte-hover);
 }

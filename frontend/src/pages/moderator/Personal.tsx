@@ -516,17 +516,7 @@ export function Personal() {
 
       {zeigeEinstellungen && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            padding: "5vh 1rem",
-            overflowY: "auto",
-            zIndex: 1000,
-          }}
+          className="modal-overlay modal-overlay--scroll"
           onClick={() => setZeigeEinstellungen(false)}
         >
           <div
@@ -547,17 +537,7 @@ export function Personal() {
 
       {zeigeImportModal && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            padding: "5vh 1rem",
-            overflowY: "auto",
-            zIndex: 1000,
-          }}
+          className="modal-overlay modal-overlay--scroll"
           onClick={() => setZeigeImportModal(false)}
         >
           <div
@@ -627,18 +607,7 @@ export function Personal() {
 
       {zeigeAnlegenModal && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
+          className="modal-overlay"
           onClick={anlegenModalSchliessen}
         >
           <div
@@ -709,18 +678,7 @@ export function Personal() {
 
       {bildQrStandalone && ausgewaehltePerson && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
+          className="modal-overlay"
           onClick={bildQrStandaloneSchliessen}
         >
           <div

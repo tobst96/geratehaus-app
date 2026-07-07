@@ -103,21 +103,7 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
   const emailUpdates = offene.filter((v) => v.art === "email_update");
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-      }}
-      onClick={onSchliessen}
-    >
+    <div className="modal-overlay" onClick={onSchliessen}>
       <div
         className="karte"
         style={{ width: 520, maxWidth: "92vw", maxHeight: "85vh", overflowY: "auto" }}

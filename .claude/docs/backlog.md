@@ -1438,6 +1438,16 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   wartbarer.
 - Akzeptanzkriterien: Schrittweise Migration; keine visuelle Regression.
 - Notizen: Nutzen ⭐.
+- Fortschritt (07.07.2026): **Modal-Overlay** vereinheitlicht – die mehrfach kopierten
+  Inline-Style-Objekte (`position:fixed; inset:0; rgba(0,0,0,0.5); flex center;
+  z-index:1000`) in CSS-Klassen `.modal-overlay` (+ `.modal-overlay--scroll` für hohe/
+  scrollbare Dialoge) überführt und in Personal (4 Dialoge) + DiveraVorschlagModal
+  angewendet. Abweichende Overlays (SitzplatzEditor 0.45, BarcodeScanner-Scanner 0.85)
+  **bewusst unangetastet**, um keine Optik zu ändern. Styles 1:1 übernommen → keine
+  visuelle Änderung erwartet (Optik bitte gegenprüfen). `npm run build` + `npm run test`
+  (26) grün.
+- **Weiter offen (schrittweise):** übrige Inline-Style-Ballungen (Formular-/Ampel-UIs
+  etc.).
 
 ### Mehrsprachigkeit vorbereiten (i18n)
 
