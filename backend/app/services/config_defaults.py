@@ -122,6 +122,12 @@ DEFAULTS: list[ConfigDefault] = [
         "modul_fahrzeugbuchung_aussenzugriff", "false", ConfigTyp.BOOL, "Fahrzeugbuchung für Mitglieder-Login freigeben"
     ),
     ConfigDefault(
+        "fahrzeugbuchung_ical_urls",
+        "",
+        ConfigTyp.STR,
+        "Externe iCal-/webcal-URLs (eine pro Zeile) – Fremdtermine werden im Buchungskalender überlagert und in die Konfliktprüfung einbezogen",
+    ),
+    ConfigDefault(
         "modul_formular_aussenzugriff", "false", ConfigTyp.BOOL, "Formulare für Mitglieder-Login freigeben"
     ),
     # Einsatztagebuch

@@ -394,7 +394,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Externe/iCal-Kalender im Buchungskalender überlagern
 
-- Status: Backlog
+- Status: Erledigt (Feature-Branch `feature/ical-kalender` → PR nach beta, 07.07.2026)
 - Priorität: Mittel
 - Kategorie: Feature / Backend / Frontend
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -405,6 +405,19 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 - Akzeptanzkriterien: Fremdtermine sichtbar; Konfliktprüfung bezieht sie ein.
 - Notizen: `BuchungsKalender.tsx`, `buchung_service.hat_konflikt()`; prüfen ob
   Divera Termine direkt über die API statt iCal liefert.
+- Umsetzung (07.07.2026, Design mit Nutzer geklärt): Deps `icalendar` +
+  `recurring-ical-events` (RRULE-Expansion). Config `fahrzeugbuchung_ical_urls`
+  (eine URL/Zeile, webcal→https). `externe_termine_service` lädt (httpx, 5-Min-Cache,
+  fehlertolerant – Feed-Fehler brechen die Buchung nie) und parst die Feeds; Termine
+  UTC-normalisiert. `hat_konflikt` bezieht Fremdtermine ein (**global über alle
+  Fahrzeuge, weicher Konflikt-Hinweis** – Buchung bleibt möglich, wird markiert; passt
+  zum bestehenden Soft-Konflikt-Modell). Endpunkt `GET /buchungen/externe-termine`.
+  Frontend: `BuchungsKalender` überlagert Fremdtermine (grau/gestrichelt, nicht
+  klickbar, Legende), `Fahrzeugbuchung` lädt sie, Admin-Config in der
+  Fahrzeugbuchung-Modul-Unterseite (iCal-URLs-Textarea). Tests
+  `test_externe_termine.py` (5, HTTP gemockt). Suite 348 grün, `npm run build` grün.
+- **Hinweis:** Divera-eigener API-Abruf statt iCal wurde bewusst nicht umgesetzt –
+  Divera bietet iCal-Export, der generische iCal-Weg deckt das ab.
 
 ---
 

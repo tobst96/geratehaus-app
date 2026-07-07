@@ -3,9 +3,9 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import CurrentPerson, DbSession, require_modul_aktiv, require_zugriff
-from app.schemas.buchung import BuchungAnfrage, BuchungAnfrageErgebnis, BuchungOut
+from app.schemas.buchung import BuchungAnfrage, BuchungAnfrageErgebnis, BuchungOut, ExternerTerminOut
 from app.schemas.fahrzeugbuchung_reservierung import FahrzeugbuchungReservierungOut
-from app.services import buchung_service, fahrzeugbuchung_reservierung_service
+from app.services import buchung_service, externe_termine_service, fahrzeugbuchung_reservierung_service
 
 router = APIRouter(
     prefix="/buchungen",
@@ -20,6 +20,14 @@ router = APIRouter(
 @router.get("", response_model=list[BuchungOut])
 async def liste(db: DbSession, von: datetime | None = None, bis: datetime | None = None) -> list[BuchungOut]:
     return await buchung_service.liste_buchungen(db, von, bis)
+
+
+@router.get("/externe-termine", response_model=list[ExternerTerminOut])
+async def externe_termine(db: DbSession, von: datetime, bis: datetime) -> list[ExternerTerminOut]:
+    """Fremdtermine aus den konfigurierten iCal-Kalendern im sichtbaren Zeitraum
+    (nicht buchbar; nur zur Anzeige/Konflikt-Kontext im Buchungskalender)."""
+    termine = await externe_termine_service.externe_termine(db, von, bis)
+    return [ExternerTerminOut(**t) for t in termine]
 
 
 @router.post("", response_model=BuchungAnfrageErgebnis, status_code=status.HTTP_201_CREATED)

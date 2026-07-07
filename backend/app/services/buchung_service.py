@@ -54,7 +54,13 @@ async def hat_konflikt(db: AsyncSession, fahrzeug_id: int, von: datetime, bis: d
         FahrzeugBuchung.bis > von,
     )
     result = await db.execute(stmt)
-    return result.first() is not None
+    if result.first() is not None:
+        return True
+    # Externe (iCal-)Fremdtermine überlagern alle Fahrzeuge und zählen als Konflikt.
+    # Lokaler Import vermeidet Import-Zyklen; Feed-Fehler brechen die Buchung nie.
+    from app.services import externe_termine_service
+
+    return await externe_termine_service.hat_externen_konflikt(db, von, bis)
 
 
 async def ist_buchbar(db: AsyncSession, fahrzeug_id: int) -> bool:

@@ -226,6 +226,12 @@ export interface DienststundenSummeOut {
   schwellenwert_ueberschritten: boolean;
 }
 
+export interface ExternerTermin {
+  titel: string;
+  von: string;
+  bis: string;
+}
+
 export interface BuchungOut {
   id: number;
   fahrzeug_id: number;
