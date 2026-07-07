@@ -5,13 +5,16 @@ import {
   analysiereBackup,
   holeBackupEinstellungen,
   holeBackups,
+  holeBackupIntegritaet,
   importiereBackup,
   jetztSichern,
   ladeBackupHerunter,
   loescheBackup,
+  pruefeBackupIntegritaet,
   setzeBackupEinstellungen,
   type BackupAnalyse,
   type BackupEinstellungen,
+  type BackupIntegritaet,
   type BackupOut,
 } from "../../../api/backup";
 import { ApiError } from "../../../api/client";
@@ -35,6 +38,8 @@ export function BackupModul() {
   const [meldung, setMeldung] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
+  const [integritaet, setIntegritaet] = useState<BackupIntegritaet | null>(null);
+  const [pruefeLaeuft, setPruefeLaeuft] = useState(false);
 
   // Import-Ablauf
   const [analyse, setAnalyse] = useState<BackupAnalyse | null>(null);
@@ -45,11 +50,28 @@ export function BackupModul() {
 
   async function laden() {
     try {
-      const [e, b] = await Promise.all([holeBackupEinstellungen(), holeBackups()]);
+      const [e, b, i] = await Promise.all([
+        holeBackupEinstellungen(),
+        holeBackups(),
+        holeBackupIntegritaet().catch(() => null),
+      ]);
       setEinst(e);
       setBackups(b);
+      setIntegritaet(i);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Laden fehlgeschlagen.");
+    }
+  }
+
+  async function integritaetPruefen() {
+    setPruefeLaeuft(true);
+    setFehler(null);
+    try {
+      setIntegritaet(await pruefeBackupIntegritaet());
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Prüfung fehlgeschlagen.");
+    } finally {
+      setPruefeLaeuft(false);
     }
   }
 
@@ -432,6 +454,38 @@ export function BackupModul() {
         <button className="sekundaer" onClick={sichern} disabled={laeuft}>
           Jetzt Backup erstellen
         </button>
+      </div>
+
+      {/* --- Integritätsprüfung --- */}
+      <div className="karte">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <h2 style={{ margin: 0 }}>Integritätsprüfung</h2>
+          <button type="button" className="sekundaer" onClick={integritaetPruefen} disabled={pruefeLaeuft}>
+            {pruefeLaeuft ? "Prüfe …" : "Jetzt prüfen"}
+          </button>
+        </div>
+        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+          Das neueste Backup wird täglich automatisch <strong>rein lesend</strong> geprüft
+          (Entschlüsselung, Archiv- und Datenintegrität) – ohne Rückspielen in die Datenbank.
+          So fällt ein beschädigtes Backup oder eine geänderte Passphrase auf.
+        </p>
+        {integritaet && (integritaet.ok !== null || integritaet.geprueft_am) ? (
+          <p style={{ margin: 0 }}>
+            <strong
+              style={{ color: integritaet.ok === false ? "#b00020" : integritaet.ok ? "#2e9e4f" : "var(--farbe-text-mute)" }}
+            >
+              {integritaet.ok === true ? "● OK" : integritaet.ok === false ? "● Fehler" : "● unbekannt"}
+            </strong>{" "}
+            {integritaet.detail}
+            {integritaet.geprueft_am && (
+              <span style={{ color: "var(--farbe-text-mute)" }}>
+                {" "}· geprüft {formatiereDatumZeit(integritaet.geprueft_am)}
+              </span>
+            )}
+          </p>
+        ) : (
+          <p style={{ color: "var(--farbe-text-mute)", margin: 0 }}>Noch keine Prüfung durchgeführt.</p>
+        )}
       </div>
 
       {/* --- Backup-Browser --- */}

@@ -110,6 +110,17 @@ export const setzeBackupEinstellungen = (d: BackupEinstellungenUpdate) =>
   apiPatch<BackupEinstellungen>("/moderator/backup/einstellungen", d);
 export const holeBackups = () => apiGet<BackupOut[]>("/moderator/backup/liste");
 export const jetztSichern = () => apiPost<BackupOut>("/moderator/backup/jetzt");
+
+export interface BackupIntegritaet {
+  ok: boolean | null;
+  detail: string;
+  geprueft_am: string | null;
+  datei: string;
+}
+export const holeBackupIntegritaet = () =>
+  apiGet<BackupIntegritaet>("/moderator/backup/integritaet");
+export const pruefeBackupIntegritaet = () =>
+  apiPost<BackupIntegritaet>("/moderator/backup/integritaet-pruefen");
 export const loescheBackup = (id: number) => apiDelete<void>(`/moderator/backup/${id}`);
 export const analysiereBackup = (datei: File, passphrase?: string) =>
   apiUpload<BackupAnalyse>(

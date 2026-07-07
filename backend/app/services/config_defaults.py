@@ -405,6 +405,11 @@ DEFAULTS: list[ConfigDefault] = [
     ),
     ConfigDefault("backup_max_anzahl", "7", ConfigTyp.INT, "Maximale Anzahl aufbewahrter Backups je Ziel"),
     ConfigDefault("backup_passphrase", "", ConfigTyp.STR, "Passphrase zur Verschlüsselung der Backups"),
+    # Ergebnis der letzten automatischen Backup-Integritätsprüfung (read-only befüllt).
+    ConfigDefault("backup_integritaet_am", "", ConfigTyp.STR, "Zeitpunkt der letzten Backup-Integritätsprüfung (ISO)"),
+    ConfigDefault("backup_integritaet_ok", "", ConfigTyp.STR, "Ergebnis der letzten Prüfung (true/false/leer=unbekannt)"),
+    ConfigDefault("backup_integritaet_detail", "", ConfigTyp.STR, "Detailtext der letzten Backup-Integritätsprüfung"),
+    ConfigDefault("backup_integritaet_datei", "", ConfigTyp.STR, "Geprüfte Backup-Datei der letzten Integritätsprüfung"),
     ConfigDefault("backup_lokal_aktiv", "true", ConfigTyp.BOOL, "Backup-Ziel: lokaler Ordner/Mount aktiv"),
     ConfigDefault("backup_lokal_pfad", "/app/backups", ConfigTyp.STR, "Backup-Ziel: lokaler Ordner-Pfad"),
     ConfigDefault("backup_webdav_aktiv", "false", ConfigTyp.BOOL, "Backup-Ziel: WebDAV aktiv"),
