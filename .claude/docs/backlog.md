@@ -334,7 +334,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### (3) Mitglieder-Benachrichtigungen pro Modul
 
-- Status: Backlog
+- Status: Erledigt (Feature-Branch `feature/benachrichtigung-pro-modul` → PR nach beta, 07.07.2026)
 - Priorität: Mittel
 - Kategorie: Feature / Backend
 - Skills: geraetehaus-patterns, tests, review
@@ -343,6 +343,19 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   `person_benachrichtigungen` oder JSONB-Feld auf `Person`; Pro-Modul-Schalter in
   der Mitglied-Profilseite.
 - Akzeptanzkriterien: Pro-Modul-Opt-in wirkt; Migration; Test.
+- Umsetzung (07.07.2026, Scope mit Nutzer geklärt): **Steuerung im Personal-Bereich
+  (moderatorseitig), pro aktiviertem Modul** – nicht als Mitglied-Selfservice. Baut
+  auf dem bestehenden Pro-Ereignis-Abo-System (`PersonEreignisAbo`) auf statt einer
+  neuen Tabelle; **keine Migration nötig**. Jedes `EreignisTyp` trägt jetzt eine
+  Modulzuordnung (`modul`), neuer Helper `verfuegbare_ereignis_typen()` liefert
+  modulunabhängige Ereignisse immer, modulgebundene nur bei aktivem `modul_<key>_aktiv`.
+  `/moderator/ereignis-typen` filtert entsprechend und liefert `modul`/`modul_label`;
+  die Abo-UI in `PersonKanaele.tsx` gruppiert die Ereignisse nach Modul. Tests
+  `test_benachrichtigung_pro_modul.py` (2) + bestehender Routing-Test angepasst.
+  Suite 342 grün, `npm run build` grün.
+- **Hinweis:** Kein Mitglied-Selfservice/Profilseite und keine neue Tabelle – der
+  Backlog-Wortlaut („Mitglied-Profilseite", „Migration") wurde nach Rücksprache auf
+  die moderatorseitige, migrationsfreie Umsetzung angepasst.
 
 ---
 

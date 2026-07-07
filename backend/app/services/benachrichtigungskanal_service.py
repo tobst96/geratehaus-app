@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.benachrichtigungskanal import Benachrichtigungskanal
 from app.models.person import Person
 from app.models.person_ereignis_abo import PersonEreignisAbo
+from app.services.config_service import config_service
 
 
 @dataclass(frozen=True)
@@ -36,22 +37,53 @@ _ERLAUBTE_TYPEN = {k.key for k in KANAL_TYPEN}
 class EreignisTyp:
     key: str
     label: str
+    # Modul-Schlüssel, zu dem das Ereignis gehört (== `modul_<key>_aktiv`); None =
+    # modulunabhängiges Verwaltungs-Ereignis (immer verfügbar). Steuert, dass in der
+    # Personal-Abo-UI nur Ereignisse *aktivierter* Module angeboten werden.
+    modul: str | None = None
+
+
+# Menschlicher Modul-Name für die Gruppierung in der Abo-UI.
+MODUL_LABEL: dict[str | None, str] = {
+    "einsatztagebuch": "Einsatztagebuch",
+    "dienstbuch": "Dienstbuch",
+    "dienststunden": "Dienststunden",
+    "fahrzeugbuchung": "Fahrzeugbuchung",
+    None: "Allgemein",
+}
 
 
 # Abonnierbare Ereignistypen (Keys == config-/notifier-Schlüssel). Neue Ereignisse
-# hier ergänzen.
+# hier ergänzen – inkl. Modulzuordnung.
 EREIGNIS_TYPEN: list[EreignisTyp] = [
-    EreignisTyp("benachrichtigung_neuer_einsatz", "Einsatz abgeschlossen"),
-    EreignisTyp("benachrichtigung_divera_alarm", "Neuer Einsatz (Divera-Alarm)"),
-    EreignisTyp("benachrichtigung_neues_dienstbuch", "Neues Dienstbuch"),
-    EreignisTyp("benachrichtigung_buchungsanfrage", "Neue Buchungsanfrage"),
-    EreignisTyp("benachrichtigung_schwellenwert_ueberschreitung", "Dienststunden-Schwellenwert"),
-    EreignisTyp("benachrichtigung_person_inaktiv", "Person inaktiv / wird gelöscht"),
-    EreignisTyp("benachrichtigung_person_ampel_gelb", "Person überfällig (Ampel gelb)"),
-    EreignisTyp("benachrichtigung_person_ampel_rot", "Person überfällig (Ampel rot)"),
+    EreignisTyp("benachrichtigung_neuer_einsatz", "Einsatz abgeschlossen", "einsatztagebuch"),
+    EreignisTyp("benachrichtigung_divera_alarm", "Neuer Einsatz (Divera-Alarm)", "einsatztagebuch"),
+    EreignisTyp("benachrichtigung_neues_dienstbuch", "Neues Dienstbuch", "dienstbuch"),
+    EreignisTyp("benachrichtigung_buchungsanfrage", "Neue Buchungsanfrage", "fahrzeugbuchung"),
+    EreignisTyp(
+        "benachrichtigung_schwellenwert_ueberschreitung",
+        "Dienststunden-Schwellenwert",
+        "dienststunden",
+    ),
+    EreignisTyp("benachrichtigung_person_inaktiv", "Person inaktiv / wird gelöscht", None),
+    EreignisTyp("benachrichtigung_person_ampel_gelb", "Person überfällig (Ampel gelb)", None),
+    EreignisTyp("benachrichtigung_person_ampel_rot", "Person überfällig (Ampel rot)", None),
 ]
 
 _ERLAUBTE_EREIGNISSE = {e.key for e in EREIGNIS_TYPEN}
+
+
+async def verfuegbare_ereignis_typen(db: AsyncSession) -> list[EreignisTyp]:
+    """Ereignistypen, die in der Personal-Abo-UI angeboten werden: modulunabhängige
+    immer, modulgebundene nur, wenn das zugehörige Modul (`modul_<key>_aktiv`)
+    aktiviert ist."""
+    ergebnis: list[EreignisTyp] = []
+    for e in EREIGNIS_TYPEN:
+        if e.modul is None:
+            ergebnis.append(e)
+        elif await config_service.get(db, f"modul_{e.modul}_aktiv", False):
+            ergebnis.append(e)
+    return ergebnis
 
 
 async def liste_fuer_person(db: AsyncSession, person_id: int) -> list[Benachrichtigungskanal]:
