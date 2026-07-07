@@ -223,15 +223,21 @@ export function FormularAusfuellen() {
               </div>
             )}
             {(feld.typ === "sterne" || feld.typ === "skala") && (
-              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }} role="group" aria-label={feld.label}>
                 {Array.from({ length: feld.max_sterne }, (_, i) => i + 1).map((n) => {
                   const aktiv = (werte[feld.id] as number) >= n;
+                  const ausgewaehlt = (werte[feld.id] as number) === n;
                   return (
                     <button
                       type="button"
                       key={n}
                       onClick={() => setWert(feld, n)}
-                      aria-label={`${n}`}
+                      aria-pressed={ausgewaehlt}
+                      aria-label={
+                        feld.typ === "sterne"
+                          ? `${n} von ${feld.max_sterne} Sternen`
+                          : `Wert ${n} von ${feld.max_sterne}`
+                      }
                       style={
                         feld.typ === "sterne"
                           ? {

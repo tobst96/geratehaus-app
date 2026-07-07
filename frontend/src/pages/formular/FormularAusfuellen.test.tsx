@@ -57,4 +57,26 @@ describe("FormularAusfuellen", () => {
     expect(await screen.findByText("Vielen Dank!")).toBeInTheDocument();
     expect(formularEinreichen).toHaveBeenCalledWith(1, { 10: "Max" }, expect.anything());
   });
+
+  it("Sterne-Feld: barrierefreie Gruppe/Labels und Auswahl setzt aria-pressed", async () => {
+    const user = userEvent.setup();
+    holeOeffentlichesFormular.mockResolvedValue({
+      ...FORMULAR,
+      felder: [
+        { id: 20, label: "Bewertung", typ: "sterne", pflicht: false, optionen: [], hilfetext: "", max_sterne: 5 },
+      ],
+    });
+    render(<FormularAusfuellen />);
+    await screen.findByText("Testformular");
+
+    // Gruppe trägt das Feld-Label; Sterne-Buttons haben beschreibende Labels.
+    expect(screen.getByRole("group", { name: "Bewertung" })).toBeInTheDocument();
+    const dritter = screen.getByRole("button", { name: "3 von 5 Sternen" });
+    expect(dritter).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(dritter);
+    expect(dritter).toHaveAttribute("aria-pressed", "true");
+    // Nur der ausgewählte Wert ist "pressed" (radio-artige Einzelauswahl).
+    expect(screen.getByRole("button", { name: "2 von 5 Sternen" })).toHaveAttribute("aria-pressed", "false");
+  });
 });

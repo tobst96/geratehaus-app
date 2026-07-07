@@ -1343,8 +1343,14 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Tastaturnavigation, folgt dem border-radius; extra Offset für Kacheln/Karten-
   Buttons). Vorher gab es **gar keine** Fokus-Styles → uneinheitliche/teils
   unsichtbare Browser-Defaults. `npm run build` grün.
-- **Noch offen:** Tastaturbedienung + `aria-*`/`role` für Sterne-/Skala-Auswahl und
-  ggf. als `<div>` umgesetzte Kacheln; Screenreader-Durchlauf.
+- Fortschritt (07.07.2026): **Sterne-/Skala-Auswahl (Formular) barrierefrei** –
+  Buttons waren schon per Tab/Enter bedienbar; ergänzt: `role="group"` mit
+  Feld-Label, beschreibende `aria-label` je Button („3 von 5 Sternen" statt „3")
+  und `aria-pressed` für den ausgewählten Wert (Screenreader kennt Auswahlzustand).
+  Test in `FormularAusfuellen.test.tsx` (Gruppe/Label/aria-pressed). `npm run build`
+  + `npm run test` (26) grün.
+- **Noch offen:** als `<div>` umgesetzte Kacheln prüfen/umstellen; vollständiger
+  Screenreader-Durchlauf.
 
 ### Einheitliche Fehler-/Ladezustände
 
