@@ -5,6 +5,7 @@ import { ApiError } from "../../api/client";
 import type { EinsatzOut } from "../../api/types";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { SeitenFehler } from "../../components/SeitenFehler";
+import { formatiereDatumZeit } from "../../utils/datum";
 
 export function FahrzeugView() {
   const { token } = useParams<{ token: string }>();
@@ -43,7 +44,7 @@ export function FahrzeugView() {
         <div key={e.id} className="karte" style={{ marginBottom: "1rem" }}>
           <h3>{e.titel}</h3>
           <p style={{ fontSize: "0.9rem", color: "var(--farbe-text-mute)" }}>
-            {new Date(e.zeitpunkt).toLocaleString("de-DE")} · {e.quelle}
+            {formatiereDatumZeit(e.zeitpunkt)} · {e.quelle}
           </p>
           <p>
             <strong>{e.teilnahmen.length}</strong> Teilnehmer

@@ -20,6 +20,7 @@ import {
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { SeitenFehler } from "../../components/SeitenFehler";
+import { formatiereDatumZeit, formatiereZeit } from "../../utils/datum";
 import type { BuchungOut, Fahrzeug } from "../../api/types";
 import "../dienststunden/Dienststunden.css";
 
@@ -235,7 +236,7 @@ export function Fahrzeugbuchung() {
             )}
           </div>
           <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
-            Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
+            Gültig bis {formatiereZeit(qrAnsicht.ablaufAm)}
           </p>
           <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
             Zurück zum Formular
@@ -295,8 +296,8 @@ export function Fahrzeugbuchung() {
           <h2>Meine ausstehenden Anfragen</h2>
           {eigeneAusstehende.map((b) => (
             <div key={b.id} style={{ marginBottom: 8 }}>
-              {b.fahrzeug_name}: {new Date(b.von).toLocaleString("de-DE")} –{" "}
-              {new Date(b.bis).toLocaleString("de-DE")} ({b.zweck}){" "}
+              {b.fahrzeug_name}: {formatiereDatumZeit(b.von)} –{" "}
+              {formatiereDatumZeit(b.bis)} ({b.zweck}){" "}
               <button className="sekundaer" onClick={() => zurueckziehen(b.id)}>
                 Zurückziehen
               </button>

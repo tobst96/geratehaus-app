@@ -11,6 +11,7 @@ import { ApiError } from "../api/client";
 import { eintragungGesperrtMinuten, eintragungVermerken } from "../utils/eintragungssperre";
 import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { DienststundenReservierungInfo, FunktionDienststunden, Person } from "../api/types";
+import { formatiereDatum } from "../utils/datum";
 import "./dienststunden/Dienststunden.css";
 
 const SCHNELLAUSWAHL_STUNDEN = [0.25, 0.5, 1, 1.5, 2, 3, 4];
@@ -164,7 +165,7 @@ export function DienststundenManuelleEintragung() {
             <p style={{ fontWeight: 600 }}>
               {gebucht.personName}: {gebucht.stundenText}
               {gebucht.funktionName ? ` als ${gebucht.funktionName}` : ""} am{" "}
-              {new Date(gebucht.datum).toLocaleDateString("de-DE")}
+              {formatiereDatum(gebucht.datum)}
             </p>
           )}
           <p>Deine Dienststunden wurden erfasst. Du kannst diese Seite jetzt schließen.</p>

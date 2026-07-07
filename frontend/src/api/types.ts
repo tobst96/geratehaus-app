@@ -1,6 +1,7 @@
 export interface OeffentlicheKonfiguration {
   organisation_name: string;
   oeffentliche_basis_url: string;
+  zeitzone: string;
   logo_url: string;
   logo_url_dark: string;
   farbe_primaer: string;

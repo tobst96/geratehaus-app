@@ -34,6 +34,7 @@ async def oeffentliche_konfiguration(db: DbSession) -> OeffentlicheKonfiguration
     return OeffentlicheKonfiguration(
         organisation_name=werte.get("organisation_name", "Meine Feuerwehr"),
         oeffentliche_basis_url=werte.get("oeffentliche_basis_url", ""),
+        zeitzone=werte.get("zeitzone", "Europe/Berlin"),
         logo_url=werte.get("logo_url", ""),
         logo_url_dark=werte.get("logo_url_dark", ""),
         farbe_primaer=werte.get("farbe_primaer", "#FFA633"),

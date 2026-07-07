@@ -5,6 +5,7 @@ import { holeFahrzeuge, holeFunktionenEinsatz } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { SeitenFehler } from "../../components/SeitenFehler";
+import { formatiereDatumZeit } from "../../utils/datum";
 import type { EinsatzOut, Fahrzeug, FunktionEinsatz } from "../../api/types";
 
 export function EinsatzDetail() {
@@ -71,7 +72,7 @@ export function EinsatzDetail() {
       </p>
       <h1>{einsatz.titel}</h1>
       <p>
-        {new Date(einsatz.zeitpunkt).toLocaleString("de-DE")} · {einsatz.quelle} · {einsatz.status}
+        {formatiereDatumZeit(einsatz.zeitpunkt)} · {einsatz.quelle} · {einsatz.status}
       </p>
 
       <div className="karte">

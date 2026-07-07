@@ -537,7 +537,7 @@ Netzwerkdrucker mit IPP/CUPS im LAN.
 
 ### Zeitzone durchgängig Europe/Berlin
 
-- Status: Backlog
+- Status: Backlog (Fortschritt 07.07.2026 – Backend + Mitglieder-/Kiosk-Anzeige)
 - Priorität: Mittel
 - Kategorie: Feature / Backend / Frontend
 - Skills: geraetehaus-patterns, tests, review
@@ -546,6 +546,21 @@ Netzwerkdrucker mit IPP/CUPS im LAN.
   app_config-Schlüssel `zeitzone` (Default `Europe/Berlin`); zentrale Konvertierung
   UTC→Zeitzone (nicht pro Modul), inkl. Sommer-/Winterzeit. Kein Setup-Wizard-Feld.
 - Akzeptanzkriterien: Anzeige/Speicherung zeitzonenkorrekt; Test.
+- Fortschritt (07.07.2026, Feature-Branch → PR): Backend war für Vergleiche/Scheduler
+  bereits zeitzonenkorrekt (`app/core/zeit.py`). Neu: `zeitzone` wird über
+  `/oeffentliche-konfiguration` ans Frontend ausgeliefert; zentrale Formatier-Helfer
+  `utils/datum.ts` (`formatiereDatumZeit/Datum/Zeit`, modulweite aktive Zeitzone via
+  `setZeitzone`, gesetzt aus der Konfig im `ConfigContext`) rechnen für die Anzeige in
+  die Org-Zeitzone um (inkl. Sommer-/Winterzeit über `Intl`). **Mitglieder-/Kiosk-
+  Seiten umgestellt** (Einsatztagebuch/-detail/-diagramm, Dienstbuch/-diagramm,
+  Dienststunden + manuelle Eintragung, Fahrzeugbuchung, FahrzeugView, MitgliedLogin).
+  Tests `utils/datum.test.ts` (4) + Backend `test_konfig_liefert_zeitzone`. Suite grün,
+  `npm run build`/`npm run test` (25) grün.
+- **Noch offen (Folge-Slice):** Moderator-/Admin-Seiten (Listen, AuditLog, Systemstatus,
+  BarcodeGenerator, EinsatzDetailModerator, DienstbuchDetailModerator, Buchungsmanagement,
+  Update, Personal, BackupModul, MinioModul, DiveraModul, FormularModul) nutzen noch
+  `toLocale*` mit Browser-Zeitzone. Funktional unkritisch (in-house auf DE-Maschinen);
+  für „durchgängig" konsistent nachziehen.
 
 ---
 

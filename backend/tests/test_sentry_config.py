@@ -32,3 +32,14 @@ async def test_konfig_mit_zustimmung_liefert_dsn(client, db):
     d = r.json()
     assert d["fehlerberichte_aktiv"] is True
     assert d["sentry_dsn"]  # Code-Konstante PROJECT_DSN (nicht leer)
+
+
+@pytest.mark.asyncio
+async def test_konfig_liefert_zeitzone(client, db):
+    # Default
+    r = await client.get("/api/v1/oeffentliche-konfiguration")
+    assert r.json()["zeitzone"] == "Europe/Berlin"
+    # Gesetzter Wert wird ausgeliefert (für die Frontend-Anzeige).
+    await config_service.set(db, "zeitzone", "America/New_York")
+    r = await client.get("/api/v1/oeffentliche-konfiguration")
+    assert r.json()["zeitzone"] == "America/New_York"

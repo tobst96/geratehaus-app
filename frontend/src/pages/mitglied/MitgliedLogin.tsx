@@ -17,6 +17,7 @@ import {
   type PersonIdentifikationHandle,
 } from "../../components/PersonIdentifikation";
 import { useBarcodeSound } from "../../hooks/useBarcodeSound";
+import { formatiereZeit } from "../../utils/datum";
 
 function initialenAus(name: string): string {
   return name
@@ -172,7 +173,7 @@ export function MitgliedLogin() {
               </div>
             )}
             <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
-              Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
+              Gültig bis {formatiereZeit(qrAnsicht.ablaufAm)}
             </p>
             <button type="button" className="sekundaer" onClick={() => setQrAnsicht(null)}>
               Zurück zum Scannen
