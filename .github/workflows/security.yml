@@ -34,7 +34,10 @@ jobs:
           pip install pip-audit
       - name: pip-audit
         continue-on-error: true
-        run: pip-audit --desc
+        # PYSEC-2026-1325 (ecdsa, transitiv über python-jose) ist upstream ohne Fix
+        # (Minerva-Timing, out-of-scope) und als Restrisiko akzeptiert – siehe Backlog
+        # Etappe P. Ignorieren, damit NEUE/behebbare Findings im Log sichtbar bleiben.
+        run: pip-audit --desc --ignore-vuln PYSEC-2026-1325
 
   npm-audit:
     name: Abhängigkeits-Audit (npm)
