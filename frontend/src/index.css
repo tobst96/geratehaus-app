@@ -253,6 +253,12 @@ button.karte:focus-visible {
   font-size: 0.85rem;
 }
 
+/* Wie .hinweistext, nur etwas kleiner (0.8rem) – ebenfalls vielfach als Inline-Style. */
+.hinweis-klein {
+  color: var(--farbe-text-mute);
+  font-size: 0.8rem;
+}
+
 /* Seitenfüllender Fehlerzustand (Komponente SeitenFehler) – ersetzt verstreute
    Inline-`color:red`-Blöcke, dark-mode-tauglich über die Oberflächen-Variablen. */
 .seiten-fehler {

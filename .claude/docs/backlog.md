@@ -1451,8 +1451,14 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   durch die Klasse `.hinweistext` ersetzt: **38 Stellen** in ~20 Dateien. Nur
   exakte Zwei-Property-Objekte ersetzt (kein Klassen-Konflikt, 1:1 gleiche Optik).
   `npm run build` + `npm run test` (26) grün.
-- **Weiter offen (schrittweise):** übrige Inline-Style-Ballungen (Formular-/Ampel-UIs
-  etc.).
+- Fortschritt (07.07.2026): **`.hinweis-klein`** (0.8rem, gedämpft) analog für die
+  8 exakten `style={{ fontSize: 0.8rem, color: var(--farbe-text-mute) }}`-Stellen.
+  1:1 gleiche Optik; Build/Test grün.
+- **Weiter offen (schrittweise, geringer Nutzen):** die verbliebenen Inline-Styles
+  sind überwiegend **einmalige/variantenreiche Flex-Layouts** (`display:flex` mit
+  wechselndem gap/align/margin) – dafür lohnt keine Utility-Extraktion (Utility-
+  Wildwuchs + Regressionsrisiko > Nutzen). Die klar wiederkehrenden Muster
+  (Modal-Overlay, Hinweistexte) sind damit erledigt.
 
 ### Mehrsprachigkeit vorbereiten (i18n)
 

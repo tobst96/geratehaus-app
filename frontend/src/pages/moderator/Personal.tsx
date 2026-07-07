@@ -662,7 +662,7 @@ export function Personal() {
                   Mit dem Handy scannen, um direkt ein Profilfoto aufzunehmen oder hochzuladen.
                 </p>
                 <img src={bildQr.bildUrl} alt="QR-Code für Foto-Upload" style={{ width: 220, height: 220 }} />
-                <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
+                <p className="hinweis-klein">
                   Gültig bis {formatiereZeit(bildQr.ablaufAm)}
                 </p>
                 <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
@@ -703,7 +703,7 @@ export function Personal() {
                   aufzunehmen oder hochzuladen.
                 </p>
                 <img src={bildQrStandalone.bildUrl} alt="QR-Code für Foto-Upload" style={{ width: 220, height: 220 }} />
-                <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
+                <p className="hinweis-klein">
                   Gültig bis {formatiereZeit(bildQrStandalone.ablaufAm)}
                 </p>
                 <button type="button" className="sekundaer" onClick={bildQrStandaloneSchliessen}>

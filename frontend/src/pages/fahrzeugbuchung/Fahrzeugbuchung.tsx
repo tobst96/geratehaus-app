@@ -247,7 +247,7 @@ export function Fahrzeugbuchung() {
               </div>
             )}
           </div>
-          <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
+          <p className="hinweis-klein">
             Gültig bis {formatiereZeit(qrAnsicht.ablaufAm)}
           </p>
           <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>

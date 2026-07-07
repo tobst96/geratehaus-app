@@ -252,7 +252,7 @@ export function EinsatzDetailModerator() {
               <td>{t.nur_geraetehaus ? "Ja" : ""}</td>
               <td>{t.auf_anfahrt ? "Ja" : ""}</td>
               <td>{t.ohne_barcode ? "Ja" : ""}</td>
-              <td title={t.eintragung_user_agent ?? ""} style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
+              <td title={t.eintragung_user_agent ?? ""} className="hinweis-klein">
                 {t.eintragung_ip ?? ""}
               </td>
               <td>{t.bemerkung ?? ""}</td>

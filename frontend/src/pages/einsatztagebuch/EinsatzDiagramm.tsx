@@ -623,7 +623,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                     </div>
                   )}
                 </div>
-                <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
+                <p className="hinweis-klein">
                   Gültig bis {formatiereZeit(qrAnsicht.ablaufAm)}
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
