@@ -40,6 +40,7 @@ export interface ModeratorKonto {
   username: string;
   rolle: string;
   email: string | null;
+  benachrichtigungen_aktiv: boolean;
 }
 
 export const holeModeratoren = () =>
@@ -55,6 +56,8 @@ export const moderatorAnlegen = (
 
 export const moderatorEmailAendern = (id: number, email: string | null) =>
   apiPatch<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}`, { email });
+export const moderatorBenachrichtigungenAendern = (id: number, benachrichtigungen_aktiv: boolean) =>
+  apiPatch<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}`, { benachrichtigungen_aktiv });
 
 export const moderator2faZuruecksetzen = (id: number) =>
   apiPost<void>(`/moderator/einstellungen/moderatoren/${id}/2fa-zuruecksetzen`);

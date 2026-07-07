@@ -99,7 +99,7 @@ async def moderator_anlegen(
             status_code=status.HTTP_409_CONFLICT, detail="Benutzername bereits vergeben."
         )
     neu = await moderator_service.moderator_anlegen(
-        db, daten.username, daten.passwort, daten.rolle, daten.email
+        db, daten.username, daten.passwort, daten.rolle, daten.email, daten.benachrichtigungen_aktiv
     )
     await audit_service.protokolliere(
         db, akteur.username, "moderator_angelegt", "moderator", neu.id,
@@ -115,9 +115,16 @@ async def moderator_aktualisieren(
     ziel = await moderator_service.get_moderator(db, moderator_id)
     if ziel is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moderator nicht gefunden.")
-    ergebnis = await moderator_service.moderator_email_setzen(db, ziel, daten.email)
+    gesetzt = daten.model_fields_set
+    ergebnis = await moderator_service.moderator_aktualisieren(
+        db,
+        ziel,
+        email=daten.email,
+        email_gesetzt="email" in gesetzt,
+        benachrichtigungen_aktiv=daten.benachrichtigungen_aktiv if "benachrichtigungen_aktiv" in gesetzt else None,
+    )
     await audit_service.protokolliere(
-        db, akteur.username, "moderator_email_geaendert", "moderator", moderator_id, ziel.username
+        db, akteur.username, "moderator_geaendert", "moderator", moderator_id, ziel.username
     )
     return ergebnis
 

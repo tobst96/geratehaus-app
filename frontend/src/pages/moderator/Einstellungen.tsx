@@ -8,6 +8,7 @@ import {
   holeModeratoren,
   moderatorAnlegen,
   moderatorEmailAendern,
+  moderatorBenachrichtigungenAendern,
   moderatorPasswortAendern,
   moderatorLoeschen,
   moderator2faZuruecksetzen,
@@ -82,6 +83,15 @@ function ModeratorenVerwaltung() {
     }
   }
 
+  async function benachrichtigungenAendern(m: ModeratorKonto, aktiv: boolean) {
+    try {
+      await moderatorBenachrichtigungenAendern(m.id, aktiv);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Einstellung konnte nicht geändert werden.");
+    }
+  }
+
   async function emailAendern(m: ModeratorKonto) {
     const neue = prompt(`E-Mail für ${m.username} (leer = entfernen):`, m.email ?? "");
     if (neue === null) return;
@@ -120,6 +130,7 @@ function ModeratorenVerwaltung() {
               <th>Benutzername</th>
               <th>Rolle</th>
               <th>E-Mail</th>
+              <th>Benachrichtigungen</th>
               <th></th>
             </tr>
           </thead>
@@ -130,6 +141,23 @@ function ModeratorenVerwaltung() {
                 <td>{m.rolle === "admin" ? "Admin" : "Gruppenführer"}</td>
                 <td style={{ color: m.email ? undefined : "var(--farbe-text-mute)" }}>
                   {m.email ?? "—"}
+                </td>
+                <td style={{ textAlign: "center" }}>
+                  <label
+                    title={
+                      m.email
+                        ? "Admin-/Betriebs-Mails (Buchungsanfragen, Backup-Status) an diese Adresse"
+                        : "Erst eine E-Mail hinterlegen"
+                    }
+                    style={{ cursor: m.email ? "pointer" : "not-allowed" }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={m.benachrichtigungen_aktiv}
+                      disabled={!m.email}
+                      onChange={(e) => benachrichtigungenAendern(m, e.target.checked)}
+                    />
+                  </label>
                 </td>
                 <td style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button type="button" className="sekundaer" onClick={() => emailAendern(m)}>
