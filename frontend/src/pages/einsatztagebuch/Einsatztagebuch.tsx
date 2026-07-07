@@ -5,6 +5,7 @@ import { ApiError } from "../../api/client";
 import { EinsatzDiagramm } from "./EinsatzDiagramm";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { SeitenFehler } from "../../components/SeitenFehler";
+import { formatiereDatumZeit } from "../../utils/datum";
 import type { EinsatzOut, Fahrzeug, FunktionEinsatz } from "../../api/types";
 
 const POLL_INTERVALL_MS = 15_000;
@@ -158,7 +159,7 @@ export function Einsatztagebuch() {
             <div>
               <strong>{e.titel}</strong>
               <div style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
-                {new Date(e.zeitpunkt).toLocaleString("de-DE")} · {e.quelle} · {e.teilnahmen.length} Teilnehmer
+                {formatiereDatumZeit(e.zeitpunkt)} · {e.quelle} · {e.teilnahmen.length} Teilnehmer
               </div>
             </div>
             <button onClick={() => setSelectedEinsatzId(e.id)}>Teilnehmen</button>

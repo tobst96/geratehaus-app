@@ -9,6 +9,8 @@ class OeffentlicheKonfiguration(BaseModel):
 
     organisation_name: str
     oeffentliche_basis_url: str
+    # Zeitzone für die Datums-/Uhrzeit-Anzeige im Frontend (IANA, z. B. Europe/Berlin).
+    zeitzone: str
     logo_url: str
     logo_url_dark: str
     farbe_primaer: str

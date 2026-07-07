@@ -17,6 +17,7 @@ import {
 } from "../../components/PersonIdentifikation";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import { SeitenFehler } from "../../components/SeitenFehler";
+import { formatiereDatum, formatiereZeit } from "../../utils/datum";
 import type { DienststundenSummeOut, FunktionDienststunden } from "../../api/types";
 import "./Dienststunden.css";
 
@@ -226,7 +227,7 @@ export function Dienststunden() {
               )}
             </div>
             <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
-              Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
+              Gültig bis {formatiereZeit(qrAnsicht.ablaufAm)}
             </p>
             <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
               Zurück zum Scannen
@@ -343,7 +344,7 @@ export function Dienststunden() {
             {letzteBuchung.name ? `${letzteBuchung.name}: ` : ""}
             {letzteBuchung.stundenText}
             {letzteBuchung.funktionName ? ` als ${letzteBuchung.funktionName}` : ""} am{" "}
-            {new Date(letzteBuchung.datum).toLocaleDateString("de-DE")}
+            {formatiereDatum(letzteBuchung.datum)}
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { apiGet } from "../api/client";
 import type { OeffentlicheKonfiguration } from "../api/types";
 import { sentryInitialisieren } from "../sentry";
+import { setZeitzone } from "../utils/datum";
 
 interface ConfigContextValue {
   config: OeffentlicheKonfiguration | null;
@@ -12,6 +13,7 @@ interface ConfigContextValue {
 const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   organisation_name: "Meine Feuerwehr",
   oeffentliche_basis_url: "",
+  zeitzone: "Europe/Berlin",
   logo_url: "",
   logo_url_dark: "",
   farbe_primaer: "#FFA633",
@@ -77,6 +79,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       .then((daten) => {
         if (abgebrochen) return;
         setConfig(daten);
+        setZeitzone(daten.zeitzone);
         farbenInjizieren(daten);
         // Fehler-Monitoring initialisieren, sobald die Zustimmung/DSN bekannt ist.
         sentryInitialisieren(daten);

@@ -5,6 +5,7 @@ import { ApiError } from "../../api/client";
 import { DienstbuchDiagramm } from "./DienstbuchDiagramm";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { SeitenFehler } from "../../components/SeitenFehler";
+import { formatiereDatumZeit } from "../../utils/datum";
 import type { DienstbuchFeldDefinition, DienstbuchOut, Gruppe } from "../../api/types";
 
 function jetztAlsDatetimeLocal(): string {
@@ -171,7 +172,7 @@ export function Dienstbuch() {
             <div>
               <strong>{d.titel}</strong>
               <div style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
-                {new Date(d.eroeffnet_am).toLocaleString("de-DE")} · {d.teilnehmer.length} Teilnehmer
+                {formatiereDatumZeit(d.eroeffnet_am)} · {d.teilnehmer.length} Teilnehmer
               </div>
               {d.notizen && <p style={{ margin: "0.25rem 0 0" }}>{d.notizen}</p>}
               {felder

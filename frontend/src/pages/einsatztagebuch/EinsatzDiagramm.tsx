@@ -19,6 +19,7 @@ import {
 } from "../../components/PersonIdentifikation";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import type { EinsatzFeldDefinition, EinsatzOut, Fahrzeug, FunktionEinsatz, TeilnahmeOut } from "../../api/types";
+import { formatiereZeit } from "../../utils/datum";
 import "./EinsatzDiagramm.css";
 
 function formatiereCountdown(sekunden: number): string {
@@ -623,7 +624,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                   )}
                 </div>
                 <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
-                  Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
+                  Gültig bis {formatiereZeit(qrAnsicht.ablaufAm)}
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
