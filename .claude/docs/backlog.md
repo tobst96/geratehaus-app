@@ -1041,6 +1041,14 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 > Sicherheit/Berechtigungen. Reihenfolge 1→6 wie unten. Auth-/DB-weite Umbauten
 > grundsätzlich über **Feature-Branch → PR nach `beta`**.
 
+> **Dependency-Audit (08.07.2026):** `npm audit` (Frontend) = 0. `pip-audit` (Backend):
+> die 5 **pip**-CVEs durch pip-Upgrade im backend/Dockerfile (26.1.2) geschlossen.
+> Verbleibend: **`ecdsa 0.19.2` (PYSEC-2026-1325)** – transitiv über `python-jose`,
+> **kein Fix verfügbar** (bekanntes Minerva-Timing-Thema, vom Upstream als out-of-scope
+> eingestuft), niedrige Schwere; die eigentliche JWT-Krypto läuft über den
+> `cryptography`-Backend von `python-jose[cryptography]`. **Akzeptiertes Restrisiko**;
+> ein Wechsel weg von `python-jose` (Auth-Umbau) lohnt dafür nicht.
+
 ### (0) Öffentliche Daten-API absichern – Phase 2
 
 - Status: In Bearbeitung (Mitglieder-Session = PR #30 gemergt + deployt 05.07.2026; Rest offen)

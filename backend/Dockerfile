@@ -21,7 +21,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . .
-RUN pip install --no-cache-dir .
+# pip zuerst aktualisieren (Supply-Chain-Hygiene: schließt bekannte pip-CVEs im
+# Build-Toolchain), dann die App-Abhängigkeiten installieren.
+RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir .
 
 EXPOSE 8000
 
