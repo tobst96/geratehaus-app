@@ -765,10 +765,22 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Web Push nutzbar machen (Frontend-Abo-Flow)
 
-- Status: Backlog
+- Status: Erledigt (direkt auf beta, 07.07.2026)
 - Priorität: Niedrig
 - Kategorie: Feature / Frontend
 - Skills: geraetehaus-patterns, review
+- Umsetzung (07.07.2026): Frontend-Abo-Flow ergänzt. `api/push.ts`
+  (`holeVapidPublicKey`, `pushSubscribe`, `pushUnsubscribe` – Endpoint als Query),
+  `utils/webpush.ts` (`pushWirdUnterstuetzt` inkl. Secure-Context-Check,
+  `urlBase64ToUint8Array`), Komponente `PushAktivierung` (holt VAPID-Key, fragt
+  Notification-Permission, `pushManager.subscribe`, sendet Subscription; Umschalter
+  Aktivieren/Deaktivieren). Eingebunden in `MitgliedHub`. Blendet sich aus, wenn Push
+  nicht unterstützt wird (kein HTTPS/Secure Context) oder kein VAPID-Key im Backend
+  hinterlegt ist. Tests `utils/webpush.test.ts` (Base64URL-Dekodierung,
+  Support-Erkennung); `npm run build` + `npm run test` (18) grün.
+- **Hinweis:** End-to-End-Zustellung nur unter HTTPS + echtem Browser testbar (nicht
+  in dieser Umgebung); Build/Unit-Tests grün, Zustellung auf der HTTPS-Live-Instanz
+  zu verifizieren. Datenschutz.tsx deckt Web-Push bereits ab.
 - Beschreibung: Web Push ist backendseitig fertig (Endpunkte `/push/vapid-public-key`,
   `/push/subscribe`, `/push/unsubscribe`, `PushSubscription`-Modell, `WebPushNotifier`),
   aber im Frontend fehlt der Abo-Flow: kein `serviceWorker.pushManager.subscribe()`,

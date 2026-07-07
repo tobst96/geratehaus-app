@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { holeMeinProfil } from "../../api/auth";
 import { KACHEL_ICONS, type KachelModulKey } from "../kachelIcons";
+import { PushAktivierung } from "../../components/PushAktivierung";
 
 const MODULE: { key: KachelModulKey; aktivKey: string; aussenKey: string; route: string; label: string }[] = [
   { key: "einsatzbericht", aktivKey: "modul_einsatztagebuch_aktiv", aussenKey: "modul_einsatztagebuch_aussenzugriff", route: "/einsatztagebuch", label: "Einsatzbericht" },
@@ -88,6 +89,8 @@ export function MitgliedHub() {
           ))}
         </div>
       )}
+
+      <PushAktivierung />
     </div>
   );
 }
