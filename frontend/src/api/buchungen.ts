@@ -1,5 +1,5 @@
 import { apiGet, apiPost } from "./client";
-import type { BuchungOut } from "./types";
+import type { BuchungOut, ExternerTermin } from "./types";
 
 export interface BuchungAnfrage {
   fahrzeug_id: number;
@@ -15,6 +15,9 @@ export interface BuchungAnfrageErgebnis {
 
 export const holeBuchungen = (von?: string, bis?: string) =>
   apiGet<BuchungOut[]>("/buchungen", { von, bis });
+
+export const holeExterneTermine = (von: string, bis: string) =>
+  apiGet<ExternerTermin[]>("/buchungen/externe-termine", { von, bis });
 
 export const buchungAnfrage = (daten: BuchungAnfrage) =>
   apiPost<BuchungAnfrageErgebnis>("/buchungen", daten);

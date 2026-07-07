@@ -5,6 +5,7 @@ import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import {
   holeBuchungen,
+  holeExterneTermine,
   buchungAnfrage,
   buchungZurueckziehen,
   fahrzeugbuchungReservierungAnlegen,
@@ -21,7 +22,7 @@ import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { SeitenFehler } from "../../components/SeitenFehler";
 import { formatiereDatumZeit, formatiereZeit } from "../../utils/datum";
-import type { BuchungOut, Fahrzeug } from "../../api/types";
+import type { BuchungOut, ExternerTermin, Fahrzeug } from "../../api/types";
 import "../dienststunden/Dienststunden.css";
 
 function jetztAlsDatetimeLocal(minutenSpaeter = 0): string {
@@ -47,6 +48,7 @@ export function Fahrzeugbuchung() {
   const mitgliedModus = useMitgliedModus();
   const identRef = useRef<PersonIdentifikationHandle>(null);
   const [buchungen, setBuchungen] = useState<BuchungOut[] | null>(null);
+  const [externeTermine, setExterneTermine] = useState<ExternerTermin[]>([]);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
   const [hinweis, setHinweis] = useState<string | null>(null);
@@ -125,8 +127,18 @@ export function Fahrzeugbuchung() {
 
   async function laden() {
     try {
-      const [b, f] = await Promise.all([holeBuchungen(), holeFahrzeuge()]);
+      // Fremdtermine für ein breites Fenster um heute (deckt die üblichen
+      // Kalenderansichten ab, ohne bei jeder Navigation neu zu laden).
+      const jetzt = new Date();
+      const von = new Date(jetzt.getTime() - 31 * 24 * 3600 * 1000).toISOString();
+      const bis = new Date(jetzt.getTime() + 92 * 24 * 3600 * 1000).toISOString();
+      const [b, f, ext] = await Promise.all([
+        holeBuchungen(),
+        holeFahrzeuge(),
+        holeExterneTermine(von, bis).catch(() => [] as ExternerTermin[]),
+      ]);
       setBuchungen(b);
+      setExterneTermine(ext);
       setFahrzeuge(f.filter((x) => x.buchbar));
       if (!fahrzeugId && f.length > 0) setFahrzeugId(String(f[0].id));
     } catch (err) {
@@ -306,7 +318,7 @@ export function Fahrzeugbuchung() {
         </div>
       )}
 
-      <BuchungsKalender buchungen={buchungen} />
+      <BuchungsKalender buchungen={buchungen} externeTermine={externeTermine} />
     </div>
   );
 }
