@@ -281,7 +281,7 @@ export function BackupModul() {
             placeholder={einst.passphrase_gesetzt ? "•••••• (gesetzt – leer lassen = unverändert)" : "Passphrase setzen"}
             autoComplete="new-password"
           />
-          <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+          <p className="hinweistext">
             Ohne Passphrase werden Backups unverschlüsselt abgelegt. Backups enthalten sensible Daten
             (PIN-/Passwort-Hashes) – eine Passphrase wird dringend empfohlen. Ohne sie ist kein Import
             eines verschlüsselten Backups möglich.
@@ -464,7 +464,7 @@ export function BackupModul() {
             {pruefeLaeuft ? "Prüfe …" : "Jetzt prüfen"}
           </button>
         </div>
-        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+        <p className="hinweistext">
           Das neueste Backup wird täglich automatisch <strong>rein lesend</strong> geprüft
           (Entschlüsselung, Archiv- und Datenintegrität) – ohne Rückspielen in die Datenbank.
           So fällt ein beschädigtes Backup oder eine geänderte Passphrase auf.
@@ -511,7 +511,7 @@ export function BackupModul() {
                     <td>{formatiereDatumZeit(b.erstellt_am)}</td>
                     <td>{groesse(b.groesse_bytes)}</td>
                     <td>{b.ziele || "–"}</td>
-                    <td style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+                    <td className="hinweistext">
                       {b.status === "ok"
                         ? `${b.zusammenfassung?.datensaetze_gesamt ?? "?"} Datensätze, ${b.zusammenfassung?.datei_anzahl ?? "?"} Dateien${b.verschluesselt ? " · 🔒" : ""}`
                         : b.fehlermeldung}

@@ -63,7 +63,7 @@ export function EinsatzFelderVerwaltung() {
 
   return (
     <div>
-      <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+      <p className="hinweistext">
         Frei konfigurierbare Zusatzfelder für den Einsatzbericht (z. B. Einsatzleiter, Erste Lage,
         Tätigkeit). Werden im Einsatztagebuch unterhalb der Garage angezeigt und im PDF-Export
         ausgegeben.

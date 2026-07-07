@@ -90,7 +90,7 @@ export function PersonalEinstellungen() {
           onChange={(e) => setInaktivitaetTage(Number(e.target.value))}
           disabled={!geladen}
         />
-        <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+        <p className="hinweistext">
           7 Tage vor der automatischen Löschung wird einmalig eine Benachrichtigung verschickt.
           Erfolgt in dieser Zeit keine neue Aktivität, wird die Person inkl. aller zugehörigen Daten
           gelöscht. 0 = nie automatisch löschen.

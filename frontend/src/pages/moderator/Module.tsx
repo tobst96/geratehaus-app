@@ -162,7 +162,7 @@ export function Module() {
                     href={`${docsBasis}/${m.key}.md`}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}
+                    className="hinweistext"
                     title="Dokumentation dieses Moduls auf GitHub öffnen (passend zur installierten Version)"
                   >
                     📖 Doku ↗
@@ -185,7 +185,7 @@ export function Module() {
 
               <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 8 }}>
                 {m.immer_aktiv ? (
-                  <span style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+                  <span className="hinweistext">
                     immer aktiv
                   </span>
                 ) : (

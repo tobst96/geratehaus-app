@@ -55,7 +55,7 @@ export function FahrzeugbuchungModul() {
 
       <div className="karte" style={{ marginTop: 16 }}>
         <h2>Externe Kalender (iCal)</h2>
-        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+        <p className="hinweistext">
           Öffentliche iCal-/webcal-URLs (eine pro Zeile), z. B. ein geteilter Kalender oder ein
           Divera-Kalender. Deren Termine werden im Buchungskalender als nicht buchbare Fremdtermine
           angezeigt und bei der Konfliktprüfung berücksichtigt (Buchungen bleiben möglich, werden

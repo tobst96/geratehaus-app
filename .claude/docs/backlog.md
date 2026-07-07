@@ -1446,6 +1446,11 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   **bewusst unangetastet**, um keine Optik zu ändern. Styles 1:1 übernommen → keine
   visuelle Änderung erwartet (Optik bitte gegenprüfen). `npm run build` + `npm run test`
   (26) grün.
+- Fortschritt (07.07.2026): **Hinweistext-Utility** – das vielfach kopierte
+  `style={{ color: var(--farbe-text-mute), fontSize: 0.85rem }}` (beide Reihenfolgen)
+  durch die Klasse `.hinweistext` ersetzt: **38 Stellen** in ~20 Dateien. Nur
+  exakte Zwei-Property-Objekte ersetzt (kein Klassen-Konflikt, 1:1 gleiche Optik).
+  `npm run build` + `npm run test` (26) grün.
 - **Weiter offen (schrittweise):** übrige Inline-Style-Ballungen (Formular-/Ampel-UIs
   etc.).
 

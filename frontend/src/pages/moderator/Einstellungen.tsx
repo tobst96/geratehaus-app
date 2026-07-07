@@ -116,7 +116,7 @@ function ModeratorenVerwaltung() {
   return (
     <div className="karte">
       <h2>Admin- &amp; Gruppenführer-Zugänge</h2>
-      <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+      <p className="hinweistext">
         Admins sehen Personal, Stammdaten und alle Einstellungen. Gruppenführer sehen nur
         Dashboard, Listen (Einsatzberichte/Dienstbucheinträge) und Buchungen (Fahrzeugreservierungen).
       </p>
@@ -265,7 +265,7 @@ function ZweiFaktorVerwaltung() {
   return (
     <div className="karte">
       <h2>Zwei-Faktor-Anmeldung (dein Zugang)</h2>
-      <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+      <p className="hinweistext">
         Bei Aktivierung wird beim Login von einem neuen Gerät zusätzlich ein per E-Mail
         gesendeter Code abgefragt. Voraussetzung ist eine hinterlegte E-Mail-Adresse.
       </p>
@@ -442,7 +442,7 @@ export function Einstellungen() {
               onChange={(e) => setOeffentlicheBasisUrl(e.target.value)}
               placeholder="https://geraetehausapp.feuerwehr-musterstadt.de"
             />
-            <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+            <p className="hinweistext">
               Wird für alle QR-Code-Links genutzt (Barcode vergessen, Profilbild-Upload usw.), statt der
               aktuellen Browser-Adresse – wichtig, falls das Gerätehaus-Tablet unter einer anderen Adresse
               erreichbar ist als das Internet.
@@ -538,7 +538,7 @@ export function Einstellungen() {
             />{" "}
             Technische Fehlerberichte an den Entwickler senden
           </label>
-          <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+          <p className="hinweistext">
             Hilft, Bugs über alle Installationen von Gerätehaus.app hinweg schneller zu finden und
             zu beheben. Es werden nur Stacktraces und technische Fehlerdetails übertragen, keine
             Namen oder sonstigen Inhalte. Wirkt erst nach einem Neustart des Backend-Containers.

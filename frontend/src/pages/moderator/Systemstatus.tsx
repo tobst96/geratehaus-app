@@ -63,7 +63,7 @@ export function Systemstatus() {
           {laedt ? "Aktualisiere …" : "Aktualisieren"}
         </button>
       </div>
-      <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+      <p className="hinweistext">
         Betriebsstatus der Kern-Dienste und geplanten Hintergrund-Jobs. Nur für Admins sichtbar –
         hilft beim Self-Hosting-Support.
       </p>

@@ -158,7 +158,7 @@ export function Einsatztagebuch() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <strong>{e.titel}</strong>
-              <div style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+              <div className="hinweistext">
                 {formatiereDatumZeit(e.zeitpunkt)} · {e.quelle} · {e.teilnahmen.length} Teilnehmer
               </div>
             </div>

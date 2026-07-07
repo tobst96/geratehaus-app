@@ -970,7 +970,7 @@ export function Personal() {
                           <button className="sekundaer" onClick={() => pinSetzen(person)}>
                             PIN setzen
                           </button>
-                          <span style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+                          <span className="hinweistext">
                             {person.pin_gesetzt ? "🔒 PIN gesetzt" : "Kein PIN gesetzt"}
                           </span>
                         </div>
@@ -1040,7 +1040,7 @@ export function Personal() {
                             )}
                           </>
                         ) : (
-                          <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+                          <p className="hinweistext">
                             Das Barcode-Modul ist deaktiviert – die Anmeldung erfolgt über Name + PIN.
                           </p>
                         )}

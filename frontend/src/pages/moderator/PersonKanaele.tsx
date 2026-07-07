@@ -154,7 +154,7 @@ export function PersonKanaele({ personId, personEmail }: { personId: number; per
       ))}
 
       {hinweis && (
-        <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>{hinweis}</p>
+        <p className="hinweistext">{hinweis}</p>
       )}
     </div>
   );

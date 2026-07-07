@@ -84,7 +84,7 @@ export function DienstbuchFelderVerwaltung() {
 
   return (
     <div>
-      <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+      <p className="hinweistext">
         Frei konfigurierbare Zusatzfelder fürs Dienstbuch (z. B. Ausbildungsthema, Art des Dienstes).
         Werden beim Anlegen eines Dienstbuchs abgefragt und im PDF-Export ausgegeben. Typ „Auswahl"
         zeigt ein Dropdown mit den angegebenen Optionen (Komma-getrennt).

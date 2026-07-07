@@ -215,7 +215,7 @@ export function ManuelleEintragung() {
                 </ul>
               )}
               {suche.trim().length > 0 && trefferliste.length === 0 && (
-                <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+                <p className="hinweistext">
                   Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
                 </p>
               )}

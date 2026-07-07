@@ -210,7 +210,7 @@ export function MinioModul() {
               <button type="button" onClick={() => uploadInput.current?.click()}>
                 Datei hochladen
               </button>
-              <span style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+              <span className="hinweistext">
                 lädt in den aktuellen Ordner ({prefix || "Wurzel"})
               </span>
             </div>
@@ -319,7 +319,7 @@ export function MinioModul() {
           <label htmlFor="bd">Dienstbücher (flach)</label>
           <input id="bd" value={einst.bucket_dienstbuecher} onChange={(e) => feld("bucket_dienstbuecher", e.target.value)} />
         </div>
-        <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+        <p className="hinweistext">
           Buckets werden bei Bedarf automatisch angelegt.
         </p>
       </div>
@@ -340,7 +340,7 @@ export function MinioModul() {
             MinIO-Konsole öffnen ↗
           </button>
         ) : (
-          <span style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+          <span className="hinweistext">
             Konsolen-URL eintragen &amp; speichern, um die MinIO-Oberfläche zu öffnen.
           </span>
         )}

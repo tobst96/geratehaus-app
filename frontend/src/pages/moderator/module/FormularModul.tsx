@@ -296,7 +296,7 @@ export function FormularModul() {
               defaultValue={zuLokalInput(ausgewaehlt.ablauf_am)}
               onBlur={(e) => formularFeldAendern(ausgewaehlt, { ablauf_am: vonLokalInput(e.target.value) })}
             />
-            <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+            <p className="hinweistext">
               Nach Ablauf ist das Formular nicht mehr absendbar. Ist ein E-Mail-Empfänger hinterlegt,
               wird bei Ablauf automatisch eine Auswertung dorthin gesendet.
             </p>
@@ -397,7 +397,7 @@ export function FormularModul() {
               </div>
             </div>
             {!ausgewaehlt.aktiv && (
-              <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+              <p className="hinweistext">
                 Hinweis: Das Formular ist noch inaktiv und daher über den Link nicht erreichbar.
               </p>
             )}

@@ -101,7 +101,7 @@ export function DiveraModul() {
 
       <div className="karte">
         <h2>Anbindung</h2>
-        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+        <p className="hinweistext">
           Ersetzt die frühere .env-Konfiguration – Änderungen wirken ohne Neustart.
         </p>
         <div className="formular-feld">
@@ -129,14 +129,14 @@ export function DiveraModul() {
           />
         </div>
         {letzterSync ? (
-          <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+          <p className="hinweistext">
             Letzter Polling-Abruf: {formatiereDatumZeit(letzterSync)} &middot;{" "}
             {letzterSyncAnzahl} Alarm{letzterSyncAnzahl !== 1 ? "e" : ""} abgerufen
           </p>
         ) : (
           aktiv &&
           modus === "polling" && (
-            <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+            <p className="hinweistext">
               Noch kein Polling-Abruf seit dem letzten Start.
             </p>
           )
@@ -152,7 +152,7 @@ export function DiveraModul() {
 
       <div className="karte" style={{ marginTop: 16 }}>
         <h2>Einsätze nachholen</h2>
-        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+        <p className="hinweistext">
           Holt vergangene Alarme aus der Divera-Historie und legt fehlende Einsätze an.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -172,7 +172,7 @@ export function DiveraModul() {
 
       <div className="karte" style={{ marginTop: 16 }}>
         <h2>Personen-Vorschlag</h2>
-        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+        <p className="hinweistext">
           Gleicht das Divera-Personal mit dem System ab und schlägt neue Personen bzw.
           E-Mail-Aktualisierungen vor.
         </p>

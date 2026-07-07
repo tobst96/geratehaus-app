@@ -122,7 +122,7 @@ export function EinsatztagebuchModul() {
 
       <div className="karte" style={{ marginTop: 16 }}>
         <h2>Jahresstatistik</h2>
-        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+        <p className="hinweistext">
           Im Einsatztagebuch wird die Zahl der Einsätze des laufenden Jahres mit dem Vorjahr zum
           selben Stichtag verglichen. Wurde die App mitten im Jahr eingeführt, kann hier ein
           Startwert (bereits abgearbeitete Einsätze) für ein Jahr hinterlegt werden – er fließt in

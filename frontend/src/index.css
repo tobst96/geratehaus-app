@@ -246,6 +246,13 @@ button.karte:focus-visible {
   font-weight: 600;
 }
 
+/* Gedämpfter kleiner Hinweistext (Utility) – ersetzt das vielfach kopierte
+   Inline-`{ color: var(--farbe-text-mute), fontSize: 0.85rem }`. */
+.hinweistext {
+  color: var(--farbe-text-mute);
+  font-size: 0.85rem;
+}
+
 /* Seitenfüllender Fehlerzustand (Komponente SeitenFehler) – ersetzt verstreute
    Inline-`color:red`-Blöcke, dark-mode-tauglich über die Oberflächen-Variablen. */
 .seiten-fehler {
