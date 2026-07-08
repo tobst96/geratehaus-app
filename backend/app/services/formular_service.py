@@ -16,11 +16,13 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core import zeit
+from app.core import datei_token, zeit
 from app.core.config import settings
 from app.models.formular import Formular, FormularEinreichung, FormularFeld
 from app.models.person import Person
 from app.schemas.formular import (
+    EinreichungAntwortOut,
+    EinreichungOut,
     FeldZusammenfassung,
     FormularCreate,
     FormularFeldCreate,
@@ -372,6 +374,11 @@ async def einreichung_speichern(
 
 
 def _wert_text(typ: str, wert: object) -> str:
+    # Datei-Antworten verweisen auf `/uploads/formulare/…` – seit dem Zugriffs-
+    # schutz nur mit signiertem Token abrufbar; hier (CSV-Export, E-Mail) den
+    # Token anhängen, damit die Empfänger die Datei tatsächlich öffnen können.
+    if typ == "datei" and isinstance(wert, str):
+        wert = datei_token.signierte_url(wert) or wert
     if typ == "checkbox":
         return "Ja" if wert else "Nein"
     if typ == "dropdown_mehrfach" and isinstance(wert, list):
@@ -416,6 +423,39 @@ async def einreichungen_fuer(db: AsyncSession, formular_id: int) -> list[Formula
         .order_by(FormularEinreichung.erstellt_am.desc())
     )
     return list((await db.execute(stmt)).scalars().all())
+
+
+async def einreichungen_out(db: AsyncSession, formular_id: int) -> list[EinreichungOut]:
+    """Wie `einreichungen_fuer`, aber als Response-DTOs mit **freigeschalteten**
+    Datei-Antworten: `datei`-Werte (`/uploads/formulare/…`) bekommen einen
+    signierten `?token=` angehängt, damit der Moderator die hochgeladene Datei
+    öffnen kann (der `/uploads`-Mount lehnt sie ohne Token ab). Der gespeicherte
+    Antwort-Snapshot bleibt unverändert (der Token wird nur beim Ausliefern
+    erzeugt und würde sonst mit-persistiert und ablaufen)."""
+    einreichungen = await einreichungen_fuer(db, formular_id)
+    return [
+        EinreichungOut(
+            id=e.id,
+            formular_id=e.formular_id,
+            person_id=e.person_id,
+            person_name=e.person_name,
+            erstellt_am=e.erstellt_am,
+            antworten=[
+                EinreichungAntwortOut(
+                    feld_id=a["feld_id"],
+                    label=a["label"],
+                    typ=a["typ"],
+                    wert=(
+                        datei_token.signierte_url(a.get("wert")) or a.get("wert")
+                        if a.get("typ") == "datei" and isinstance(a.get("wert"), str)
+                        else a.get("wert")
+                    ),
+                )
+                for a in e.antworten
+            ],
+        )
+        for e in einreichungen
+    ]
 
 
 # --- Zusammenfassung / Auswertung --------------------------------------------
@@ -476,6 +516,9 @@ def _feld_zusammenfassung(
 
     # text / mehrzeilig / email / telefon / datum / datei
     nicht_leer = [str(w) for w in werte if not _leer(w)]
+    if feld.typ == "datei":
+        # Datei-Verweise mit Freischalt-Token versehen (sonst 403 beim Öffnen).
+        nicht_leer = [datei_token.signierte_url(w) or w for w in nicht_leer]
     texte = None if oeffentlich else nicht_leer
     return FeldZusammenfassung(**basis, anzahl_beantwortet=len(nicht_leer), texte=texte)
 

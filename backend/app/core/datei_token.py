@@ -25,7 +25,7 @@ from app.core.config import settings
 # Nur diese Unterverzeichnisse von `/uploads` sind geschützt. Das Logo
 # (`/uploads/<name>.png`) bleibt bewusst öffentlich – es ist nicht
 # personenbezogen und wird u. a. in E-Mails/PDFs referenziert.
-GESCHUETZTE_PRAEFIXE = ("personen/",)
+GESCHUETZTE_PRAEFIXE = ("personen/", "formulare/")
 
 _serializer = URLSafeTimedSerializer(settings.cookie_secret_key, salt="datei-token")
 

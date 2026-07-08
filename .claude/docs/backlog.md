@@ -1177,8 +1177,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (3) Geschützte Datei-Auslieferung
 
-- Status: Review (Profilbilder = Feature-Branch `feature/signierte-datei-tokens` → PR
-  nach beta, 08.07.2026; Formular-Dateien als Folge-Slice offen)
+- Status: Review (Profilbilder **und** Formular-Dateien = Feature-Branch
+  `feature/signierte-datei-tokens` → PR #55 nach beta, 08.07.2026)
 - Fortschritt (05.07.2026, Phase 1): **Durchzählbares Profilbild-Leck geschlossen.**
   Profilbilder lagen als `/uploads/personen/person-<id>.<ext>` unter einem öffentlichen
   Static-Mount → per ID abzählbar. Jetzt: **Zufallstoken-Dateinamen** (nicht erratbar),
@@ -1208,9 +1208,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   nehmen bild_url nicht an → kein Round-Trip-Risiko). Tests `test_datei_token.py` (9,
   inkl. E2E: `person_zu_out`-URL tatsächlich abrufbar); volle Suite **369 grün**.
   **Vor Merge:** Browser-Smoke-Test (Kiosk-Personenliste, Barcode-vergessen-Vorschau,
-  Moderator-Personal, Mitglied-Login-Vorschau zeigen Bilder). **Offen (Folge-Slice):**
-  Formular-Dateien (`/uploads/formulare/…`) analog absichern – Emit sitzt in den
-  `antworten`-JSONB-Werten (Phase 1 dort bereits: uuid-Namen + Magic-Bytes + EXIF).
+  Moderator-Personal, Mitglied-Login-Vorschau zeigen Bilder).
+- Fortschritt (08.07.2026, Phase 2 – Formular-Datei-Zugriffsschutz, gleiche PR #55):
+  **`/uploads/formulare/…` analog abgesichert** – zu `GESCHUETZTE_PRAEFIXE` ergänzt, ab
+  jetzt nur mit Token abrufbar. Token wird an allen Stellen angehängt, an denen ein
+  Moderator eine hochgeladene Formular-Datei **öffnen** kann: neue
+  `formular_service.einreichungen_out` (tokenisiert `datei`-Antworten im
+  `EinreichungOut`, Router `GET …/einreichungen` nutzt sie jetzt; gespeicherter
+  `antworten`-Snapshot bleibt unangetastet), `_wert_text` (CSV-Export + Empfänger-Mail)
+  und die `datei`-Freitexte der Zusammenfassung. In der Moderator-UI wird eine
+  Datei-Antwort ohnehin nur als **Text** (nicht auto-geladenes `<img>`) angezeigt →
+  keine Frontend-Änderung nötig. Tests `test_datei_token.py` (jetzt 14, inkl.
+  Formular-Guard 403/200 + `_wert_text`-Tokenisierung); volle Suite **373 grün**.
+  Etappe P3 damit vollständig (Personen- + Formular-Dateien).
 - Priorität: Mittel
 - Kategorie: Backend / Sicherheit / Datenschutz
 - Skills: planner, geraetehaus-patterns, tests, review

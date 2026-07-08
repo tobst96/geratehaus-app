@@ -32,6 +32,11 @@ def test_signierte_url_haengt_token_an_geschuetztem_pfad_an():
     assert url.startswith("/uploads/personen/abc.jpg?token=")
 
 
+def test_signierte_url_schuetzt_auch_formular_dateien():
+    url = datei_token.signierte_url("/uploads/formulare/beleg.pdf")
+    assert url.startswith("/uploads/formulare/beleg.pdf?token=")
+
+
 def test_signierte_url_laesst_logo_unveraendert():
     # Logo liegt direkt unter /uploads/ und ist nicht geschützt.
     assert datei_token.signierte_url("/uploads/logo.png") == "/uploads/logo.png"
@@ -41,6 +46,15 @@ def test_signierte_url_ignoriert_none_und_fremde_werte():
     assert datei_token.signierte_url(None) is None
     assert datei_token.signierte_url("") == ""
     assert datei_token.signierte_url("https://extern/bild.png") == "https://extern/bild.png"
+
+
+def test_formular_wert_text_datei_haengt_token_an():
+    # CSV-Export/E-Mail-Zeile für eine Datei-Antwort muss einen abrufbaren
+    # (tokenisierten) Link enthalten, nicht den nackten – geschützten – Pfad.
+    from app.services import formular_service
+
+    txt = formular_service._wert_text("datei", "/uploads/formulare/beleg.pdf")
+    assert "/uploads/formulare/beleg.pdf?token=" in txt
 
 
 def test_pfad_gueltig_nur_fuer_exakten_pfad():
@@ -80,6 +94,19 @@ async def test_profilbild_mit_fremdem_token_403(client: AsyncClient):
     fremd = datei_token.signiere_pfad("personen/anderes.png")
     resp = await client.get(f"/uploads/personen/token-test-fremd.png?token={fremd}")
     assert resp.status_code == 403
+
+
+async def test_formulardatei_ohne_token_403(client: AsyncClient):
+    _schreibe("formulare/beleg-token-test.png")
+    resp = await client.get("/uploads/formulare/beleg-token-test.png")
+    assert resp.status_code == 403
+
+
+async def test_formulardatei_mit_gueltigem_token_200(client: AsyncClient):
+    _schreibe("formulare/beleg-token-ok.png")
+    token = datei_token.signiere_pfad("formulare/beleg-token-ok.png")
+    resp = await client.get(f"/uploads/formulare/beleg-token-ok.png?token={token}")
+    assert resp.status_code == 200
 
 
 async def test_logo_bleibt_ohne_token_oeffentlich(client: AsyncClient):

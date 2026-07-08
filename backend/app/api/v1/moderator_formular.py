@@ -118,7 +118,7 @@ async def einreichungen_liste(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Für dieses Formular sind die Einreichungen nicht freigegeben.",
         )
-    return await formular_service.einreichungen_fuer(db, formular_id)
+    return await formular_service.einreichungen_out(db, formular_id)
 
 
 @router.get("/{formular_id}/zusammenfassung", response_model=ZusammenfassungOut)
