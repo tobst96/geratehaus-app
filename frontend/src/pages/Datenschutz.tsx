@@ -62,6 +62,19 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
+        <h2>Profilbilder</h2>
+        <p>
+          Zu jeder Person kann optional ein <strong>Profilbild</strong> hinterlegt werden; es dient
+          der Wiedererkennung (z.&nbsp;B. bei der Sitzplatz-/Anwesenheitszuordnung am Kiosk oder im
+          „Barcode vergessen"-Ablauf). Beim Hochladen wird das Bild serverseitig neu kodiert, wobei
+          enthaltene <strong>Metadaten (z.&nbsp;B. Aufnahmeort, Kamera- und Zeitangaben) entfernt</strong>
+          werden. Profilbilder sind <strong>nicht öffentlich abrufbar</strong> – sie werden nur
+          berechtigten Nutzern über kurzlebige, signierte Links ausgeliefert. Ein vorhandenes Bild
+          wird beim Ersetzen automatisch gelöscht.
+        </p>
+      </div>
+
+      <div className="karte">
         <h2>Benachrichtigungen</h2>
         <p>
           Für jede Person können Benachrichtigungskanäle hinterlegt werden, über die sie zu
@@ -111,7 +124,8 @@ export function Datenschutz() {
           Beim Absenden werden die eingegebenen Antworten gespeichert; je nach Formular kann eine
           Anmeldung erforderlich sein, wodurch die Einreichung der jeweiligen Person zugeordnet wird.
           Die Inhalte können personenbezogene Daten enthalten – abhängig davon, welche Angaben das
-          jeweilige Formular abfragt (inkl. optionaler Datei-Uploads). Zu jedem Formular kann eine
+          jeweilige Formular abfragt (inkl. optionaler Datei-Uploads; bei Bild-Uploads werden
+          enthaltene Metadaten entfernt). Zu jedem Formular kann eine
           E-Mail-Benachrichtigung mit den übermittelten Antworten an eine hinterlegte Adresse versendet
           werden. Formulare können zudem eine ausdrückliche Einwilligung vor dem Absenden verlangen und
           eine Aufbewahrungsfrist haben, nach der die Einreichungen automatisch gelöscht werden. Zugriff
