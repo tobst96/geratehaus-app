@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import DbSession
+from app.core import datei_token
 from app.core.rate_limit import rate_limit
 from app.schemas.dienstbuch import TeilnehmerOut
 from app.schemas.dienstbuch_reservierung import (
@@ -32,7 +33,7 @@ async def reservierung_info(db: DbSession, token: str) -> DienstbuchReservierung
         vorschau_person = await stammdaten_service.get_person(db, reservierung.vorschau_person_id)
         if vorschau_person is not None:
             vorschau_person_name = vorschau_person.name
-            vorschau_bild_url = vorschau_person.bild_url
+            vorschau_bild_url = datei_token.signierte_url(vorschau_person.bild_url)
 
     return DienstbuchReservierungInfo(
         dienstbuch_titel=dienstbuch.titel,

@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     cookie_secret_key: str = "change-me-to-another-random-secret"
     admin_username: str = "admin"
 
+    # Gültigkeit der signierten Freischalt-Token für geschützte Upload-Dateien
+    # (Profilbilder, `/uploads/personen/…`). Technischer Parameter: lang genug,
+    # dass eine Kiosk-Ansicht nicht mitten in der Nutzung ausläuft; kurz genug,
+    # dass ein geleakter Link nicht ewig gilt.
+    datei_token_max_age_stunden: int = 24 * 7
+
     # Allgemein
     environment: str = "production"
     public_base_url: str = "http://localhost:8000"

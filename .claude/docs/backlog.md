@@ -1177,7 +1177,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (3) Geschützte Datei-Auslieferung
 
-- Status: In Bearbeitung (Phase 1 = PR #29 gemergt + deployt 05.07.2026; Phase 2 offen)
+- Status: Review (Profilbilder = Feature-Branch `feature/signierte-datei-tokens` → PR
+  nach beta, 08.07.2026; Formular-Dateien als Folge-Slice offen)
 - Fortschritt (05.07.2026, Phase 1): **Durchzählbares Profilbild-Leck geschlossen.**
   Profilbilder lagen als `/uploads/personen/person-<id>.<ext>` unter einem öffentlichen
   Static-Mount → per ID abzählbar. Jetzt: **Zufallstoken-Dateinamen** (nicht erratbar),
@@ -1192,10 +1193,24 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (PNG/JPEG/WebP) werden über Pillow **neu kodiert → EXIF/Metadaten entfernt** und per
   **Magic-Bytes** validiert; PDFs per `%PDF-`-Magic geprüft; sonst 415. Tests
   `test_formular_datei.py` (4, inkl. EXIF-Strip + gefälschtes Bild). Suite 311 grün.
-  **Offen (Rest Phase 2):** echter Zugriffsschutz statt Capability-URL – **kurzlebige,
-  signierte Token-Links** je Datei, kein dauerhaft öffentlicher `/uploads`-Pfad
-  (Kiosk/Moderator/Mitglied-Kontext beachten: `<img>` sendet keine Auth-Header →
-  signierte Query-Token).
+- Fortschritt (08.07.2026, Phase 2 – Profilbild-Zugriffsschutz, Feature-Branch → PR):
+  **`/uploads/personen/…` ist nicht mehr dauerhaft/anonym abrufbar.** Neuer
+  `app/core/datei_token.py`: signierter, zeitlich begrenzter Freischalt-Token
+  (`URLSafeTimedSerializer`, `cookie_secret_key`, bindet den **exakten** Pfad, Ablauf
+  über `datei_token_max_age_stunden`, Default 7 Tage – technischer .env-Wert). Der
+  `/uploads`-Mount ist jetzt `GeschuetzteUploads` (StaticFiles-Subklasse): geschützte
+  Pfade **erfordern gültigen `?token=`** (sonst 403), das **Logo bleibt öffentlich**
+  (E-Mail/PDF-Referenzen). Den Token stellt der Server **nur in berechtigten
+  Antwortpfaden** aus – zentral in `personen_zu_out` plus alle Direkt-Emitter
+  (auth-Barcode/Name/Profil, sechs Reservierungs-/Login-Vorschauen). `<img>` sendet
+  keine Auth-Header → Berechtigung liegt im signierten Query-Token; Frontend
+  **unverändert**. Kein DB-/Datei-Umzug (bild_url bleibt stabil; `PersonCreate/Update`
+  nehmen bild_url nicht an → kein Round-Trip-Risiko). Tests `test_datei_token.py` (9,
+  inkl. E2E: `person_zu_out`-URL tatsächlich abrufbar); volle Suite **369 grün**.
+  **Vor Merge:** Browser-Smoke-Test (Kiosk-Personenliste, Barcode-vergessen-Vorschau,
+  Moderator-Personal, Mitglied-Login-Vorschau zeigen Bilder). **Offen (Folge-Slice):**
+  Formular-Dateien (`/uploads/formulare/…`) analog absichern – Emit sitzt in den
+  `antworten`-JSONB-Werten (Phase 1 dort bereits: uuid-Namen + Magic-Bytes + EXIF).
 - Priorität: Mittel
 - Kategorie: Backend / Sicherheit / Datenschutz
 - Skills: planner, geraetehaus-patterns, tests, review
