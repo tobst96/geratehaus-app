@@ -183,6 +183,7 @@ export function Personal() {
   const [aboUebersicht, setAboUebersicht] = useState<Record<number, PersonBenachrichtigung>>({});
   const [ampelMap, setAmpelMap] = useState<Record<number, AmpelStatus>>({});
   const [filterAbo, setFilterAbo] = useState("");
+  const [filterPanelOffen, setFilterPanelOffen] = useState(false);
   const [ausgewaehlteId, setAusgewaehlteId] = useState<number | null>(null);
   const bildInputRef = useRef<HTMLInputElement>(null);
 
@@ -491,6 +492,20 @@ export function Personal() {
     return true;
   });
   const ausgewaehltePerson = liste.find((p) => p.id === ausgewaehlteId) ?? null;
+  const aktiveFilter =
+    (filterKeineMail ? 1 : 0) +
+    (filterKeinBild ? 1 : 0) +
+    (filterBenachrichtigung !== "alle" ? 1 : 0) +
+    (filterAbo ? 1 : 0);
+  const aboAnzahl = filterAbo
+    ? liste.filter((p) => aboUebersicht[p.id]?.ereignisse.includes(filterAbo)).length
+    : 0;
+  function filterZuruecksetzen() {
+    setFilterKeineMail(false);
+    setFilterKeinBild(false);
+    setFilterBenachrichtigung("alle");
+    setFilterAbo("");
+  }
 
   return (
     <div>
@@ -721,53 +736,69 @@ export function Personal() {
 
       <div className={`personal-layout${ausgewaehltePerson ? " personal-layout--detail" : ""}`}>
         <div className="personal-liste">
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12, fontSize: "0.85rem" }}
-          >
-            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                type="checkbox"
-                checked={filterKeineMail}
-                onChange={(e) => setFilterKeineMail(e.target.checked)}
-              />
-              Keine E-Mail hinterlegt
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                type="checkbox"
-                checked={filterKeinBild}
-                onChange={(e) => setFilterKeinBild(e.target.checked)}
-              />
-              Kein Profilbild
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              Benachrichtigungen:
-              <select
-                value={filterBenachrichtigung}
-                onChange={(e) => setFilterBenachrichtigung(e.target.value as "alle" | "an" | "aus")}
-              >
-                <option value="alle">alle</option>
-                <option value="an">erlaubt</option>
-                <option value="aus">nicht erlaubt</option>
-              </select>
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              Abonniert Ereignis:
-              <select value={filterAbo} onChange={(e) => setFilterAbo(e.target.value)}>
-                <option value="">– beliebig –</option>
-                {ereignisTypen.map((e) => (
-                  <option key={e.key} value={e.key}>
-                    {e.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {filterAbo && (
-              <span className="text-mute">
-                📧 = aktiver Mail-Kanal mit hinterlegter E-Mail
-              </span>
+          <div className="personal-filterzeile">
+            <button
+              type="button"
+              className="sekundaer personal-filter-toggle"
+              onClick={() => setFilterPanelOffen((o) => !o)}
+              aria-expanded={filterPanelOffen}
+            >
+              ⚙ Filter{aktiveFilter > 0 ? ` · ${aktiveFilter}` : ""}
+            </button>
+            {aktiveFilter > 0 && (
+              <button type="button" className="personal-filter-reset" onClick={filterZuruecksetzen}>
+                Zurücksetzen
+              </button>
             )}
           </div>
+          {filterPanelOffen && (
+            <div className="personal-filter-panel">
+              <label className="personal-filter-check">
+                <input
+                  type="checkbox"
+                  checked={filterKeineMail}
+                  onChange={(e) => setFilterKeineMail(e.target.checked)}
+                />
+                Keine E-Mail hinterlegt
+              </label>
+              <label className="personal-filter-check">
+                <input
+                  type="checkbox"
+                  checked={filterKeinBild}
+                  onChange={(e) => setFilterKeinBild(e.target.checked)}
+                />
+                Kein Profilbild
+              </label>
+              <label className="personal-filter-select">
+                <span>Benachrichtigungen erlaubt</span>
+                <select
+                  value={filterBenachrichtigung}
+                  onChange={(e) => setFilterBenachrichtigung(e.target.value as "alle" | "an" | "aus")}
+                >
+                  <option value="alle">alle</option>
+                  <option value="an">erlaubt</option>
+                  <option value="aus">nicht erlaubt</option>
+                </select>
+              </label>
+              <label className="personal-filter-select">
+                <span>Abonniert Benachrichtigung</span>
+                <select value={filterAbo} onChange={(e) => setFilterAbo(e.target.value)}>
+                  <option value="">– beliebig –</option>
+                  {ereignisTypen.map((e) => (
+                    <option key={e.key} value={e.key}>
+                      {e.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {filterAbo && (
+                <p className="hinweis-klein" style={{ margin: 0 }}>
+                  {aboAnzahl} {aboAnzahl === 1 ? "Person" : "Personen"} abonniert · 📧 = aktiver
+                  Mail-Kanal mit hinterlegter E-Mail
+                </p>
+              )}
+            </div>
+          )}
 
           {Object.values(ampelMap).some((s) => s === "gelb" || s === "rot") && (
             <div

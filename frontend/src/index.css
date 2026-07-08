@@ -737,6 +737,53 @@ table tr:hover {
   margin-bottom: 12px;
 }
 
+/* Personal-Filter: „Filter"-Button öffnet ein aufklappbares Panel (statt der
+   früher dauerhaft sichtbaren, gedrängten Filter-Leiste). */
+.personal-filterzeile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.personal-filter-toggle {
+  font-size: 0.85rem;
+  padding: 0.35rem 0.7rem;
+}
+.personal-filter-reset {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  color: var(--farbe-primaer);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.personal-filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: var(--farbe-oberflaeche);
+  border: 1px solid var(--farbe-rand);
+  border-radius: 10px;
+  box-shadow: var(--schatten-karte);
+  font-size: 0.85rem;
+}
+.personal-filter-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.personal-filter-select {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.personal-filter-select select {
+  width: 100%;
+}
+
 /* Nur auf Mobile sichtbar (Master-Detail einspaltig). */
 .personal-zurueck {
   display: none;

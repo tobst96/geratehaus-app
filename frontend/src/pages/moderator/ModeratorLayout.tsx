@@ -115,7 +115,7 @@ export function ModeratorLayout() {
     (!!g.module && grantbareUnterseiten.length > 0);
   const sichtbareGruppen = NAV_GRUPPEN.filter(gruppeSichtbar);
   const [drawerOffen, setDrawerOffen] = useState(false);
-  const [moduleOffen, setModuleOffen] = useState(false);
+  const [moduleOffen, setModuleOffen] = useState(true);
   const [listenOffen, setListenOffen] = useState(true);
   const [aktiveModule, setAktiveModule] = useState<FeatureModul[]>([]);
 
@@ -197,19 +197,24 @@ export function ModeratorLayout() {
                   <div className="mod-nav-section">{gruppe.titel}</div>
                 ))}
 
-              {gruppe.items
-                .filter((item) => (!item.modulKey || modulAktiv(item.modulKey)) && itemSichtbar(item))
-                .map((item) => (
-                  <NavLink
-                    key={item.pfad}
-                    to={item.pfad}
-                    end={item.pfad === "/moderator/module"}
-                    className={linkClass(false)}
-                  >
-                    {navIcon(item.icon)}
-                    <span>{item.titel}</span>
-                  </NavLink>
-                ))}
+              {/* In der aufklappbaren „Module"-Gruppe gehört auch die „Übersicht"
+                  unter den Toggle (erst beim Aufklappen sichtbar), damit der Pfeil
+                  die ganze Sektion inkl. Übersicht steuert und nichts dazwischen
+                  „hängt". Nicht-aufklappbare Gruppen zeigen ihre Punkte wie bisher. */}
+              {(!gruppe.module || moduleOffen) &&
+                gruppe.items
+                  .filter((item) => (!item.modulKey || modulAktiv(item.modulKey)) && itemSichtbar(item))
+                  .map((item) => (
+                    <NavLink
+                      key={item.pfad}
+                      to={item.pfad}
+                      end={item.pfad === "/moderator/module"}
+                      className={linkClass(false)}
+                    >
+                      {navIcon(item.icon)}
+                      <span>{item.titel}</span>
+                    </NavLink>
+                  ))}
 
               {gruppe.listen && listenOffen && (
                 <>
