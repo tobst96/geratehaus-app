@@ -1043,11 +1043,11 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 > **Dependency-Audit (08.07.2026):** `npm audit` (Frontend) = 0. `pip-audit` (Backend):
 > die 5 **pip**-CVEs durch pip-Upgrade im backend/Dockerfile (26.1.2) geschlossen.
-> Verbleibend: **`ecdsa 0.19.2` (PYSEC-2026-1325)** – transitiv über `python-jose`,
-> **kein Fix verfügbar** (bekanntes Minerva-Timing-Thema, vom Upstream als out-of-scope
-> eingestuft), niedrige Schwere; die eigentliche JWT-Krypto läuft über den
-> `cryptography`-Backend von `python-jose[cryptography]`. **Akzeptiertes Restrisiko**;
-> ein Wechsel weg von `python-jose` (Auth-Umbau) lohnt dafür nicht.
+> Das frühere `ecdsa`-Restrisiko (**PYSEC-2026-1325**, transitiv über `python-jose`) ist
+> **behoben statt akzeptiert**: JWT-Handling auf **PyJWT** migriert, `python-jose`+`ecdsa`
+> aus den Dependencies entfernt → Advisory verschwunden. Feature-Branch
+> `feature/jwt-pyjwt` → PR (auth-kritisch); `--ignore-vuln` in `security.yml` entfernt.
+> Damit sind Frontend **und** Backend advisory-frei.
 
 ### (0) Öffentliche Daten-API absichern – Phase 2
 
