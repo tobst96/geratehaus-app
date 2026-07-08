@@ -43,14 +43,28 @@ const TAB_MODUL: Record<(typeof TABS_BASIS)[number], string> = {
   "Formulare": "modul_formular_aktiv",
 };
 
+// Berechtigungs-Key je Tab: Gruppenführer sehen einen Bereichs-Tab nur mit dem
+// Modul-Recht (Admins via Bypass). Formulare hat keins – der Server filtert die
+// Einreichungen über `moderator_sichtbar`.
+const TAB_PERM: Partial<Record<(typeof TABS_BASIS)[number], string>> = {
+  "Einsätze": "einsatztagebuch",
+  "Dienstbücher": "dienstbuch",
+  "Dienststunden": "dienststunden",
+  "Buchungen": "fahrzeugbuchung",
+};
+
 export function Listen() {
-  const { moderatorRolle } = useAuth();
+  const { moderatorRolle, hatModulZugriff } = useAuth();
   const { config } = useConfig();
   const [searchParams] = useSearchParams();
   const istAdmin = moderatorRolle === "admin";
 
   const configWerte = config as Record<string, unknown> | null;
-  const sichtbareBasis = TABS_BASIS.filter((t) => configWerte?.[TAB_MODUL[t]] !== false);
+  const sichtbareBasis = TABS_BASIS.filter(
+    (t) =>
+      configWerte?.[TAB_MODUL[t]] !== false &&
+      (!TAB_PERM[t] || hatModulZugriff(TAB_PERM[t] as string))
+  );
   const TABS: Tab[] = istAdmin ? [...sichtbareBasis, TAB_NAMENSABWEICHUNGEN] : [...sichtbareBasis];
 
   const [tab, setTab] = useState<Tab>(TABS[0] ?? "Einsätze");

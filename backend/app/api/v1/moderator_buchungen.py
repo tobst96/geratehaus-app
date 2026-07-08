@@ -1,15 +1,22 @@
-from fastapi import APIRouter, HTTPException, status
+from typing import Annotated
 
-from app.api.deps import CurrentModerator, DbSession
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from app.api.deps import DbSession, require_modul_zugriff
+from app.models.moderator import Moderator
 from app.schemas.buchung import BuchungAblehnen, BuchungOut
 from app.services import audit_service, buchung_service
 
 router = APIRouter(prefix="/moderator/buchungen", tags=["moderator:buchungen"])
 
+# Buchungen genehmigen/ablehnen/vergleichen erfordert das Modul-Recht
+# „fahrzeugbuchung" (Admin-Bypass).
+FahrzeugbuchungZugriff = Annotated[Moderator, Depends(require_modul_zugriff("fahrzeugbuchung"))]
+
 
 @router.get("/{buchung_id}/konflikte", response_model=list[BuchungOut])
 async def konfliktvergleich(
-    db: DbSession, _moderator: CurrentModerator, buchung_id: int
+    db: DbSession, _moderator: FahrzeugbuchungZugriff, buchung_id: int
 ) -> list[BuchungOut]:
     buchung = await buchung_service.get_buchung(db, buchung_id)
     if buchung is None:
@@ -18,7 +25,7 @@ async def konfliktvergleich(
 
 
 @router.post("/{buchung_id}/genehmigen", response_model=BuchungOut)
-async def genehmigen(db: DbSession, moderator: CurrentModerator, buchung_id: int) -> BuchungOut:
+async def genehmigen(db: DbSession, moderator: FahrzeugbuchungZugriff, buchung_id: int) -> BuchungOut:
     buchung = await buchung_service.get_buchung(db, buchung_id)
     if buchung is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Buchung nicht gefunden.")
@@ -32,7 +39,7 @@ async def genehmigen(db: DbSession, moderator: CurrentModerator, buchung_id: int
 
 @router.post("/{buchung_id}/ablehnen", response_model=BuchungOut)
 async def ablehnen(
-    db: DbSession, moderator: CurrentModerator, buchung_id: int, daten: BuchungAblehnen
+    db: DbSession, moderator: FahrzeugbuchungZugriff, buchung_id: int, daten: BuchungAblehnen
 ) -> BuchungOut:
     buchung = await buchung_service.get_buchung(db, buchung_id)
     if buchung is None:

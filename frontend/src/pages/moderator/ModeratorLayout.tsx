@@ -40,7 +40,7 @@ const NAV_GRUPPEN: NavGruppe[] = [
     id: "buchungen",
     titel: null,
     admin: false,
-    items: [{ pfad: "/moderator/buchungen", titel: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv" }],
+    items: [{ pfad: "/moderator/buchungen", titel: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv", berechtigungKey: "fahrzeugbuchung" }],
   },
   { id: "listen", titel: "Listen", admin: false, listen: true, items: [] },
   {
@@ -64,11 +64,14 @@ const NAV_GRUPPEN: NavGruppe[] = [
   },
 ];
 
-const LISTEN_UNTERPUNKTE: { tab: string; icon: string; modulKey: ModulKey }[] = [
-  { tab: "Einsätze", icon: "einsatz", modulKey: "modul_einsatztagebuch_aktiv" },
-  { tab: "Dienstbücher", icon: "dienstbuch", modulKey: "modul_dienstbuch_aktiv" },
-  { tab: "Dienststunden", icon: "dienststunden", modulKey: "modul_dienststunden_aktiv" },
-  { tab: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv" },
+// `perm` = Berechtigungs-Key: der Listen-Tab erscheint für Gruppenführer nur mit
+// diesem Modul-Recht (Admins via Bypass). Formulare hat kein perm – die Sichtbarkeit
+// der Einreichungen steuert der Server über `moderator_sichtbar`.
+const LISTEN_UNTERPUNKTE: { tab: string; icon: string; modulKey: ModulKey; perm?: string }[] = [
+  { tab: "Einsätze", icon: "einsatz", modulKey: "modul_einsatztagebuch_aktiv", perm: "einsatztagebuch" },
+  { tab: "Dienstbücher", icon: "dienstbuch", modulKey: "modul_dienstbuch_aktiv", perm: "dienstbuch" },
+  { tab: "Dienststunden", icon: "dienststunden", modulKey: "modul_dienststunden_aktiv", perm: "dienststunden" },
+  { tab: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv", perm: "fahrzeugbuchung" },
   { tab: "Formulare", icon: "formular", modulKey: "modul_formular_aktiv" },
 ];
 
@@ -210,7 +213,9 @@ export function ModeratorLayout() {
 
               {gruppe.listen && listenOffen && (
                 <>
-                  {LISTEN_UNTERPUNKTE.filter((u) => modulAktiv(u.modulKey)).map((u) => (
+                  {LISTEN_UNTERPUNKTE.filter(
+                    (u) => modulAktiv(u.modulKey) && (!u.perm || hatModulZugriff(u.perm))
+                  ).map((u) => (
                     <NavLink
                       key={u.tab}
                       to={`/moderator/listen?tab=${encodeURIComponent(u.tab)}`}

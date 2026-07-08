@@ -8,12 +8,18 @@ import pytest
 from app.core.security import hash_secret
 from app.models.moderator import Moderator
 from app.schemas.dienstbuch import DienstbuchAnlegen
-from app.services import dienstbuch_service
+from app.services import berechtigungs_service, dienstbuch_service, modul_service
 
 
 async def _moderator_token(client, db):
-    db.add(Moderator(username="gf", passwort_hash=hash_secret("geheim123"), rolle="gruppenfuehrer"))
+    # Dienstbuch-Moderator-Endpunkte sind granular geschützt (require_modul_zugriff);
+    # der Test-Gruppenführer bekommt daher das „dienstbuch"-Recht.
+    gf = Moderator(username="gf", passwort_hash=hash_secret("geheim123"), rolle="gruppenfuehrer")
+    db.add(gf)
     await db.commit()
+    await db.refresh(gf)
+    await modul_service.ensure_module(db)
+    await berechtigungs_service.set_berechtigung(db, gf.id, "dienstbuch", True)
     login = await client.post(
         "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}
     )
