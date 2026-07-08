@@ -1,3 +1,4 @@
+import { Fehlertext } from "../components/Fehlertext";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -45,7 +46,7 @@ export function PersonBildHochladen() {
   if (ladeFehler) {
     return (
       <div className="seite">
-        <p className="fehlertext">{ladeFehler}</p>
+        <Fehlertext>{ladeFehler}</Fehlertext>
       </div>
     );
   }
@@ -121,7 +122,7 @@ export function PersonBildHochladen() {
           />
         )}
 
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
         <input
           ref={dateiEingabeRef}

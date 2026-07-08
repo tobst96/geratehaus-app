@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { holeDashboard, type DashboardOut } from "../../api/moderator";
@@ -22,7 +23,7 @@ export function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!daten) return <Ladeanzeige />;
 
   const maxAnzahl = Math.max(1, ...daten.einsaetze_pro_monat.map((m) => m.anzahl));
@@ -73,7 +74,7 @@ export function Dashboard() {
         </thead>
         <tbody>
           {daten.schwellenwert_ueberschreitungen.length === 0 ? (
-            <tr><td colSpan={4} style={{ color: "var(--farbe-text-mute)" }}>Keine Überschreitungen.</td></tr>
+            <tr><td colSpan={4} className="text-mute">Keine Überschreitungen.</td></tr>
           ) : (
             daten.schwellenwert_ueberschreitungen.map((s, i) => (
               <tr key={i}>

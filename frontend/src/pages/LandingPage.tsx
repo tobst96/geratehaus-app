@@ -18,7 +18,7 @@ export function LandingPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
         <div className="karte">
           <h2>Mitglied</h2>
-          <p style={{ color: "var(--farbe-text-mute)" }}>
+          <p className="text-mute">
             Per Barcode anmelden und – falls freigegeben – eigene Einsätze, Dienstbuch, Dienststunden
             oder Fahrzeugbuchungen verwalten.
           </p>
@@ -29,7 +29,7 @@ export function LandingPage() {
 
         <div className="karte">
           <h2>Gruppenführer</h2>
-          <p style={{ color: "var(--farbe-text-mute)" }}>
+          <p className="text-mute">
             Einsatzberichte, Dienstbucheinträge und Fahrzeugreservierungen einsehen und bearbeiten.
           </p>
           <Link to="/moderator/login">
@@ -39,7 +39,7 @@ export function LandingPage() {
 
         <div className="karte">
           <h2>Admin</h2>
-          <p style={{ color: "var(--farbe-text-mute)" }}>Personal, Stammdaten und alle Einstellungen verwalten.</p>
+          <p className="text-mute">Personal, Stammdaten und alle Einstellungen verwalten.</p>
           <Link to="/moderator/login">
             <button type="button">Admin-Login</button>
           </Link>

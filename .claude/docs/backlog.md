@@ -1508,8 +1508,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   EinsatzDetail, Dienstbuch, Dienststunden, Fahrzeugbuchung, FahrzeugView) – vier
   davon mit Retry auf ihre `laden()`-Funktion. Test `SeitenFehler.test.tsx` (3).
   `npm run build` + `npm run test` (21) grün.
-- **Noch offen:** Inline-Formularfehler (viele `<p className="fehlertext">`) und ein
-  echtes Toast-Muster – separater Folge-Slice.
+- Fortschritt (08.07.2026, direkt auf beta): **Inline-Formularfehler vereinheitlicht.**
+  Neue Komponente `Fehlertext` (`<p className="fehlertext" role="alert">` – Screenreader
+  sagen Fehler jetzt an; Styling bleibt aus der geteilten `.fehlertext`-Klasse). Die 87
+  einzeiligen `<p className="fehlertext">…</p>` in 50 Dateien darauf umgestellt
+  (verhaltensgleich, nur `role="alert"` ergänzt). `npm run build` + `npm run test` (26) grün.
+- Fortschritt (08.07.2026, direkt auf beta): **Restliche `fehlertext`-Stellen migriert.**
+  Die 12 mehrzeiligen/gestylten `<p className="fehlertext">` (inkl. `style`-Props) auf
+  `<Fehlertext>` umgestellt – Inline-Fehler nutzen jetzt **durchgängig** die
+  `role="alert"`-Komponente. Bewusst **nicht** konvertiert: das `<li className="fehlertext">`
+  in `Personal.tsx` (Listenelement) und das block-`<div className="fehlertext">` in
+  `Buchungsmanagement.tsx` (kein Absatz). `npm run build` + `npm run test` (26) grün.
+- **Noch offen:** nur noch ein echtes **Toast-Muster** (Design-Entscheidung) – separater
+  Folge-Slice; Inline-Fehler sind damit abgeschlossen.
 
 ### Inline-Styles → CSS-Klassen
 
@@ -1545,13 +1556,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Fortschritt (07.07.2026): **`.flex-zwischen`** (Space-between-Zeile, vertikal
   zentriert) für den 5-fach exakten `style={{ display:flex; justify-content:
   space-between; align-items:center }}` – sauber, da ohne gap-Variation. Build/Test grün.
+- Fortschritt (08.07.2026, direkt auf beta): **`.text-mute`-Utility** – das mit Abstand
+  häufigste Inline-Objekt `style={{ color: "var(--farbe-text-mute)" }}` (**77 Stellen**
+  in 39 Dateien) durch die Klasse `.text-mute` ersetzt. Nur die Ein-Property-Farbe (keine
+  Größe); alle 77 lagen auf einfachen HTML-Tags **ohne** vorhandenes `className` →
+  konfliktfrei und **1:1 gleiche Optik** (per Konstruktion; Build fängt jeden
+  Doppel-`className`-Fall ab). `npm run build` + `npm run test` (26) grün.
 - **Weiter offen (schrittweise, geringer Nutzen):** die verbliebenen Inline-Styles
   sind überwiegend **gap-variantenreiche Flex-Zeilen** (`display:flex; align-items:
   center; gap:4/6/8`) – eine Extraktion bräuchte gap-spezifische Klassen
   (Utility-Wildwuchs) und würde bei Vereinheitlichung die Optik minimal ändern; daher
   bewusst inline belassen. Die klar wiederkehrenden, sauber extrahierbaren Muster
-  (Modal-Overlay, Hinweistexte, „✓ gespeichert", Space-between-Zeile) sind damit
-  **erschöpft**.
+  (Modal-Overlay, Hinweistexte, Textfarbe, „✓ gespeichert", Space-between-Zeile) sind
+  damit **erschöpft**.
 
 ### Mehrsprachigkeit vorbereiten (i18n)
 

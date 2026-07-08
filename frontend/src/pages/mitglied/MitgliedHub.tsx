@@ -71,7 +71,7 @@ export function MitgliedHub() {
       <h2 className="mitglied-frage">Was möchtest du machen?</h2>
 
       {sichtbar.length === 0 ? (
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Aktuell sind keine Module für den Mitglieder-Login freigegeben. Bitte den Admin ansprechen.
         </p>
       ) : (

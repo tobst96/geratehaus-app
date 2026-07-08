@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -71,18 +72,18 @@ export function Module() {
     }
   }
 
-  if (fehler && !module) return <p className="fehlertext">{fehler}</p>;
+  if (fehler && !module) return <Fehlertext>{fehler}</Fehlertext>;
   if (!module) return <Ladeanzeige />;
 
   return (
     <div>
       <h1>Module</h1>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Module ein-/ausschalten und sortieren. <strong>Auf den Modulnamen klicken</strong>, um die
         Einstellungen des Moduls (Unterseite) zu öffnen. Die Reihenfolge gilt für die Kiosk-Kacheln
         und die Navigation. Deaktivierte Module verschwinden aus der Navigation.
       </p>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
       <input
         type="text"
@@ -103,7 +104,7 @@ export function Module() {
         ];
         const gesamtTreffer = gruppen.reduce((n, g) => n + g.liste.filter(passt).length, 0);
         if (begriff !== "" && gesamtTreffer === 0) {
-          return <p style={{ color: "var(--farbe-text-mute)" }}>Keine Module gefunden.</p>;
+          return <p className="text-mute">Keine Module gefunden.</p>;
         }
         return gruppen.map((gruppe) => {
           const treffer = gruppe.liste.filter(passt);

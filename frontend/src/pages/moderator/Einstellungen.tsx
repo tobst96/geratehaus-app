@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   holeEinstellungen,
@@ -120,7 +121,7 @@ function ModeratorenVerwaltung() {
         Admins sehen Personal, Stammdaten und alle Einstellungen. Gruppenführer sehen nur
         Dashboard, Listen (Einsatzberichte/Dienstbucheinträge) und Buchungen (Fahrzeugreservierungen).
       </p>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {!liste && <Ladeanzeige />}
       {liste && (
         <div className="tabelle-scroll">
@@ -269,7 +270,7 @@ function ZweiFaktorVerwaltung() {
         Bei Aktivierung wird beim Login von einem neuen Gerät zusätzlich ein per E-Mail
         gesendeter Code abgefragt. Voraussetzung ist eine hinterlegte E-Mail-Adresse.
       </p>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {codes && (
         <div style={{ margin: "8px 0", padding: 12, border: "1px solid var(--farbe-rand)", borderRadius: 8 }}>
           <strong>Recovery-Codes – jetzt sicher notieren (werden nicht erneut angezeigt):</strong>
@@ -291,9 +292,9 @@ function ZweiFaktorVerwaltung() {
           </button>
         </div>
       ) : !status.email_gesetzt ? (
-        <p className="fehlertext">
+        <Fehlertext>
           Für 2FA muss zuerst eine E-Mail für deinen Zugang hinterlegt werden (durch einen Admin).
-        </p>
+        </Fehlertext>
       ) : (
         <button type="button" onClick={aktivieren}>
           Zwei-Faktor-Anmeldung aktivieren
@@ -424,7 +425,7 @@ export function Einstellungen() {
   return (
     <div>
       <h1>Einstellungen</h1>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {gespeichert && <Banner art="erfolg">Einstellungen erfolgreich gespeichert</Banner>}
 
       <form onSubmit={speichern}>

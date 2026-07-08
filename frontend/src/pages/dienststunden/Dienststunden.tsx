@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import {
@@ -192,7 +193,7 @@ export function Dienststunden() {
 
         {qrAnsicht ? (
           <div className="dienststunden-qr-ansicht">
-            <p style={{ color: "var(--farbe-text-mute)" }}>
+            <p className="text-mute">
               Mit dem Handy scannen – die Person trägt sich dort selbst ein (ohne Barcode).
             </p>
             <div
@@ -239,7 +240,7 @@ export function Dienststunden() {
               <div className="dienststunden-scan-felder">
                 <div className="formular-feld">
                   {mitgliedModus.aktiv ? (
-                    <p style={{ color: "var(--farbe-text-mute)" }}>
+                    <p className="text-mute">
                       Eingeloggt als <strong>{mitgliedModus.name}</strong>
                     </p>
                   ) : (
@@ -313,8 +314,8 @@ export function Dienststunden() {
                   />
                 </div>
 
-                {fehler && <p className="fehlertext">{fehler}</p>}
-                {qrFehler && <p className="fehlertext">{qrFehler}</p>}
+                {fehler && <Fehlertext>{fehler}</Fehlertext>}
+                {qrFehler && <Fehlertext>{qrFehler}</Fehlertext>}
 
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button type="submit" disabled={laeuft}>

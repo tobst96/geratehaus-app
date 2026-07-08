@@ -1,3 +1,4 @@
+import { Fehlertext } from "./Fehlertext";
 import { useEffect, useState } from "react";
 import {
   diveraIgnorierteZuruecksetzen,
@@ -116,12 +117,12 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
           </button>
         </div>
 
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
         {vorschlaege === null ? (
           <Ladeanzeige />
         ) : offene.length === 0 ? (
-          <p style={{ color: "var(--farbe-text-mute)" }}>
+          <p className="text-mute">
             Keine offenen Vorschläge – Divera-Personal ist mit dem System synchron.
           </p>
         ) : (
@@ -180,7 +181,7 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
                     <div>
                       <strong>{String(v.vorschlag_daten.name ?? "")}</strong>
                       {v.art === "email_update" && (
-                        <div style={{ color: "var(--farbe-text-mute)" }}>E-Mail-Aktualisierung</div>
+                        <div className="text-mute">E-Mail-Aktualisierung</div>
                       )}
                     </div>
                     <button type="button" onClick={() => ignoriertHinzufuegen(v)} style={{ flexShrink: 0 }}>
@@ -214,12 +215,12 @@ function VorschlagKarte({
         {vorschlag.art === "neu" ? (
           <>
             <strong>{String(daten.name ?? "")}</strong>
-            {daten.email ? <div style={{ color: "var(--farbe-text-mute)" }}>{String(daten.email)}</div> : null}
+            {daten.email ? <div className="text-mute">{String(daten.email)}</div> : null}
           </>
         ) : (
           <>
             <strong>{String(daten.name ?? "")}</strong>
-            <div style={{ color: "var(--farbe-text-mute)" }}>
+            <div className="text-mute">
               „{String(daten.alte_email ?? "–")}“ → „{String(daten.neue_email ?? "")}“
             </div>
           </>

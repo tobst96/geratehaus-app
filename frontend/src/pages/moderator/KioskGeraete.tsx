@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   holeKioskTokens,
@@ -108,13 +109,13 @@ export function KioskGeraete() {
     moduleSetzen(g.id, neu);
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!geraete) return <Ladeanzeige />;
 
   return (
     <div>
       <h1>Kiosk-Geräte</h1>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Jedes Tablet im Gerätehaus braucht einen eigenen Link. Diesen Link einmalig als Lesezeichen /
         Startbildschirm-Symbol auf dem jeweiligen Tablet hinterlegen.
       </p>

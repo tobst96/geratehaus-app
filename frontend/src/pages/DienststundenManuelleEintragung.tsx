@@ -1,3 +1,4 @@
+import { Fehlertext } from "../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -143,7 +144,7 @@ export function DienststundenManuelleEintragung() {
   if (ladeFehler) {
     return (
       <div className="seite">
-        <p className="fehlertext">{ladeFehler}</p>
+        <Fehlertext>{ladeFehler}</Fehlertext>
       </div>
     );
   }
@@ -261,10 +262,10 @@ export function DienststundenManuelleEintragung() {
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <p className="fehlertext">
+            <Fehlertext>
               Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich –
               bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
-            </p>
+            </Fehlertext>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
@@ -342,7 +343,7 @@ export function DienststundenManuelleEintragung() {
             />
           </div>
 
-          {fehler && <p className="fehlertext">{fehler}</p>}
+          {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
           <button
             type="submit"

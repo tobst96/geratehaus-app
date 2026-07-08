@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import { useAuth } from "../../context/AuthContext";
@@ -215,7 +216,7 @@ export function Fahrzeugbuchung() {
       {hinweis && <p className="karte">{hinweis}</p>}
       {formularOffen && qrAnsicht && (
         <div className="karte dienststunden-qr-ansicht">
-          <p style={{ color: "var(--farbe-text-mute)" }}>
+          <p className="text-mute">
             Mit dem Handy scannen – die Person trägt sich dort selbst ein (ohne Barcode).
           </p>
           <div
@@ -280,7 +281,7 @@ export function Fahrzeugbuchung() {
             <input id="fb-zweck" value={zweck} onChange={(e) => setZweck(e.target.value)} required />
           </div>
           {mitgliedModus.aktiv ? (
-            <p style={{ color: "var(--farbe-text-mute)" }}>
+            <p className="text-mute">
               Eingeloggt als <strong>{mitgliedModus.name}</strong>
             </p>
           ) : (
@@ -288,7 +289,7 @@ export function Fahrzeugbuchung() {
               <PersonIdentifikation ref={identRef} autoFocus />
             </div>
           )}
-          {qrFehler && <p className="fehlertext">{qrFehler}</p>}
+          {qrFehler && <Fehlertext>{qrFehler}</Fehlertext>}
           <button type="submit" disabled={laeuft}>
             {laeuft ? "Wird gestellt…" : "Anfrage stellen"}
           </button>{" "}

@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import { holeSystemStatus, type SystemStatus } from "../../api/meta";
@@ -25,7 +26,7 @@ function Zeile({ label, children }: { label: string; children: React.ReactNode }
         borderBottom: "1px solid var(--farbe-rand)",
       }}
     >
-      <span style={{ color: "var(--farbe-text-mute)" }}>{label}</span>
+      <span className="text-mute">{label}</span>
       <span style={{ textAlign: "right" }}>{children}</span>
     </div>
   );
@@ -52,7 +53,7 @@ export function Systemstatus() {
     laden();
   }, []);
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!status) return <Ladeanzeige />;
 
   return (
@@ -111,7 +112,7 @@ export function Systemstatus() {
           </span>
         </h2>
         {status.scheduler.jobs.length === 0 ? (
-          <p style={{ color: "var(--farbe-text-mute)" }}>Keine geplanten Jobs.</p>
+          <p className="text-mute">Keine geplanten Jobs.</p>
         ) : (
           <div className="tabelle-scroll">
             <table>

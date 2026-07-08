@@ -1,3 +1,4 @@
+import { Fehlertext } from "../components/Fehlertext";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { holeStempelInfo, type DienststundenStempelInfo } from "../api/dienststundenStempel";
@@ -66,7 +67,7 @@ export function DienststundenStempel() {
     return (
       <div className="seite">
         <div className="karte">
-          <p className="fehlertext">{ladeFehler}</p>
+          <Fehlertext>{ladeFehler}</Fehlertext>
         </div>
       </div>
     );
@@ -99,10 +100,10 @@ export function DienststundenStempel() {
       <div className="seite">
         <div className="karte">
           <h1>{info.funktion_name}</h1>
-          <p className="fehlertext">
+          <Fehlertext>
             Für diese Funktion ist die Dienststunden-Eintragung aktuell nicht möglich (Funktion oder
             Modul deaktiviert).
-          </p>
+          </Fehlertext>
         </div>
       </div>
     );
@@ -112,7 +113,7 @@ export function DienststundenStempel() {
     <div className="seite">
       <div className="karte">
         <h1>Dienststunden eintragen</h1>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Funktion: <strong>{info.funktion_name}</strong> · Datum: heute (
           {heuteAlsDatum().split("-").reverse().join(".")})
         </p>
@@ -157,7 +158,7 @@ export function DienststundenStempel() {
           <PersonIdentifikation ref={identRef} autoFocus />
         </div>
 
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
         <button type="button" onClick={eintragen} disabled={laeuft}>
           {laeuft ? "Wird gespeichert…" : "Eintragen"}

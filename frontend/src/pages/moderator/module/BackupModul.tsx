@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useRef, useState } from "react";
 import { formatiereDatumZeit } from "../../../utils/datum";
 import { Link } from "react-router-dom";
@@ -218,8 +219,8 @@ export function BackupModul() {
           {laeuft ? "Sichert …" : "Jetzt Backup erstellen"}
         </button>
       </div>
-      {fehler && <p className="fehlertext">{fehler}</p>}
-      {meldung && <p style={{ color: "var(--farbe-text-mute)" }}>{meldung}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
+      {meldung && <p className="text-mute">{meldung}</p>}
 
       {/* --- Zeitplan & Aufbewahrung --- */}
       <div className="karte">
@@ -429,7 +430,7 @@ export function BackupModul() {
       {/* --- PDF-Archiv --- */}
       <div className="karte">
         <h2>PDF-Archiv (Objektspeicher)</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Legt jede erzeugte PDF (Einsatz-/Dienstbuch-Abschluss, Listen-Exporte) zusätzlich im
           S3-Objektspeicher ab. Benötigt ein aktives S3-Ziel (siehe oben).
         </p>
@@ -478,7 +479,7 @@ export function BackupModul() {
             </strong>{" "}
             {integritaet.detail}
             {integritaet.geprueft_am && (
-              <span style={{ color: "var(--farbe-text-mute)" }}>
+              <span className="text-mute">
                 {" "}· geprüft {formatiereDatumZeit(integritaet.geprueft_am)}
               </span>
             )}
@@ -491,7 +492,7 @@ export function BackupModul() {
       {/* --- Backup-Browser --- */}
       <div className="karte">
         <h2>Gespeicherte Backups</h2>
-        {backups.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Backups vorhanden.</p>}
+        {backups.length === 0 && <p className="text-mute">Noch keine Backups vorhanden.</p>}
         {backups.length > 0 && (
           <div className="tabelle-scroll">
             <table>
@@ -538,7 +539,7 @@ export function BackupModul() {
       {/* --- Import --- */}
       <div className="karte">
         <h2>Backup importieren</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Backup-Datei (.ghb) hochladen, dann auswählen, welche Bereiche eingespielt werden.
         </p>
         <div className="formular-feld">
@@ -573,7 +574,7 @@ export function BackupModul() {
                     })
                   }
                 />
-                {k.label} <span style={{ color: "var(--farbe-text-mute)" }}>({k.anzahl})</span>
+                {k.label} <span className="text-mute">({k.anzahl})</span>
               </label>
             ))}
 
@@ -588,10 +589,10 @@ export function BackupModul() {
                 Zusammenführen (nur fehlende Datensätze ergänzen)
               </label>
             </div>
-            <p className="fehlertext" style={{ fontSize: "0.85rem" }}>
+            <Fehlertext style={{ fontSize: "0.85rem" }}>
               ⚠️ „Ersetzen" löscht die vorhandenen Daten der gewählten Bereiche. Enthält der Import
               Zugänge/Branding, kann sich Login und Erscheinungsbild ändern.
-            </p>
+            </Fehlertext>
             <button onClick={importieren} disabled={laeuft || gewaehlt.size === 0}>
               {laeuft ? "Importiert …" : "Import starten"}
             </button>

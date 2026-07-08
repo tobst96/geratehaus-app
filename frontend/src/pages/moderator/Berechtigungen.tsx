@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import {
   holeBerechtigungen,
@@ -49,7 +50,7 @@ export function Berechtigungen() {
     }
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!matrix) return <Ladeanzeige />;
 
   function hatZugriff(mod: ModeratorBerechtigung, modulKey: string): boolean {
@@ -63,7 +64,7 @@ export function Berechtigungen() {
   return (
     <div>
       <h1>Berechtigungen</h1>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Zugriff je Moderator und Modul. Admins haben immer Vollzugriff. Hinweis: Die Berechtigungen
         werden bereits gepflegt, greifen aber noch nicht (Aktivierung folgt in einem späteren Schritt).
       </p>
@@ -115,7 +116,7 @@ export function Berechtigungen() {
             ))}
             {sichtbareModeratoren.length === 0 && (
               <tr>
-                <td colSpan={matrix.module.length + 1} style={{ color: "var(--farbe-text-mute)" }}>
+                <td colSpan={matrix.module.length + 1} className="text-mute">
                   Keine Moderatoren mit diesem Zugriff.
                 </td>
               </tr>

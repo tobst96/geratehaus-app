@@ -1,3 +1,4 @@
+import { Fehlertext } from "./Fehlertext";
 import { useEffect, useState } from "react";
 import { holeVapidPublicKey, pushSubscribe, pushUnsubscribe } from "../api/push";
 import { pushWirdUnterstuetzt, urlBase64ToUint8Array } from "../utils/webpush";
@@ -106,7 +107,7 @@ export function PushAktivierung() {
       >
         {laedt ? "Bitte warten …" : abonniert ? "Push deaktivieren" : "Push aktivieren"}
       </button>
-      {fehler && <p className="fehlertext" style={{ marginTop: 8 }}>{fehler}</p>}
+      {fehler && <Fehlertext style={{ marginTop: 8 }}>{fehler}</Fehlertext>}
     </div>
   );
 }

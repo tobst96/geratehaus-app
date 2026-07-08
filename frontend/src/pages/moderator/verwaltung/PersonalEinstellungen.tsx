@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { Gespeichert } from "../../../components/Gespeichert";
 import { GruppenVerwaltung } from "./GruppenVerwaltung";
@@ -60,7 +61,7 @@ export function PersonalEinstellungen() {
   return (
     <div>
       <h2>Gruppen</h2>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Personengruppen (z. B. Züge/Gruppen), die Personen zugeordnet werden können.
       </p>
       <GruppenVerwaltung />
@@ -99,7 +100,7 @@ export function PersonalEinstellungen() {
       </div>
 
       <h2 style={{ marginTop: 24 }}>PIN-Erinnerung</h2>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Ist das Barcode-Modul deaktiviert, melden sich Personen per Namen und PIN an. Personen ohne
         gesetzten PIN (mit hinterlegter E-Mail) werden in diesem Intervall automatisch per Mail an das
         Setzen ihres PINs erinnert.
@@ -117,7 +118,7 @@ export function PersonalEinstellungen() {
       </div>
 
       <h2 style={{ marginTop: 24 }}>Aktivitäts-Ampel</h2>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Färbt Personen ein, die seit einer bestimmten Anzahl Tagen keinen Einsatz, Dienst oder keine
         Dienststunden mehr hatten (nur aktive Module zählen; ohne Eintrag zählt das Anlagedatum).
         0 Tage = diese Farbe aus. Als inaktiv markierte Personen sind ausgenommen.
@@ -171,7 +172,7 @@ export function PersonalEinstellungen() {
         {speichert ? "Speichert …" : "Speichern"}
       </button>
       {gespeichert && <Gespeichert />}
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useRef, useState } from "react";
 import { formatiereDatumZeit } from "../../../utils/datum";
 import { Link } from "react-router-dom";
@@ -134,7 +135,7 @@ export function MinioModul() {
     }
   }
 
-  if (!einst) return fehler ? <p className="fehlertext">{fehler}</p> : <Ladeanzeige />;
+  if (!einst) return fehler ? <Fehlertext>{fehler}</Fehlertext> : <Ladeanzeige />;
 
   return (
     <div>
@@ -142,22 +143,22 @@ export function MinioModul() {
         <Link to="/moderator/module">← Zurück zu den Modulen</Link>
       </p>
       <h1>MinIO</h1>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Objektspeicher (MinIO oder S3-kompatibel). Ist dieses Modul aktiv, werden erzeugte Dokumente
         automatisch abgelegt (Einsätze als Ordner je Einsatz, Dienstbücher flach) und das Backup-Modul
         kann „MinIO Backup" nutzen. Das Modul lässt sich unter „Module" an-/abschalten.
       </p>
-      {fehler && <p className="fehlertext">{fehler}</p>}
-      {meldung && <p style={{ color: "var(--farbe-text-mute)" }}>{meldung}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
+      {meldung && <p className="text-mute">{meldung}</p>}
 
       {/* --- Dateibrowser (läuft über die App, kein Port-Öffnen nötig) --- */}
       <div className="karte">
         <h2>Dateibrowser</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Buckets und Dateien direkt hier ansehen, hoch- und herunterladen – ohne den MinIO-Port zu
           öffnen.
         </p>
-        {browserFehler && <p className="fehlertext">{browserFehler}</p>}
+        {browserFehler && <Fehlertext>{browserFehler}</Fehlertext>}
 
         <div className="formular-feld" style={{ maxWidth: 320 }}>
           <label htmlFor="bucketsel">Bucket</label>
@@ -256,7 +257,7 @@ export function MinioModul() {
                     ))}
                     {inhalt.ordner.length === 0 && inhalt.dateien.length === 0 && (
                       <tr>
-                        <td colSpan={4} style={{ color: "var(--farbe-text-mute)" }}>
+                        <td colSpan={4} className="text-mute">
                           Leer.
                         </td>
                       </tr>

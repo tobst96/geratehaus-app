@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { permFuerModulUnterseite } from "./modulRechte";
@@ -63,7 +64,7 @@ export function ModulUnterseite() {
           <p>
             <Link to="/moderator/module">← Zurück zu den Modulen</Link>
           </p>
-          <p className="fehlertext">Unbekanntes Modul.</p>
+          <Fehlertext>Unbekanntes Modul.</Fehlertext>
         </div>
       );
   }

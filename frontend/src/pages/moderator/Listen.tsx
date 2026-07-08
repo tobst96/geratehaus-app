@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState, type ReactNode } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import { Link, useSearchParams } from "react-router-dom";
@@ -129,7 +130,7 @@ function EinsaetzeTab() {
         <ArchiviertFeld value={archiviert} onChange={setArchiviert} />
         <button onClick={laden}>Filtern</button>
       </FilterZeile>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
         <div className="tabelle-scroll">
         <table>
@@ -211,7 +212,7 @@ function DienstbuecherTab() {
         <ArchiviertFeld value={archiviert} onChange={setArchiviert} />
         <button onClick={laden}>Filtern</button>
       </FilterZeile>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
         <div className="tabelle-scroll">
         <table>
@@ -276,7 +277,7 @@ function DienststundenTab() {
         <DatumFeld label="Bis" value={bis} onChange={setBis} />
         <button onClick={laden}>Filtern</button>
       </FilterZeile>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
         <div className="tabelle-scroll">
         <table>
@@ -346,13 +347,13 @@ function SchwellenwertUeberschreitungenTab() {
   return (
     <div style={{ marginTop: "2rem" }}>
       <h2>Schwellenwert-Überschreitungen</h2>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Personen, die den Schwellenwert ihrer Funktion auch nach Abzug bereits übernommener Stunden
         noch überschreiten. Übernommene Stunden werden vom Überschuss abgezogen, ohne die
         Dienststunden-Einträge selbst zu verändern.
       </p>
-      {fehler && <p className="fehlertext">{fehler}</p>}
-      {daten && daten.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Aktuell keine Überschreitungen.</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
+      {daten && daten.length === 0 && <p className="text-mute">Aktuell keine Überschreitungen.</p>}
       {daten && daten.length > 0 && (
         <div className="tabelle-scroll">
         <table>
@@ -444,7 +445,7 @@ function BuchungenTab() {
         </select>
         <button onClick={laden}>Filtern</button>
       </FilterZeile>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
         <div className="tabelle-scroll">
         <table>
@@ -487,7 +488,7 @@ function NamensabweichungenTab() {
       .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : "Liste konnte nicht geladen werden."));
   }, []);
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!daten) return <Ladeanzeige />;
 
   return (
@@ -577,10 +578,10 @@ function FormulareTab() {
     }
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!formulare) return <Ladeanzeige />;
   if (formulare.length === 0)
-    return <p style={{ color: "var(--farbe-text-mute)" }}>Keine für dich freigegebenen Formulare.</p>;
+    return <p className="text-mute">Keine für dich freigegebenen Formulare.</p>;
 
   return (
     <div>
@@ -622,7 +623,7 @@ function FormulareTab() {
         (!einreichungen ? (
           <Ladeanzeige />
         ) : einreichungen.length === 0 ? (
-          <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Einreichungen.</p>
+          <p className="text-mute">Noch keine Einreichungen.</p>
         ) : (
           einreichungen.map((e) => (
             <div

@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApiError } from "../../api/client";
@@ -17,14 +18,14 @@ export function FormularListe() {
       );
   }, []);
 
-  if (fehler) return <p className="fehlertext" style={{ maxWidth: 640, margin: "24px auto" }}>{fehler}</p>;
+  if (fehler) return <Fehlertext style={{ maxWidth: 640, margin: "24px auto" }}>{fehler}</Fehlertext>;
   if (!formulare) return <Ladeanzeige />;
 
   return (
     <div style={{ maxWidth: 640, margin: "24px auto", padding: "0 16px" }}>
       <h1>Formulare</h1>
       {formulare.length === 0 ? (
-        <p style={{ color: "var(--farbe-text-mute)" }}>Aktuell sind keine Formulare verfügbar.</p>
+        <p className="text-mute">Aktuell sind keine Formulare verfügbar.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {formulare.map((f) => (

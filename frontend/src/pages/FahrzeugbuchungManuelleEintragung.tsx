@@ -1,3 +1,4 @@
+import { Fehlertext } from "../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -101,7 +102,7 @@ export function FahrzeugbuchungManuelleEintragung() {
   if (ladeFehler) {
     return (
       <div className="seite">
-        <p className="fehlertext">{ladeFehler}</p>
+        <Fehlertext>{ladeFehler}</Fehlertext>
       </div>
     );
   }
@@ -212,10 +213,10 @@ export function FahrzeugbuchungManuelleEintragung() {
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <p className="fehlertext">
+            <Fehlertext>
               Für dich ist kein PIN hinterlegt. Eine Selbst-Buchung ohne PIN ist nicht möglich –
               bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
-            </p>
+            </Fehlertext>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
@@ -274,7 +275,7 @@ export function FahrzeugbuchungManuelleEintragung() {
             <input id="fbme-zweck" value={zweck} onChange={(e) => setZweck(e.target.value)} required />
           </div>
 
-          {fehler && <p className="fehlertext">{fehler}</p>}
+          {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
           <button
             type="submit"

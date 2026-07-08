@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   holeAlleFunktionenDienststunden,
@@ -56,7 +57,7 @@ export function FunktionenDienststundenVerwaltung() {
     await laden();
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!liste) return <Ladeanzeige />;
 
   return (

@@ -1,3 +1,4 @@
+import { Fehlertext } from "../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -106,7 +107,7 @@ export function ManuelleEintragung() {
   if (ladeFehler) {
     return (
       <div className="seite">
-        <p className="fehlertext">{ladeFehler}</p>
+        <Fehlertext>{ladeFehler}</Fehlertext>
       </div>
     );
   }
@@ -159,7 +160,7 @@ export function ManuelleEintragung() {
     <div className="seite">
       <div className="karte">
         <h1>Ohne Barcode eintragen</h1>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           {info.bezeichnung} · Einsatz „{info.einsatz_titel}“
           {info.fahrzeug_name ? ` · ${info.fahrzeug_name}` : ""}
         </p>
@@ -224,10 +225,10 @@ export function ManuelleEintragung() {
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <p className="fehlertext">
+            <Fehlertext>
               Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich –
               bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
-            </p>
+            </Fehlertext>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
@@ -298,7 +299,7 @@ export function ManuelleEintragung() {
             />
           </div>
 
-          {fehler && <p className="fehlertext">{fehler}</p>}
+          {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
           <button
             type="submit"

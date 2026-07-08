@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { formatiereDatum } from "../../utils/datum";
 import { holeUpdateStatus, updateAusloesen, updateKanalSetzen, type UpdateStatus } from "../../api/moderator";
@@ -51,7 +52,7 @@ export function Update() {
     }
   }
 
-  if (fehler && !status) return <p className="fehlertext">{fehler}</p>;
+  if (fehler && !status) return <Fehlertext>{fehler}</Fehlertext>;
   if (!status) return <Ladeanzeige />;
 
   return (
@@ -60,7 +61,7 @@ export function Update() {
 
       <div className="karte">
         <h2>Update-Kanal</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           "Stable" zeigt nur fertige Veröffentlichungen an, "Beta" auch Vorabversionen. Ist eine
           neue Version verfügbar, kann sie unten per Klick installiert werden. Das Update wird von
           einem Skript auf dem Server ausgeführt (<code>git pull</code> +
@@ -93,8 +94,8 @@ export function Update() {
 
       <div className="karte" style={{ marginTop: 16 }}>
         <h2>Versionsstatus</h2>
-        {fehler && <p className="fehlertext">{fehler}</p>}
-        {status.fehler && <p className="fehlertext">{status.fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
+        {status.fehler && <Fehlertext>{status.fehler}</Fehlertext>}
         <div className="tabelle-scroll">
         <table>
           <tbody>

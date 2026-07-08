@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import {
@@ -495,9 +496,9 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         </div>
       </div>
       {!aktivesFahrzeug && alleEingetragenFehler && (
-        <p className="fehlertext" style={{ margin: 0 }}>
+        <Fehlertext style={{ margin: 0 }}>
           {alleEingetragenFehler}
-        </p>
+        </Fehlertext>
       )}
 
       {!aktivesFahrzeug && (
@@ -598,7 +599,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
 
             {qrAnsicht ? (
               <div className="sitzplatz-qr-ansicht">
-                <p style={{ color: "var(--farbe-text-mute)" }}>
+                <p className="text-mute">
                   Mit dem Handy scannen – die Person trägt sich dort selbst für genau diesen Platz ein
                   (ohne Barcode, wird im Bericht entsprechend vermerkt).
                 </p>
@@ -654,7 +655,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                 <div className="sitzplatz-scan-felder">
                   <div className="formular-feld">
                     {mitgliedModus.aktiv ? (
-                      <p style={{ color: "var(--farbe-text-mute)" }}>
+                      <p className="text-mute">
                         Eingeloggt als <strong>{mitgliedModus.name}</strong>
                       </p>
                     ) : (
@@ -743,8 +744,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                     />
                   </div>
 
-                  {fehler && <p className="fehlertext">{fehler}</p>}
-                  {qrFehler && <p className="fehlertext">{qrFehler}</p>}
+                  {fehler && <Fehlertext>{fehler}</Fehlertext>}
+                  {qrFehler && <Fehlertext>{qrFehler}</Fehlertext>}
 
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     <button type="submit" disabled={laeuft}>

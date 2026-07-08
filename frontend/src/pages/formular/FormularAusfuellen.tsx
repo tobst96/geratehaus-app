@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ApiError } from "../../api/client";
@@ -120,7 +121,7 @@ export function FormularAusfuellen() {
   }
 
   if (fehler && !formular)
-    return <p className="fehlertext" style={{ maxWidth: 640, margin: "24px auto" }}>{fehler}</p>;
+    return <Fehlertext style={{ maxWidth: 640, margin: "24px auto" }}>{fehler}</Fehlertext>;
   if (!formular) return <Ladeanzeige />;
 
   if (gesendet) {
@@ -147,7 +148,7 @@ export function FormularAusfuellen() {
         <Link to="/formulare">← Zu den Formularen</Link>
       </p>
       <h1>{formular.name}</h1>
-      {formular.beschreibung && <p style={{ color: "var(--farbe-text-mute)" }}>{formular.beschreibung}</p>}
+      {formular.beschreibung && <p className="text-mute">{formular.beschreibung}</p>}
       {formular.login_erforderlich && (
         <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.9rem" }}>
           🔒 Zum Absenden ist eine Anmeldung erforderlich.{" "}
@@ -314,9 +315,9 @@ export function FormularAusfuellen() {
               </p>
             )}
             {feldFehler[String(feld.id)] && (
-              <p className="fehlertext" style={{ margin: "4px 0 0" }}>
+              <Fehlertext style={{ margin: "4px 0 0" }}>
                 {feldFehler[String(feld.id)]}
-              </p>
+              </Fehlertext>
             )}
           </div>
         ))}
@@ -339,7 +340,7 @@ export function FormularAusfuellen() {
           </label>
         )}
 
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
         <button onClick={absenden} disabled={sendet}>
           {sendet ? "Sendet …" : "Absenden"}
         </button>

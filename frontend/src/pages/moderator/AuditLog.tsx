@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useMemo, useState } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import { exportiereAuditLog, holeAuditLog, type AuditEintrag } from "../../api/audit";
@@ -45,7 +46,7 @@ export function AuditLog() {
     [eintraege]
   );
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!eintraege) return <Ladeanzeige />;
 
   const sichtbar = filterAktion ? eintraege.filter((e) => e.aktion === filterAktion) : eintraege;
@@ -53,7 +54,7 @@ export function AuditLog() {
   return (
     <div>
       <h1>Audit-Log</h1>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Sicherheitsrelevante Aktionen (Löschungen, Freigaben, Rechte- und Zugangsänderungen),
         neueste zuerst. Nur für Admins sichtbar. Einträge älter als die konfigurierte
         Aufbewahrungsfrist werden automatisch gelöscht.
@@ -109,7 +110,7 @@ export function AuditLog() {
                 </td>
                 <td>{e.akteur}</td>
                 <td>{aktionLabel(e.aktion)}</td>
-                <td style={{ color: "var(--farbe-text-mute)" }}>
+                <td className="text-mute">
                   {e.objekt_typ}
                   {e.objekt_id != null ? ` #${e.objekt_id}` : ""}
                 </td>
@@ -118,7 +119,7 @@ export function AuditLog() {
             ))}
             {sichtbar.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ color: "var(--farbe-text-mute)" }}>
+                <td colSpan={5} className="text-mute">
                   Keine Einträge.
                 </td>
               </tr>

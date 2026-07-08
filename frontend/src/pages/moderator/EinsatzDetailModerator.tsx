@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -106,7 +107,7 @@ export function EinsatzDetailModerator() {
     }
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!einsatz) return <Ladeanzeige />;
 
   function sitzplatzBezeichnung(fahrzeugId: number | null, sitzplatzId: string | null): string {
@@ -196,7 +197,7 @@ export function EinsatzDetailModerator() {
                       <td>
                         <strong>{f.label}</strong>
                       </td>
-                      <td style={{ color: "var(--farbe-text-mute)" }}>–</td>
+                      <td className="text-mute">–</td>
                     </tr>
                   );
                 }
@@ -236,7 +237,7 @@ export function EinsatzDetailModerator() {
         <tbody>
           {einsatz.teilnahmen.length === 0 && (
             <tr>
-              <td colSpan={11} style={{ color: "var(--farbe-text-mute)" }}>
+              <td colSpan={11} className="text-mute">
                 Keine Teilnehmer eingetragen.
               </td>
             </tr>
@@ -263,7 +264,7 @@ export function EinsatzDetailModerator() {
       </div>
 
       <h2>Timeline</h2>
-      {timeline.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Ereignisse protokolliert.</p>}
+      {timeline.length === 0 && <p className="text-mute">Noch keine Ereignisse protokolliert.</p>}
       {timeline.length > 0 && (
         <div className="timeline">
           {timeline.map((ereignis) => (
