@@ -1345,11 +1345,20 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (`csp_verstoss` auf INFO → Logs/Sentry-Breadcrumb, kein Issue-Spam; In-Memory-Dedup).
   Damit lässt sich vor dem Scharfschalten sehen, was blockiert würde (z. B. externes
   Logo). Tests `test_csp_report.py`. `nginx -t` grün.
-- Notizen: **Nächster Schritt (offen):** ein paar Tage Verstöße sammeln
-  (`docker compose logs backend | grep csp_verstoss`), auswerten, dann die Policy als
-  enforcing `Content-Security-Policy` übernehmen (ggf. `img-src` um ein externes Logo
-  ergänzen, falls gemeldet). Erwägenswert: Google Fonts self-hosten, um die externen
-  `fonts.googleapis.com`/`fonts.gstatic.com`-Ausnahmen zu streichen.
+- Fortschritt (08.07.2026): **CSP enforcing-ready gemacht** (weiter Report-Only,
+  kein Verhaltensrisiko). Analyse der App-Ressourcen ergab **eine sichere Lücke**: bei
+  aktiven Fehlerberichten/Session-Replay sendet das Frontend an **Sentry-Ingest**, was
+  `connect-src 'self'` beim Scharfschalten geblockt hätte. `connect-src` deshalb um
+  `https://*.ingest.sentry.io`, `*.ingest.de.sentry.io`, `*.ingest.us.sentry.io`
+  ergänzt (self-gehostetes Sentry → eigene Domain nachtragen). Kommentar in
+  `nginx.conf` dokumentiert jetzt den Scharfschalt-Weg. Übrige Direktiven decken die
+  bekannten Ressourcen ab (self, Google Fonts, `img-src` self/data/blob, Inline-Styles,
+  Service-Worker). **Letzter Schritt = Nutzer-Entscheidung** (empfohlene Variante „A"):
+  gesammelte Reports in Prod sichten + kurzer Browser-Smoke-Test, dann die beiden
+  `-Report-Only`-Header auf `Content-Security-Policy` umstellen.
+- Notizen: Erwägenswert: Google Fonts self-hosten, um die externen
+  `fonts.googleapis.com`/`fonts.gstatic.com`-Ausnahmen zu streichen (dann `style-src`/
+  `font-src` auf `'self'` verschlanken).
 
 ---
 
