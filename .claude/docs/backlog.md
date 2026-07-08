@@ -931,7 +931,11 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Granulare, individuelle Berechtigungsverwaltung als eigenständiges Modul
 
-- Status: In Bearbeitung
+- Status: Erledigt (08.07.2026 – granulares Berechtigungssystem vollständig; letzter
+  Baustein „Gruppenführer-Arbeitsbereiche gaten" via PR #56 gemergt + deployt). Bewusst
+  **nicht** umgesetzt: die literale Entfernung der `rolle`-Spalte („Phase 5") – eine
+  Admin-Instanz bleibt nötig (Rechtevergabe + admin-only Audit/Backup/MinIO/Systemstatus),
+  Modell ist auf **Admin vs. rechtebasiert** reduziert. Siehe Item (2) unter Etappe P.
 - Priorität: Hoch
 - Kategorie: Neues Modul / Feature / Architektur
 - Skills: planner, new-module, geraetehaus-patterns, tests, review
@@ -1353,7 +1357,10 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (6) Security-Härtung Querschnitt
 
-- Status: In Bearbeitung (Rate-Limit-Slice erledigt 05.07.2026, direkt auf beta)
+- Status: Erledigt (08.07.2026 – alle Akzeptanzkriterien erfüllt: Security-Header,
+  Dependency-/Secret-Scan in CI, Rate-Limit auf öffentlichen POSTs, CSP **enforcing**
+  (deployt) + selbst-gehostete Fonts; zuletzt `ecdsa`-Advisory via PyJWT-Migration
+  eliminiert, PR #57 gemergt)
 - Priorität: Mittel
 - Kategorie: Backend / DevOps / Sicherheit
 - Skills: geraetehaus-patterns, review
