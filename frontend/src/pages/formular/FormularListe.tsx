@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApiError } from "../../api/client";
@@ -17,7 +18,7 @@ export function FormularListe() {
       );
   }, []);
 
-  if (fehler) return <p className="fehlertext" style={{ maxWidth: 640, margin: "24px auto" }}>{fehler}</p>;
+  if (fehler) return <Fehlertext style={{ maxWidth: 640, margin: "24px auto" }}>{fehler}</Fehlertext>;
   if (!formulare) return <Ladeanzeige />;
 
   return (

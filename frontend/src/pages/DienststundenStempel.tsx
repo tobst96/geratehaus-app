@@ -100,10 +100,10 @@ export function DienststundenStempel() {
       <div className="seite">
         <div className="karte">
           <h1>{info.funktion_name}</h1>
-          <p className="fehlertext">
+          <Fehlertext>
             Für diese Funktion ist die Dienststunden-Eintragung aktuell nicht möglich (Funktion oder
             Modul deaktiviert).
-          </p>
+          </Fehlertext>
         </div>
       </div>
     );

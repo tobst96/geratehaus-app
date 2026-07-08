@@ -1498,8 +1498,14 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   sagen Fehler jetzt an; Styling bleibt aus der geteilten `.fehlertext`-Klasse). Die 87
   einzeiligen `<p className="fehlertext">…</p>` in 50 Dateien darauf umgestellt
   (verhaltensgleich, nur `role="alert"` ergänzt). `npm run build` + `npm run test` (26) grün.
-- **Noch offen:** 12 mehrzeilige/gestylte `fehlertext`-Stellen (manuell, geringe Zahl)
-  sowie ein echtes **Toast-Muster** (Design-Entscheidung) – separater Folge-Slice.
+- Fortschritt (08.07.2026, direkt auf beta): **Restliche `fehlertext`-Stellen migriert.**
+  Die 12 mehrzeiligen/gestylten `<p className="fehlertext">` (inkl. `style`-Props) auf
+  `<Fehlertext>` umgestellt – Inline-Fehler nutzen jetzt **durchgängig** die
+  `role="alert"`-Komponente. Bewusst **nicht** konvertiert: das `<li className="fehlertext">`
+  in `Personal.tsx` (Listenelement) und das block-`<div className="fehlertext">` in
+  `Buchungsmanagement.tsx` (kein Absatz). `npm run build` + `npm run test` (26) grün.
+- **Noch offen:** nur noch ein echtes **Toast-Muster** (Design-Entscheidung) – separater
+  Folge-Slice; Inline-Fehler sind damit abgeschlossen.
 
 ### Inline-Styles → CSS-Klassen
 

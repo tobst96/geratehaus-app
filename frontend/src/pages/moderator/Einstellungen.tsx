@@ -292,9 +292,9 @@ function ZweiFaktorVerwaltung() {
           </button>
         </div>
       ) : !status.email_gesetzt ? (
-        <p className="fehlertext">
+        <Fehlertext>
           Für 2FA muss zuerst eine E-Mail für deinen Zugang hinterlegt werden (durch einen Admin).
-        </p>
+        </Fehlertext>
       ) : (
         <button type="button" onClick={aktivieren}>
           Zwei-Faktor-Anmeldung aktivieren

@@ -589,10 +589,10 @@ export function BackupModul() {
                 Zusammenführen (nur fehlende Datensätze ergänzen)
               </label>
             </div>
-            <p className="fehlertext" style={{ fontSize: "0.85rem" }}>
+            <Fehlertext style={{ fontSize: "0.85rem" }}>
               ⚠️ „Ersetzen" löscht die vorhandenen Daten der gewählten Bereiche. Enthält der Import
               Zugänge/Branding, kann sich Login und Erscheinungsbild ändern.
-            </p>
+            </Fehlertext>
             <button onClick={importieren} disabled={laeuft || gewaehlt.size === 0}>
               {laeuft ? "Importiert …" : "Import starten"}
             </button>

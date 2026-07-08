@@ -222,10 +222,10 @@ export function DienstbuchManuelleEintragung() {
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <p className="fehlertext">
+            <Fehlertext>
               Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich –
               bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
-            </p>
+            </Fehlertext>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">

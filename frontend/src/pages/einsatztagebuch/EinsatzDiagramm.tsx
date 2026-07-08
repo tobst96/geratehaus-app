@@ -496,9 +496,9 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         </div>
       </div>
       {!aktivesFahrzeug && alleEingetragenFehler && (
-        <p className="fehlertext" style={{ margin: 0 }}>
+        <Fehlertext style={{ margin: 0 }}>
           {alleEingetragenFehler}
-        </p>
+        </Fehlertext>
       )}
 
       {!aktivesFahrzeug && (

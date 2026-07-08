@@ -121,7 +121,7 @@ export function FormularAusfuellen() {
   }
 
   if (fehler && !formular)
-    return <p className="fehlertext" style={{ maxWidth: 640, margin: "24px auto" }}>{fehler}</p>;
+    return <Fehlertext style={{ maxWidth: 640, margin: "24px auto" }}>{fehler}</Fehlertext>;
   if (!formular) return <Ladeanzeige />;
 
   if (gesendet) {
@@ -315,9 +315,9 @@ export function FormularAusfuellen() {
               </p>
             )}
             {feldFehler[String(feld.id)] && (
-              <p className="fehlertext" style={{ margin: "4px 0 0" }}>
+              <Fehlertext style={{ margin: "4px 0 0" }}>
                 {feldFehler[String(feld.id)]}
-              </p>
+              </Fehlertext>
             )}
           </div>
         ))}
