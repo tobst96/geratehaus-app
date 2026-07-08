@@ -141,7 +141,9 @@ const PERSON_EREIGNIS_ICON: Record<string, string> = {
   pin_gesetzt: "🔒",
   pin_gesperrt: "⛔",
   pin_entsperrt: "🔓",
+  pin_zugriff_verweigert: "🚫",
   inaktivitaets_warnung: "⚠️",
+  dienststunden_erfasst: "🕒",
 };
 
 // Menschliche Labels für den Verlaufs-Filter; unbekannte Typen zeigen den Rohwert.
@@ -154,6 +156,7 @@ const PERSON_EREIGNIS_LABEL: Record<string, string> = {
   pin_entsperrt: "PIN entsperrt",
   pin_zugriff_verweigert: "PIN-Zugriff verweigert",
   inaktivitaets_warnung: "Inaktivitäts-Warnung",
+  dienststunden_erfasst: "Dienststunden erfasst",
 };
 
 function ereignisLabel(typ: string): string {
@@ -930,6 +933,18 @@ export function Personal() {
                           </select>
                         </div>
 
+                        <label
+                          style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}
+                          title="Inaktive Personen erhalten keine Aktivitäts-Ampel und keine Ampel-Benachrichtigung. Die automatische Inaktivitäts-Löschung bleibt davon unberührt."
+                        >
+                          <input
+                            type="checkbox"
+                            checked={person.inaktiv}
+                            onChange={(e) => inaktivAendern(person, e.target.checked)}
+                          />
+                          Inaktiv (von der Aktivitäts-Ampel ausnehmen)
+                        </label>
+
                         <div className="person-aktionen">
                           <input
                             ref={bildInputRef}
@@ -1067,17 +1082,6 @@ export function Personal() {
                             onChange={(e) => benachrichtigungenAendern(person, e.target.checked)}
                           />
                           Benachrichtigungen aktiv
-                        </label>
-                        <label
-                          style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}
-                          title="Inaktive Personen erhalten keine Aktivitäts-Ampel und keine Ampel-Benachrichtigung. Die automatische Inaktivitäts-Löschung bleibt davon unberührt."
-                        >
-                          <input
-                            type="checkbox"
-                            checked={person.inaktiv}
-                            onChange={(e) => inaktivAendern(person, e.target.checked)}
-                          />
-                          Inaktiv (von der Aktivitäts-Ampel ausnehmen)
                         </label>
                         <PersonKanaele personId={person.id} personEmail={person.email} />
                       </>
