@@ -45,11 +45,21 @@ Personen-Mutationen → `personal`). Die drei bewusst offenen `CurrentModerator`
 Endpunkte in `moderator_stammdaten` (Personen-Liste, Ampel, PIN-Entsperren) bleiben
 für alle Moderatoren erreichbar.
 
-**Noch NICHT umgestellt / offen (Etappe P2-Rest):**
-- Frontend-Nav-Surfacing, damit berechtigte Gruppenführer die freigeschalteten
-  Bereiche (Module-Unterseiten) im Menü sehen/erreichen (Nav + `ModulUnterseite`-
-  Route sind derzeit noch admin- bzw. `einstellungen`-gegated).
-- Bewusst admin-only (nicht grantbar): `audit`, `backup`, `minio`.
+**Arbeitsbereiche granular gegatet** (Etappe P2 „Phase 5", non-breaking via
+Anti-Aussperr-Migration `0059`): die Moderator-Endpunkte der vier Feature-Module
+sind jetzt rechtebasiert statt „jeder Moderator" – `einsatztagebuch` (Einsatz
+abschließen/wieder-öffnen/löschen), `dienstbuch` (Auswertungen, schließen/
+wieder-öffnen, „relevant"), `dienststunden` und `fahrzeugbuchung` (genehmigen/
+ablehnen). Auch die bereichsspezifischen Listen/PDFs in `moderator_listen` hängen
+jetzt am jeweiligen Modul-Recht; die Listen-Seite blendet Tabs ohne Recht aus.
+**Kiosk-/Mitglieder-Endpunkte** derselben Router (Anlegen, Teilnahme, Reservierung,
+Stempel, …) bleiben bewusst nur über `require_zugriff` erreichbar (nicht gegatet).
+
+Damit ist das „jeder-Moderator-darf-alles"-Modell für alle mitgliederseitigen
+Feature-Module durch echte Rechte abgelöst. **Die Admin-Rolle bleibt** (Bypass +
+bewusst admin-only Bereiche).
+
+**Bewusst admin-only (nicht grantbar):** `audit`, `backup`, `minio`, `systemstatus`.
 - „Breaking" Schlussphase: Rechte-Seed gegen Aussperren + Ablösung des reinen
   Rollenmodells (`rolle`) durch das Rechte-Modell.
 

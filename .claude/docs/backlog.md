@@ -1115,7 +1115,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (2) Berechtigungssystem fertigstellen
 
-- Status: In Bearbeitung (Teil 1 = PR #28; Barcodes/Kiosk gegated = PR 06.07.2026; Rest offen)
+- Status: Review (Arbeitsbereiche gegated = Feature-Branch `feature/p2-arbeitsbereiche-gaten`
+  → PR nach beta, 08.07.2026; Teil 1 = PR #28; Barcodes/Kiosk/Stammdaten = PR 06.07.2026)
 - Fortschritt (06.07.2026, non-breaking): **Barcodes- und Kiosk-Geräte-Router granular
   geschaltet.** Alle bislang `CurrentAdmin`-Endpunkte in `moderator_barcodes.py` nutzen
   jetzt `require_modul_zugriff` – Barcode-Endpunkte Key `barcodes`, Kiosk-Endpunkte Key
@@ -1157,10 +1158,24 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   AuthContext lädt eigene Modul-Rechte und bietet `hatModulZugriff(key)`; neuer
   `BerechtigungRoute`. Nav/Routen der bereits backend-gegateten Verwaltungs-Module
   (Einstellungen/Module/Update → Key `einstellungen`, Berechtigungen) prüfen jetzt
-  `hat_zugriff` statt der Rolle (Admins via Bypass, non-breaking). **Noch offen:**
-  restliche Router gaten (barcodes, kiosk-geraete, stammdaten/personal pro Endpunkt,
-  Benachrichtigungen), breaking Gruppenführer-Bereiche + Rechte-Seed gegen Aussperren,
-  altes Rollenmodell ablösen (Phase 5) + `permissions.md`/`CLAUDE.md`.
+  `hat_zugriff` statt der Rolle (Admins via Bypass, non-breaking).
+- Fortschritt (08.07.2026, „Phase 5" – Feature-Branch → PR): **Gruppenführer-
+  Arbeitsbereiche granular gegated.** Die Moderator-Endpunkte der vier Feature-Module
+  (`einsatztagebuch`: abschließen/wieder-öffnen/löschen; `dienstbuch`: Auswertungen/
+  schließen/wieder-öffnen/relevant; `dienststunden` + `fahrzeugbuchung`: genehmigen/
+  ablehnen; plus die bereichsspezifischen Listen/PDFs in `moderator_listen`) hängen
+  jetzt an `require_modul_zugriff("<key>")` statt `CurrentModerator`. Kiosk-/
+  Mitglieder-Endpunkte (require_zugriff) bleiben unangetastet. **Anti-Aussperr-
+  Migration `0059`** seedet bestehenden Non-Admins genau diese vier Rechte (Status quo).
+  Frontend: Nav-/Listen-Tabs + Routen (`/moderator/buchungen`, `einsaetze/:id`,
+  `dienstbuecher/:id`, Listen-Tabs) über `hatModulZugriff`/`BerechtigungRoute` gegated.
+  **Admin-Rolle bewusst behalten** (Bypass + admin-only Bereiche – volle Entfernung wäre
+  Downgrade). Tests `test_p2_gate_arbeitsbereiche.py` (15). Backend 388 grün, Frontend
+  Build + 26 Tests grün. `permissions.md` aktualisiert. **Vor Merge:** kurzer
+  Browser-Smoke-Test mit einem Gruppenführer-Zugang.
+- **Noch offen (bewusst nicht in dieser PR):** literale Entfernung der `rolle`-Spalte
+  (nicht gewünscht – Admin-Instanz bleibt nötig); `benachrichtigungen` läuft über das
+  bereits gegatete `einstellungen`-Modul.
 - Priorität: Hoch
 - Kategorie: Backend / Frontend / Sicherheit
 - Skills: planner, geraetehaus-patterns, tests, review

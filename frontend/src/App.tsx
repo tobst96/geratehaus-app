@@ -65,9 +65,18 @@ export function App() {
               <Route index element={<Navigate to="/moderator/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="listen" element={<Listen />} />
-              <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
-              <Route path="dienstbuecher/:id" element={<DienstbuchDetailModerator />} />
-              <Route path="buchungen" element={<Buchungsmanagement />} />
+              {/* Moderator-Arbeitsbereiche granular gegated (Backend:
+                  require_modul_zugriff, Admins via Bypass). Die Listen-Seite selbst
+                  filtert ihre Tabs pro Recht. */}
+              <Route element={<BerechtigungRoute modulKeys={["einsatztagebuch"]} />}>
+                <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
+              </Route>
+              <Route element={<BerechtigungRoute modulKeys={["dienstbuch"]} />}>
+                <Route path="dienstbuecher/:id" element={<DienstbuchDetailModerator />} />
+              </Route>
+              <Route element={<BerechtigungRoute modulKeys={["fahrzeugbuchung"]} />}>
+                <Route path="buchungen" element={<Buchungsmanagement />} />
+              </Route>
               {/* Noch admin-only (Backend nutzt CurrentAdmin): Barcodes,
                   Kiosk-Geräte, Benachrichtigungen. */}
               <Route element={<AdminRoute />}>
