@@ -1177,8 +1177,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (3) Geschützte Datei-Auslieferung
 
-- Status: Review (Profilbilder **und** Formular-Dateien = Feature-Branch
-  `feature/signierte-datei-tokens` → PR #55 nach beta, 08.07.2026)
+- Status: Erledigt (Profilbilder **und** Formular-Dateien; PR #55 gemergt + auf beta
+  deployt, 08.07.2026)
 - Fortschritt (05.07.2026, Phase 1): **Durchzählbares Profilbild-Leck geschlossen.**
   Profilbilder lagen als `/uploads/personen/person-<id>.<ext>` unter einem öffentlichen
   Static-Mount → per ID abzählbar. Jetzt: **Zufallstoken-Dateinamen** (nicht erratbar),
