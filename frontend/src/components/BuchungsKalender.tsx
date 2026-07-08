@@ -2,6 +2,7 @@ import { Calendar, dateFnsLocalizer, type Event } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { de } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import "./BuchungsKalender.css"; // Theme-/Dark-Mode-Overrides – NACH der Bibliotheks-CSS
 import type { BuchungOut, ExternerTermin } from "../api/types";
 
 const localizer = dateFnsLocalizer({
