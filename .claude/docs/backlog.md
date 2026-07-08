@@ -1045,8 +1045,9 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 > die 5 **pip**-CVEs durch pip-Upgrade im backend/Dockerfile (26.1.2) geschlossen.
 > Das frühere `ecdsa`-Restrisiko (**PYSEC-2026-1325**, transitiv über `python-jose`) ist
 > **behoben statt akzeptiert**: JWT-Handling auf **PyJWT** migriert, `python-jose`+`ecdsa`
-> aus den Dependencies entfernt → Advisory verschwunden. Feature-Branch
-> `feature/jwt-pyjwt` → PR (auth-kritisch); `--ignore-vuln` in `security.yml` entfernt.
+> aus den Dependencies entfernt → Advisory verschwunden. **PR #57 gemergt + auf beta
+> deployt** (08.07.2026); `--ignore-vuln` in `security.yml` entfernt. Live verifiziert
+> (Login-Pfad lädt, 401 bei Fehl-Login).
 > Damit sind Frontend **und** Backend advisory-frei.
 
 ### (0) Öffentliche Daten-API absichern – Phase 2
@@ -1115,8 +1116,9 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### (2) Berechtigungssystem fertigstellen
 
-- Status: Review (Arbeitsbereiche gegated = Feature-Branch `feature/p2-arbeitsbereiche-gaten`
-  → PR nach beta, 08.07.2026; Teil 1 = PR #28; Barcodes/Kiosk/Stammdaten = PR 06.07.2026)
+- Status: Erledigt (Arbeitsbereiche gegated = **PR #56 gemergt + auf beta deployt**,
+  08.07.2026; Teil 1 = PR #28; Barcodes/Kiosk/Stammdaten = PR 06.07.2026). Damit sind
+  alle mitgliederseitigen Feature-Module rechtebasiert; Admin-Rolle bleibt bewusst.
 - Fortschritt (06.07.2026, non-breaking): **Barcodes- und Kiosk-Geräte-Router granular
   geschaltet.** Alle bislang `CurrentAdmin`-Endpunkte in `moderator_barcodes.py` nutzen
   jetzt `require_modul_zugriff` – Barcode-Endpunkte Key `barcodes`, Kiosk-Endpunkte Key
