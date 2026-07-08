@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.types import Scope
 
 from app.api.v1 import (
     auth,
@@ -46,6 +47,7 @@ from app.api.v1 import (
     setup,
     stammdaten,
 )
+from app.core import datei_token
 from app.core.config import settings
 from app.core.logging_setup import konfiguriere_logging
 from app.core.security_headers import SecurityHeadersMiddleware
@@ -159,8 +161,23 @@ app.include_router(moderator_formular.router, prefix="/api/v1")
 app.include_router(manifest.router, prefix="/api/v1")
 app.include_router(moderator_update.router, prefix="/api/v1")
 
+class GeschuetzteUploads(StaticFiles):
+    """Liefert `/uploads` aus, verlangt für **geschützte** Pfade
+    (`/uploads/personen/…`) aber einen gültigen, signierten `?token=`. So sind
+    Profilbilder nicht mehr dauerhaft/anonym abrufbar; öffentliche Dateien (Logo)
+    bleiben unverändert erreichbar. Der Token wird nur in berechtigten
+    Antwortpfaden ausgestellt (siehe `app/core/datei_token.py`)."""
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        if datei_token.ist_geschuetzt(path):
+            token = Request(scope).query_params.get("token")
+            if not datei_token.pfad_gueltig(token, path):
+                return Response(status_code=status.HTTP_403_FORBIDDEN)
+        return await super().get_response(path, scope)
+
+
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
+app.mount("/uploads", GeschuetzteUploads(directory=settings.upload_dir), name="uploads")
 
 
 @app.get("/api/v1/health")

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import DbSession
+from app.core import datei_token
 from app.core.rate_limit import rate_limit
 from app.schemas.mitglied_login_reservierung import (
     MitgliedLoginAnmelden,
@@ -37,7 +38,7 @@ async def reservierung_info(db: DbSession, token: str) -> MitgliedLoginReservier
         person = await stammdaten_service.get_person(db, reservierung.person_id)
         if person is not None:
             person_name = person.name
-            person_bild_url = person.bild_url
+            person_bild_url = datei_token.signierte_url(person.bild_url)
 
     return MitgliedLoginReservierungInfo(
         abgelaufen=mitglied_login_reservierung_service.ist_abgelaufen(reservierung),

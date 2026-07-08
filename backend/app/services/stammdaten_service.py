@@ -8,6 +8,7 @@ from PIL import Image, UnidentifiedImageError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import datei_token
 from app.core.config import settings
 from app.core.security import hash_secret, verify_secret
 from app.models.einsatz_feld import EinsatzFeldDefinition
@@ -573,7 +574,7 @@ async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[Pers
             vorname=p.vorname,
             zwischenname=p.zwischenname,
             nachname=p.nachname,
-            bild_url=p.bild_url,
+            bild_url=datei_token.signierte_url(p.bild_url),
             email=p.email,
             gruppe_id=p.gruppe_id,
             funktion_id=p.funktion_id,

@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 
 from app.api.deps import CurrentPerson, DbSession
-from app.core import mitglied_session, moderator_2fa_session
+from app.core import datei_token, mitglied_session, moderator_2fa_session
 from app.core.rate_limit import rate_limit
 from app.core.security import create_access_token
 from app.models.barcode_token import BarcodeToken
@@ -70,7 +70,7 @@ async def abmelden(response: Response) -> None:
 async def mein_profil(person: CurrentPerson) -> MeinProfil:
     return MeinProfil(
         name=person.name,
-        bild_url=person.bild_url,
+        bild_url=datei_token.signierte_url(person.bild_url),
         gruppe_id=person.gruppe_id,
         funktion_id=person.funktion_id,
     )
@@ -174,7 +174,7 @@ async def barcode_vorschau(db: DbSession, token: str) -> BarcodeVorschau:
 
     return BarcodeVorschau(
         name=person.name,
-        bild_url=person.bild_url,
+        bild_url=datei_token.signierte_url(person.bild_url),
         gruppe_id=person.gruppe_id,
         funktion_id=person.funktion_id,
     )
@@ -207,7 +207,7 @@ async def personen_auswahl(db: DbSession, suche: str = "") -> list[PersonAuswahl
         PersonAuswahl(
             id=p.id,
             name=p.name,
-            bild_url=p.bild_url,
+            bild_url=datei_token.signierte_url(p.bild_url),
             pin_gesetzt=p.pin_gesetzt,
             funktion_id=p.funktion_id,
             gruppe_id=p.gruppe_id,
@@ -236,7 +236,7 @@ async def name_pin_pruefen(db: DbSession, daten: NamePinLogin) -> NamePinVorscha
         raise _pin_gesperrt_http(sperre)
     if not korrekt:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="PIN falsch.")
-    return NamePinVorschau(name=person.name, bild_url=person.bild_url)
+    return NamePinVorschau(name=person.name, bild_url=datei_token.signierte_url(person.bild_url))
 
 
 @router.post(

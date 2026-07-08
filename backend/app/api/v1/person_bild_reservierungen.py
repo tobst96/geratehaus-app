@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from app.api.deps import DbSession
+from app.core import datei_token
 from app.core.rate_limit import rate_limit
 from app.schemas.person import PersonOut
 from app.schemas.person_bild_reservierung import PersonBildReservierungInfo
@@ -25,7 +26,7 @@ async def reservierung_info(db: DbSession, token: str) -> PersonBildReservierung
         abgelaufen=person_bild_reservierung_service.ist_abgelaufen(reservierung),
         bereits_eingeloest=reservierung.eingeloest,
         person_name=person.name,
-        person_bild_url=person.bild_url,
+        person_bild_url=datei_token.signierte_url(person.bild_url),
     )
 
 
