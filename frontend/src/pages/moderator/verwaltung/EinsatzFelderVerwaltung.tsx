@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   holeAlleEinsatzFelder,
@@ -58,12 +59,12 @@ export function EinsatzFelderVerwaltung() {
     await laden();
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!liste) return <Ladeanzeige />;
 
   return (
     <div>
-      <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+      <p className="hinweistext">
         Frei konfigurierbare Zusatzfelder für den Einsatzbericht (z. B. Einsatzleiter, Erste Lage,
         Tätigkeit). Werden im Einsatztagebuch unterhalb der Garage angezeigt und im PDF-Export
         ausgegeben.

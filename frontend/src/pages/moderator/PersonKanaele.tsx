@@ -16,6 +16,18 @@ interface Wert {
   aktiv: boolean;
 }
 
+/** Gruppiert die Ereignistypen nach Modul-Label (Reihenfolge = erstes Auftreten,
+ * i. d. R. modulgebundene Module zuerst, „Allgemein" zuletzt). */
+function gruppiereNachModul(typen: EreignisTyp[]): [string, EreignisTyp[]][] {
+  const gruppen = new Map<string, EreignisTyp[]>();
+  for (const t of typen) {
+    const liste = gruppen.get(t.modul_label) ?? [];
+    liste.push(t);
+    gruppen.set(t.modul_label, liste);
+  }
+  return [...gruppen.entries()];
+}
+
 /** Benachrichtigungskanäle einer Person (Admin-Menü, in der Personal-Detailseite).
  * Selbstständige Komponente – lädt Registry + gespeicherte Kanäle für personId. */
 export function PersonKanaele({ personId, personEmail }: { personId: number; personEmail?: string | null }) {
@@ -120,20 +132,29 @@ export function PersonKanaele({ personId, personEmail }: { personId: number; per
       <h3>Welche Benachrichtigungen?</h3>
       <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem", marginTop: 0 }}>
         Nur abonnierte Ereignisse werden über die aktiven Kanäle oben zugestellt.
+        Angeboten werden nur Ereignisse aktivierter Module.
       </p>
-      {ereignisTypen.map((e) => (
-        <label key={e.key} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-          <input
-            type="checkbox"
-            checked={abos.has(e.key)}
-            onChange={(ev) => aboUmschalten(e.key, ev.target.checked)}
-          />
-          {e.label}
-        </label>
+      {gruppiereNachModul(ereignisTypen).map(([modulLabel, typen]) => (
+        <div key={modulLabel} style={{ marginBottom: 10 }}>
+          <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 4 }}>{modulLabel}</div>
+          {typen.map((e) => (
+            <label
+              key={e.key}
+              style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, marginLeft: 8 }}
+            >
+              <input
+                type="checkbox"
+                checked={abos.has(e.key)}
+                onChange={(ev) => aboUmschalten(e.key, ev.target.checked)}
+              />
+              {e.label}
+            </label>
+          ))}
+        </div>
       ))}
 
       {hinweis && (
-        <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>{hinweis}</p>
+        <p className="hinweistext">{hinweis}</p>
       )}
     </div>
   );

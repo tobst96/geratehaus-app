@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useRef, useState } from "react";
 import { fahrzeugAktualisieren } from "../../api/moderator";
 import { ApiError } from "../../api/client";
@@ -176,7 +177,7 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
         onClick={(e) => e.stopPropagation()}
       >
         <h2>Sitzplätze: {fahrzeug.name}</h2>
-        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+        <p className="hinweistext">
           Vorlage wählen, dann Sitzplätze per Ziehen positionieren. Klick auf freie Fläche fügt einen
           neuen Sitzplatz hinzu, Klick auf einen Sitzplatz erlaubt Umbenennen/Löschen.
         </p>
@@ -268,7 +269,7 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
           </div>
         )}
 
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
         <div style={{ marginTop: "1.5rem", display: "flex", gap: 8, justifyContent: "flex-end" }}>
           <button type="button" className="sekundaer" onClick={onClose}>

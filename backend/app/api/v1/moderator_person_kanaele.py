@@ -66,9 +66,18 @@ async def kanal_loeschen(db: DbSession, person_id: int, typ: str) -> None:
 
 
 @router.get("/ereignis-typen", response_model=list[EreignisTypOut])
-async def ereignis_typen() -> list[EreignisTypOut]:
-    """Abonnierbare Ereignistypen (Registry) für die Abo-UI."""
-    return [EreignisTypOut(key=e.key, label=e.label) for e in kanal_service.EREIGNIS_TYPEN]
+async def ereignis_typen(db: DbSession) -> list[EreignisTypOut]:
+    """Abonnierbare Ereignistypen für die Abo-UI – modulgebundene nur für
+    *aktivierte* Module, jeweils mit Modul-Zuordnung für die Gruppierung."""
+    return [
+        EreignisTypOut(
+            key=e.key,
+            label=e.label,
+            modul=e.modul,
+            modul_label=kanal_service.MODUL_LABEL.get(e.modul, "Allgemein"),
+        )
+        for e in await kanal_service.verfuegbare_ereignis_typen(db)
+    ]
 
 
 @router.get("/personen/benachrichtigungs-uebersicht", response_model=list[PersonBenachrichtigungOut])

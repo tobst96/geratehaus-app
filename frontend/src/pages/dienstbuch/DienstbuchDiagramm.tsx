@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import {
@@ -16,6 +17,7 @@ import {
   type PersonIdentifikationHandle,
 } from "../../components/PersonIdentifikation";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
+import { formatiereDatumZeit, formatiereZeit } from "../../utils/datum";
 import type { DienstbuchOut, Gruppe, TeilnehmerOut } from "../../api/types";
 import "./DienstbuchDiagramm.css";
 
@@ -176,7 +178,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
         <div className="dienstbuch-diagramm-spalte">
           <div className="karte">
             <h3 style={{ marginTop: 0 }}>Dienstbuchdetails</h3>
-            <p>Eröffnet am: {new Date(dienstbuch.eroeffnet_am).toLocaleString("de-DE")}</p>
+            <p>Eröffnet am: {formatiereDatumZeit(dienstbuch.eroeffnet_am)}</p>
             {dienstbuch.notizen && <p>{dienstbuch.notizen}</p>}
             <p>{dienstbuch.teilnehmer.length} Teilnehmer</p>
           </div>
@@ -188,7 +190,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
 
             {qrAnsicht ? (
               <div className="dienstbuch-qr-ansicht">
-                <p style={{ color: "var(--farbe-text-mute)" }}>
+                <p className="text-mute">
                   Mit dem Handy scannen – die Person trägt sich dort selbst ein (ohne Barcode).
                 </p>
                 <div
@@ -220,8 +222,8 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
                     </div>
                   )}
                 </div>
-                <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
-                  Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
+                <p className="hinweis-klein">
+                  Gültig bis {formatiereZeit(qrAnsicht.ablaufAm)}
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
@@ -234,7 +236,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
                 <div className="dienstbuch-scan-felder">
                   <div className="formular-feld">
                     {mitgliedModus.aktiv ? (
-                      <p style={{ color: "var(--farbe-text-mute)" }}>
+                      <p className="text-mute">
                         Eingeloggt als <strong>{mitgliedModus.name}</strong>
                       </p>
                     ) : (
@@ -267,8 +269,8 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
                     </select>
                   </div>
 
-                  {fehler && <p className="fehlertext">{fehler}</p>}
-                  {qrFehler && <p className="fehlertext">{qrFehler}</p>}
+                  {fehler && <Fehlertext>{fehler}</Fehlertext>}
+                  {qrFehler && <Fehlertext>{qrFehler}</Fehlertext>}
 
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     <button type="submit" disabled={laeuft}>
@@ -292,7 +294,7 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
 
           <div className="karte">
             <h3 style={{ marginTop: 0 }}>Teilnehmer ({dienstbuch.teilnehmer.length})</h3>
-            {dienstbuch.teilnehmer.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Noch niemand eingetragen.</p>}
+            {dienstbuch.teilnehmer.length === 0 && <p className="text-mute">Noch niemand eingetragen.</p>}
             <ul className="dienstbuch-teilnehmer-liste">
               {dienstbuch.teilnehmer.map((t) => (
                 <TeilnehmerZeile

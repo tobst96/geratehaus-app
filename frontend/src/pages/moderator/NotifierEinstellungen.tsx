@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import { holeEinstellungen, schreibeEinstellungen, sendeTestmail } from "../../api/moderator";
 import { ApiError } from "../../api/client";
@@ -160,7 +161,7 @@ export function NotifierEinstellungen() {
       <h1>Benachrichtigungen konfigurieren</h1>
       <p>Stelle hier Telegram, Email und Web Push ein – ganz ohne .env!</p>
 
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {gespeichert && <Banner art="erfolg">Konfiguration gespeichert</Banner>}
 
       <form onSubmit={speichern}>
@@ -268,7 +269,7 @@ export function NotifierEinstellungen() {
               placeholder="moderator@example.com"
               disabled={!config.email_enabled}
             />
-            <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+            <p className="hinweistext">
               Nur für die Testmail unten. Echte Benachrichtigungen gehen an die Personen, die das
               in ihren Stammdaten (Personal) individuell aktiviert haben.
             </p>
@@ -378,7 +379,7 @@ export function NotifierEinstellungen() {
               placeholder="mailto:admin@example.org"
               disabled={!config.webpush_enabled}
             />
-            <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+            <p className="hinweistext">
               Generiere Keys mit: <code>webpush generate-vapid-keys</code>
             </p>
           </div>
@@ -386,7 +387,7 @@ export function NotifierEinstellungen() {
 
         <div className="karte">
           <h2>🔔 Welche Ereignisse benachrichtigen?</h2>
-          <p style={{ color: "var(--farbe-text-mute)" }}>
+          <p className="text-mute">
             Legt fest, bei welchen Ereignissen überhaupt eine Benachrichtigung verschickt wird.
           </p>
           {EREIGNISSE.map((e) => (

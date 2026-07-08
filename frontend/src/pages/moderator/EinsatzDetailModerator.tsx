@@ -1,4 +1,6 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
+import { formatiereDatumZeit } from "../../utils/datum";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   holeEinsatz,
@@ -105,7 +107,7 @@ export function EinsatzDetailModerator() {
     }
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!einsatz) return <Ladeanzeige />;
 
   function sitzplatzBezeichnung(fahrzeugId: number | null, sitzplatzId: string | null): string {
@@ -123,7 +125,7 @@ export function EinsatzDetailModerator() {
       <h1>{einsatz.titel}</h1>
       <div className="einsatz-status-zeile">
         <p style={{ color: "var(--farbe-text-mute)", margin: 0 }}>
-          {new Date(einsatz.zeitpunkt).toLocaleString("de-DE")} · {einsatz.quelle}
+          {formatiereDatumZeit(einsatz.zeitpunkt)} · {einsatz.quelle}
         </p>
         <span
           className={`einsatz-status-badge einsatz-status-badge-${einsatz.status}`}
@@ -195,7 +197,7 @@ export function EinsatzDetailModerator() {
                       <td>
                         <strong>{f.label}</strong>
                       </td>
-                      <td style={{ color: "var(--farbe-text-mute)" }}>–</td>
+                      <td className="text-mute">–</td>
                     </tr>
                   );
                 }
@@ -235,7 +237,7 @@ export function EinsatzDetailModerator() {
         <tbody>
           {einsatz.teilnahmen.length === 0 && (
             <tr>
-              <td colSpan={11} style={{ color: "var(--farbe-text-mute)" }}>
+              <td colSpan={11} className="text-mute">
                 Keine Teilnehmer eingetragen.
               </td>
             </tr>
@@ -251,7 +253,7 @@ export function EinsatzDetailModerator() {
               <td>{t.nur_geraetehaus ? "Ja" : ""}</td>
               <td>{t.auf_anfahrt ? "Ja" : ""}</td>
               <td>{t.ohne_barcode ? "Ja" : ""}</td>
-              <td title={t.eintragung_user_agent ?? ""} style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
+              <td title={t.eintragung_user_agent ?? ""} className="hinweis-klein">
                 {t.eintragung_ip ?? ""}
               </td>
               <td>{t.bemerkung ?? ""}</td>
@@ -262,7 +264,7 @@ export function EinsatzDetailModerator() {
       </div>
 
       <h2>Timeline</h2>
-      {timeline.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Ereignisse protokolliert.</p>}
+      {timeline.length === 0 && <p className="text-mute">Noch keine Ereignisse protokolliert.</p>}
       {timeline.length > 0 && (
         <div className="timeline">
           {timeline.map((ereignis) => (
@@ -279,7 +281,7 @@ export function EinsatzDetailModerator() {
                 {EREIGNIS_ICON[ereignis.typ] ?? "•"}
               </div>
               <div className="timeline-zeit">
-                {new Date(ereignis.zeitpunkt).toLocaleString("de-DE")}
+                {formatiereDatumZeit(ereignis.zeitpunkt)}
               </div>
               <div
                 className={`timeline-text ${

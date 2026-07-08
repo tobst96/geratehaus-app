@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import DbSession
+from app.core import datei_token
 from app.core.rate_limit import rate_limit
 from app.schemas.dienststunden import DienststundenEintragOut
 from app.schemas.dienststunden_reservierung import (
@@ -8,7 +9,7 @@ from app.schemas.dienststunden_reservierung import (
     DienststundenReservierungInfo,
     DienststundenReservierungVorschauSetzen,
 )
-from app.schemas.person import PersonOut
+from app.schemas.reservierung import ReservierungPerson
 from app.services import dienststunden_reservierung_service, stammdaten_service
 
 router = APIRouter(prefix="/dienststunden-reservierungen", tags=["dienststunden-reservierungen"])
@@ -28,7 +29,7 @@ async def reservierung_info(db: DbSession, token: str) -> DienststundenReservier
         vorschau_person = await stammdaten_service.get_person(db, reservierung.vorschau_person_id)
         if vorschau_person is not None:
             vorschau_person_name = vorschau_person.name
-            vorschau_bild_url = vorschau_person.bild_url
+            vorschau_bild_url = datei_token.signierte_url(vorschau_person.bild_url)
 
     return DienststundenReservierungInfo(
         abgelaufen=dienststunden_reservierung_service.ist_abgelaufen(reservierung),
@@ -59,8 +60,8 @@ async def reservierung_vorschau_setzen(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
-@router.get("/{token}/personen", response_model=list[PersonOut])
-async def reservierung_personen(db: DbSession, token: str) -> list[PersonOut]:
+@router.get("/{token}/personen", response_model=list[ReservierungPerson])
+async def reservierung_personen(db: DbSession, token: str) -> list[ReservierungPerson]:
     reservierung = await dienststunden_reservierung_service.get_reservierung_by_token(db, token)
     if reservierung is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
@@ -68,7 +69,7 @@ async def reservierung_personen(db: DbSession, token: str) -> list[PersonOut]:
     return await stammdaten_service.personen_zu_out(db, personen)
 
 
-@router.post("/{token}/einloesen", response_model=DienststundenEintragOut)
+@router.post("/{token}/einloesen", response_model=DienststundenEintragOut, dependencies=[Depends(rate_limit(20, 60))])
 async def reservierung_einloesen(
     db: DbSession, token: str, daten: DienststundenReservierungEinloesen
 ) -> DienststundenEintragOut:

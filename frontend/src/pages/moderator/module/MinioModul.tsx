@@ -1,4 +1,6 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useRef, useState } from "react";
+import { formatiereDatumZeit } from "../../../utils/datum";
 import { Link } from "react-router-dom";
 import {
   browseMinio,
@@ -133,7 +135,7 @@ export function MinioModul() {
     }
   }
 
-  if (!einst) return fehler ? <p className="fehlertext">{fehler}</p> : <Ladeanzeige />;
+  if (!einst) return fehler ? <Fehlertext>{fehler}</Fehlertext> : <Ladeanzeige />;
 
   return (
     <div>
@@ -141,22 +143,22 @@ export function MinioModul() {
         <Link to="/moderator/module">← Zurück zu den Modulen</Link>
       </p>
       <h1>MinIO</h1>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Objektspeicher (MinIO oder S3-kompatibel). Ist dieses Modul aktiv, werden erzeugte Dokumente
         automatisch abgelegt (Einsätze als Ordner je Einsatz, Dienstbücher flach) und das Backup-Modul
         kann „MinIO Backup" nutzen. Das Modul lässt sich unter „Module" an-/abschalten.
       </p>
-      {fehler && <p className="fehlertext">{fehler}</p>}
-      {meldung && <p style={{ color: "var(--farbe-text-mute)" }}>{meldung}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
+      {meldung && <p className="text-mute">{meldung}</p>}
 
       {/* --- Dateibrowser (läuft über die App, kein Port-Öffnen nötig) --- */}
       <div className="karte">
         <h2>Dateibrowser</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Buckets und Dateien direkt hier ansehen, hoch- und herunterladen – ohne den MinIO-Port zu
           öffnen.
         </p>
-        {browserFehler && <p className="fehlertext">{browserFehler}</p>}
+        {browserFehler && <Fehlertext>{browserFehler}</Fehlertext>}
 
         <div className="formular-feld" style={{ maxWidth: 320 }}>
           <label htmlFor="bucketsel">Bucket</label>
@@ -209,7 +211,7 @@ export function MinioModul() {
               <button type="button" onClick={() => uploadInput.current?.click()}>
                 Datei hochladen
               </button>
-              <span style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+              <span className="hinweistext">
                 lädt in den aktuellen Ordner ({prefix || "Wurzel"})
               </span>
             </div>
@@ -242,7 +244,7 @@ export function MinioModul() {
                       <tr key={d.key}>
                         <td>📄 {basisname(d.key)}</td>
                         <td>{groesse(d.groesse)}</td>
-                        <td>{new Date(d.geaendert).toLocaleString("de-DE")}</td>
+                        <td>{formatiereDatumZeit(d.geaendert)}</td>
                         <td style={{ whiteSpace: "nowrap" }}>
                           <button type="button" className="sekundaer" onClick={() => ladeMinioObjekt(bucket, d.key)}>
                             Download
@@ -255,7 +257,7 @@ export function MinioModul() {
                     ))}
                     {inhalt.ordner.length === 0 && inhalt.dateien.length === 0 && (
                       <tr>
-                        <td colSpan={4} style={{ color: "var(--farbe-text-mute)" }}>
+                        <td colSpan={4} className="text-mute">
                           Leer.
                         </td>
                       </tr>
@@ -318,7 +320,7 @@ export function MinioModul() {
           <label htmlFor="bd">Dienstbücher (flach)</label>
           <input id="bd" value={einst.bucket_dienstbuecher} onChange={(e) => feld("bucket_dienstbuecher", e.target.value)} />
         </div>
-        <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+        <p className="hinweistext">
           Buckets werden bei Bedarf automatisch angelegt.
         </p>
       </div>
@@ -339,7 +341,7 @@ export function MinioModul() {
             MinIO-Konsole öffnen ↗
           </button>
         ) : (
-          <span style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+          <span className="hinweistext">
             Konsolen-URL eintragen &amp; speichern, um die MinIO-Oberfläche zu öffnen.
           </span>
         )}

@@ -7,12 +7,10 @@
     <title>Gerätehaus.app</title>
     <link rel="manifest" href="/api/v1/manifest.webmanifest" />
     <link rel="icon" href="/api/v1/standard-icon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Alata&family=Noto+Sans:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Schriften werden selbst gehostet (DSGVO: keine IP-Übertragung an Google,
+         funktioniert offline/LAN) statt von Google Fonts geladen. Pflege der
+         Dateien: frontend/public/fonts/ (siehe fonts.css). -->
+    <link href="/fonts/fonts.css" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>

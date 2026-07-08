@@ -19,10 +19,21 @@ Moderator-Freigabe. Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Login).
 - Neue Buchungsanfragen lösen (falls aktiviert) eine Benachrichtigung an die
   Moderatoren aus.
 
+## Externe Kalender (iCal)
+
+In der Modul-Unterseite lassen sich öffentliche **iCal-/webcal-URLs** hinterlegen
+(eine pro Zeile), z. B. ein geteilter Kalender oder ein Divera-Kalender. Deren
+Termine erscheinen im Buchungskalender als **nicht buchbare Fremdtermine**
+(grau/gestrichelt) und werden in die **Konfliktprüfung** einbezogen: Eine Buchung,
+die einen Fremdtermin überlappt, bleibt möglich, wird aber als Konflikt markiert.
+Nicht erreichbare Feeds werden übersprungen und blockieren die Buchung nie.
+
 ## Admin (Modul-Unterseite)
 
-An/Aus, „Auf Kiosk anzeigen", Außenzugriff und die Fahrzeugbuchungs-Einstellungen.
+An/Aus, „Auf Kiosk anzeigen", Außenzugriff, die Fahrzeugbuchungs-Einstellungen und
+die externen iCal-Kalender.
 
 ## Hinweis
 
-Überschneidende Buchungen werden erkannt; die Freigabe entscheidet ein Moderator.
+Überschneidende Buchungen (eigene wie externe) werden erkannt; die Freigabe
+entscheidet ein Moderator.

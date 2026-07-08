@@ -1,10 +1,13 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
+import { formatiereDatumZeit } from "../../utils/datum";
 import { useParams, Link } from "react-router-dom";
 import {
   holeDienstbuch,
   dienstbuchPdfUrl,
   dienstbuchSchliessen,
   dienstbuchWiederOeffnen,
+  dienstbuchRelevantSetzen,
 } from "../../api/dienstbuecher";
 import { ApiError } from "../../api/client";
 import type { DienstbuchOut } from "../../api/types";
@@ -58,7 +61,20 @@ export function DienstbuchDetailModerator() {
     }
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  async function relevantUmschalten() {
+    if (!dienstbuch) return;
+    setAendertStatus(true);
+    try {
+      await dienstbuchRelevantSetzen(dienstbuch.id, !dienstbuch.relevant);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Markierung fehlgeschlagen.");
+    } finally {
+      setAendertStatus(false);
+    }
+  }
+
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!dienstbuch) return <Ladeanzeige />;
 
   return (
@@ -69,10 +85,11 @@ export function DienstbuchDetailModerator() {
       <h1>{dienstbuch.titel}</h1>
       <div className="einsatz-status-zeile">
         <p style={{ color: "var(--farbe-text-mute)", margin: 0 }}>
-          {new Date(dienstbuch.eroeffnet_am).toLocaleString("de-DE")}
+          {formatiereDatumZeit(dienstbuch.eroeffnet_am)}
         </p>
         <span className="einsatz-status-badge">{dienstbuch.geschlossen ? "geschlossen" : "offen"}</span>
         {dienstbuch.archiviert && <span className="einsatz-status-badge">archiviert</span>}
+        {dienstbuch.relevant && <span className="einsatz-status-badge">★ relevant</span>}
       </div>
 
       <p style={{ marginTop: "1rem", display: "flex", gap: 12, alignItems: "center" }}>
@@ -89,6 +106,9 @@ export function DienstbuchDetailModerator() {
             {aendertStatus ? "Öffnet …" : "Dienstbuch wieder öffnen"}
           </button>
         )}
+        <button className="sekundaer" onClick={relevantUmschalten} disabled={aendertStatus}>
+          {dienstbuch.relevant ? "Relevant-Markierung entfernen" : "Als relevant markieren"}
+        </button>
       </p>
 
       {dienstbuch.notizen && (
@@ -111,7 +131,7 @@ export function DienstbuchDetailModerator() {
         <tbody>
           {dienstbuch.teilnehmer.length === 0 && (
             <tr>
-              <td colSpan={3} style={{ color: "var(--farbe-text-mute)" }}>
+              <td colSpan={3} className="text-mute">
                 Keine Teilnehmer eingetragen.
               </td>
             </tr>

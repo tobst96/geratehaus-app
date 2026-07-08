@@ -45,6 +45,7 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("modul_dienstbuch_aktiv", "true", ConfigTyp.BOOL, "Dienstbuch aktiv"),
     ConfigDefault("modul_dienststunden_aktiv", "true", ConfigTyp.BOOL, "Dienststunden aktiv"),
     ConfigDefault("modul_fahrzeugbuchung_aktiv", "true", ConfigTyp.BOOL, "Fahrzeugbuchung aktiv"),
+    ConfigDefault("modul_formular_aktiv", "false", ConfigTyp.BOOL, "Formular-Modul aktiv"),
     # Divera ist ein Feature-Modul (An/Aus), aber nicht mitgliederseitig – daher
     # keine _startseite/_aussenzugriff-Keys. Steuert, ob der Divera-Bereich
     # (Unterseite + Polling/Personal-Sync) überhaupt verfügbar ist.
@@ -61,12 +62,28 @@ DEFAULTS: list[ConfigDefault] = [
     # Intervall (Tage) für die Erinnerungsmail an Personen ohne gesetzten PIN
     # (nur relevant, wenn das Barcode-Modul AUS ist). Einstellbar im Modul Personal.
     ConfigDefault("pin_erinnerung_intervall_tage", "7", ConfigTyp.INT, "Intervall (Tage) der PIN-Erinnerungsmail"),
+    # Kiosk-Auto-Sperre: nach so vielen Sekunden Inaktivität springt das Kiosk-Tablet
+    # zurück zur Kiosk-Startseite (verhindert hängende Sitzungen). 0 = deaktiviert.
+    ConfigDefault("kiosk_autolock_sekunden", "0", ConfigTyp.INT, "Kiosk: Sekunden Inaktivität bis Rücksprung zur Startseite (0 = aus)"),
+    # Brute-Force-Schutz für den öffentlichen Name+PIN-Login: nach so vielen
+    # aufeinanderfolgenden Fehlversuchen wird der PIN-Login der betroffenen Person
+    # für die angegebene Dauer gesperrt (0 Fehlversuche = Sperre deaktiviert).
+    ConfigDefault("pin_max_fehlversuche", "5", ConfigTyp.INT, "PIN-Login: Fehlversuche bis zur Sperre (0 = aus)"),
+    ConfigDefault("pin_sperre_minuten", "15", ConfigTyp.INT, "PIN-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
+    # Aufbewahrungsfrist des Audit-Logs: Einträge, die älter sind, werden
+    # täglich automatisch gelöscht (Datenminimierung). 0 = keine Löschung.
+    ConfigDefault("audit_aufbewahrung_tage", "365", ConfigTyp.INT, "Audit-Log: Aufbewahrungsfrist in Tagen (0 = unbegrenzt)"),
+    # Brute-Force-Schutz für den Moderator-Login (analog PIN). Nach so vielen
+    # aufeinanderfolgenden Fehlversuchen wird der betroffene Zugang für die
+    # angegebene Dauer gesperrt (0 = Sperre aus; Sperre läuft automatisch ab).
+    ConfigDefault("moderator_login_max_fehlversuche", "5", ConfigTyp.INT, "Moderator-Login: Fehlversuche bis zur Sperre (0 = aus)"),
+    ConfigDefault("moderator_login_sperre_minuten", "15", ConfigTyp.INT, "Moderator-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
     # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
     # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
     # anhand der Registry ergänzt bzw. ignoriert.
     ConfigDefault(
         "modul_reihenfolge",
-        "personal,fahrzeuge,benachrichtigungen,kiosk,backup,minio,einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,divera,barcode",
+        "personal,fahrzeuge,benachrichtigungen,kiosk,backup,minio,einsatztagebuch,dienstbuch,dienststunden,fahrzeugbuchung,formular,divera,barcode",
         ConfigTyp.STR,
         "Reihenfolge der Feature-Module (kommagetrennte Keys)",
     ),
@@ -87,6 +104,9 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.BOOL,
         "Fahrzeugbuchung auf Startseite anzeigen",
     ),
+    ConfigDefault(
+        "modul_formular_startseite", "false", ConfigTyp.BOOL, "Formulare auf Startseite anzeigen"
+    ),
     # Außenzugriff: ob Mitglieder dieses Modul auch über den öffentlichen
     # Mitglieder-Login (außerhalb des Gerätehaus-Kiosks) nutzen dürfen.
     ConfigDefault(
@@ -100,6 +120,15 @@ DEFAULTS: list[ConfigDefault] = [
     ),
     ConfigDefault(
         "modul_fahrzeugbuchung_aussenzugriff", "false", ConfigTyp.BOOL, "Fahrzeugbuchung für Mitglieder-Login freigeben"
+    ),
+    ConfigDefault(
+        "fahrzeugbuchung_ical_urls",
+        "",
+        ConfigTyp.STR,
+        "Externe iCal-/webcal-URLs (eine pro Zeile) – Fremdtermine werden im Buchungskalender überlagert und in die Konfliktprüfung einbezogen",
+    ),
+    ConfigDefault(
+        "modul_formular_aussenzugriff", "false", ConfigTyp.BOOL, "Formulare für Mitglieder-Login freigeben"
     ),
     # Einsatztagebuch
     ConfigDefault(
@@ -126,6 +155,18 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.INT,
         "Minuten bis zum automatischen Abschluss, nachdem im Gerätehaus 'Alle eingetragen' geklickt wurde",
     ),
+    ConfigDefault(
+        "einsatz_statistik_offset",
+        "0",
+        ConfigTyp.INT,
+        "Startwert: bereits im laufenden Jahr abgearbeitete Einsätze vor App-Einführung (fließt in die Jahresstatistik ein)",
+    ),
+    ConfigDefault(
+        "einsatz_statistik_offset_jahr",
+        "0",
+        ConfigTyp.INT,
+        "Jahr, für das der Einsatz-Startwert gilt (0 = keiner)",
+    ),
     # Barcodes
     ConfigDefault(
         "barcode_gueltigkeit_tage",
@@ -147,6 +188,20 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.INT,
         "Tage ohne neuen Timeline-Eintrag, nach denen eine Person automatisch gelöscht wird "
         "(7 Tage vorher kommt eine Warn-Benachrichtigung). 0 = Funktion deaktiviert.",
+    ),
+    # Aktivitäts-Ampel Personal: Tage ohne Eintrag (Einsatz/Dienstbuch/Dienststunden,
+    # je nach aktivem Modul), ab denen die Personen-Kachel gelb bzw. rot wird.
+    ConfigDefault(
+        "personal_ampel_gelb_tage",
+        "30",
+        ConfigTyp.INT,
+        "Tage ohne relevanten Eintrag, ab denen die Personen-Ampel gelb wird. 0 = aus.",
+    ),
+    ConfigDefault(
+        "personal_ampel_rot_tage",
+        "60",
+        ConfigTyp.INT,
+        "Tage ohne relevanten Eintrag, ab denen die Personen-Ampel rot wird. 0 = aus.",
     ),
     # Divera 24/7
     ConfigDefault("divera_aktiv", "false", ConfigTyp.BOOL, "Divera-Anbindung aktiv"),
@@ -217,6 +272,18 @@ DEFAULTS: list[ConfigDefault] = [
         "true",
         ConfigTyp.BOOL,
         "Benachrichtigung, wenn eine inaktive Person bald automatisch gelöscht wird",
+    ),
+    ConfigDefault(
+        "benachrichtigung_person_ampel_gelb",
+        "true",
+        ConfigTyp.BOOL,
+        "Benachrichtigung, wenn eine Person die gelbe Aktivitäts-Ampel erreicht",
+    ),
+    ConfigDefault(
+        "benachrichtigung_person_ampel_rot",
+        "true",
+        ConfigTyp.BOOL,
+        "Benachrichtigung, wenn eine Person die rote Aktivitäts-Ampel erreicht",
     ),
     # Benachrichtigungskanäle (Zugangsdaten, ersetzt frühere .env-Werte)
     ConfigDefault("notifier_telegram_aktiv", "false", ConfigTyp.BOOL, "Telegram-Versand aktiv"),
@@ -315,6 +382,18 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.STR,
         "Text bei Inaktivitäts-Warnung. Platzhalter: {person}, {tage_inaktiv}",
     ),
+    ConfigDefault(
+        "benachrichtigung_text_person_ampel_gelb",
+        "{name} hatte seit {tage} Tagen keinen Einsatz, Dienst oder Dienststunden mehr (Ampel gelb).",
+        ConfigTyp.STR,
+        "Text bei gelber Aktivitäts-Ampel. Platzhalter: {name}, {tage}",
+    ),
+    ConfigDefault(
+        "benachrichtigung_text_person_ampel_rot",
+        "{name} hatte seit {tage} Tagen keinen Einsatz, Dienst oder Dienststunden mehr (Ampel rot).",
+        ConfigTyp.STR,
+        "Text bei roter Aktivitäts-Ampel. Platzhalter: {name}, {tage}",
+    ),
     # Setup
     ConfigDefault("setup_abgeschlossen", "false", ConfigTyp.BOOL, "Setup-Wizard abgeschlossen"),
     # Backup-Modul
@@ -326,6 +405,11 @@ DEFAULTS: list[ConfigDefault] = [
     ),
     ConfigDefault("backup_max_anzahl", "7", ConfigTyp.INT, "Maximale Anzahl aufbewahrter Backups je Ziel"),
     ConfigDefault("backup_passphrase", "", ConfigTyp.STR, "Passphrase zur Verschlüsselung der Backups"),
+    # Ergebnis der letzten automatischen Backup-Integritätsprüfung (read-only befüllt).
+    ConfigDefault("backup_integritaet_am", "", ConfigTyp.STR, "Zeitpunkt der letzten Backup-Integritätsprüfung (ISO)"),
+    ConfigDefault("backup_integritaet_ok", "", ConfigTyp.STR, "Ergebnis der letzten Prüfung (true/false/leer=unbekannt)"),
+    ConfigDefault("backup_integritaet_detail", "", ConfigTyp.STR, "Detailtext der letzten Backup-Integritätsprüfung"),
+    ConfigDefault("backup_integritaet_datei", "", ConfigTyp.STR, "Geprüfte Backup-Datei der letzten Integritätsprüfung"),
     ConfigDefault("backup_lokal_aktiv", "true", ConfigTyp.BOOL, "Backup-Ziel: lokaler Ordner/Mount aktiv"),
     ConfigDefault("backup_lokal_pfad", "/app/backups", ConfigTyp.STR, "Backup-Ziel: lokaler Ordner-Pfad"),
     ConfigDefault("backup_webdav_aktiv", "false", ConfigTyp.BOOL, "Backup-Ziel: WebDAV aktiv"),

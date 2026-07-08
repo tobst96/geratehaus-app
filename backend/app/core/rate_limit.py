@@ -14,15 +14,30 @@ from fastapi import HTTPException, Request, status
 _AUFRUFE: dict[str, list[float]] = defaultdict(list)
 
 
+def _endpunkt_muster(request: Request) -> str:
+    """Schlüssel-Basis pro Endpunkt: das **Routen-Muster** (z. B.
+    `/api/v1/reservierungen/{token}/einloesen`) statt des konkreten Pfads. Wichtig
+    für token-basierte Endpunkte – sonst wäre jeder geratene Token ein eigener
+    Zähler-Bucket und Brute-Force über viele Tokens bliebe ungebremst. Fällt auf
+    den konkreten Pfad zurück, wenn kein Route-Objekt vorliegt (z. B. in Tests)."""
+    scope = getattr(request, "scope", None)
+    if isinstance(scope, dict):
+        route = scope.get("route")
+        muster = getattr(route, "path_format", None)
+        if muster:
+            return muster
+    return request.url.path
+
+
 def rate_limit(max_aufrufe: int, fenster_sekunden: int):
     """Dependency-Factory: erlaubt maximal `max_aufrufe` Aufrufe pro Client-IP
-    innerhalb von `fenster_sekunden`, gruppiert nach Endpunkt-Namen (über den
-    Funktionsnamen des Aufrufers im Schlüssel, damit verschiedene Endpunkte
-    sich nicht gegenseitig blockieren)."""
+    innerhalb von `fenster_sekunden`, gruppiert nach Endpunkt-**Muster** (damit
+    verschiedene Endpunkte sich nicht gegenseitig blockieren und token-basierte
+    Endpunkte nicht pro Token einen eigenen Bucket bekommen)."""
 
     async def _check(request: Request) -> None:
         client_ip = request.client.host if request.client else "unbekannt"
-        schluessel = f"{request.url.path}:{client_ip}"
+        schluessel = f"{_endpunkt_muster(request)}:{client_ip}"
         jetzt = time.monotonic()
         verlauf = _AUFRUFE[schluessel]
         verlauf[:] = [t for t in verlauf if jetzt - t < fenster_sekunden]

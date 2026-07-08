@@ -1,3 +1,4 @@
+import { Fehlertext } from "./Fehlertext";
 import { useEffect, useState } from "react";
 import {
   diveraIgnorierteZuruecksetzen,
@@ -103,21 +104,7 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
   const emailUpdates = offene.filter((v) => v.art === "email_update");
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-      }}
-      onClick={onSchliessen}
-    >
+    <div className="modal-overlay" onClick={onSchliessen}>
       <div
         className="karte"
         style={{ width: 520, maxWidth: "92vw", maxHeight: "85vh", overflowY: "auto" }}
@@ -130,12 +117,12 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
           </button>
         </div>
 
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
         {vorschlaege === null ? (
           <Ladeanzeige />
         ) : offene.length === 0 ? (
-          <p style={{ color: "var(--farbe-text-mute)" }}>
+          <p className="text-mute">
             Keine offenen Vorschläge – Divera-Personal ist mit dem System synchron.
           </p>
         ) : (
@@ -194,7 +181,7 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
                     <div>
                       <strong>{String(v.vorschlag_daten.name ?? "")}</strong>
                       {v.art === "email_update" && (
-                        <div style={{ color: "var(--farbe-text-mute)" }}>E-Mail-Aktualisierung</div>
+                        <div className="text-mute">E-Mail-Aktualisierung</div>
                       )}
                     </div>
                     <button type="button" onClick={() => ignoriertHinzufuegen(v)} style={{ flexShrink: 0 }}>
@@ -228,12 +215,12 @@ function VorschlagKarte({
         {vorschlag.art === "neu" ? (
           <>
             <strong>{String(daten.name ?? "")}</strong>
-            {daten.email ? <div style={{ color: "var(--farbe-text-mute)" }}>{String(daten.email)}</div> : null}
+            {daten.email ? <div className="text-mute">{String(daten.email)}</div> : null}
           </>
         ) : (
           <>
             <strong>{String(daten.name ?? "")}</strong>
-            <div style={{ color: "var(--farbe-text-mute)" }}>
+            <div className="text-mute">
               „{String(daten.alte_email ?? "–")}“ → „{String(daten.neue_email ?? "")}“
             </div>
           </>

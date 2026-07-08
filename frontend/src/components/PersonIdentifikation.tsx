@@ -317,7 +317,7 @@ function PersonIdentifikationImpl(
 
       {gewaehlt && !gewaehlt.pin_gesetzt && (
         <div style={{ marginTop: 8 }}>
-          <p style={{ color: "var(--farbe-text-mute)" }}>
+          <p className="text-mute">
             Für <strong>{gewaehlt.name}</strong> ist noch kein PIN gesetzt.
           </p>
           <button type="button" className="sekundaer" onClick={pinLinkAnfordern} disabled={anfordernLaeuft}>

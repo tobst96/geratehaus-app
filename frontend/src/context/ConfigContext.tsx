@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { apiGet } from "../api/client";
 import type { OeffentlicheKonfiguration } from "../api/types";
+import { sentryInitialisieren } from "../sentry";
+import { setZeitzone } from "../utils/datum";
 
 interface ConfigContextValue {
   config: OeffentlicheKonfiguration | null;
@@ -11,6 +13,7 @@ interface ConfigContextValue {
 const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   organisation_name: "Meine Feuerwehr",
   oeffentliche_basis_url: "",
+  zeitzone: "Europe/Berlin",
   logo_url: "",
   logo_url_dark: "",
   farbe_primaer: "#FFA633",
@@ -21,15 +24,22 @@ const DEFAULT_KONFIG: OeffentlicheKonfiguration = {
   modul_dienstbuch_aktiv: true,
   modul_dienststunden_aktiv: true,
   modul_fahrzeugbuchung_aktiv: true,
+  modul_formular_aktiv: false,
   modul_barcode_aktiv: false,
+  kiosk_autolock_sekunden: 0,
   modul_einsatztagebuch_startseite: true,
   modul_dienstbuch_startseite: true,
   modul_dienststunden_startseite: true,
   modul_fahrzeugbuchung_startseite: false,
+  modul_formular_startseite: false,
   modul_einsatztagebuch_aussenzugriff: false,
   modul_dienstbuch_aussenzugriff: false,
   modul_dienststunden_aussenzugriff: false,
   modul_fahrzeugbuchung_aussenzugriff: false,
+  modul_formular_aussenzugriff: false,
+  fehlerberichte_aktiv: false,
+  sentry_dsn: "",
+  sentry_environment: "production",
 };
 
 const ConfigContext = createContext<ConfigContextValue>({
@@ -69,7 +79,10 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       .then((daten) => {
         if (abgebrochen) return;
         setConfig(daten);
+        setZeitzone(daten.zeitzone);
         farbenInjizieren(daten);
+        // Fehler-Monitoring initialisieren, sobald die Zustimmung/DSN bekannt ist.
+        sentryInitialisieren(daten);
         setLadeFehler(null);
       })
       .catch(() => {

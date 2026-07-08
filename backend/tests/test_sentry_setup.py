@@ -74,6 +74,34 @@ def test_sentry_umgebung_ungueltige_version_faellt_auf_production_zurueck():
     assert sentry_setup._sentry_umgebung("nicht-semver") == "production"
 
 
+def test_before_send_verwirft_behandeltes_backup_warning():
+    """Ein bereits behandelter Backup-Fehler (Fehler-Mail + Backup-Browser)
+    soll kein eigenes Sentry-Issue erzeugen."""
+    event = {"logentry": {"message": "backup_fehlgeschlagen dateiname=x.ghb fehler=404"}}
+    assert sentry_setup._before_send(event, {}) is None
+
+
+def test_before_send_laesst_andere_warnungen_durch():
+    event = {"logentry": {"message": "mail_versand_fehlgeschlagen empfaenger=a@b.de"}}
+    assert sentry_setup._before_send(event, {}) is event
+
+
+def test_before_send_laesst_exceptions_immer_durch():
+    # Echte Exceptions (exc_info im Hint) werden nie gefiltert.
+    event = {"logentry": {"message": "backup_fehlgeschlagen egal"}}
+    assert sentry_setup._before_send(event, {"exc_info": (None, None, None)}) is event
+
+
+def test_init_registriert_before_send(monkeypatch):
+    aufgerufen_mit = {}
+    monkeypatch.setattr(sentry_setup.settings, "sentry_dsn", None)
+    monkeypatch.setattr(
+        sentry_setup.sentry_sdk, "init", lambda **kwargs: aufgerufen_mit.update(kwargs)
+    )
+    sentry_setup.init_sentry_wenn_aktiviert(True)
+    assert aufgerufen_mit["before_send"] is sentry_setup._before_send
+
+
 def test_init_taggt_environment_und_release_nach_installierter_version(monkeypatch):
     aufgerufen_mit = {}
     monkeypatch.setattr(sentry_setup.settings, "sentry_dsn", None)

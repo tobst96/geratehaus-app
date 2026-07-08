@@ -1,9 +1,11 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   holeAlleFunktionenDienststunden,
   funktionDienststundenAnlegen,
   funktionDienststundenAktualisieren,
   funktionDienststundenLoeschen,
+  ladeFunktionStempelPdf,
 } from "../../../api/moderator";
 import { ApiError } from "../../../api/client";
 import type { FunktionDienststunden } from "../../../api/types";
@@ -55,7 +57,7 @@ export function FunktionenDienststundenVerwaltung() {
     await laden();
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!liste) return <Ladeanzeige />;
 
   return (
@@ -102,7 +104,15 @@ export function FunktionenDienststundenVerwaltung() {
               <td>
                 <input type="checkbox" checked={f.aktiv} onChange={(e) => aktivAendern(f, e.target.checked)} />
               </td>
-              <td>
+              <td style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  className="sekundaer"
+                  title="QR-Poster zum Aushängen (Scan → Login → Stunden für heute)"
+                  onClick={() => ladeFunktionStempelPdf(f.id, f.name)}
+                >
+                  QR-PDF
+                </button>
                 <button className="sekundaer" onClick={() => loeschen(f.id)}>
                   Löschen
                 </button>

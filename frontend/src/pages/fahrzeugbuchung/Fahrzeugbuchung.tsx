@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import { useAuth } from "../../context/AuthContext";
@@ -5,6 +6,7 @@ import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import {
   holeBuchungen,
+  holeExterneTermine,
   buchungAnfrage,
   buchungZurueckziehen,
   fahrzeugbuchungReservierungAnlegen,
@@ -19,7 +21,9 @@ import {
 } from "../../components/PersonIdentifikation";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
-import type { BuchungOut, Fahrzeug } from "../../api/types";
+import { SeitenFehler } from "../../components/SeitenFehler";
+import { formatiereDatumZeit, formatiereZeit } from "../../utils/datum";
+import type { BuchungOut, ExternerTermin, Fahrzeug } from "../../api/types";
 import "../dienststunden/Dienststunden.css";
 
 function jetztAlsDatetimeLocal(minutenSpaeter = 0): string {
@@ -45,6 +49,7 @@ export function Fahrzeugbuchung() {
   const mitgliedModus = useMitgliedModus();
   const identRef = useRef<PersonIdentifikationHandle>(null);
   const [buchungen, setBuchungen] = useState<BuchungOut[] | null>(null);
+  const [externeTermine, setExterneTermine] = useState<ExternerTermin[]>([]);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
   const [hinweis, setHinweis] = useState<string | null>(null);
@@ -123,8 +128,18 @@ export function Fahrzeugbuchung() {
 
   async function laden() {
     try {
-      const [b, f] = await Promise.all([holeBuchungen(), holeFahrzeuge()]);
+      // Fremdtermine für ein breites Fenster um heute (deckt die üblichen
+      // Kalenderansichten ab, ohne bei jeder Navigation neu zu laden).
+      const jetzt = new Date();
+      const von = new Date(jetzt.getTime() - 31 * 24 * 3600 * 1000).toISOString();
+      const bis = new Date(jetzt.getTime() + 92 * 24 * 3600 * 1000).toISOString();
+      const [b, f, ext] = await Promise.all([
+        holeBuchungen(),
+        holeFahrzeuge(),
+        holeExterneTermine(von, bis).catch(() => [] as ExternerTermin[]),
+      ]);
       setBuchungen(b);
+      setExterneTermine(ext);
       setFahrzeuge(f.filter((x) => x.buchbar));
       if (!fahrzeugId && f.length > 0) setFahrzeugId(String(f[0].id));
     } catch (err) {
@@ -186,7 +201,7 @@ export function Fahrzeugbuchung() {
     }
   }
 
-  if (fehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {fehler}</div>;
+  if (fehler) return <SeitenFehler nachricht={fehler} onRetry={laden} />;
   if (!buchungen) return <Ladeanzeige />;
 
   const eigeneAusstehende = buchungen.filter(
@@ -201,7 +216,7 @@ export function Fahrzeugbuchung() {
       {hinweis && <p className="karte">{hinweis}</p>}
       {formularOffen && qrAnsicht && (
         <div className="karte dienststunden-qr-ansicht">
-          <p style={{ color: "var(--farbe-text-mute)" }}>
+          <p className="text-mute">
             Mit dem Handy scannen – die Person trägt sich dort selbst ein (ohne Barcode).
           </p>
           <div
@@ -233,8 +248,8 @@ export function Fahrzeugbuchung() {
               </div>
             )}
           </div>
-          <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
-            Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
+          <p className="hinweis-klein">
+            Gültig bis {formatiereZeit(qrAnsicht.ablaufAm)}
           </p>
           <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
             Zurück zum Formular
@@ -266,7 +281,7 @@ export function Fahrzeugbuchung() {
             <input id="fb-zweck" value={zweck} onChange={(e) => setZweck(e.target.value)} required />
           </div>
           {mitgliedModus.aktiv ? (
-            <p style={{ color: "var(--farbe-text-mute)" }}>
+            <p className="text-mute">
               Eingeloggt als <strong>{mitgliedModus.name}</strong>
             </p>
           ) : (
@@ -274,7 +289,7 @@ export function Fahrzeugbuchung() {
               <PersonIdentifikation ref={identRef} autoFocus />
             </div>
           )}
-          {qrFehler && <p className="fehlertext">{qrFehler}</p>}
+          {qrFehler && <Fehlertext>{qrFehler}</Fehlertext>}
           <button type="submit" disabled={laeuft}>
             {laeuft ? "Wird gestellt…" : "Anfrage stellen"}
           </button>{" "}
@@ -294,8 +309,8 @@ export function Fahrzeugbuchung() {
           <h2>Meine ausstehenden Anfragen</h2>
           {eigeneAusstehende.map((b) => (
             <div key={b.id} style={{ marginBottom: 8 }}>
-              {b.fahrzeug_name}: {new Date(b.von).toLocaleString("de-DE")} –{" "}
-              {new Date(b.bis).toLocaleString("de-DE")} ({b.zweck}){" "}
+              {b.fahrzeug_name}: {formatiereDatumZeit(b.von)} –{" "}
+              {formatiereDatumZeit(b.bis)} ({b.zweck}){" "}
               <button className="sekundaer" onClick={() => zurueckziehen(b.id)}>
                 Zurückziehen
               </button>
@@ -304,7 +319,7 @@ export function Fahrzeugbuchung() {
         </div>
       )}
 
-      <BuchungsKalender buchungen={buchungen} />
+      <BuchungsKalender buchungen={buchungen} externeTermine={externeTermine} />
     </div>
   );
 }

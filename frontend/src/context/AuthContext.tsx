@@ -1,11 +1,13 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
-import { apiPost, getModeratorToken, setModeratorToken } from "../api/client";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { getModeratorToken, setModeratorToken } from "../api/client";
 import {
   barcodeEinscannen as barcodeEinscannenApi,
   mitgliedAbmelden as mitgliedAbmeldenApi,
+  moderator2fa,
   moderatorLogin,
   namePinLogin,
 } from "../api/auth";
+import { holeMeineBerechtigungen } from "../api/meta";
 
 const NAME_SPEICHER_KEY = "angezeigter_name";
 
@@ -25,7 +27,6 @@ function rolleAusToken(token: string | null): string | null {
 
 interface AuthContextValue {
   angezeigterName: string | null;
-  namenEintragen: (name: string) => Promise<void>;
   barcodeEinscannen: (token: string) => Promise<string>;
   barcodeEinscannenEinmalig: (token: string) => Promise<string>;
   nameLoginEinmalig: (personId: number, pin: string) => Promise<string>;
@@ -35,7 +36,19 @@ interface AuthContextValue {
   kioskScanBeenden: () => Promise<void>;
   moderatorAngemeldet: boolean;
   moderatorRolle: string | null;
-  moderatorAnmelden: (username: string, passwort: string) => Promise<void>;
+  /** True, sobald die eigenen Modul-Rechte geladen wurden (Guards warten darauf). */
+  berechtigungenGeladen: boolean;
+  /** Ob der angemeldete Moderator auf ein Modul zugreifen darf (Admin: immer true). */
+  hatModulZugriff: (modulKey: string) => boolean;
+  moderatorAnmelden: (
+    username: string,
+    passwort: string
+  ) => Promise<{ zweiFaktorErforderlich: boolean; challenge: string | null }>;
+  moderator2faAbschliessen: (
+    challenge: string,
+    code: string,
+    angemeldetBleiben: boolean
+  ) => Promise<void>;
   moderatorAbmelden: () => void;
   mitgliedAbmelden: () => Promise<void>;
 }
@@ -52,11 +65,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [moderatorRolle, setModeratorRolle] = useState<string | null>(
     rolleAusToken(getModeratorToken())
   );
+  // Eigene Modul-Rechte (Keys). null = noch nicht geladen. Admins bekommen vom
+  // Backend alle Keys, sodass hatModulZugriff für sie stets true ist.
+  const [modulRechte, setModulRechte] = useState<Set<string> | null>(null);
 
-  async function namenEintragen(name: string): Promise<void> {
-    await apiPost<void>("/auth/name", { name });
-    localStorage.setItem(NAME_SPEICHER_KEY, name);
-    setAngezeigterName(name);
+  // Rechte laden, sobald ein Moderator angemeldet ist (und beim Abmelden leeren).
+  useEffect(() => {
+    let aktiv = true;
+    if (!moderatorAngemeldet) {
+      setModulRechte(null);
+      return;
+    }
+    holeMeineBerechtigungen()
+      .then((r) => {
+        if (aktiv) setModulRechte(new Set(r.keys));
+      })
+      .catch(() => {
+        if (aktiv) setModulRechte(new Set());
+      });
+    return () => {
+      aktiv = false;
+    };
+  }, [moderatorAngemeldet]);
+
+  function hatModulZugriff(modulKey: string): boolean {
+    // Admin-Bypass zusätzlich zur (ohnehin alle Keys enthaltenden) Backend-Antwort,
+    // damit die UI schon vor dem Laden der Rechte für Admins vollständig ist.
+    if (moderatorRolle === "admin") return true;
+    return modulRechte?.has(modulKey) ?? false;
   }
 
   async function barcodeEinscannen(token: string): Promise<string> {
@@ -95,11 +131,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await mitgliedAbmeldenApi();
   }
 
-  async function moderatorAnmelden(username: string, passwort: string): Promise<void> {
-    const token = await moderatorLogin(username, passwort);
-    setModeratorToken(token.access_token);
+  function sitzungSetzen(accessToken: string): void {
+    setModeratorToken(accessToken);
     setModeratorAngemeldet(true);
-    setModeratorRolle(rolleAusToken(token.access_token));
+    setModeratorRolle(rolleAusToken(accessToken));
+  }
+
+  /** Login Schritt 1. Liefert `{ zweiFaktorErforderlich, challenge }`: ist 2FA
+   * nötig, muss der Aufrufer `moderator2faAbschliessen` mit dem Code aufrufen. */
+  async function moderatorAnmelden(
+    username: string,
+    passwort: string
+  ): Promise<{ zweiFaktorErforderlich: boolean; challenge: string | null }> {
+    const ergebnis = await moderatorLogin(username, passwort);
+    if (ergebnis.access_token) {
+      sitzungSetzen(ergebnis.access_token);
+      return { zweiFaktorErforderlich: false, challenge: null };
+    }
+    return { zweiFaktorErforderlich: ergebnis.zwei_faktor_erforderlich, challenge: ergebnis.challenge };
+  }
+
+  async function moderator2faAbschliessen(
+    challenge: string,
+    code: string,
+    angemeldetBleiben: boolean
+  ): Promise<void> {
+    const ergebnis = await moderator2fa(challenge, code, angemeldetBleiben);
+    if (!ergebnis.access_token) throw new Error("Kein Token erhalten.");
+    sitzungSetzen(ergebnis.access_token);
   }
 
   function moderatorAbmelden(): void {
@@ -121,7 +180,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         angezeigterName,
-        namenEintragen,
         barcodeEinscannen,
         barcodeEinscannenEinmalig,
         nameLoginEinmalig,
@@ -129,7 +187,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         kioskScanBeenden,
         moderatorAngemeldet,
         moderatorRolle,
+        berechtigungenGeladen: modulRechte !== null || moderatorRolle === "admin",
+        hatModulZugriff,
         moderatorAnmelden,
+        moderator2faAbschliessen,
         moderatorAbmelden,
         mitgliedAbmelden,
       }}

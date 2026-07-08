@@ -6,7 +6,10 @@ Zentrale Konfiguration, **wie** und **worüber** die App benachrichtigt. Interne
 ## Kanäle (Transport)
 
 - **E-Mail (SMTP)**: Host, Port, Benutzer, Passwort, TLS, Absender und
-  Empfänger-Liste (Admins). „Testmail senden".
+  Empfänger-Liste (Admins). „Testmail senden". Admin-/Betriebs-Mails
+  (Buchungsanfragen, Backup-Status) lassen sich zusätzlich **pro Moderatoren-Zugang**
+  abonnieren (Einstellungen → Moderatoren, Spalte „Benachrichtigungen") – zusätzlich
+  zur globalen Empfänger-Liste.
 - **Telegram**: Bot-Token + Chat-IDs.
 - **Web Push (VAPID)**: für Browser-Push (Public/Private Key, Subject).
 - Jeder Kanal ist einzeln an-/abschaltbar (Standard: aus).
@@ -21,6 +24,8 @@ wird:
 - Neue Buchungsanfrage
 - Dienststunden-Schwellenwert überschritten
 - Person inaktiv (wird bald gelöscht)
+- Person überfällig – Aktivitäts-Ampel gelb
+- Person überfällig – Aktivitäts-Ampel rot
 
 Zusätzlich: **PDF bei Einsatz-/Dienstbuch-Abschluss** an die Abonnenten anhängen.
 
@@ -31,7 +36,8 @@ Eine Mail kommt nur an, wenn **alle drei** Ebenen passen:
 2. **Pro Person**: „Benachrichtigungen aktiv" (Haupt-Schalter im Personal‑Modul)
    und eine hinterlegte E‑Mail.
 3. **Abos**: Hat die Person das Ereignis abonniert (Personal‑Detailseite,
-   „Welche Benachrichtigungen?")?
+   „Welche Benachrichtigungen?")? Dort werden – nach Modul gruppiert – **nur
+   Ereignisse aktivierter Module** angeboten.
 
 Der **E‑Mail‑Kanal einer Person nutzt automatisch deren E‑Mail‑Adresse** – es wird
 keine zweite Adresse gepflegt.

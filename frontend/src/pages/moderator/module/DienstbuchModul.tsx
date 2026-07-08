@@ -1,8 +1,11 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState } from "react";
+import { Gespeichert } from "../../../components/Gespeichert";
 import { Link } from "react-router-dom";
 import { holeEinstellungen, schreibeEinstellungen } from "../../../api/moderator";
 import { ApiError } from "../../../api/client";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";
+import { DienstbuchFelderVerwaltung } from "../verwaltung/DienstbuchFelderVerwaltung";
 
 export function DienstbuchModul() {
   const [geladen, setGeladen] = useState(false);
@@ -42,7 +45,7 @@ export function DienstbuchModul() {
     }
   }
 
-  if (fehler && !geladen) return <p className="fehlertext">{fehler}</p>;
+  if (fehler && !geladen) return <Fehlertext>{fehler}</Fehlertext>;
   if (!geladen) return <Ladeanzeige />;
 
   return (
@@ -80,8 +83,13 @@ export function DienstbuchModul() {
         <button onClick={speichern} disabled={speichert}>
           {speichert ? "Speichert …" : "Speichern"}
         </button>
-        {gespeichert && <span style={{ marginLeft: 10, color: "var(--farbe-text-mute)" }}>✓ gespeichert</span>}
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {gespeichert && <Gespeichert />}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
+      </div>
+
+      <div className="karte">
+        <h2>Zusatzfelder</h2>
+        <DienstbuchFelderVerwaltung />
       </div>
     </div>
   );

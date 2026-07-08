@@ -17,6 +17,12 @@ from app.services import notifier_service, stammdaten_service
 logger = structlog.get_logger(__name__)
 
 
+async def get_funktion(db: AsyncSession, funktion_id: int) -> FunktionDienststunden | None:
+    return (
+        await db.execute(select(FunktionDienststunden).where(FunktionDienststunden.id == funktion_id))
+    ).scalar_one_or_none()
+
+
 async def funktion_existiert_und_aktiv(db: AsyncSession, funktion_id: int) -> bool:
     result = await db.execute(
         select(FunktionDienststunden).where(

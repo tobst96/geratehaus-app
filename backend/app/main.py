@@ -1,30 +1,37 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.types import Scope
 
 from app.api.v1 import (
     auth,
     buchung_aktionen,
     buchungen,
+    csp_report,
     dienstbuch_reservierungen,
     dienstbuecher,
     dienststunden,
     dienststunden_reservierungen,
+    dienststunden_stempel,
     divera,
     einsaetze,
     fahrzeugbuchung_reservierungen,
+    formulare,
     manifest,
     mitglied_login_reservierungen,
+    moderator_audit,
     moderator_backup,
+    moderator_formular,
     moderator_barcodes,
     moderator_minio,
     moderator_berechtigungen,
     moderator_buchungen,
     moderator_dashboard,
     moderator_einstellungen,
+    moderator_konto,
     moderator_listen,
     moderator_meta,
     moderator_feature_module,
@@ -40,13 +47,14 @@ from app.api.v1 import (
     setup,
     stammdaten,
 )
+from app.core import datei_token
 from app.core.config import settings
 from app.core.logging_setup import konfiguriere_logging
 from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.sentry_setup import init_sentry_wenn_aktiviert
 from app.db.session import AsyncSessionLocal
 from app.jobs import scheduler
-from app.services import modul_service
+from app.services import modul_service, stammdaten_service
 from app.services.config_service import config_service
 
 konfiguriere_logging()
@@ -82,6 +90,10 @@ async def lifespan(app: FastAPI):
             if await _barcodes_vorhanden(db):
                 await config_service.set(db, "modul_barcode_aktiv", True)
             await config_service.set(db, "modul_barcode_migration_done", True)
+        # Einmalige, idempotente Umbenennung alter durchzählbarer Profilbild-Namen
+        # (person-<id>.<ext>) auf Zufallstoken, damit Profilbilder nicht per ID
+        # öffentlich abgezählt werden können.
+        await stammdaten_service.personenbilder_backfill(db)
         init_sentry_wenn_aktiviert(await config_service.get(db, "fehlerberichte_aktiv", False))
     scheduler.start()
     yield
@@ -117,13 +129,16 @@ app.include_router(dienstbuecher.router, prefix="/api/v1")
 app.include_router(dienstbuch_reservierungen.router, prefix="/api/v1")
 app.include_router(dienststunden.router, prefix="/api/v1")
 app.include_router(dienststunden_reservierungen.router, prefix="/api/v1")
+app.include_router(dienststunden_stempel.router, prefix="/api/v1")
 app.include_router(fahrzeugbuchung_reservierungen.router, prefix="/api/v1")
 app.include_router(buchungen.router, prefix="/api/v1")
 app.include_router(buchung_aktionen.router, prefix="/api/v1")
+app.include_router(moderator_audit.router, prefix="/api/v1")
 app.include_router(moderator_barcodes.router, prefix="/api/v1")
 app.include_router(moderator_backup.router, prefix="/api/v1")
 app.include_router(moderator_minio.router, prefix="/api/v1")
 app.include_router(moderator_einstellungen.router, prefix="/api/v1")
+app.include_router(moderator_konto.router, prefix="/api/v1")
 app.include_router(moderator_stammdaten.router, prefix="/api/v1")
 app.include_router(person_bild_reservierungen.router, prefix="/api/v1")
 app.include_router(moderator_dashboard.router, prefix="/api/v1")
@@ -137,16 +152,48 @@ app.include_router(moderator_buchungen.router, prefix="/api/v1")
 app.include_router(push.router, prefix="/api/v1")
 app.include_router(divera.router, prefix="/api/v1")
 app.include_router(oeffentlich.router, prefix="/api/v1")
+app.include_router(csp_report.router, prefix="/api/v1")
 app.include_router(pin.router, prefix="/api/v1")
 app.include_router(reservierungen.router, prefix="/api/v1")
 app.include_router(mitglied_login_reservierungen.router, prefix="/api/v1")
+app.include_router(formulare.router, prefix="/api/v1")
+app.include_router(moderator_formular.router, prefix="/api/v1")
 app.include_router(manifest.router, prefix="/api/v1")
 app.include_router(moderator_update.router, prefix="/api/v1")
 
+class GeschuetzteUploads(StaticFiles):
+    """Liefert `/uploads` aus, verlangt für **geschützte** Pfade
+    (`/uploads/personen/…`) aber einen gültigen, signierten `?token=`. So sind
+    Profilbilder nicht mehr dauerhaft/anonym abrufbar; öffentliche Dateien (Logo)
+    bleiben unverändert erreichbar. Der Token wird nur in berechtigten
+    Antwortpfaden ausgestellt (siehe `app/core/datei_token.py`)."""
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        if datei_token.ist_geschuetzt(path):
+            token = Request(scope).query_params.get("token")
+            if not datei_token.pfad_gueltig(token, path):
+                return Response(status_code=status.HTTP_403_FORBIDDEN)
+        return await super().get_response(path, scope)
+
+
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
+app.mount("/uploads", GeschuetzteUploads(directory=settings.upload_dir), name="uploads")
 
 
 @app.get("/api/v1/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/v1/ready")
+async def ready(response: Response) -> dict[str, str]:
+    """Readiness inkl. DB-Konnektivität: 200 wenn die Datenbank erreichbar ist,
+    sonst 503. Für Load-Balancer/Compose-Healthchecks; bewusst unauthentifiziert."""
+    from app.db.session import AsyncSessionLocal
+    from app.services import systemstatus_service
+
+    async with AsyncSessionLocal() as db:
+        if await systemstatus_service.datenbank_ok(db):
+            return {"status": "ready"}
+    response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    return {"status": "unavailable"}

@@ -8,6 +8,7 @@ import mimetypes
 from pathlib import Path
 from typing import Any
 
+import segno
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.ext.asyncio import AsyncSession
 from weasyprint import HTML
@@ -81,12 +82,56 @@ async def einsatz_pdf(db: AsyncSession, einsatz: Any) -> bytes:
 
 
 async def dienstbuch_pdf(db: AsyncSession, dienstbuch: Any) -> bytes:
-    pdf = await _rendern(db, "dienstbuch.html", dienstbuch=dienstbuch)
+    from app.services import dienstbuch_service
+
+    felder = await dienstbuch_service.liste_dienstbuch_felder(db, nur_aktive=True)
+    zusatzfelder_anzeige = []
+    for f in felder:
+        wert = dienstbuch.zusatzfelder.get(f.schluessel)
+        if wert in (None, "", False):
+            continue
+        zusatzfelder_anzeige.append({"label": f.label, "wert": "Ja" if wert is True else wert})
+    pdf = await _rendern(
+        db, "dienstbuch.html", dienstbuch=dienstbuch, zusatzfelder_anzeige=zusatzfelder_anzeige
+    )
     await _archiviere(db, f"dienstbuecher/dienstbuch-{getattr(dienstbuch, 'id', 'x')}.pdf", pdf)
     from app.services import minio_service
 
     await minio_service.dienstbuch_dokument(db, getattr(dienstbuch, "id", 0), pdf)
     return pdf
+
+
+async def kiosk_link_pdf(db: AsyncSession, kiosk_token: Any) -> bytes:
+    """Ausdruckbares Poster für ein Kiosk-Gerät: Logo/Org-Name (Kopf), Gerätename,
+    großer QR-Code auf den Kiosk-Link (`/kiosk/<token>`) und eine kurze
+    Einrichtungs-Anleitung. QR wird serverseitig aus dem Token erzeugt (segno)."""
+    basis_url = str(await config_service.get(db, "oeffentliche_basis_url", "")).rstrip("/")
+    kiosk_link = f"{basis_url}/kiosk/{kiosk_token.token}"
+    qr_data_uri = segno.make(kiosk_link, error="m").png_data_uri(scale=8, border=2)
+    return await _rendern(
+        db,
+        "kiosk_link.html",
+        geraet_name=kiosk_token.bezeichnung,
+        kiosk_link=kiosk_link,
+        qr_data_uri=qr_data_uri,
+    )
+
+
+async def dienststunden_stempel_pdf(db: AsyncSession, funktion: Any) -> bytes:
+    """Ausdruckbares „Stempel"-Poster pro Dienststunden-Funktion: Logo/Org-Name,
+    Funktionsname, großer QR-Code auf den dauerhaften Stempel-Link
+    (`/dienststunden-stempel/<funktion_id>`) und eine kurze Anleitung. Scan →
+    Login → Stunden für heute eintragen (Funktion fest)."""
+    basis_url = str(await config_service.get(db, "oeffentliche_basis_url", "")).rstrip("/")
+    stempel_link = f"{basis_url}/dienststunden-stempel/{funktion.id}"
+    qr_data_uri = segno.make(stempel_link, error="m").png_data_uri(scale=8, border=2)
+    return await _rendern(
+        db,
+        "dienststunden_stempel.html",
+        funktion_name=funktion.name,
+        stempel_link=stempel_link,
+        qr_data_uri=qr_data_uri,
+    )
 
 
 async def liste_pdf(

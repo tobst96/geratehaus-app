@@ -11,7 +11,9 @@ Personal abgeglichen. Internes, **an-/abschaltbares** Modul. Zu finden unter
   - **Polling** – die App fragt alle 5 Minuten neue Alarme ab.
   - **Webhook** – Divera schickt Alarme sofort. Dazu bei Divera die URL
     `https://<deine-instanz>/api/v1/divera/webhook?accesskey=<dein-Accesskey>`
-    hinterlegen.
+    hinterlegen. **Sicherer** (Secret nicht in der URL/Access-Logs): falls die
+    Webhook-Quelle einen eigenen Header setzen kann, den Accesskey stattdessen im
+    Header `X-Divera-Accesskey` senden und die URL ohne `?accesskey=` verwenden.
 - Änderungen wirken ohne Neustart.
 
 ## Alarm → Einsatz

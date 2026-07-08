@@ -36,6 +36,22 @@ async def hat_zugriff(db: AsyncSession, moderator: Moderator, modul_key: str) ->
     return result.scalar_one_or_none() is not None
 
 
+async def meine_keys(db: AsyncSession, moderator: Moderator) -> list[str]:
+    """Die Modul-Keys, auf die dieser Moderator zugreifen darf. Admins erhalten
+    alle registrierten Keys (Admin-Bypass). Grundlage für die Frontend-Guards
+    (Navigation/Routen prüfen `hat_zugriff` statt der Rolle)."""
+    module = await modul_service.liste_module(db)
+    if ist_admin(moderator):
+        return [m.key for m in module]
+    key_by_id = {m.id: m.key for m in module}
+    rows = (
+        await db.execute(
+            select(Berechtigung.modul_id).where(Berechtigung.moderator_id == moderator.id)
+        )
+    ).scalars().all()
+    return [key_by_id[mid] for mid in rows if mid in key_by_id]
+
+
 async def matrix(db: AsyncSession) -> tuple[list[Modul], list[Moderator], dict[int, set[str]]]:
     """Liefert (Module, Moderatoren, {moderator_id: set(freigegebene modul_keys)})
     für die Admin-Berechtigungsseite."""

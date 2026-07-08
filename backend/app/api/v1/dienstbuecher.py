@@ -1,13 +1,29 @@
+from datetime import date
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_modul_aktiv, require_zugriff
+from app.api.deps import (
+    CurrentPerson,
+    DbSession,
+    require_modul_aktiv,
+    require_modul_zugriff,
+    require_zugriff,
+)
+from app.models.moderator import Moderator
 from app.schemas.dienstbuch import (
+    AnwesenheitEintrag,
+    AnwesenheitOut,
     DienstbuchAnlegen,
     DienstbuchOut,
+    RelevanteDiensteEintrag,
+    RelevantSetzen,
     TeilnehmerAktualisieren,
     TeilnehmerAnlegen,
     TeilnehmerOut,
+    ZusatzfelderSetzen,
 )
+from app.schemas.dienstbuch_feld import DienstbuchFeldDefinitionOut
 from app.schemas.dienstbuch_reservierung import DienstbuchReservierungOut
 from app.services import dienstbuch_reservierung_service, dienstbuch_service, pdf_service
 
@@ -19,6 +35,11 @@ router = APIRouter(
         Depends(require_zugriff),
     ],
 )
+
+# Moderator-Aktionen (Auswertungen, Schließen/Wieder-Öffnen, „relevant") erfordern
+# das Modul-Recht „dienstbuch" (Admin-Bypass). Kiosk-/Mitglieder-Endpunkte
+# (Anlegen, Teilnehmer, Reservierung) bleiben über require_zugriff erreichbar.
+DienstbuchZugriff = Annotated[Moderator, Depends(require_modul_zugriff("dienstbuch"))]
 
 
 @router.get("/letzte", response_model=list[DienstbuchOut])
@@ -32,6 +53,45 @@ async def anlegen(db: DbSession, daten: DienstbuchAnlegen) -> DienstbuchOut:
     return await dienstbuch_service.dienstbuch_anlegen(db, daten)
 
 
+@router.get("/relevante-uebersicht", response_model=list[RelevanteDiensteEintrag])
+async def relevante_uebersicht(
+    db: DbSession,
+    _moderator: DienstbuchZugriff,
+    von: date | None = None,
+    bis: date | None = None,
+) -> list[RelevanteDiensteEintrag]:
+    """Anzahl der als „relevant" markierten Dienste je Person (optional im Zeitraum
+    von/bis). Muss vor '/{dienstbuch_id}' stehen, sonst wird der Pfad als ID gedeutet."""
+    paare = await dienstbuch_service.relevante_dienste_pro_person(db, von, bis)
+    return [RelevanteDiensteEintrag(person_id=pid, anzahl=anzahl) for pid, anzahl in paare]
+
+
+@router.get("/anwesenheit", response_model=AnwesenheitOut)
+async def anwesenheit(
+    db: DbSession,
+    _moderator: DienstbuchZugriff,
+    von: date | None = None,
+    bis: date | None = None,
+) -> AnwesenheitOut:
+    """Anwesenheitsquote je Person über alle Dienstbücher im Zeitraum (optional von/bis).
+    Muss vor '/{dienstbuch_id}' stehen, sonst wird 'anwesenheit' als ID gedeutet."""
+    gesamt, eintraege = await dienstbuch_service.anwesenheit_quote(db, von, bis)
+    return AnwesenheitOut(
+        gesamt=gesamt,
+        personen=[
+            AnwesenheitEintrag(person_id=pid, teilgenommen=teil, quote=quote)
+            for pid, teil, quote in eintraege
+        ],
+    )
+
+
+@router.get("/feld-definitionen", response_model=list[DienstbuchFeldDefinitionOut])
+async def feld_definitionen_liste(db: DbSession) -> list[DienstbuchFeldDefinitionOut]:
+    """Aktive Zusatzfeld-Definitionen fürs Ausfüllen im Dienstbuch-Formular.
+    Muss vor '/{dienstbuch_id}' stehen, sonst wird der Pfad als ID gedeutet."""
+    return await dienstbuch_service.liste_dienstbuch_felder(db, nur_aktive=True)
+
+
 @router.get("/{dienstbuch_id}", response_model=DienstbuchOut)
 async def detail(db: DbSession, dienstbuch_id: int) -> DienstbuchOut:
     dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
@@ -40,6 +100,18 @@ async def detail(db: DbSession, dienstbuch_id: int) -> DienstbuchOut:
             status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden."
         )
     return dienstbuch
+
+
+@router.patch("/{dienstbuch_id}/zusatzfelder", response_model=DienstbuchOut)
+async def zusatzfelder_aktualisieren(
+    db: DbSession, dienstbuch_id: int, daten: ZusatzfelderSetzen
+) -> DienstbuchOut:
+    dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
+    if dienstbuch is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden."
+        )
+    return await dienstbuch_service.zusatzfelder_aktualisieren(db, dienstbuch, daten.zusatzfelder)
 
 
 @router.get("/{dienstbuch_id}/pdf")
@@ -58,7 +130,7 @@ async def dienstbuch_pdf(db: DbSession, dienstbuch_id: int) -> Response:
 
 
 @router.post("/{dienstbuch_id}/schliessen", response_model=DienstbuchOut)
-async def schliessen(db: DbSession, _moderator: CurrentModerator, dienstbuch_id: int) -> DienstbuchOut:
+async def schliessen(db: DbSession, _moderator: DienstbuchZugriff, dienstbuch_id: int) -> DienstbuchOut:
     dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
     if dienstbuch is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden.")
@@ -66,11 +138,21 @@ async def schliessen(db: DbSession, _moderator: CurrentModerator, dienstbuch_id:
 
 
 @router.post("/{dienstbuch_id}/wieder-oeffnen", response_model=DienstbuchOut)
-async def wieder_oeffnen(db: DbSession, _moderator: CurrentModerator, dienstbuch_id: int) -> DienstbuchOut:
+async def wieder_oeffnen(db: DbSession, _moderator: DienstbuchZugriff, dienstbuch_id: int) -> DienstbuchOut:
     dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
     if dienstbuch is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden.")
     return await dienstbuch_service.dienstbuch_wieder_oeffnen(db, dienstbuch)
+
+
+@router.patch("/{dienstbuch_id}/relevant", response_model=DienstbuchOut)
+async def relevant_setzen(
+    db: DbSession, _moderator: DienstbuchZugriff, dienstbuch_id: int, daten: RelevantSetzen
+) -> DienstbuchOut:
+    dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
+    if dienstbuch is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden.")
+    return await dienstbuch_service.relevant_setzen(db, dienstbuch, daten.relevant)
 
 
 @router.post("/{dienstbuch_id}/reservierung", response_model=DienstbuchReservierungOut, dependencies=[])

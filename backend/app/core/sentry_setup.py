@@ -30,11 +30,13 @@ verfügbar ist, aber nichts über die tatsächlich laufende Version aussagt.
 Die genaue Versionsnummer geht zusätzlich als `release` mit, für
 Versions-genaue Auswertung in Sentry."""
 
+import asyncio
 import logging
 
 import sentry_sdk
 import structlog
 from packaging.version import InvalidVersion, Version
+from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from app.core.config import settings
@@ -51,6 +53,12 @@ def _aktive_dsn() -> str:
     return settings.sentry_dsn if settings.sentry_dsn is not None else PROJECT_DSN
 
 
+def aktuelle_umgebung() -> str:
+    """Öffentlich nutzbar (z. B. für die Frontend-Konfiguration): beta/production
+    anhand der tatsächlich installierten Version."""
+    return _sentry_umgebung(installierte_version())
+
+
 def _sentry_umgebung(version: str) -> str:
     """Tagged Sentry-Events als "beta" oder "production", abhängig von der
     tatsächlich installierten Versionsnummer – nicht vom gewählten
@@ -63,6 +71,54 @@ def _sentry_umgebung(version: str) -> str:
         return "beta" if Version(version).is_prerelease else "production"
     except InvalidVersion:
         return "production"
+
+
+# Log-Events, die bereits an anderer Stelle sauber behandelt bzw. bewusst
+# toleriert werden und deshalb keinen unerwarteten Code-Fehler darstellen. Sie
+# sollen als Log-Zeile erhalten bleiben, aber kein eigenes Sentry-Issue erzeugen
+# (sonst nur Rauschen):
+# - backup_fehlgeschlagen: dem Admin per Fehler-Mail + Backup-Browser gemeldet.
+# - divera_person_unvollstaendig: ein Divera-Datensatz ohne id/user_id oder Name
+#   wird beim Personal-Sync bewusst übersprungen (kein Absturz). Jede Person
+#   erzeugte sonst ein eigenes Warning-Issue → reines Rauschen.
+_UNTERDRUECKTE_LOG_EVENTS = ("backup_fehlgeschlagen", "divera_person_unvollstaendig")
+
+
+def _ist_cancelled_error(event, hint) -> bool:
+    """Erkennt `asyncio.CancelledError` – entsteht z. B. beim Recyceln/Beenden
+    einer DB-Pool-Verbindung oder bei einem Client-Disconnect. Das ist kein
+    Code-Fehler, sondern erwartetes Rauschen und soll kein Sentry-Issue erzeugen.
+    Prüft sowohl die rohe Exception (`hint`) als auch die von Sentry
+    serialisierten Exception-Typen im Event."""
+    exc_info = hint.get("exc_info")
+    if exc_info and exc_info[0] is not None:
+        try:
+            if issubclass(exc_info[0], asyncio.CancelledError):
+                return True
+        except TypeError:
+            pass
+    for wert in ((event.get("exception") or {}).get("values") or []):
+        if wert.get("type") == "CancelledError":
+            return True
+    return False
+
+
+def _before_send(event, hint):
+    """Verwirft Sentry-Events für bereits behandelte Betriebsfehler (z. B. ein
+    fehlgeschlagenes Backup wegen falsch konfiguriertem Ziel) sowie erwartetes
+    Rauschen (`CancelledError`). Echte, unerwartete Fehler bleiben unberührt."""
+    if _ist_cancelled_error(event, hint):
+        return None
+    # Bei via LoggingIntegration erzeugten Events keine Exception -> nur wenn
+    # es KEIN Exception-Event ist, überhaupt filtern.
+    if "exc_info" in hint:
+        return event
+    nachricht = ""
+    logentry = event.get("logentry") or {}
+    nachricht = logentry.get("message") or event.get("message") or ""
+    if any(marker in nachricht for marker in _UNTERDRUECKTE_LOG_EVENTS):
+        return None
+    return event
 
 
 def init_sentry_wenn_aktiviert(fehlerberichte_aktiv: bool) -> bool:
@@ -80,7 +136,12 @@ def init_sentry_wenn_aktiviert(fehlerberichte_aktiv: bool) -> bool:
         # Keine personenbezogenen Daten (IP, Cookies, Request-Body) mitsenden –
         # nur technische Fehlerdetails (Stacktrace, Request-Pfad/-Methode).
         send_default_pii=False,
-        traces_sample_rate=0.0,
+        # Performance-Monitoring (Transaktionen/Spans) + Profiling für einen
+        # Bruchteil der Requests – genug für Trends, ohne die Instanz zu belasten
+        # oder das Sentry-Kontingent zu sprengen.
+        traces_sample_rate=0.15,
+        profiles_sample_rate=0.15,
+        before_send=_before_send,
         # Aktiviert die Sentry Logs API (sichtbar unter "Logs" in der Sentry-UI)
         # zusätzlich zu den klassischen Issues.
         enable_logs=True,
@@ -90,6 +151,10 @@ def init_sentry_wenn_aktiviert(fehlerberichte_aktiv: bool) -> bool:
             # Sentry-Event gemeldet, auch ohne dass dabei eine Exception
             # geworfen wurde (z. B. fehlgeschlagener E-Mail-Versand).
             LoggingIntegration(level=logging.INFO, event_level=logging.WARNING),
+            # Korrekte Trace-Verknüpfung über die vielen asyncio-Tasks
+            # (Scheduler-Jobs, Hintergrund-Tasks). FastAPI/Starlette/SQLAlchemy
+            # werden von sentry-sdk[fastapi] automatisch instrumentiert.
+            AsyncioIntegration(),
         ],
     )
     logger.info("sentry_aktiviert", environment=umgebung, version=version)

@@ -1,4 +1,7 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState } from "react";
+import { Gespeichert } from "../../../components/Gespeichert";
+import { formatiereDatumZeit } from "../../../utils/datum";
 import { Link } from "react-router-dom";
 import {
   diveraEinsaetzeNachholen,
@@ -88,7 +91,7 @@ export function DiveraModul() {
     }
   }
 
-  if (fehler && !geladen) return <p className="fehlertext">{fehler}</p>;
+  if (fehler && !geladen) return <Fehlertext>{fehler}</Fehlertext>;
   if (!geladen) return <Ladeanzeige />;
 
   return (
@@ -100,7 +103,7 @@ export function DiveraModul() {
 
       <div className="karte">
         <h2>Anbindung</h2>
-        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+        <p className="hinweistext">
           Ersetzt die frühere .env-Konfiguration – Änderungen wirken ohne Neustart.
         </p>
         <div className="formular-feld">
@@ -128,14 +131,14 @@ export function DiveraModul() {
           />
         </div>
         {letzterSync ? (
-          <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
-            Letzter Polling-Abruf: {new Date(letzterSync).toLocaleString("de-DE")} &middot;{" "}
+          <p className="hinweistext">
+            Letzter Polling-Abruf: {formatiereDatumZeit(letzterSync)} &middot;{" "}
             {letzterSyncAnzahl} Alarm{letzterSyncAnzahl !== 1 ? "e" : ""} abgerufen
           </p>
         ) : (
           aktiv &&
           modus === "polling" && (
-            <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+            <p className="hinweistext">
               Noch kein Polling-Abruf seit dem letzten Start.
             </p>
           )
@@ -144,14 +147,14 @@ export function DiveraModul() {
           {speichert ? "Speichert …" : "Speichern"}
         </button>
         {gespeichert && (
-          <span style={{ marginLeft: 10, color: "var(--farbe-text-mute)" }}>✓ gespeichert</span>
+          <Gespeichert />
         )}
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
       </div>
 
       <div className="karte" style={{ marginTop: 16 }}>
         <h2>Einsätze nachholen</h2>
-        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+        <p className="hinweistext">
           Holt vergangene Alarme aus der Divera-Historie und legt fehlende Einsätze an.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -171,7 +174,7 @@ export function DiveraModul() {
 
       <div className="karte" style={{ marginTop: 16 }}>
         <h2>Personen-Vorschlag</h2>
-        <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+        <p className="hinweistext">
           Gleicht das Divera-Personal mit dem System ab und schlägt neue Personen bzw.
           E-Mail-Aktualisierungen vor.
         </p>

@@ -44,6 +44,27 @@ async def test_pin_login_erzwingen_falscher_pin_verweigert(db):
 
 
 @pytest.mark.asyncio
+async def test_roster_endpunkt_liefert_keine_profilbilder(client, db):
+    """Regression (Etappe F): Die öffentliche „Barcode vergessen"-Personenliste
+    darf die Profilbilder NICHT preisgeben – nur Name/PIN-Status zur Auswahl."""
+    einsatz = await einsatz_anlegen(
+        db, EinsatzAnlegen(titel="Roster", zeitpunkt=datetime(2026, 7, 1, 12, 0, tzinfo=timezone.utc))
+    )
+    reservierung = await reservierung_service.reservierung_anlegen(
+        db, einsatz.id, ReservierungAnlegen(fahrzeug_id=None, sitzplatz_id=None, bezeichnung="Platz")
+    )
+    await _person(db, "Max Muster", pin="4711")
+
+    r = await client.get(f"/api/v1/reservierungen/{reservierung.token}/personen")
+    assert r.status_code == 200
+    daten = r.json()
+    assert len(daten) >= 1
+    for item in daten:
+        assert "bild_url" not in item  # kein Foto-Leak über den Token
+        assert "name" in item and "pin_gesetzt" in item
+
+
+@pytest.mark.asyncio
 async def test_reservierung_vorschau_ohne_pin_gesperrt(db):
     """Wiring-Test: Einsatz-Sitzplatz-Reservierung lehnt PIN-lose Person ab."""
     einsatz = await einsatz_anlegen(

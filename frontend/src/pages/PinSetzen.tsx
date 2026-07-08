@@ -1,3 +1,4 @@
+import { Fehlertext } from "../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import { pinSetzen, pinSetzenInfo, type PinTokenInfo } from "../api/auth";
@@ -47,7 +48,7 @@ export function PinSetzen() {
       <div className="seite">
         <div className="karte">
           <h1>PIN setzen</h1>
-          <p className="fehlertext">{ladeFehler}</p>
+          <Fehlertext>{ladeFehler}</Fehlertext>
         </div>
       </div>
     );
@@ -61,10 +62,10 @@ export function PinSetzen() {
         {fertig ? (
           <p>Dein PIN wurde gesetzt. Du kannst dich jetzt am Gerätehaus mit deinem Namen und PIN anmelden.</p>
         ) : !info.gueltig ? (
-          <p className="fehlertext">Dieser Link ist abgelaufen oder wurde bereits verwendet.</p>
+          <Fehlertext>Dieser Link ist abgelaufen oder wurde bereits verwendet.</Fehlertext>
         ) : (
           <form onSubmit={absenden}>
-            <p style={{ color: "var(--farbe-text-mute)" }}>
+            <p className="text-mute">
               Für <strong>{info.name}</strong> einen persönlichen PIN festlegen.
             </p>
             <div className="formular-feld">
@@ -90,7 +91,7 @@ export function PinSetzen() {
                 required
               />
             </div>
-            {fehler && <p className="fehlertext">{fehler}</p>}
+            {fehler && <Fehlertext>{fehler}</Fehlertext>}
             <button type="submit" disabled={laeuft}>
               {laeuft ? "Wird gespeichert…" : "PIN setzen"}
             </button>

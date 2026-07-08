@@ -1,5 +1,32 @@
 from app.core.security import hash_secret
 from app.models.moderator import Moderator
+from app.services.update_service import _ist_neuer, _passende_release
+
+
+def test_beta_kanal_ueberspringt_stable():
+    # Neuestes Release ist ein Stable, daneben eine ältere Prerelease.
+    releases = [
+        {"tag_name": "v0.4.1", "prerelease": False, "draft": False},
+        {"tag_name": "v0.4.0-beta.1", "prerelease": True, "draft": False},
+    ]
+    assert _passende_release(releases, "stable")["tag_name"] == "v0.4.1"
+    # Beta-Kanal darf NICHT auf das Stable zeigen, sondern auf die Prerelease.
+    assert _passende_release(releases, "beta")["tag_name"] == "v0.4.0-beta.1"
+
+
+def test_beta_kanal_ohne_prerelease_gibt_none():
+    releases = [{"tag_name": "v0.4.1", "prerelease": False, "draft": False}]
+    assert _passende_release(releases, "beta") is None
+
+
+def test_ist_neuer_verhindert_downgrade():
+    assert _ist_neuer("0.4.1", "0.4.0") is True
+    assert _ist_neuer("0.4.0", "0.4.1") is False  # älter → kein Update
+    assert _ist_neuer("0.4.0", "0.4.0") is False  # gleich → kein Update
+    # Genau der gemeldete Fall: installiert 0.4.0 (final), Beta-Kanal bietet die
+    # ältere 0.4.0-beta.1 → darf NICHT als Update/Downgrade erscheinen.
+    assert _ist_neuer("0.4.0-beta.1", "0.4.0") is False
+    assert _ist_neuer("0.4.0", "0.4.0-beta.1") is True
 
 
 async def _admin_token(client, db):

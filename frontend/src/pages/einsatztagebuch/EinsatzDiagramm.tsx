@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import {
@@ -19,6 +20,7 @@ import {
 } from "../../components/PersonIdentifikation";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import type { EinsatzFeldDefinition, EinsatzOut, Fahrzeug, FunktionEinsatz, TeilnahmeOut } from "../../api/types";
+import { formatiereZeit } from "../../utils/datum";
 import "./EinsatzDiagramm.css";
 
 function formatiereCountdown(sekunden: number): string {
@@ -351,6 +353,9 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     try {
       await einsatzZusatzfelderAktualisieren(einsatz.id, feldWerte);
       await onAktualisiert();
+      // Wurden die Details über das Popup bearbeitet, nach dem Speichern sofort
+      // schließen (im Inline-Layout ist detailsOffen ohnehin schon false).
+      setDetailsOffen(false);
     } finally {
       setFelderSpeichern(false);
     }
@@ -491,9 +496,9 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         </div>
       </div>
       {!aktivesFahrzeug && alleEingetragenFehler && (
-        <p className="fehlertext" style={{ margin: 0 }}>
+        <Fehlertext style={{ margin: 0 }}>
           {alleEingetragenFehler}
-        </p>
+        </Fehlertext>
       )}
 
       {!aktivesFahrzeug && (
@@ -594,7 +599,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
 
             {qrAnsicht ? (
               <div className="sitzplatz-qr-ansicht">
-                <p style={{ color: "var(--farbe-text-mute)" }}>
+                <p className="text-mute">
                   Mit dem Handy scannen – die Person trägt sich dort selbst für genau diesen Platz ein
                   (ohne Barcode, wird im Bericht entsprechend vermerkt).
                 </p>
@@ -619,8 +624,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                     </div>
                   )}
                 </div>
-                <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
-                  Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
+                <p className="hinweis-klein">
+                  Gültig bis {formatiereZeit(qrAnsicht.ablaufAm)}
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
@@ -650,7 +655,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                 <div className="sitzplatz-scan-felder">
                   <div className="formular-feld">
                     {mitgliedModus.aktiv ? (
-                      <p style={{ color: "var(--farbe-text-mute)" }}>
+                      <p className="text-mute">
                         Eingeloggt als <strong>{mitgliedModus.name}</strong>
                       </p>
                     ) : (
@@ -739,8 +744,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                     />
                   </div>
 
-                  {fehler && <p className="fehlertext">{fehler}</p>}
-                  {qrFehler && <p className="fehlertext">{qrFehler}</p>}
+                  {fehler && <Fehlertext>{fehler}</Fehlertext>}
+                  {qrFehler && <Fehlertext>{qrFehler}</Fehlertext>}
 
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     <button type="submit" disabled={laeuft}>

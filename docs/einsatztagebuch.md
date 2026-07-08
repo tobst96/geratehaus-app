@@ -30,10 +30,18 @@ Einsatzbericht als PDF. Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Logi
 - **Auto-Abschluss**: offene, inaktive Einsätze werden zur eingestellten Stunde
   automatisch abgeschlossen.
 
+## Jahresstatistik
+
+Im Einsatztagebuch wird die Zahl der Einsätze des laufenden Jahres angezeigt und
+mit dem Vorjahr **zum selben Stichtag** (gleicher Kalendertag) verglichen –
+z. B. „2026: 50 Einsätze +4". Wurde die App mitten im Jahr eingeführt, kann in der
+Modul-Unterseite ein **Startwert** (bereits abgearbeitete Einsätze) für ein Jahr
+hinterlegt werden; er fließt in die Zählung ein.
+
 ## Admin (Modul-Unterseite)
 
-An/Aus, „Auf Kiosk anzeigen", Außenzugriff sowie die Zusatzfeld- und
-Countdown-/Abschluss-Einstellungen des Moduls.
+An/Aus, „Auf Kiosk anzeigen", Außenzugriff sowie die Zusatzfeld-,
+Countdown-/Abschluss- und Jahresstatistik-Einstellungen (Startwert) des Moduls.
 
 ## Objektspeicher
 

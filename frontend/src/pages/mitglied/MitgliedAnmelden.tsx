@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -71,7 +72,7 @@ export function MitgliedAnmelden() {
   if (ladeFehler) {
     return (
       <div className="seite">
-        <p className="fehlertext">{ladeFehler}</p>
+        <Fehlertext>{ladeFehler}</Fehlertext>
       </div>
     );
   }
@@ -169,7 +170,7 @@ export function MitgliedAnmelden() {
               </div>
             )}
 
-            {fehler && <p className="fehlertext">{fehler}</p>}
+            {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
             <button type="button" disabled={laeuft} onClick={bestaetigen}>
               {laeuft ? "Wird bestätigt…" : "Bestätigen"}

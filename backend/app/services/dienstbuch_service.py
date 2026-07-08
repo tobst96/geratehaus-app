@@ -1,12 +1,17 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import structlog
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.dienstbuch import Dienstbuch, DienstbuchPerson
+from app.models.dienstbuch import Dienstbuch, DienstbuchFeldDefinition, DienstbuchPerson
 from app.schemas.dienstbuch import DienstbuchAnlegen, TeilnehmerAktualisieren, TeilnehmerAnlegen
+from app.schemas.dienstbuch_feld import (
+    DienstbuchFeldDefinitionCreate,
+    DienstbuchFeldDefinitionUpdate,
+    schluessel_aus_label,
+)
 from app.services import (
     benachrichtigungskanal_service,
     notifier_service,
@@ -49,7 +54,10 @@ async def get_dienstbuch(db: AsyncSession, dienstbuch_id: int) -> Dienstbuch | N
 
 async def dienstbuch_anlegen(db: AsyncSession, daten: DienstbuchAnlegen) -> Dienstbuch:
     dienstbuch = Dienstbuch(
-        titel=daten.titel, eroeffnet_am=daten.eroeffnet_am, notizen=daten.notizen
+        titel=daten.titel,
+        eroeffnet_am=daten.eroeffnet_am,
+        notizen=daten.notizen,
+        zusatzfelder=daten.zusatzfelder or {},
     )
     db.add(dienstbuch)
     await db.commit()
@@ -59,6 +67,86 @@ async def dienstbuch_anlegen(db: AsyncSession, daten: DienstbuchAnlegen) -> Dien
     geladen = await get_dienstbuch(db, dienstbuch.id)
     assert geladen is not None
     return geladen
+
+
+async def zusatzfelder_aktualisieren(
+    db: AsyncSession, dienstbuch: Dienstbuch, zusatzfelder: dict
+) -> Dienstbuch:
+    dienstbuch.zusatzfelder = {**dienstbuch.zusatzfelder, **zusatzfelder}
+    await db.commit()
+    geladen = await get_dienstbuch(db, dienstbuch.id)
+    assert geladen is not None
+    return geladen
+
+
+# --- Zusatzfeld-Definitionen (frei konfigurierbar, analog Einsatz-Felder) -------
+
+
+async def liste_dienstbuch_felder(
+    db: AsyncSession, nur_aktive: bool = True
+) -> list[DienstbuchFeldDefinition]:
+    stmt = select(DienstbuchFeldDefinition).order_by(DienstbuchFeldDefinition.reihenfolge)
+    if nur_aktive:
+        stmt = stmt.where(DienstbuchFeldDefinition.aktiv.is_(True))
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def dienstbuch_feld_anlegen(
+    db: AsyncSession, daten: DienstbuchFeldDefinitionCreate
+) -> DienstbuchFeldDefinition:
+    basis_schluessel = schluessel_aus_label(daten.label)
+    schluessel = basis_schluessel
+    zaehler = 1
+    while (
+        await db.execute(
+            select(DienstbuchFeldDefinition).where(
+                DienstbuchFeldDefinition.schluessel == schluessel
+            )
+        )
+    ).scalar_one_or_none() is not None:
+        zaehler += 1
+        schluessel = f"{basis_schluessel}_{zaehler}"
+
+    feld = DienstbuchFeldDefinition(
+        schluessel=schluessel,
+        label=daten.label,
+        typ=daten.typ,
+        optionen=daten.optionen if daten.typ == "auswahl" else [],
+        reihenfolge=daten.reihenfolge,
+        aktiv=daten.aktiv,
+    )
+    db.add(feld)
+    await db.commit()
+    await db.refresh(feld)
+    return feld
+
+
+async def dienstbuch_feld_aktualisieren(
+    db: AsyncSession, feld: DienstbuchFeldDefinition, daten: DienstbuchFeldDefinitionUpdate
+) -> DienstbuchFeldDefinition:
+    for name, wert in daten.model_dump(exclude_unset=True).items():
+        setattr(feld, name, wert)
+    # Optionen sind nur für „auswahl" sinnvoll – bei anderem Typ leeren.
+    if feld.typ != "auswahl":
+        feld.optionen = []
+    await db.commit()
+    await db.refresh(feld)
+    return feld
+
+
+async def dienstbuch_feld_loeschen(db: AsyncSession, feld: DienstbuchFeldDefinition) -> None:
+    await db.delete(feld)
+    await db.commit()
+
+
+async def get_dienstbuch_feld(
+    db: AsyncSession, feld_id: int
+) -> DienstbuchFeldDefinition | None:
+    result = await db.execute(
+        select(DienstbuchFeldDefinition).where(DienstbuchFeldDefinition.id == feld_id)
+    )
+    return result.scalar_one_or_none()
 
 
 async def teilnehmer_eintragen(
@@ -137,6 +225,79 @@ async def dienstbuch_wieder_oeffnen(db: AsyncSession, dienstbuch: Dienstbuch) ->
     geladen = await get_dienstbuch(db, dienstbuch.id)
     assert geladen is not None
     return geladen
+
+
+async def relevant_setzen(db: AsyncSession, dienstbuch: Dienstbuch, relevant: bool) -> Dienstbuch:
+    """Markiert einen Dienst als „relevant" (oder hebt die Markierung auf) –
+    Grundlage für eine spätere Auswertung der Mindest-Dienstbeteiligung."""
+    dienstbuch.relevant = relevant
+    await db.commit()
+    geladen = await get_dienstbuch(db, dienstbuch.id)
+    assert geladen is not None
+    return geladen
+
+
+async def relevante_dienste_pro_person(
+    db: AsyncSession, von: date | None = None, bis: date | None = None
+) -> list[tuple[int, int]]:
+    """Anzahl der als „relevant" markierten Dienstbücher, an denen jede Person
+    teilgenommen hat – Grundlage für die Mindest-Dienstbeteiligung. Optional auf
+    ein Zeitfenster (`von`/`bis`, Eröffnungsdatum) einschränkbar. Liefert
+    (person_id, anzahl) je Person mit mindestens einer relevanten Teilnahme."""
+    stmt = (
+        select(
+            DienstbuchPerson.person_id,
+            func.count(func.distinct(Dienstbuch.id)),
+        )
+        .join(Dienstbuch, Dienstbuch.id == DienstbuchPerson.dienstbuch_id)
+        .where(Dienstbuch.relevant.is_(True))
+        .group_by(DienstbuchPerson.person_id)
+    )
+    if von is not None:
+        stmt = stmt.where(Dienstbuch.eroeffnet_am >= datetime(von.year, von.month, von.day, tzinfo=timezone.utc))
+    if bis is not None:
+        # bis inklusiv: bis zum Ende des Tages
+        grenze = datetime(bis.year, bis.month, bis.day, tzinfo=timezone.utc) + timedelta(days=1)
+        stmt = stmt.where(Dienstbuch.eroeffnet_am < grenze)
+
+    result = await db.execute(stmt)
+    return [(pid, anzahl) for pid, anzahl in result.all()]
+
+
+def _zeitfenster_filter(stmt, von: date | None, bis: date | None):
+    """Schränkt eine Query über `Dienstbuch.eroeffnet_am` auf von/bis ein (bis inkl.)."""
+    if von is not None:
+        stmt = stmt.where(
+            Dienstbuch.eroeffnet_am >= datetime(von.year, von.month, von.day, tzinfo=timezone.utc)
+        )
+    if bis is not None:
+        grenze = datetime(bis.year, bis.month, bis.day, tzinfo=timezone.utc) + timedelta(days=1)
+        stmt = stmt.where(Dienstbuch.eroeffnet_am < grenze)
+    return stmt
+
+
+async def anwesenheit_quote(
+    db: AsyncSession, von: date | None = None, bis: date | None = None
+) -> tuple[int, list[tuple[int, int, float]]]:
+    """Anwesenheitsquote je Person: (gesamt, [(person_id, teilgenommen, quote%)]).
+    `gesamt` = Anzahl aller Dienstbücher im Zeitraum; `quote` = teilgenommen/gesamt
+    in Prozent (0, wenn keine Dienstbücher). Optionaler Zeitraum über von/bis."""
+    gesamt_stmt = _zeitfenster_filter(select(func.count()).select_from(Dienstbuch), von, bis)
+    gesamt = (await db.execute(gesamt_stmt)).scalar_one()
+
+    teil_stmt = _zeitfenster_filter(
+        select(DienstbuchPerson.person_id, func.count(func.distinct(Dienstbuch.id)))
+        .join(Dienstbuch, Dienstbuch.id == DienstbuchPerson.dienstbuch_id)
+        .group_by(DienstbuchPerson.person_id),
+        von,
+        bis,
+    )
+    rows = (await db.execute(teil_stmt)).all()
+
+    eintraege = [
+        (pid, teil, round(teil / gesamt * 100, 1) if gesamt else 0.0) for pid, teil in rows
+    ]
+    return gesamt, eintraege
 
 
 async def _pdf_per_mail_versenden(dienstbuch: Dienstbuch, db: AsyncSession) -> None:

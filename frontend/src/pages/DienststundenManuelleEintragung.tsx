@@ -1,3 +1,4 @@
+import { Fehlertext } from "../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -11,6 +12,7 @@ import { ApiError } from "../api/client";
 import { eintragungGesperrtMinuten, eintragungVermerken } from "../utils/eintragungssperre";
 import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { DienststundenReservierungInfo, FunktionDienststunden, Person } from "../api/types";
+import { formatiereDatum } from "../utils/datum";
 import "./dienststunden/Dienststunden.css";
 
 const SCHNELLAUSWAHL_STUNDEN = [0.25, 0.5, 1, 1.5, 2, 3, 4];
@@ -142,7 +144,7 @@ export function DienststundenManuelleEintragung() {
   if (ladeFehler) {
     return (
       <div className="seite">
-        <p className="fehlertext">{ladeFehler}</p>
+        <Fehlertext>{ladeFehler}</Fehlertext>
       </div>
     );
   }
@@ -164,7 +166,7 @@ export function DienststundenManuelleEintragung() {
             <p style={{ fontWeight: 600 }}>
               {gebucht.personName}: {gebucht.stundenText}
               {gebucht.funktionName ? ` als ${gebucht.funktionName}` : ""} am{" "}
-              {new Date(gebucht.datum).toLocaleDateString("de-DE")}
+              {formatiereDatum(gebucht.datum)}
             </p>
           )}
           <p>Deine Dienststunden wurden erfasst. Du kannst diese Seite jetzt schließen.</p>
@@ -205,14 +207,7 @@ export function DienststundenManuelleEintragung() {
           <label htmlFor="dsme-person">Wer bist du?</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
-              {ausgewaehltePerson.bild_url ? (
-                <img
-                  src={ausgewaehltePerson.bild_url}
-                  alt={ausgewaehltePerson.name}
-                  style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover" }}
-                />
-              ) : (
-                <div
+              <div
                   style={{
                     width: 64,
                     height: 64,
@@ -227,7 +222,6 @@ export function DienststundenManuelleEintragung() {
                 >
                   {initialenAus(ausgewaehltePerson.name)}
                 </div>
-              )}
               <strong>{ausgewaehltePerson.name}</strong>
               <button type="button" className="sekundaer" onClick={() => setAusgewaehltePerson(null)}>
                 Ändern
@@ -259,7 +253,7 @@ export function DienststundenManuelleEintragung() {
                 </ul>
               )}
               {suche.trim().length > 0 && trefferliste.length === 0 && (
-                <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+                <p className="hinweistext">
                   Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
                 </p>
               )}
@@ -268,10 +262,10 @@ export function DienststundenManuelleEintragung() {
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <p className="fehlertext">
+            <Fehlertext>
               Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich –
               bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
-            </p>
+            </Fehlertext>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
@@ -349,7 +343,7 @@ export function DienststundenManuelleEintragung() {
             />
           </div>
 
-          {fehler && <p className="fehlertext">{fehler}</p>}
+          {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
           <button
             type="submit"

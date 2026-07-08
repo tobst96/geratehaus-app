@@ -25,6 +25,8 @@ EREIGNIS_BETREFF = {
     "benachrichtigung_buchungsanfrage": "Neue Buchungsanfrage",
     "benachrichtigung_schwellenwert_ueberschreitung": "Dienststunden-Schwellenwert überschritten",
     "benachrichtigung_person_inaktiv": "Person inaktiv – wird bald gelöscht",
+    "benachrichtigung_person_ampel_gelb": "Person überfällig (Ampel gelb)",
+    "benachrichtigung_person_ampel_rot": "Person überfällig (Ampel rot)",
 }
 
 EREIGNIS_VORLAGE = {
@@ -34,6 +36,8 @@ EREIGNIS_VORLAGE = {
     "benachrichtigung_buchungsanfrage": "benachrichtigung_text_buchungsanfrage",
     "benachrichtigung_schwellenwert_ueberschreitung": "benachrichtigung_text_schwellenwert_ueberschreitung",
     "benachrichtigung_person_inaktiv": "benachrichtigung_text_person_inaktiv",
+    "benachrichtigung_person_ampel_gelb": "benachrichtigung_text_person_ampel_gelb",
+    "benachrichtigung_person_ampel_rot": "benachrichtigung_text_person_ampel_rot",
 }
 
 # Kanal-Typ (Benachrichtigungskanal.typ) → Notifier-Kanalname (für ausschluss_kanaele,
@@ -45,23 +49,32 @@ async def benachrichtige(
     db: AsyncSession,
     ereignis_schluessel: str,
     ausschluss_kanaele: set[str] | None = None,
+    nachricht_override: str | None = None,
     **platzhalter: object,
 ) -> None:
     """Sendet eine Ereignis-Benachrichtigung an alle Personen, die das Ereignis
     abonniert haben, über ihre aktiven Kanäle. Voraussetzung: das Ereignis ist in
     app_config global aktiviert (Master-Schalter). `ausschluss_kanaele` (Notifier-
     Namen wie {"email"}) lässt einen Kanaltyp aus, wenn der Aufrufer ihn separat
-    bedient (z. B. PDF-Mail), um Doppelversand zu vermeiden."""
+    bedient (z. B. PDF-Mail), um Doppelversand zu vermeiden.
+
+    `nachricht_override` setzt den fertigen Nachrichtentext direkt (statt die
+    Vorlage mit Platzhaltern zu füllen). Damit kann ein Aufrufer mehrere Vorfälle
+    zu **einer** Sammel-Benachrichtigung bündeln (z. B. die Aktivitäts-Ampel, die
+    sonst je überfälliger Person eine eigene Nachricht auslösen würde)."""
     if not await config_service.get(db, ereignis_schluessel, True):
         return
 
-    vorlage_schluessel = EREIGNIS_VORLAGE[ereignis_schluessel]
-    vorlage = await config_service.get(db, vorlage_schluessel, "")
-    try:
-        nachricht = vorlage.format(**platzhalter)
-    except (KeyError, IndexError):
-        logger.warning("benachrichtigung_vorlage_ungueltig", schluessel=vorlage_schluessel)
-        nachricht = vorlage
+    if nachricht_override is not None:
+        nachricht = nachricht_override
+    else:
+        vorlage_schluessel = EREIGNIS_VORLAGE[ereignis_schluessel]
+        vorlage = await config_service.get(db, vorlage_schluessel, "")
+        try:
+            nachricht = vorlage.format(**platzhalter)
+        except (KeyError, IndexError):
+            logger.warning("benachrichtigung_vorlage_ungueltig", schluessel=vorlage_schluessel)
+            nachricht = vorlage
 
     betreff = EREIGNIS_BETREFF[ereignis_schluessel]
 

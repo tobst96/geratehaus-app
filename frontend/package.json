@@ -1,15 +1,17 @@
 {
   "name": "geratehaus-app-frontend",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@zxing/browser": "^0.2.0",
+    "@sentry/react": "^8.55.2",
+    "@zxing/browser": "0.2.0",
     "@zxing/library": "^0.22.0",
     "date-fns": "^3.6.0",
     "leaflet": "^1.9.4",
@@ -21,14 +23,19 @@
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.8",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
     "@types/leaflet": "^1.9.12",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.5",
     "@types/react-big-calendar": "^1.8.9",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react": "^6.0.3",
+    "jsdom": "^25.0.1",
     "typescript": "^5.6.2",
-    "vite": "^5.4.6",
-    "vite-plugin-pwa": "^0.20.5"
+    "vite": "^8.1.3",
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^4.1.10"
   }
 }

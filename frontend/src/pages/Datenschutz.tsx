@@ -62,6 +62,19 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
+        <h2>Profilbilder</h2>
+        <p>
+          Zu jeder Person kann optional ein <strong>Profilbild</strong> hinterlegt werden; es dient
+          der Wiedererkennung (z.&nbsp;B. bei der Sitzplatz-/Anwesenheitszuordnung am Kiosk oder im
+          „Barcode vergessen"-Ablauf). Beim Hochladen wird das Bild serverseitig neu kodiert, wobei
+          enthaltene <strong>Metadaten (z.&nbsp;B. Aufnahmeort, Kamera- und Zeitangaben) entfernt</strong>
+          werden. Profilbilder sind <strong>nicht öffentlich abrufbar</strong> – sie werden nur
+          berechtigten Nutzern über kurzlebige, signierte Links ausgeliefert. Ein vorhandenes Bild
+          wird beim Ersetzen automatisch gelöscht.
+        </p>
+      </div>
+
+      <div className="karte">
         <h2>Benachrichtigungen</h2>
         <p>
           Für jede Person können Benachrichtigungskanäle hinterlegt werden, über die sie zu
@@ -105,6 +118,22 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
+        <h2>Formulare</h2>
+        <p>
+          Sofern das Formular-Modul aktiv ist, kann die Organisation eigene Formulare bereitstellen.
+          Beim Absenden werden die eingegebenen Antworten gespeichert; je nach Formular kann eine
+          Anmeldung erforderlich sein, wodurch die Einreichung der jeweiligen Person zugeordnet wird.
+          Die Inhalte können personenbezogene Daten enthalten – abhängig davon, welche Angaben das
+          jeweilige Formular abfragt (inkl. optionaler Datei-Uploads; bei Bild-Uploads werden
+          enthaltene Metadaten entfernt). Zu jedem Formular kann eine
+          E-Mail-Benachrichtigung mit den übermittelten Antworten an eine hinterlegte Adresse versendet
+          werden. Formulare können zudem eine ausdrückliche Einwilligung vor dem Absenden verlangen und
+          eine Aufbewahrungsfrist haben, nach der die Einreichungen automatisch gelöscht werden. Zugriff
+          auf die Einreichungen haben nur Administratoren bzw. ausdrücklich freigegebene Moderatoren.
+        </p>
+      </div>
+
+      <div className="karte">
         <h2>Aufbewahrung &amp; Archivierung</h2>
         <p>
           Einsätze und Dienstbücher werden nach einem von der Organisation festgelegten Zeitraum
@@ -131,6 +160,26 @@ export function Datenschutz() {
           Namen der Teilnehmenden). Der Objektspeicher kann lokal betrieben oder – je nach Konfiguration
           – bei einem externen Anbieter geführt werden; externe Anbieter handeln als Auftragsverarbeiter
           der verantwortlichen Stelle.
+        </p>
+
+        <h2>Fehler-Monitoring (Sentry)</h2>
+        <p>
+          Sofern die Organisation zugestimmt hat (Einstellung „Fehlerberichte", standardmäßig
+          <strong> aus</strong>), werden technische Fehler- und Absturzdaten der Anwendung an das
+          Monitoring-Werkzeug <strong>Sentry</strong> übermittelt, um Störungen zu erkennen und zu
+          beheben. Übertragen werden ausschließlich <strong>technische Angaben</strong> (Fehlermeldung,
+          Programmstelle/Stacktrace, aufgerufener Pfad, Browser-/Servertyp, Version); es werden
+          <strong> keine personenbezogenen Zusatzdaten</strong> wie IP-Adresse, Cookies oder
+          Formularinhalte mitgesendet. Die Daten werden in einem Rechenzentrum in der
+          <strong> EU (Deutschland)</strong> verarbeitet; der Anbieter handelt als Auftragsverarbeiter.
+        </p>
+        <p>
+          In der <strong>Beta-Version</strong> der Anwendung ist zusätzlich <strong>Session Replay</strong>
+          aktiv: Dabei wird der Ablauf der Bedienung (Klicks/Seitenwechsel) aufgezeichnet, um Fehler
+          nachvollziehen zu können. Angezeigte <strong>Texte werden maskiert</strong> und
+          <strong> Medien/Bilder blockiert</strong>, sodass keine Namen, PINs oder Bilder im Replay
+          sichtbar sind. In der regulären (Produktiv-)Version ist Session Replay
+          <strong> deaktiviert</strong>.
         </p>
       </div>
     </div>

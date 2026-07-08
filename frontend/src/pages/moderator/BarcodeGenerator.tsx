@@ -1,4 +1,6 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
+import { formatiereDatum } from "../../utils/datum";
 import {
   barcodeBildUrl,
   holeAllePersonen,
@@ -113,7 +115,7 @@ export function BarcodeGenerator() {
         <div class="card">
           <div class="name">${person.name}</div>
           <img src="${oeffentlicheBasisUrl(config)}${barcodeBildUrl(info.token)}" alt="Barcode" />
-          ${info.ablaufAm ? `<div class="ablauf">Gültig bis ${new Date(info.ablaufAm).toLocaleDateString("de-DE")}</div>` : ""}
+          ${info.ablaufAm ? `<div class="ablauf">Gültig bis ${formatiereDatum(info.ablaufAm)}</div>` : ""}
         </div>
       `;
     }
@@ -129,7 +131,7 @@ export function BarcodeGenerator() {
     URL.revokeObjectURL(url);
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!personen) return <Ladeanzeige />;
 
   return (
@@ -203,7 +205,7 @@ export function BarcodeGenerator() {
                   <img src={barcodeBildUrl(info.token)} alt="Barcode" style={{ maxWidth: "100%" }} />
                   {info.ablaufAm && (
                     <div style={{ fontSize: "0.75rem", color: "var(--farbe-text-mute)", marginTop: 4 }}>
-                      Gültig bis {new Date(info.ablaufAm).toLocaleDateString("de-DE")}
+                      Gültig bis {formatiereDatum(info.ablaufAm)}
                     </div>
                   )}
                 </div>

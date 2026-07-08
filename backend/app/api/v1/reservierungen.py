@@ -1,10 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.api.deps import DbSession
+from app.core import datei_token
 from app.core.rate_limit import rate_limit
 from app.schemas.einsatz import TeilnahmeOut
-from app.schemas.person import PersonOut
-from app.schemas.reservierung import ReservierungEinloesen, ReservierungInfo, ReservierungVorschauSetzen
+from app.schemas.reservierung import (
+    ReservierungEinloesen,
+    ReservierungInfo,
+    ReservierungPerson,
+    ReservierungVorschauSetzen,
+)
 from app.services import einsatz_service, reservierung_service, stammdaten_service
 
 router = APIRouter(prefix="/reservierungen", tags=["reservierungen"])
@@ -33,7 +38,7 @@ async def reservierung_info(db: DbSession, token: str) -> ReservierungInfo:
         vorschau_person = await stammdaten_service.get_person(db, reservierung.vorschau_person_id)
         if vorschau_person is not None:
             vorschau_person_name = vorschau_person.name
-            vorschau_bild_url = vorschau_person.bild_url
+            vorschau_bild_url = datei_token.signierte_url(vorschau_person.bild_url)
 
     return ReservierungInfo(
         bezeichnung=reservierung.bezeichnung,
@@ -70,8 +75,8 @@ async def reservierung_vorschau_setzen(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
-@router.get("/{token}/personen", response_model=list[PersonOut])
-async def reservierung_personen(db: DbSession, token: str) -> list[PersonOut]:
+@router.get("/{token}/personen", response_model=list[ReservierungPerson])
+async def reservierung_personen(db: DbSession, token: str) -> list[ReservierungPerson]:
     """Personen zur Auswahl auf der mobilen Eintragungs-Seite – der Token
     selbst ist auch hier das Geheimnis, das den Zugriff erlaubt."""
     reservierung = await reservierung_service.get_reservierung_by_token(db, token)
@@ -88,7 +93,7 @@ def _client_ip(request: Request) -> str | None:
     return request.client.host if request.client else None
 
 
-@router.post("/{token}/einloesen", response_model=TeilnahmeOut)
+@router.post("/{token}/einloesen", response_model=TeilnahmeOut, dependencies=[Depends(rate_limit(20, 60))])
 async def reservierung_einloesen(
     db: DbSession, request: Request, token: str, daten: ReservierungEinloesen
 ) -> TeilnahmeOut:

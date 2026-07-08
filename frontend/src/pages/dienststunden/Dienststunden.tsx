@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import {
@@ -16,6 +17,8 @@ import {
   type PersonIdentifikationHandle,
 } from "../../components/PersonIdentifikation";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
+import { SeitenFehler } from "../../components/SeitenFehler";
+import { formatiereDatum, formatiereZeit } from "../../utils/datum";
 import type { DienststundenSummeOut, FunktionDienststunden } from "../../api/types";
 import "./Dienststunden.css";
 
@@ -179,7 +182,7 @@ export function Dienststunden() {
     }
   }
 
-  if (ladeFehler) return <div style={{ padding: "1rem", color: "red" }}>Fehler: {ladeFehler}</div>;
+  if (ladeFehler) return <SeitenFehler nachricht={ladeFehler} />;
 
   return (
     <div>
@@ -190,7 +193,7 @@ export function Dienststunden() {
 
         {qrAnsicht ? (
           <div className="dienststunden-qr-ansicht">
-            <p style={{ color: "var(--farbe-text-mute)" }}>
+            <p className="text-mute">
               Mit dem Handy scannen – die Person trägt sich dort selbst ein (ohne Barcode).
             </p>
             <div
@@ -224,8 +227,8 @@ export function Dienststunden() {
                 </div>
               )}
             </div>
-            <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
-              Gültig bis {new Date(qrAnsicht.ablaufAm).toLocaleTimeString("de-DE")}
+            <p className="hinweis-klein">
+              Gültig bis {formatiereZeit(qrAnsicht.ablaufAm)}
             </p>
             <button type="button" className="sekundaer" onClick={qrAnsichtZuruecksetzen}>
               Zurück zum Scannen
@@ -237,7 +240,7 @@ export function Dienststunden() {
               <div className="dienststunden-scan-felder">
                 <div className="formular-feld">
                   {mitgliedModus.aktiv ? (
-                    <p style={{ color: "var(--farbe-text-mute)" }}>
+                    <p className="text-mute">
                       Eingeloggt als <strong>{mitgliedModus.name}</strong>
                     </p>
                   ) : (
@@ -311,8 +314,8 @@ export function Dienststunden() {
                   />
                 </div>
 
-                {fehler && <p className="fehlertext">{fehler}</p>}
-                {qrFehler && <p className="fehlertext">{qrFehler}</p>}
+                {fehler && <Fehlertext>{fehler}</Fehlertext>}
+                {qrFehler && <Fehlertext>{qrFehler}</Fehlertext>}
 
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button type="submit" disabled={laeuft}>
@@ -342,7 +345,7 @@ export function Dienststunden() {
             {letzteBuchung.name ? `${letzteBuchung.name}: ` : ""}
             {letzteBuchung.stundenText}
             {letzteBuchung.funktionName ? ` als ${letzteBuchung.funktionName}` : ""} am{" "}
-            {new Date(letzteBuchung.datum).toLocaleDateString("de-DE")}
+            {formatiereDatum(letzteBuchung.datum)}
           </div>
         </div>
       )}

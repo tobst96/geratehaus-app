@@ -111,9 +111,10 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
 | **Einsatz-Zusatzfelder** | Frei konfigurierbare Text-, Mehrzeilen- oder Checkbox-Felder (z. B. Einsatzleiter, Lage, Tätigkeit) |
 | **Einsatz-Countdown** | Timer in der Garage-Ansicht, springt bei jeder Eintragung zurück und schließt die Ansicht automatisch bei Ablauf |
 | **Timeline** | Grafische Zeitleiste aller Ereignisse je Einsatz (Anlage, Eintragungen inkl. Fehlversuche, Detail-Änderungen mit Alt/Neu, Abschluss, E-Mail-Versand) |
-| **Dienstbuch** | Schnelles Eintragen in zuletzt eröffnete Dienste |
+| **Einsatz-Jahresstatistik** | Zeigt die Einsatzzahl des laufenden Jahres mit Vergleich zum Vorjahr **zum selben Stichtag** (inkl. Startwert bei Einführung mitten im Jahr) |
+| **Dienstbuch** | Schnelles Eintragen in zuletzt eröffnete Dienste; frei konfigurierbare **Zusatzfelder** (Text/Mehrzeilig/Checkbox/**Auswahl**) analog zum Einsatz |
 | **Dienststunden** | Erfassung pro Person/Funktion, kumulierte Übersicht mit konfigurierbaren Schwellenwerten |
-| **Fahrzeugbuchung** | Kalenderansicht mit Konflikterkennung und Moderator-Freigabe; Anfrage-Mails mit **Annehmen/Ablehnen-Buttons** ohne Login |
+| **Fahrzeugbuchung** | Kalenderansicht mit Konflikterkennung und Moderator-Freigabe; Anfrage-Mails mit **Annehmen/Ablehnen-Buttons** ohne Login; optional **externe iCal-Kalender** (z. B. Divera) als nicht buchbare Fremdtermine überlagern |
 | **Barcode** | Optionale Identifikation per Code128-Strichcode statt Namensauswahl + PIN; eigene Modul-Unterseite zum Erzeugen/Erneuern und Versenden der Barcodes |
 
 Jedes Modul ist einzeln **aktivierbar**, unabhängig davon auf der Kiosk-Startseite **ein-/ausblendbar**
@@ -125,17 +126,22 @@ und separat für den **Außenzugriff** (Mitglieder-Login) freischaltbar.
   lässt sich der Zugriff **pro Modul granular freigeben** (Berechtigungs-Matrix).
 - **Dashboard** mit konfigurierbaren Schwellenwert-Anzeigen für Dienststunden.
 - **Gefilterte Listen** aller Einsätze, Dienstbücher, Dienststunden und Buchungen.
-- **Stammdaten** – Fahrzeuge/Sitzplätze, Funktionen, Einsatz-Zusatzfelder, Personen (inkl. Barcodes),
-  Kiosk-Geräte.
+- **Stammdaten** – Fahrzeuge/Sitzplätze, Funktionen, Einsatz-/Dienstbuch-Zusatzfelder, Personen (inkl.
+  Barcodes, **CSV-Import** mit Beispieldatei), Kiosk-Geräte.
 - **Module & Berechtigungen** – zentrale Modul-Übersicht und Rechte-Matrix pro Moderator.
 - **Benachrichtigungen** – Telegram, E-Mail (SMTP, inkl. Testmail-Button) und Web-Push, vollständig im
   Moderator-Bereich konfigurierbar. Mails im **HTML-Design der Website**; die Einsatz-Benachrichtigung
   kann PDF-Bericht und Timeline enthalten. **Kanäle und Ereignisse sind pro Person einstellbar** –
-  zugestellt wird nur an die freigegebenen Kanäle.
+  zugestellt wird nur an die freigegebenen Kanäle; die Abo-Auswahl je Person zeigt nur Ereignisse
+  **aktivierter Module**. Admin-/Betriebs-Mails (Buchungsanfragen, Backup-Status) lassen sich
+  zusätzlich **pro Moderatoren-Zugang** abonnieren.
 - **Divera 24/7** – Anbindung (Polling oder Webhook); importiert Alarme als Einsätze (inkl. **Adresse &
   Meldung**), gleicht das **Personal** ab (Vorschläge für neue Mitglieder) und kann Einsätze der letzten
   Tage nachholen. Änderungen wirken ohne Neustart.
 - **Update** – zeigt verfügbare Versionen (Stable-/Beta-Kanal) und stößt Updates per Klick an.
+- **Systemstatus** (Admin) – Betriebsstatus von Datenbank, SMTP, Objektspeicher und Divera sowie der
+  geplanten Hintergrund-Jobs auf einen Blick; zusätzlich unauthentifizierte `/health`- und
+  `/ready`-Endpunkte fürs Monitoring.
 
 ### 🎨 Design
 
@@ -269,7 +275,9 @@ und **Import** per Datei-Upload mit Auswahl, welche Bereiche (oder alles) ersetz
 werden. Ziele: lokaler Ordner und WebDAV (Nextcloud/ownCloud). Für eine Sicherung **außerhalb des
 Containers** den lokalen Zielordner als Host-Bind-Mount einhängen, z. B. in `docker-compose.yml`:
 `- /pfad/auf/host/backups:/app/backups`. Passphrase im Modul hinterlegen – ohne sie ist kein Import
-eines verschlüsselten Backups möglich.
+eines verschlüsselten Backups möglich. Eine **tägliche Integritätsprüfung** verifiziert das neueste
+Backup rein lesend (Entschlüsselung, Archiv-/Datenintegrität) – so fällt ein beschädigtes Backup oder
+eine geänderte Passphrase auf, bevor man das Backup im Ernstfall braucht.
 
 Weitere Ziele: **S3-kompatibel** (AWS S3, MinIO, Backblaze B2 …), **SFTP/SSH** und **E-Mail-Versand**.
 Optional lässt sich ein lokaler **MinIO** mitliefern: `docker compose --profile minio up -d` (Konsole

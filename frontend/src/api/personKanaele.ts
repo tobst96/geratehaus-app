@@ -29,6 +29,8 @@ export const loeschePersonKanal = (personId: number, typ: string) =>
 export interface EreignisTyp {
   key: string;
   label: string;
+  modul: string | null;
+  modul_label: string;
 }
 
 export const holeEreignisTypen = () => apiGet<EreignisTyp[]>("/moderator/ereignis-typen");

@@ -19,6 +19,14 @@ class DienststundenEintragOut(BaseModel):
     datum: date
 
 
+class DienststundenStempelInfo(BaseModel):
+    """Öffentlicher Kontext für das Dienststunden-Stempel-Poster (QR-Ziel)."""
+
+    funktion_id: int
+    funktion_name: str
+    aktiv: bool
+
+
 class DienststundenSummeOut(BaseModel):
     funktion_id: int
     funktion_name: str

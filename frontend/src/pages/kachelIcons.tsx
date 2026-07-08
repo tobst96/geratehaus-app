@@ -1,4 +1,9 @@
-export type KachelModulKey = "einsatzbericht" | "dienstbuch" | "dienststunden" | "fahrzeugbuchung";
+export type KachelModulKey =
+  | "einsatzbericht"
+  | "dienstbuch"
+  | "dienststunden"
+  | "fahrzeugbuchung"
+  | "formulare";
 
 export const KACHEL_ICONS: Record<KachelModulKey, JSX.Element> = {
   einsatzbericht: (
@@ -36,6 +41,13 @@ export const KACHEL_ICONS: Record<KachelModulKey, JSX.Element> = {
       />
       <circle cx="18" cy="40" r="4" fill="var(--farbe-primaer)" />
       <circle cx="46" cy="40" r="4" fill="var(--farbe-primaer)" />
+    </svg>
+  ),
+  formulare: (
+    <svg className="kiosk-tile-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="14" y="10" width="36" height="46" rx="4" fill="white" />
+      <rect x="26" y="6" width="12" height="8" rx="2" fill="white" />
+      <path d="M22 26h20M22 34h20M22 42h12" stroke="var(--farbe-primaer)" strokeWidth="3" strokeLinecap="round" />
     </svg>
   ),
 };

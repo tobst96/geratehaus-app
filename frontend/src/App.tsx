@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { ModeratorRoute } from "./components/ModeratorRoute";
 import { AdminRoute } from "./components/AdminRoute";
+import { BerechtigungRoute } from "./components/BerechtigungRoute";
 import { SetupGate } from "./components/SetupGate";
 import { KioskGate } from "./components/KioskGate";
 import { LandingPage } from "./pages/LandingPage";
@@ -20,6 +21,8 @@ import { Update } from "./pages/moderator/Update";
 import { Module } from "./pages/moderator/Module";
 import { ModulUnterseite } from "./pages/moderator/ModulUnterseite";
 import { Berechtigungen } from "./pages/moderator/Berechtigungen";
+import { AuditLog } from "./pages/moderator/AuditLog";
+import { Systemstatus } from "./pages/moderator/Systemstatus";
 import { BarcodeGenerator } from "./pages/moderator/BarcodeGenerator";
 import { NotifierEinstellungen } from "./pages/moderator/NotifierEinstellungen";
 import { SetupWizard } from "./pages/setup/SetupWizard";
@@ -29,12 +32,15 @@ import { MitgliedAnmelden } from "./pages/mitglied/MitgliedAnmelden";
 import { Einsatztagebuch } from "./pages/einsatztagebuch/Einsatztagebuch";
 import { EinsatzDetail } from "./pages/einsatztagebuch/EinsatzDetail";
 import { Dienstbuch } from "./pages/dienstbuch/Dienstbuch";
+import { FormularListe } from "./pages/formular/FormularListe";
+import { FormularAusfuellen } from "./pages/formular/FormularAusfuellen";
 import { Dienststunden } from "./pages/dienststunden/Dienststunden";
 import { Fahrzeugbuchung } from "./pages/fahrzeugbuchung/Fahrzeugbuchung";
 import { FahrzeugView } from "./pages/fahrzeug/FahrzeugView";
 import { ManuelleEintragung } from "./pages/ManuelleEintragung";
 import { DienstbuchManuelleEintragung } from "./pages/DienstbuchManuelleEintragung";
 import { DienststundenManuelleEintragung } from "./pages/DienststundenManuelleEintragung";
+import { DienststundenStempel } from "./pages/DienststundenStempel";
 import { FahrzeugbuchungManuelleEintragung } from "./pages/FahrzeugbuchungManuelleEintragung";
 import { PersonBildHochladen } from "./pages/PersonBildHochladen";
 import { PinSetzen } from "./pages/PinSetzen";
@@ -59,18 +65,44 @@ export function App() {
               <Route index element={<Navigate to="/moderator/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="listen" element={<Listen />} />
-              <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
-              <Route path="dienstbuecher/:id" element={<DienstbuchDetailModerator />} />
-              <Route path="buchungen" element={<Buchungsmanagement />} />
+              {/* Moderator-Arbeitsbereiche granular gegated (Backend:
+                  require_modul_zugriff, Admins via Bypass). Die Listen-Seite selbst
+                  filtert ihre Tabs pro Recht. */}
+              <Route element={<BerechtigungRoute modulKeys={["einsatztagebuch"]} />}>
+                <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
+              </Route>
+              <Route element={<BerechtigungRoute modulKeys={["dienstbuch"]} />}>
+                <Route path="dienstbuecher/:id" element={<DienstbuchDetailModerator />} />
+              </Route>
+              <Route element={<BerechtigungRoute modulKeys={["fahrzeugbuchung"]} />}>
+                <Route path="buchungen" element={<Buchungsmanagement />} />
+              </Route>
+              {/* Noch admin-only (Backend nutzt CurrentAdmin): Barcodes,
+                  Kiosk-Geräte, Benachrichtigungen. */}
               <Route element={<AdminRoute />}>
-                <Route path="barcodes" element={<BarcodeGenerator />} />
-                <Route path="kiosk-geraete" element={<KioskGeraete />} />
                 <Route path="benachrichtigungen" element={<NotifierEinstellungen />} />
+                <Route path="audit" element={<AuditLog />} />
+                <Route path="systemstatus" element={<Systemstatus />} />
+              </Route>
+              {/* Granular schaltbar (Backend: require_modul_zugriff, Admins via Bypass). */}
+              <Route element={<BerechtigungRoute modulKeys={["barcodes"]} />}>
+                <Route path="barcodes" element={<BarcodeGenerator />} />
+              </Route>
+              <Route element={<BerechtigungRoute modulKeys={["kiosk-geraete"]} />}>
+                <Route path="kiosk-geraete" element={<KioskGeraete />} />
+              </Route>
+              {/* Backend granular über require_modul_zugriff geschützt – hier
+                  individuell per hat_zugriff statt Rolle (Admins via Bypass). */}
+              <Route element={<BerechtigungRoute modulKeys={["einstellungen"]} />}>
                 <Route path="einstellungen" element={<Einstellungen />} />
                 <Route path="module" element={<Module />} />
-                <Route path="module/:key" element={<ModulUnterseite />} />
-                <Route path="berechtigungen" element={<Berechtigungen />} />
                 <Route path="update" element={<Update />} />
+              </Route>
+              {/* Modul-Unterseiten prüfen den Zugriff pro Modul-Key selbst
+                  (grantbare Bereiche für berechtigte Gruppenführer, sonst einstellungen). */}
+              <Route path="module/:key" element={<ModulUnterseite />} />
+              <Route element={<BerechtigungRoute modulKeys={["berechtigungen"]} />}>
+                <Route path="berechtigungen" element={<Berechtigungen />} />
               </Route>
             </Route>
           </Route>
@@ -79,7 +111,10 @@ export function App() {
           <Route path="/einsatztagebuch/:id" element={<EinsatzDetail />} />
           <Route path="/dienstbuch" element={<Dienstbuch />} />
           <Route path="/dienststunden" element={<Dienststunden />} />
+          <Route path="/dienststunden-stempel/:funktionId" element={<DienststundenStempel />} />
           <Route path="/fahrzeugbuchung" element={<Fahrzeugbuchung />} />
+          <Route path="/formulare" element={<FormularListe />} />
+          <Route path="/formular/:id" element={<FormularAusfuellen />} />
           <Route path="/fahrzeug/:token" element={<FahrzeugView />} />
           <Route path="/eintragen/:token" element={<ManuelleEintragung />} />
           <Route path="/eintragen-dienstbuch/:token" element={<DienstbuchManuelleEintragung />} />

@@ -1,11 +1,14 @@
-import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from io import BytesIO
 from pathlib import Path
+from uuid import uuid4
 
 from fastapi import HTTPException, UploadFile, status
+from PIL import Image, UnidentifiedImageError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import datei_token
 from app.core.config import settings
 from app.core.security import hash_secret, verify_secret
 from app.models.einsatz_feld import EinsatzFeldDefinition
@@ -20,6 +23,7 @@ from app.schemas.einsatz_feld import (
     schluessel_aus_label,
 )
 from app.schemas.person import PersonCreate, PersonOut, PersonUpdate
+from app.services.config_service import config_service
 from app.schemas.stammdaten import (
     FahrzeugCreate,
     FahrzeugUpdate,
@@ -260,6 +264,7 @@ FELD_LABELS = {
     "gruppe_id": "Gruppe",
     "funktion_id": "Funktion",
     "benachrichtigungen_aktiv": "Benachrichtigungen aktiv",
+    "inaktiv": "Inaktiv",
 }
 
 
@@ -295,6 +300,92 @@ async def person_anlegen(db: AsyncSession, daten: PersonCreate) -> Person:
     await db.commit()
     await db.refresh(person)
     return person
+
+
+# Spalten der Import-/Vorlage-CSV. Reihenfolge = Spaltenreihenfolge der Vorlage.
+CSV_IMPORT_SPALTEN = ["vorname", "zwischenname", "nachname", "email", "gruppe", "funktion"]
+
+# Beispiel-CSV zum Download neben dem Upload-Button. Bewusst neutrale Platzhalter
+# (keine org-spezifischen Werte); Gruppe/Funktion nur als Namensbeispiel.
+CSV_IMPORT_VORLAGE = (
+    "vorname;zwischenname;nachname;email;gruppe;funktion\n"
+    "Max;;Mustermann;max@example.org;;\n"
+    "Erika;von;Musterfrau;;;\n"
+)
+
+
+async def personen_csv_importieren(
+    db: AsyncSession, inhalt: bytes
+) -> tuple[int, list[dict[str, object]]]:
+    """Legt Personen zeilenweise aus einer CSV an (über `person_anlegen`, inkl.
+    Timeline). Gruppe/Funktion werden per Name (case-insensitive) aufgelöst.
+    Fehlerhafte Zeilen werden übersprungen und mit Zeilennummer gesammelt
+    zurückgegeben, statt den gesamten Import abzubrechen.
+
+    Rückgabe: (Anzahl angelegter Personen, Liste von {"zeile", "fehler"})."""
+    import csv
+    from io import StringIO
+
+    from pydantic import ValidationError
+
+    try:
+        text = inhalt.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = inhalt.decode("latin-1")
+
+    kopfzeile = text.split("\n", 1)[0]
+    trennzeichen = ";" if kopfzeile.count(";") >= kopfzeile.count(",") else ","
+    leser = csv.DictReader(StringIO(text), delimiter=trennzeichen)
+
+    # Namens-Lookups einmalig aufbauen (case-insensitive, getrimmt).
+    gruppen = await liste_gruppen(db, nur_aktive=False)
+    funktionen = await liste_funktionen_dienststunden(db, nur_aktive=False)
+    gruppe_nach_name = {g.name.strip().lower(): g.id for g in gruppen}
+    funktion_nach_name = {f.name.strip().lower(): f.id for f in funktionen}
+
+    angelegt = 0
+    fehler: list[dict[str, object]] = []
+
+    # Zeile 1 = Kopfzeile, Datenzeilen ab 2.
+    for index, roh in enumerate(leser, start=2):
+        werte = {(k or "").strip().lower(): (v or "").strip() for k, v in roh.items()}
+        if not any(werte.get(sp) for sp in CSV_IMPORT_SPALTEN):
+            continue  # komplett leere Zeile überspringen
+
+        gruppe_name = werte.get("gruppe", "")
+        funktion_name = werte.get("funktion", "")
+        gruppe_id: int | None = None
+        funktion_id: int | None = None
+        if gruppe_name:
+            gruppe_id = gruppe_nach_name.get(gruppe_name.lower())
+            if gruppe_id is None:
+                fehler.append({"zeile": index, "fehler": f"Gruppe „{gruppe_name}“ nicht gefunden."})
+                continue
+        if funktion_name:
+            funktion_id = funktion_nach_name.get(funktion_name.lower())
+            if funktion_id is None:
+                fehler.append({"zeile": index, "fehler": f"Funktion „{funktion_name}“ nicht gefunden."})
+                continue
+
+        try:
+            daten = PersonCreate(
+                vorname=werte.get("vorname", ""),
+                zwischenname=werte.get("zwischenname") or None,
+                nachname=werte.get("nachname", ""),
+                email=werte.get("email") or None,
+                gruppe_id=gruppe_id,
+                funktion_id=funktion_id,
+            )
+        except ValidationError as exc:
+            erstes = exc.errors()[0] if exc.errors() else {}
+            feld = erstes.get("loc", ["?"])[0]
+            fehler.append({"zeile": index, "fehler": f"Ungültiges Feld „{feld}“."})
+            continue
+
+        await person_anlegen(db, daten)
+        angelegt += 1
+
+    return angelegt, fehler
 
 
 async def person_aktualisieren(db: AsyncSession, person: Person, daten: PersonUpdate) -> Person:
@@ -375,35 +466,103 @@ async def person_loeschen(db: AsyncSession, person: Person) -> None:
     await db.commit()
 
 
-async def person_bild_speichern(db: AsyncSession, person: Person, datei: UploadFile) -> Person:
-    """Speichert das Profilbild einer Person (PNG/JPEG) und aktualisiert bild_url."""
-    erlaubte_typen = {"image/png": ".png", "image/jpeg": ".jpg"}
-    if datei.content_type not in erlaubte_typen:
+def _bild_verarbeiten(inhalt: bytes) -> tuple[bytes, str]:
+    """Validiert die Bytes als echtes PNG/JPEG (nicht nur laut Content-Type-Header)
+    und gibt neu kodierte Bytes OHNE Metadaten (EXIF/GPS entfernt) + Dateiendung
+    zurück. Das erneute Kodieren über Pillow verwirft sämtliche EXIF-Daten und wirkt
+    zugleich als Magic-Bytes-Prüfung – wer kein gültiges Bild hochlädt, bekommt 415."""
+    try:
+        bild = Image.open(BytesIO(inhalt))
+        bild.load()
+    except (UnidentifiedImageError, OSError):
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Datei ist kein gültiges PNG-/JPEG-Bild.",
+        )
+    if bild.format not in {"PNG", "JPEG"}:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Bild muss PNG oder JPEG sein.",
         )
+    ausgabe = BytesIO()
+    if bild.format == "PNG":
+        # Alpha erhalten; ohne pnginfo werden Text-/Metadaten-Chunks nicht übernommen.
+        bild.save(ausgabe, format="PNG")
+        return ausgabe.getvalue(), ".png"
+    # JPEG: in RGB wandeln (falls CMYK/P) und ohne exif= neu speichern → Metadaten weg.
+    bild.convert("RGB").save(ausgabe, format="JPEG", quality=88)
+    return ausgabe.getvalue(), ".jpg"
+
+
+def _upload_pfad_aus_url(url: str | None) -> Path | None:
+    """Interner Dateipfad zu einer `/uploads/…`-Referenz (ohne Query-Suffix)."""
+    if not url or not url.startswith("/uploads/"):
+        return None
+    relativ = url[len("/uploads/") :].split("?", 1)[0]
+    return Path(settings.upload_dir) / relativ
+
+
+async def person_bild_speichern(db: AsyncSession, person: Person, datei: UploadFile) -> Person:
+    """Speichert das Profilbild einer Person (PNG/JPEG) und aktualisiert bild_url.
+
+    Der Dateiname ist ein nicht erratbares Zufallstoken (kein `person-<id>`), damit
+    die öffentlich ausgelieferten Bilder nicht per ID durchzählbar sind; zusätzlich
+    werden die Bytes als echtes Bild geprüft und EXIF/Metadaten entfernt."""
     inhalt = await datei.read()
     if len(inhalt) > 5 * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail="Bild darf maximal 5 MB groß sein.",
         )
+    bytes_bereinigt, endung = _bild_verarbeiten(inhalt)
 
     hatte_noch_kein_bild = not person.bild_url
+    altes_bild = _upload_pfad_aus_url(person.bild_url)
 
     upload_verzeichnis = Path(settings.upload_dir) / "personen"
     upload_verzeichnis.mkdir(parents=True, exist_ok=True)
-    dateiname = f"person-{person.id}{erlaubte_typen[datei.content_type]}"
-    (upload_verzeichnis / dateiname).write_bytes(inhalt)
+    dateiname = f"{uuid4().hex}{endung}"
+    (upload_verzeichnis / dateiname).write_bytes(bytes_bereinigt)
 
-    # Cache-busting-Suffix, damit ein neu hochgeladenes Bild beim selben
-    # Dateinamen nicht aus dem Browser-Cache des alten Bilds angezeigt wird.
-    person.bild_url = f"/uploads/personen/{dateiname}?v={int(time.time())}"
+    # Altes Bild (falls vorhanden und anderer Name) entfernen – kein verwaistes,
+    # weiterhin abrufbares Profilbild zurücklassen.
+    if altes_bild is not None and altes_bild.name != dateiname:
+        altes_bild.unlink(missing_ok=True)
+
+    person.bild_url = f"/uploads/personen/{dateiname}"
     await person_ereignis_protokollieren(db, person.id, "bild_geaendert", "Profilbild aktualisiert")
     await db.commit()
     await db.refresh(person)
     return person
+
+
+async def personenbilder_backfill(db: AsyncSession) -> int:
+    """Einmalige, idempotente Migration der alten, durchzählbaren Profilbild-Namen
+    (`/uploads/personen/person-<id>.<ext>`) auf Zufallstoken. Benennt die Datei auf
+    der Platte um und aktualisiert `bild_url`. Gibt die Anzahl umbenannter Bilder
+    zurück. Läuft beim App-Start (siehe lifespan) und bei fehlenden Dateien
+    defensiv (überspringt statt zu werfen)."""
+    stmt = select(Person).where(Person.bild_url.like("/uploads/personen/person-%"))
+    personen = list((await db.execute(stmt)).scalars().all())
+    umbenannt = 0
+    for person in personen:
+        alt = _upload_pfad_aus_url(person.bild_url)
+        endung = alt.suffix if alt else ".jpg"
+        neuer_name = f"{uuid4().hex}{endung}"
+        ziel = Path(settings.upload_dir) / "personen" / neuer_name
+        try:
+            if alt is not None and alt.exists():
+                ziel.parent.mkdir(parents=True, exist_ok=True)
+                alt.rename(ziel)
+            elif alt is None:
+                continue
+        except OSError:
+            continue
+        person.bild_url = f"/uploads/personen/{neuer_name}"
+        umbenannt += 1
+    if umbenannt:
+        await db.commit()
+    return umbenannt
 
 
 async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[PersonOut]:
@@ -415,12 +574,14 @@ async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[Pers
             vorname=p.vorname,
             zwischenname=p.zwischenname,
             nachname=p.nachname,
-            bild_url=p.bild_url,
+            bild_url=datei_token.signierte_url(p.bild_url),
             email=p.email,
             gruppe_id=p.gruppe_id,
             funktion_id=p.funktion_id,
             pin_gesetzt=p.pin_gesetzt,
             benachrichtigungen_aktiv=p.benachrichtigungen_aktiv,
+            inaktiv=p.inaktiv,
+            pin_gesperrt_bis=p.pin_gesperrt_bis,
         )
         for p in personen
     ]
@@ -455,6 +616,91 @@ def person_pin_korrekt(person: Person, pin: str | None) -> bool:
     if not pin or person.pin_hash is None:
         return False
     return verify_secret(pin, person.pin_hash)
+
+
+class PinGesperrtError(Exception):
+    """Der PIN-Login der Person ist wegen zu vieler Fehlversuche temporär gesperrt."""
+
+    def __init__(self, verbleibend_sekunden: int) -> None:
+        super().__init__("PIN-Login vorübergehend gesperrt.")
+        self.verbleibend_sekunden = verbleibend_sekunden
+
+
+def _als_utc(dt: datetime) -> datetime:
+    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+
+
+def _pin_gesperrt_bis(person: Person) -> datetime | None:
+    """Sperr-Zeitpunkt als UTC-aware datetime (oder None), robust gegen naive Werte."""
+    if person.pin_gesperrt_bis is None:
+        return None
+    return _als_utc(person.pin_gesperrt_bis)
+
+
+async def pin_login_versuch(db: AsyncSession, person: Person, pin: str | None) -> bool:
+    """Prüft den PIN mit Brute-Force-Schutz und persistiert den Zählerstand.
+
+    - Ist die Person aktuell gesperrt (`pin_gesperrt_bis` in der Zukunft), wird
+      `PinGesperrtError` mit der Restdauer geworfen – ohne den PIN überhaupt zu prüfen.
+    - Bei korrektem PIN werden Zähler und Sperre zurückgesetzt → True.
+    - Bei falschem PIN wird der Fehlversuchszähler erhöht; erreicht er den
+      konfigurierten Schwellwert (`pin_max_fehlversuche`), wird die Person für
+      `pin_sperre_minuten` gesperrt (Zähler zurückgesetzt) und ein Timeline-Eintrag
+      geschrieben → False.
+
+    Bewusst identisch für Vorschau (`/name-pin/pruefen`) und Login (`/name-pin`),
+    damit die Sperre nicht über den Vorschau-Endpunkt umgangen werden kann.
+    """
+    jetzt = datetime.now(timezone.utc)
+    veraendert = False
+
+    gesperrt_bis = _pin_gesperrt_bis(person)
+    if gesperrt_bis is not None and gesperrt_bis > jetzt:
+        raise PinGesperrtError(int((gesperrt_bis - jetzt).total_seconds()) + 1)
+    # Abgelaufene Sperre aufheben, bevor neu gezählt wird.
+    if gesperrt_bis is not None:
+        person.pin_gesperrt_bis = None
+        person.pin_fehlversuche = 0
+        veraendert = True
+
+    if person_pin_korrekt(person, pin):
+        if person.pin_fehlversuche or person.pin_gesperrt_bis is not None:
+            person.pin_fehlversuche = 0
+            person.pin_gesperrt_bis = None
+            veraendert = True
+        if veraendert:
+            await db.commit()
+        return True
+
+    max_fehlversuche = int(await config_service.get(db, "pin_max_fehlversuche", 5))
+    sperre_minuten = int(await config_service.get(db, "pin_sperre_minuten", 15))
+    person.pin_fehlversuche = (person.pin_fehlversuche or 0) + 1
+    if max_fehlversuche > 0 and person.pin_fehlversuche >= max_fehlversuche:
+        person.pin_gesperrt_bis = jetzt + timedelta(minutes=sperre_minuten)
+        person.pin_fehlversuche = 0
+        await person_ereignis_protokollieren(
+            db,
+            person.id,
+            "pin_gesperrt",
+            f"PIN-Login nach {max_fehlversuche} Fehlversuchen für {sperre_minuten} Minuten gesperrt.",
+        )
+    await db.commit()
+    return False
+
+
+async def pin_sperre_aufheben(db: AsyncSession, person: Person) -> Person:
+    """Hebt eine (temporäre) PIN-Sperre manuell auf (Moderator) und setzt den
+    Fehlversuchszähler zurück. Wird in der Personen-Timeline vermerkt."""
+    war_gesperrt = _pin_gesperrt_bis(person) is not None or bool(person.pin_fehlversuche)
+    person.pin_gesperrt_bis = None
+    person.pin_fehlversuche = 0
+    if war_gesperrt:
+        await person_ereignis_protokollieren(
+            db, person.id, "pin_entsperrt", "PIN-Sperre manuell aufgehoben."
+        )
+    await db.commit()
+    await db.refresh(person)
+    return person
 
 
 async def pin_login_erzwingen(db: AsyncSession, person: Person, pin: str | None, kontext: str) -> None:

@@ -7,6 +7,11 @@ class DienstbuchAnlegen(BaseModel):
     titel: str = Field(min_length=1, max_length=255)
     eroeffnet_am: datetime
     notizen: str | None = None
+    zusatzfelder: dict[str, str | bool] = {}
+
+
+class ZusatzfelderSetzen(BaseModel):
+    zusatzfelder: dict[str, str | bool]
 
 
 class TeilnehmerAnlegen(BaseModel):
@@ -16,6 +21,30 @@ class TeilnehmerAnlegen(BaseModel):
 
 class TeilnehmerAktualisieren(BaseModel):
     atemschutzminuten: int = Field(ge=0)
+
+
+class RelevantSetzen(BaseModel):
+    relevant: bool
+
+
+class RelevanteDiensteEintrag(BaseModel):
+    """Anzahl relevanter Dienste je Person (Mindest-Dienstbeteiligung)."""
+
+    person_id: int
+    anzahl: int
+
+
+class AnwesenheitEintrag(BaseModel):
+    person_id: int
+    teilgenommen: int
+    quote: float  # Prozent (0–100)
+
+
+class AnwesenheitOut(BaseModel):
+    """Anwesenheitsquote je Person über alle Dienstbücher im Zeitraum."""
+
+    gesamt: int  # Anzahl aller Dienstbücher im Zeitraum
+    personen: list[AnwesenheitEintrag]
 
 
 class TeilnehmerOut(BaseModel):
@@ -38,4 +67,6 @@ class DienstbuchOut(BaseModel):
     notizen: str | None
     archiviert: bool
     geschlossen: bool
+    relevant: bool
+    zusatzfelder: dict[str, str | bool] = {}
     teilnehmer: list[TeilnehmerOut] = []

@@ -5,6 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import mitglied_session
 from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.models.moderator import Moderator
@@ -57,20 +58,23 @@ CurrentAdmin = Annotated[Moderator, Depends(get_current_admin)]
 async def get_current_person(
     db: DbSession, geraetehaus_name: Annotated[str | None, Cookie()] = None
 ) -> Person:
-    """Liest den im Cookie gespeicherten Namen und lädt/erstellt die Person.
-    Kein Login – die Identität basiert allein auf dem Namens-Cookie."""
-    if not geraetehaus_name:
+    """Lädt die Person aus dem **signierten** Namens-Cookie. Der Cookie-Wert wird
+    ausschließlich nach echter Identifikation (Barcode/Name+PIN) ausgestellt und
+    hier über den `cookie_secret_key` verifiziert – ein manipuliertes/fehlendes
+    Cookie führt zu 401 (kein Anlegen fremder Identitäten mehr)."""
+    name = mitglied_session.lese_name(geraetehaus_name)
+    if not name:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Kein Name gesetzt. Bitte zunächst einen Namen eintragen.",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Nicht angemeldet. Bitte per Barcode oder Name+PIN identifizieren.",
         )
-    result = await db.execute(select(Person).where(Person.name == geraetehaus_name))
+    result = await db.execute(select(Person).where(Person.name == name))
     person = result.scalar_one_or_none()
     if person is None:
-        person = Person(name=geraetehaus_name)
-        db.add(person)
-        await db.commit()
-        await db.refresh(person)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Person nicht gefunden. Bitte erneut identifizieren.",
+        )
     return person
 
 
@@ -98,8 +102,8 @@ async def require_zugriff(
 
         if await kiosk_token_service.get_by_token(db, x_kiosk_token) is not None:
             return
-    # 2) Mitglied (Namens-Cookie)
-    if geraetehaus_name:
+    # 2) Mitglied (signierter Namens-Cookie – bloße Präsenz genügt nicht mehr)
+    if mitglied_session.lese_name(geraetehaus_name) is not None:
         return
     # 3) Moderator (signiertes Bearer-JWT genügt fürs Gate)
     if token:

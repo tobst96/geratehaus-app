@@ -17,6 +17,10 @@ class PersonOut(BaseModel):
     funktion_id: int | None
     pin_gesetzt: bool
     benachrichtigungen_aktiv: bool
+    inaktiv: bool = False
+    # Zeitpunkt, bis zu dem der PIN-Login wegen zu vieler Fehlversuche gesperrt ist
+    # (None = nicht gesperrt). Für Sperr-Badge + „Entsperren" in der Personal-Liste.
+    pin_gesperrt_bis: datetime | None = None
 
 
 class PersonCreate(BaseModel):
@@ -36,6 +40,7 @@ class PersonUpdate(BaseModel):
     gruppe_id: int | None = None
     funktion_id: int | None = None
     benachrichtigungen_aktiv: bool | None = None
+    inaktiv: bool | None = None
 
 
 class PersonEreignisOut(BaseModel):
@@ -47,5 +52,24 @@ class PersonEreignisOut(BaseModel):
     beschreibung: str
 
 
+class AmpelEintragOut(BaseModel):
+    """Aktivitäts-Ampel je Person: Status (gruen/gelb/rot/inaktiv) und Anzahl Tage
+    seit dem letzten relevanten Eintrag."""
+
+    person_id: int
+    status: str
+    tage: int
+
+
 class PersonPinSetzen(BaseModel):
     pin: str = Field(min_length=4, max_length=6, pattern=r"^\d+$")
+
+
+class PersonCsvImportFehler(BaseModel):
+    zeile: int
+    fehler: str
+
+
+class PersonCsvImportErgebnis(BaseModel):
+    angelegt: int
+    fehler: list[PersonCsvImportFehler]

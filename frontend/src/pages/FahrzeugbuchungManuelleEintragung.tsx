@@ -1,3 +1,4 @@
+import { Fehlertext } from "../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -101,7 +102,7 @@ export function FahrzeugbuchungManuelleEintragung() {
   if (ladeFehler) {
     return (
       <div className="seite">
-        <p className="fehlertext">{ladeFehler}</p>
+        <Fehlertext>{ladeFehler}</Fehlertext>
       </div>
     );
   }
@@ -157,14 +158,7 @@ export function FahrzeugbuchungManuelleEintragung() {
           <label htmlFor="fbme-person">Wer bist du?</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
-              {ausgewaehltePerson.bild_url ? (
-                <img
-                  src={ausgewaehltePerson.bild_url}
-                  alt={ausgewaehltePerson.name}
-                  style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover" }}
-                />
-              ) : (
-                <div
+              <div
                   style={{
                     width: 64,
                     height: 64,
@@ -179,7 +173,6 @@ export function FahrzeugbuchungManuelleEintragung() {
                 >
                   {initialenAus(ausgewaehltePerson.name)}
                 </div>
-              )}
               <strong>{ausgewaehltePerson.name}</strong>
               <button type="button" className="sekundaer" onClick={() => setAusgewaehltePerson(null)}>
                 Ändern
@@ -211,7 +204,7 @@ export function FahrzeugbuchungManuelleEintragung() {
                 </ul>
               )}
               {suche.trim().length > 0 && trefferliste.length === 0 && (
-                <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+                <p className="hinweistext">
                   Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
                 </p>
               )}
@@ -220,10 +213,10 @@ export function FahrzeugbuchungManuelleEintragung() {
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <p className="fehlertext">
+            <Fehlertext>
               Für dich ist kein PIN hinterlegt. Eine Selbst-Buchung ohne PIN ist nicht möglich –
               bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
-            </p>
+            </Fehlertext>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
@@ -282,7 +275,7 @@ export function FahrzeugbuchungManuelleEintragung() {
             <input id="fbme-zweck" value={zweck} onChange={(e) => setZweck(e.target.value)} required />
           </div>
 
-          {fehler && <p className="fehlertext">{fehler}</p>}
+          {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
           <button
             type="submit"

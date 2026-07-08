@@ -1,4 +1,6 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
+import { formatiereDatumZeit } from "../../utils/datum";
 import {
   holeBuchungenListe,
   holeKonfliktvergleich,
@@ -53,7 +55,7 @@ export function Buchungsmanagement() {
     }
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!buchungen) return <Ladeanzeige />;
 
   return (
@@ -64,8 +66,8 @@ export function Buchungsmanagement() {
       {buchungen.length === 0 && <p>Keine ausstehenden Anfragen.</p>}
       {buchungen.map((b) => (
         <div key={b.id} className="karte">
-          <strong>{b.fahrzeug_name}</strong> · {new Date(b.von).toLocaleString("de-DE")} –{" "}
-          {new Date(b.bis).toLocaleString("de-DE")}
+          <strong>{b.fahrzeug_name}</strong> · {formatiereDatumZeit(b.von)} –{" "}
+          {formatiereDatumZeit(b.bis)}
           <div>Zweck: {b.zweck}</div>
           <div>Verantwortlich: {b.verantwortliche_person_name}</div>
 
@@ -75,8 +77,8 @@ export function Buchungsmanagement() {
               <ul>
                 {konflikte[b.id].map((k) => (
                   <li key={k.id}>
-                    {k.fahrzeug_name}: {new Date(k.von).toLocaleString("de-DE")} –{" "}
-                    {new Date(k.bis).toLocaleString("de-DE")} ({k.status})
+                    {k.fahrzeug_name}: {formatiereDatumZeit(k.von)} –{" "}
+                    {formatiereDatumZeit(k.bis)} ({k.status})
                   </li>
                 ))}
               </ul>

@@ -9,6 +9,14 @@ async def test_security_headers_gesetzt(client):
     assert response.headers["x-content-type-options"] == "nosniff"
     assert response.headers["x-frame-options"] == "DENY"
     assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
+    assert response.headers["cross-origin-opener-policy"] == "same-origin"
+    assert response.headers["x-permitted-cross-domain-policies"] == "none"
+    permissions = response.headers["permissions-policy"]
+    assert "geolocation=()" in permissions
+    # Kamera bleibt erlaubt (Barcode-Scanner) – darf NICHT abgeschaltet werden.
+    assert "camera=()" not in permissions
+    # Kein HSTS: TLS terminiert im Reverse-Proxy, die App kennt das Schema nicht.
+    assert "strict-transport-security" not in response.headers
 
 
 async def test_rate_limit_blockiert_nach_max_aufrufen():
@@ -58,3 +66,45 @@ async def test_rate_limit_trennt_nach_ip():
 
     with pytest.raises(Exception):
         await check(request_fuer_ip("1.1.1.1"))
+
+
+async def test_rate_limit_gruppiert_nach_routen_muster():
+    """Token-Endpunkte werden pro Routen-MUSTER begrenzt, nicht pro konkretem
+    Pfad – sonst wäre jeder geratene Token ein eigener Bucket und Brute-Force
+    über viele Tokens bliebe ungebremst."""
+    _AUFRUFE.clear()
+
+    class FakeRoute:
+        path_format = "/api/v1/reservierungen/{token}/einloesen"
+
+    def request_fuer_token(token: str):
+        class FakeClient:
+            host = "9.9.9.9"
+
+        class FakeUrl:
+            path = f"/api/v1/reservierungen/{token}/einloesen"
+
+        class FakeRequest:
+            client = FakeClient()
+            url = FakeUrl()
+            scope = {"route": FakeRoute()}
+
+        return FakeRequest()
+
+    check = rate_limit(2, 60)
+    await check(request_fuer_token("aaa"))
+    await check(request_fuer_token("bbb"))
+    # Dritter (anderer Token, gleiche IP) trifft denselben Bucket -> 429.
+    with pytest.raises(Exception) as exc:
+        await check(request_fuer_token("ccc"))
+    assert "429" in str(exc.value) or "Zu viele" in str(exc.value)
+
+
+@pytest.mark.asyncio
+async def test_oeffentlicher_post_wird_begrenzt(client, db):
+    """Integration: ein öffentlicher POST-Endpunkt ohne Auth (Login-Reservierung
+    anlegen) wird nach dem Limit mit 429 abgewiesen."""
+    _AUFRUFE.clear()
+    antworten = [await client.post("/api/v1/mitglied-login-reservierungen") for _ in range(16)]
+    assert antworten[-1].status_code == 429
+    assert any(a.status_code < 400 for a in antworten[:15])

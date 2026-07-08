@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { markiereAlsEingerichtet, setupAusfuehren, setupLogoHochladen } from "../../api/setup";
@@ -159,7 +160,7 @@ export function SetupWizard() {
                 autoComplete="new-password"
               />
               {adminPasswortWiederholung.length > 0 && adminPasswort !== adminPasswortWiederholung && (
-                <p className="fehlertext">Die Passwörter stimmen nicht überein.</p>
+                <Fehlertext>Die Passwörter stimmen nicht überein.</Fehlertext>
               )}
             </div>
           </>
@@ -185,7 +186,7 @@ export function SetupWizard() {
         )}
       </div>
 
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
       <div style={{ display: "flex", gap: 12 }}>
         {schritt > 0 && (

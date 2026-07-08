@@ -49,6 +49,12 @@ export const NAV_ICONS: Record<string, JSX.Element> = {
       <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
     </>
   ),
+  formular: icon(
+    <>
+      <path d="M9 2h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V3a1 1 0 0 1 1-1z" />
+      <path d="M9 11h6M9 15h6" />
+    </>
+  ),
   dienststunden: icon(
     <>
       <circle cx="12" cy="12" r="10" />

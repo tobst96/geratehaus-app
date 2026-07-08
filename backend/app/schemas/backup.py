@@ -121,3 +121,11 @@ class BackupImportErgebnis(BaseModel):
     importierte_kategorien: list[str]
     importierte_datensaetze: int
     importierte_dateien: int
+
+
+class BackupIntegritaet(BaseModel):
+    # ok: True/False, oder None wenn noch nie geprüft / kein Backup vorhanden.
+    ok: bool | None = None
+    detail: str = ""
+    geprueft_am: str | None = None
+    datei: str = ""

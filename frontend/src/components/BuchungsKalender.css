@@ -1,0 +1,94 @@
+/* react-big-calendar an das App-Theme angleichen – inkl. Dark Mode.
+   Die Bibliotheks-CSS bringt fest verdrahtete helle Farben mit (Raster, Kopf-
+   zeilen, „heute", Toolbar); im Dark Mode wirkte der Kalender dadurch wie eine
+   helle Insel mit unlesbarem Kontrast. Hier werden die `.rbc-*`-Flächen auf die
+   Theme-Variablen (`--farbe-*`) gemappt, die zwischen Hell/Dunkel umschalten.
+   MUSS NACH der react-big-calendar-CSS importiert werden. */
+
+.rbc-calendar {
+  color: var(--farbe-text);
+}
+
+/* Toolbar (Zurück/Heute/Weiter + Monat/Woche/Tag/Agenda) */
+.rbc-toolbar {
+  color: var(--farbe-text);
+}
+.rbc-toolbar-label {
+  color: var(--farbe-text);
+}
+.rbc-toolbar button {
+  color: var(--farbe-text);
+  background: var(--farbe-oberflaeche);
+  border-color: var(--farbe-rand);
+}
+.rbc-toolbar button:hover,
+.rbc-toolbar button:focus {
+  background: var(--farbe-oberflaeche-hover);
+  color: var(--farbe-text);
+  border-color: var(--farbe-rand);
+}
+.rbc-toolbar button.rbc-active,
+.rbc-toolbar button.rbc-active:hover,
+.rbc-toolbar button.rbc-active:focus {
+  background: var(--farbe-primaer);
+  color: #1a1a1a; /* dunkler Text auf Orange – in beiden Modi lesbar */
+  border-color: var(--farbe-primaer);
+}
+
+/* Rahmen / Grundflächen */
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view table.rbc-agenda-table {
+  background: var(--farbe-oberflaeche);
+  border-color: var(--farbe-rand);
+}
+.rbc-header,
+.rbc-header + .rbc-header,
+.rbc-day-bg + .rbc-day-bg,
+.rbc-month-row + .rbc-month-row,
+.rbc-time-content,
+.rbc-time-header-content,
+.rbc-timeslot-group,
+.rbc-time-content > * + * > * {
+  border-color: var(--farbe-rand);
+}
+.rbc-header {
+  color: var(--farbe-text);
+}
+
+/* Tageszellen */
+.rbc-day-bg {
+  background: var(--farbe-oberflaeche);
+}
+.rbc-off-range-bg {
+  background: var(--farbe-hintergrund);
+}
+.rbc-off-range {
+  color: var(--farbe-text-mute);
+}
+.rbc-date-cell,
+.rbc-button-link {
+  color: var(--farbe-text);
+}
+
+/* „Heute" dezent mit der Primärfarbe tönen (fällt bei alten Browsern ohne
+   color-mix auf die Bibliotheks-Vorgabe zurück, bleibt also sichtbar). */
+.rbc-today {
+  background: color-mix(in srgb, var(--farbe-primaer) 15%, var(--farbe-oberflaeche));
+}
+
+/* Agenda-Ansicht */
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td,
+.rbc-agenda-view table.rbc-agenda-table thead > tr > th {
+  border-color: var(--farbe-rand);
+  color: var(--farbe-text);
+}
+.rbc-agenda-empty {
+  color: var(--farbe-text-mute);
+}
+
+/* „+N mehr"-Link */
+.rbc-show-more {
+  color: var(--farbe-primaer);
+  background: transparent;
+}

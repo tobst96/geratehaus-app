@@ -1,4 +1,6 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState, type ReactNode } from "react";
+import { formatiereDatumZeit } from "../../utils/datum";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   holeEinsaetzeListe,
@@ -11,6 +13,15 @@ import {
   type NamensAbweichungOut,
   type SchwellenwertEintrag,
 } from "../../api/moderator";
+import {
+  holeSichtbareFormulare,
+  holeEinreichungen,
+  holeZusammenfassung,
+  type Einreichung,
+  type Formular,
+  type Zusammenfassung,
+} from "../../api/formular";
+import { FormularZusammenfassung } from "./FormularZusammenfassung";
 import { ApiError } from "../../api/client";
 import type { BuchungOut, DienstbuchOut, EinsatzOut } from "../../api/types";
 import type { DienststundenEintragOut } from "../../api/dienststunden";
@@ -18,7 +29,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 
-const TABS_BASIS = ["Einsätze", "Dienstbücher", "Dienststunden", "Buchungen"] as const;
+const TABS_BASIS = ["Einsätze", "Dienstbücher", "Dienststunden", "Buchungen", "Formulare"] as const;
 const TAB_NAMENSABWEICHUNGEN = "Namensabweichungen" as const;
 type Tab = (typeof TABS_BASIS)[number] | typeof TAB_NAMENSABWEICHUNGEN;
 
@@ -29,16 +40,31 @@ const TAB_MODUL: Record<(typeof TABS_BASIS)[number], string> = {
   "Dienstbücher": "modul_dienstbuch_aktiv",
   "Dienststunden": "modul_dienststunden_aktiv",
   "Buchungen": "modul_fahrzeugbuchung_aktiv",
+  "Formulare": "modul_formular_aktiv",
+};
+
+// Berechtigungs-Key je Tab: Gruppenführer sehen einen Bereichs-Tab nur mit dem
+// Modul-Recht (Admins via Bypass). Formulare hat keins – der Server filtert die
+// Einreichungen über `moderator_sichtbar`.
+const TAB_PERM: Partial<Record<(typeof TABS_BASIS)[number], string>> = {
+  "Einsätze": "einsatztagebuch",
+  "Dienstbücher": "dienstbuch",
+  "Dienststunden": "dienststunden",
+  "Buchungen": "fahrzeugbuchung",
 };
 
 export function Listen() {
-  const { moderatorRolle } = useAuth();
+  const { moderatorRolle, hatModulZugriff } = useAuth();
   const { config } = useConfig();
   const [searchParams] = useSearchParams();
   const istAdmin = moderatorRolle === "admin";
 
   const configWerte = config as Record<string, unknown> | null;
-  const sichtbareBasis = TABS_BASIS.filter((t) => configWerte?.[TAB_MODUL[t]] !== false);
+  const sichtbareBasis = TABS_BASIS.filter(
+    (t) =>
+      configWerte?.[TAB_MODUL[t]] !== false &&
+      (!TAB_PERM[t] || hatModulZugriff(TAB_PERM[t] as string))
+  );
   const TABS: Tab[] = istAdmin ? [...sichtbareBasis, TAB_NAMENSABWEICHUNGEN] : [...sichtbareBasis];
 
   const [tab, setTab] = useState<Tab>(TABS[0] ?? "Einsätze");
@@ -63,6 +89,7 @@ export function Listen() {
       {tab === "Dienstbücher" && <DienstbuecherTab />}
       {tab === "Dienststunden" && <DienststundenTab />}
       {tab === "Buchungen" && <BuchungenTab />}
+      {tab === "Formulare" && <FormulareTab />}
       {tab === "Namensabweichungen" && istAdmin && <NamensabweichungenTab />}
     </div>
   );
@@ -103,7 +130,7 @@ function EinsaetzeTab() {
         <ArchiviertFeld value={archiviert} onChange={setArchiviert} />
         <button onClick={laden}>Filtern</button>
       </FilterZeile>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
         <div className="tabelle-scroll">
         <table>
@@ -123,7 +150,7 @@ function EinsaetzeTab() {
                 <td>
                   <Link to={`/moderator/einsaetze/${e.id}`}>{e.titel}</Link>
                 </td>
-                <td>{new Date(e.zeitpunkt).toLocaleString("de-DE")}</td>
+                <td>{formatiereDatumZeit(e.zeitpunkt)}</td>
                 <td>{e.quelle}</td>
                 <td>{e.status}</td>
                 <td>{e.teilnahmen.length}</td>
@@ -185,7 +212,7 @@ function DienstbuecherTab() {
         <ArchiviertFeld value={archiviert} onChange={setArchiviert} />
         <button onClick={laden}>Filtern</button>
       </FilterZeile>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
         <div className="tabelle-scroll">
         <table>
@@ -204,7 +231,7 @@ function DienstbuecherTab() {
                 <td>
                   <Link to={`/moderator/dienstbuecher/${d.id}`}>{d.titel}</Link>
                 </td>
-                <td>{new Date(d.eroeffnet_am).toLocaleString("de-DE")}</td>
+                <td>{formatiereDatumZeit(d.eroeffnet_am)}</td>
                 <td>{d.geschlossen ? "Geschlossen" : "Offen"}</td>
                 <td>{d.teilnehmer.length}</td>
                 <td>{d.archiviert ? "Ja" : ""}</td>
@@ -250,7 +277,7 @@ function DienststundenTab() {
         <DatumFeld label="Bis" value={bis} onChange={setBis} />
         <button onClick={laden}>Filtern</button>
       </FilterZeile>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
         <div className="tabelle-scroll">
         <table>
@@ -320,13 +347,13 @@ function SchwellenwertUeberschreitungenTab() {
   return (
     <div style={{ marginTop: "2rem" }}>
       <h2>Schwellenwert-Überschreitungen</h2>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Personen, die den Schwellenwert ihrer Funktion auch nach Abzug bereits übernommener Stunden
         noch überschreiten. Übernommene Stunden werden vom Überschuss abgezogen, ohne die
         Dienststunden-Einträge selbst zu verändern.
       </p>
-      {fehler && <p className="fehlertext">{fehler}</p>}
-      {daten && daten.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Aktuell keine Überschreitungen.</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
+      {daten && daten.length === 0 && <p className="text-mute">Aktuell keine Überschreitungen.</p>}
       {daten && daten.length > 0 && (
         <div className="tabelle-scroll">
         <table>
@@ -418,7 +445,7 @@ function BuchungenTab() {
         </select>
         <button onClick={laden}>Filtern</button>
       </FilterZeile>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
         <div className="tabelle-scroll">
         <table>
@@ -436,8 +463,8 @@ function BuchungenTab() {
             {daten.map((b) => (
               <tr key={b.id}>
                 <td>{b.fahrzeug_name}</td>
-                <td>{new Date(b.von).toLocaleString("de-DE")}</td>
-                <td>{new Date(b.bis).toLocaleString("de-DE")}</td>
+                <td>{formatiereDatumZeit(b.von)}</td>
+                <td>{formatiereDatumZeit(b.bis)}</td>
                 <td>{b.zweck}</td>
                 <td>{b.verantwortliche_person_name}</td>
                 <td>{b.status}</td>
@@ -461,7 +488,7 @@ function NamensabweichungenTab() {
       .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : "Liste konnte nicht geladen werden."));
   }, []);
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!daten) return <Ladeanzeige />;
 
   return (
@@ -479,7 +506,7 @@ function NamensabweichungenTab() {
           <tr key={d.id}>
             <td>{d.cookie_name}</td>
             <td>{d.eingetragener_name}</td>
-            <td>{new Date(d.zeitstempel).toLocaleString("de-DE")}</td>
+            <td>{formatiereDatumZeit(d.zeitstempel)}</td>
           </tr>
         ))}
       </tbody>
@@ -512,5 +539,109 @@ function ArchiviertFeld({ value, onChange }: { value: string; onChange: (v: stri
       <option value="false">Nur aktive</option>
       <option value="true">Nur archivierte</option>
     </select>
+  );
+}
+
+function formularWertText(a: Einreichung["antworten"][number]): string {
+  if (a.typ === "checkbox") return a.wert ? "Ja" : "Nein";
+  if (Array.isArray(a.wert)) return a.wert.join(", ");
+  if (a.wert === null || a.wert === "") return "–";
+  return String(a.wert);
+}
+
+function FormulareTab() {
+  const [formulare, setFormulare] = useState<Formular[] | null>(null);
+  const [ausgewaehltId, setAusgewaehltId] = useState<number | null>(null);
+  const [ansicht, setAnsicht] = useState<"auswertung" | "einreichungen">("auswertung");
+  const [einreichungen, setEinreichungen] = useState<Einreichung[] | null>(null);
+  const [zusammenfassung, setZusammenfassung] = useState<Zusammenfassung | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+
+  useEffect(() => {
+    holeSichtbareFormulare()
+      .then(setFormulare)
+      .catch((err) =>
+        setFehler(err instanceof ApiError ? String(err.detail) : "Formulare konnten nicht geladen werden.")
+      );
+  }, []);
+
+  async function auswaehlen(id: number) {
+    setAusgewaehltId(id);
+    setEinreichungen(null);
+    setZusammenfassung(null);
+    try {
+      const [z, e] = await Promise.all([holeZusammenfassung(id), holeEinreichungen(id)]);
+      setZusammenfassung(z);
+      setEinreichungen(e);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Daten konnten nicht geladen werden.");
+    }
+  }
+
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
+  if (!formulare) return <Ladeanzeige />;
+  if (formulare.length === 0)
+    return <p className="text-mute">Keine für dich freigegebenen Formulare.</p>;
+
+  return (
+    <div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+        {formulare.map((f) => (
+          <button
+            key={f.id}
+            className={f.id === ausgewaehltId ? "" : "sekundaer"}
+            onClick={() => auswaehlen(f.id)}
+          >
+            {f.name}
+          </button>
+        ))}
+      </div>
+
+      {ausgewaehltId !== null && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          <button
+            className={ansicht === "auswertung" ? "" : "sekundaer"}
+            onClick={() => setAnsicht("auswertung")}
+          >
+            Auswertung
+          </button>
+          <button
+            className={ansicht === "einreichungen" ? "" : "sekundaer"}
+            onClick={() => setAnsicht("einreichungen")}
+          >
+            Einreichungen
+          </button>
+        </div>
+      )}
+
+      {ausgewaehltId !== null && ansicht === "auswertung" && zusammenfassung && (
+        <FormularZusammenfassung daten={zusammenfassung} />
+      )}
+
+      {ausgewaehltId !== null &&
+        ansicht === "einreichungen" &&
+        (!einreichungen ? (
+          <Ladeanzeige />
+        ) : einreichungen.length === 0 ? (
+          <p className="text-mute">Noch keine Einreichungen.</p>
+        ) : (
+          einreichungen.map((e) => (
+            <div
+              key={e.id}
+              style={{ border: "1px solid var(--farbe-rand)", borderRadius: 8, padding: 12, marginBottom: 8 }}
+            >
+              <div style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)", marginBottom: 6 }}>
+                {formatiereDatumZeit(e.erstellt_am)}
+                {e.person_name ? ` · ${e.person_name}` : ""}
+              </div>
+              {e.antworten.map((a) => (
+                <div key={a.feld_id}>
+                  <strong>{a.label}:</strong> {formularWertText(a)}
+                </div>
+              ))}
+            </div>
+          ))
+        ))}
+    </div>
   );
 }

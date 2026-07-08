@@ -1,4 +1,6 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState } from "react";
+import { Gespeichert } from "../../../components/Gespeichert";
 import { Link } from "react-router-dom";
 import { holeEinstellungen, schreibeEinstellungen } from "../../../api/moderator";
 import { ApiError } from "../../../api/client";
@@ -16,6 +18,8 @@ export function EinsatztagebuchModul() {
   const [alleEingetragen, setAlleEingetragen] = useState(30);
   const [autoabschlussStunde, setAutoabschlussStunde] = useState(4);
   const [autoabschlussInaktivitaet, setAutoabschlussInaktivitaet] = useState(4);
+  const [statistikOffset, setStatistikOffset] = useState(0);
+  const [statistikOffsetJahr, setStatistikOffsetJahr] = useState(0);
 
   useEffect(() => {
     holeEinstellungen()
@@ -24,6 +28,8 @@ export function EinsatztagebuchModul() {
         setAlleEingetragen(Number(w.einsatz_alle_eingetragen_minuten ?? 30));
         setAutoabschlussStunde(Number(w.einsatz_autoabschluss_stunde ?? 4));
         setAutoabschlussInaktivitaet(Number(w.einsatz_autoabschluss_inaktivitaet_stunden ?? 4));
+        setStatistikOffset(Number(w.einsatz_statistik_offset ?? 0));
+        setStatistikOffsetJahr(Number(w.einsatz_statistik_offset_jahr ?? 0));
         setGeladen(true);
       })
       .catch((err) =>
@@ -41,6 +47,8 @@ export function EinsatztagebuchModul() {
         einsatz_alle_eingetragen_minuten: alleEingetragen,
         einsatz_autoabschluss_stunde: autoabschlussStunde,
         einsatz_autoabschluss_inaktivitaet_stunden: autoabschlussInaktivitaet,
+        einsatz_statistik_offset: statistikOffset,
+        einsatz_statistik_offset_jahr: statistikOffsetJahr,
       });
       setGespeichert(true);
     } catch (err) {
@@ -50,7 +58,7 @@ export function EinsatztagebuchModul() {
     }
   }
 
-  if (fehler && !geladen) return <p className="fehlertext">{fehler}</p>;
+  if (fehler && !geladen) return <Fehlertext>{fehler}</Fehlertext>;
   if (!geladen) return <Ladeanzeige />;
 
   return (
@@ -110,8 +118,42 @@ export function EinsatztagebuchModul() {
         <button onClick={speichern} disabled={speichert}>
           {speichert ? "Speichert …" : "Speichern"}
         </button>
-        {gespeichert && <span style={{ marginLeft: 10, color: "var(--farbe-text-mute)" }}>✓ gespeichert</span>}
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {gespeichert && <Gespeichert />}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
+      </div>
+
+      <div className="karte" style={{ marginTop: 16 }}>
+        <h2>Jahresstatistik</h2>
+        <p className="hinweistext">
+          Im Einsatztagebuch wird die Zahl der Einsätze des laufenden Jahres mit dem Vorjahr zum
+          selben Stichtag verglichen. Wurde die App mitten im Jahr eingeführt, kann hier ein
+          Startwert (bereits abgearbeitete Einsätze) für ein Jahr hinterlegt werden – er fließt in
+          die Zählung ein. Jahr 0 = kein Startwert.
+        </p>
+        <div className="formular-feld">
+          <label htmlFor="et-stat-offset">Startwert (bereits abgearbeitete Einsätze)</label>
+          <input
+            id="et-stat-offset"
+            type="number"
+            min={0}
+            value={statistikOffset}
+            onChange={(e) => setStatistikOffset(Number(e.target.value))}
+          />
+        </div>
+        <div className="formular-feld">
+          <label htmlFor="et-stat-jahr">Startwert gilt für Jahr (z. B. {new Date().getFullYear()})</label>
+          <input
+            id="et-stat-jahr"
+            type="number"
+            min={0}
+            value={statistikOffsetJahr}
+            onChange={(e) => setStatistikOffsetJahr(Number(e.target.value))}
+          />
+        </div>
+        <button onClick={speichern} disabled={speichert}>
+          {speichert ? "Speichert …" : "Speichern"}
+        </button>
+        {gespeichert && <Gespeichert />}
       </div>
 
       <div className="karte" style={{ marginTop: 16 }}>

@@ -1,6 +1,7 @@
 export interface OeffentlicheKonfiguration {
   organisation_name: string;
   oeffentliche_basis_url: string;
+  zeitzone: string;
   logo_url: string;
   logo_url_dark: string;
   farbe_primaer: string;
@@ -11,15 +12,22 @@ export interface OeffentlicheKonfiguration {
   modul_dienstbuch_aktiv: boolean;
   modul_dienststunden_aktiv: boolean;
   modul_fahrzeugbuchung_aktiv: boolean;
+  modul_formular_aktiv: boolean;
   modul_barcode_aktiv: boolean;
+  kiosk_autolock_sekunden: number;
   modul_einsatztagebuch_startseite: boolean;
   modul_dienstbuch_startseite: boolean;
   modul_dienststunden_startseite: boolean;
   modul_fahrzeugbuchung_startseite: boolean;
+  modul_formular_startseite: boolean;
   modul_einsatztagebuch_aussenzugriff: boolean;
   modul_dienstbuch_aussenzugriff: boolean;
   modul_dienststunden_aussenzugriff: boolean;
   modul_fahrzeugbuchung_aussenzugriff: boolean;
+  modul_formular_aussenzugriff: boolean;
+  fehlerberichte_aktiv: boolean;
+  sentry_dsn: string;
+  sentry_environment: string;
 }
 
 export interface SetupStatus {
@@ -61,6 +69,17 @@ export interface Person {
   funktion_id: number | null;
   pin_gesetzt: boolean;
   benachrichtigungen_aktiv: boolean;
+  inaktiv: boolean;
+  /** Zeitpunkt, bis zu dem der PIN-Login gesperrt ist (ISO), sonst null. */
+  pin_gesperrt_bis: string | null;
+}
+
+export type AmpelStatus = "gruen" | "gelb" | "rot" | "inaktiv";
+
+export interface AmpelEintrag {
+  person_id: number;
+  status: AmpelStatus;
+  tage: number;
 }
 
 export interface PersonEreignis {
@@ -177,6 +196,16 @@ export interface TeilnehmerOut {
   atemschutzminuten: number;
 }
 
+export interface DienstbuchFeldDefinition {
+  id: number;
+  schluessel: string;
+  label: string;
+  typ: "text" | "mehrzeilig" | "checkbox" | "auswahl";
+  optionen: string[];
+  reihenfolge: number;
+  aktiv: boolean;
+}
+
 export interface DienstbuchOut {
   id: number;
   titel: string;
@@ -184,6 +213,8 @@ export interface DienstbuchOut {
   notizen: string | null;
   archiviert: boolean;
   geschlossen: boolean;
+  relevant: boolean;
+  zusatzfelder: Record<string, string | boolean>;
   teilnehmer: TeilnehmerOut[];
 }
 
@@ -193,6 +224,12 @@ export interface DienststundenSummeOut {
   summe_stunden: number;
   schwellenwert_stunden: number;
   schwellenwert_ueberschritten: boolean;
+}
+
+export interface ExternerTermin {
+  titel: string;
+  von: string;
+  bis: string;
 }
 
 export interface BuchungOut {

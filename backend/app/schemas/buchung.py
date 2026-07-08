@@ -39,3 +39,9 @@ class BuchungAnfrageErgebnis(BaseModel):
 
 class BuchungAblehnen(BaseModel):
     grund: str | None = None
+
+
+class ExternerTerminOut(BaseModel):
+    titel: str
+    von: datetime
+    bis: datetime

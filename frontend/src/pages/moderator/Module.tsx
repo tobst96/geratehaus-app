@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -13,6 +14,7 @@ import { Ladeanzeige } from "../../components/Ladeanzeige";
 export function Module() {
   const [module, setModule] = useState<FeatureModul[] | null>(null);
   const [docsBasis, setDocsBasis] = useState<string | null>(null);
+  const [suche, setSuche] = useState("");
   const [fehler, setFehler] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -47,16 +49,22 @@ export function Module() {
     }
   }
 
-  async function verschieben(index: number, richtung: -1 | 1) {
+  // Verschiebt ein Modul innerhalb SEINER Gruppe (intern/mitgliederseitig); die
+  // globale Reihenfolge bleibt dabei gültig (es werden zwei Module derselben Gruppe
+  // getauscht).
+  async function verschiebeInGruppe(m: FeatureModul, gruppe: FeatureModul[], richtung: -1 | 1) {
     if (!module) return;
-    const ziel = index + richtung;
-    if (ziel < 0 || ziel >= module.length) return;
+    const gi = gruppe.findIndex((x) => x.key === m.key);
+    const nachbar = gruppe[gi + richtung];
+    if (!nachbar) return;
     const neu = [...module];
-    [neu[index], neu[ziel]] = [neu[ziel], neu[index]];
+    const a = neu.findIndex((x) => x.key === m.key);
+    const b = neu.findIndex((x) => x.key === nachbar.key);
+    [neu[a], neu[b]] = [neu[b], neu[a]];
     setBusy(true);
     setFehler(null);
     try {
-      setModule(await setFeatureModulReihenfolge(neu.map((m) => m.key)));
+      setModule(await setFeatureModulReihenfolge(neu.map((x) => x.key)));
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Reihenfolge konnte nicht gespeichert werden.");
     } finally {
@@ -64,21 +72,51 @@ export function Module() {
     }
   }
 
-  if (fehler && !module) return <p className="fehlertext">{fehler}</p>;
+  if (fehler && !module) return <Fehlertext>{fehler}</Fehlertext>;
   if (!module) return <Ladeanzeige />;
 
   return (
     <div>
       <h1>Module</h1>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Module ein-/ausschalten und sortieren. <strong>Auf den Modulnamen klicken</strong>, um die
         Einstellungen des Moduls (Unterseite) zu öffnen. Die Reihenfolge gilt für die Kiosk-Kacheln
         und die Navigation. Deaktivierte Module verschwinden aus der Navigation.
       </p>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 640 }}>
-        {module.map((m, i) => (
+      <input
+        type="text"
+        placeholder="Modul suchen…"
+        value={suche}
+        onChange={(e) => setSuche(e.target.value)}
+        autoFocus
+        style={{ maxWidth: 640, marginBottom: 16 }}
+      />
+
+      {(() => {
+        const begriff = suche.trim().toLowerCase();
+        const passt = (m: FeatureModul) =>
+          begriff === "" || m.name.toLowerCase().includes(begriff) || m.key.toLowerCase().includes(begriff);
+        const gruppen = [
+          { titel: "Interne Module", hinweis: "Verwaltung & Technik – nicht für Mitglieder sichtbar.", liste: module!.filter((m) => !m.mitgliederseitig) },
+          { titel: "Mitglieder-Module", hinweis: "Erscheinen als Kacheln am Kiosk / im Mitglieder-Login.", liste: module!.filter((m) => m.mitgliederseitig) },
+        ];
+        const gesamtTreffer = gruppen.reduce((n, g) => n + g.liste.filter(passt).length, 0);
+        if (begriff !== "" && gesamtTreffer === 0) {
+          return <p className="text-mute">Keine Module gefunden.</p>;
+        }
+        return gruppen.map((gruppe) => {
+          const treffer = gruppe.liste.filter(passt);
+          if (treffer.length === 0) return null;
+          return (
+        <div key={gruppe.titel} style={{ marginBottom: 20 }}>
+          <h2 style={{ marginBottom: 2 }}>{gruppe.titel}</h2>
+          <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem", marginTop: 0 }}>{gruppe.hinweis}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 640 }}>
+            {treffer.map((m) => {
+              const gi = gruppe.liste.indexOf(m);
+              return (
           <div
             key={m.key}
             className="karte"
@@ -89,8 +127,8 @@ export function Module() {
                 type="button"
                 className="sekundaer"
                 aria-label="Nach oben"
-                disabled={busy || i === 0}
-                onClick={() => verschieben(i, -1)}
+                disabled={busy || begriff !== "" || gi === 0}
+                onClick={() => verschiebeInGruppe(m, gruppe.liste, -1)}
                 style={{ padding: "2px 8px", lineHeight: 1 }}
               >
                 ▲
@@ -99,8 +137,8 @@ export function Module() {
                 type="button"
                 className="sekundaer"
                 aria-label="Nach unten"
-                disabled={busy || i === module.length - 1}
-                onClick={() => verschieben(i, 1)}
+                disabled={busy || begriff !== "" || gi === gruppe.liste.length - 1}
+                onClick={() => verschiebeInGruppe(m, gruppe.liste, 1)}
                 style={{ padding: "2px 8px", lineHeight: 1 }}
               >
                 ▼
@@ -125,7 +163,7 @@ export function Module() {
                     href={`${docsBasis}/${m.key}.md`}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}
+                    className="hinweistext"
                     title="Dokumentation dieses Moduls auf GitHub öffnen (passend zur installierten Version)"
                   >
                     📖 Doku ↗
@@ -148,7 +186,7 @@ export function Module() {
 
               <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 8 }}>
                 {m.immer_aktiv ? (
-                  <span style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+                  <span className="hinweistext">
                     immer aktiv
                   </span>
                 ) : (
@@ -200,8 +238,13 @@ export function Module() {
               </div>
             </div>
           </div>
-        ))}
-      </div>
+              );
+            })}
+          </div>
+        </div>
+          );
+        });
+      })()}
     </div>
   );
 }

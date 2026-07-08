@@ -1,16 +1,21 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useRef, useState } from "react";
+import { formatiereDatumZeit } from "../../../utils/datum";
 import { Link } from "react-router-dom";
 import {
   analysiereBackup,
   holeBackupEinstellungen,
   holeBackups,
+  holeBackupIntegritaet,
   importiereBackup,
   jetztSichern,
   ladeBackupHerunter,
   loescheBackup,
+  pruefeBackupIntegritaet,
   setzeBackupEinstellungen,
   type BackupAnalyse,
   type BackupEinstellungen,
+  type BackupIntegritaet,
   type BackupOut,
 } from "../../../api/backup";
 import { ApiError } from "../../../api/client";
@@ -34,6 +39,8 @@ export function BackupModul() {
   const [meldung, setMeldung] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
+  const [integritaet, setIntegritaet] = useState<BackupIntegritaet | null>(null);
+  const [pruefeLaeuft, setPruefeLaeuft] = useState(false);
 
   // Import-Ablauf
   const [analyse, setAnalyse] = useState<BackupAnalyse | null>(null);
@@ -44,11 +51,28 @@ export function BackupModul() {
 
   async function laden() {
     try {
-      const [e, b] = await Promise.all([holeBackupEinstellungen(), holeBackups()]);
+      const [e, b, i] = await Promise.all([
+        holeBackupEinstellungen(),
+        holeBackups(),
+        holeBackupIntegritaet().catch(() => null),
+      ]);
       setEinst(e);
       setBackups(b);
+      setIntegritaet(i);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Laden fehlgeschlagen.");
+    }
+  }
+
+  async function integritaetPruefen() {
+    setPruefeLaeuft(true);
+    setFehler(null);
+    try {
+      setIntegritaet(await pruefeBackupIntegritaet());
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Prüfung fehlgeschlagen.");
+    } finally {
+      setPruefeLaeuft(false);
     }
   }
 
@@ -195,8 +219,8 @@ export function BackupModul() {
           {laeuft ? "Sichert …" : "Jetzt Backup erstellen"}
         </button>
       </div>
-      {fehler && <p className="fehlertext">{fehler}</p>}
-      {meldung && <p style={{ color: "var(--farbe-text-mute)" }}>{meldung}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
+      {meldung && <p className="text-mute">{meldung}</p>}
 
       {/* --- Zeitplan & Aufbewahrung --- */}
       <div className="karte">
@@ -258,7 +282,7 @@ export function BackupModul() {
             placeholder={einst.passphrase_gesetzt ? "•••••• (gesetzt – leer lassen = unverändert)" : "Passphrase setzen"}
             autoComplete="new-password"
           />
-          <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+          <p className="hinweistext">
             Ohne Passphrase werden Backups unverschlüsselt abgelegt. Backups enthalten sensible Daten
             (PIN-/Passwort-Hashes) – eine Passphrase wird dringend empfohlen. Ohne sie ist kein Import
             eines verschlüsselten Backups möglich.
@@ -406,7 +430,7 @@ export function BackupModul() {
       {/* --- PDF-Archiv --- */}
       <div className="karte">
         <h2>PDF-Archiv (Objektspeicher)</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Legt jede erzeugte PDF (Einsatz-/Dienstbuch-Abschluss, Listen-Exporte) zusätzlich im
           S3-Objektspeicher ab. Benötigt ein aktives S3-Ziel (siehe oben).
         </p>
@@ -433,10 +457,42 @@ export function BackupModul() {
         </button>
       </div>
 
+      {/* --- Integritätsprüfung --- */}
+      <div className="karte">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <h2 style={{ margin: 0 }}>Integritätsprüfung</h2>
+          <button type="button" className="sekundaer" onClick={integritaetPruefen} disabled={pruefeLaeuft}>
+            {pruefeLaeuft ? "Prüfe …" : "Jetzt prüfen"}
+          </button>
+        </div>
+        <p className="hinweistext">
+          Das neueste Backup wird täglich automatisch <strong>rein lesend</strong> geprüft
+          (Entschlüsselung, Archiv- und Datenintegrität) – ohne Rückspielen in die Datenbank.
+          So fällt ein beschädigtes Backup oder eine geänderte Passphrase auf.
+        </p>
+        {integritaet && (integritaet.ok !== null || integritaet.geprueft_am) ? (
+          <p style={{ margin: 0 }}>
+            <strong
+              style={{ color: integritaet.ok === false ? "#b00020" : integritaet.ok ? "#2e9e4f" : "var(--farbe-text-mute)" }}
+            >
+              {integritaet.ok === true ? "● OK" : integritaet.ok === false ? "● Fehler" : "● unbekannt"}
+            </strong>{" "}
+            {integritaet.detail}
+            {integritaet.geprueft_am && (
+              <span className="text-mute">
+                {" "}· geprüft {formatiereDatumZeit(integritaet.geprueft_am)}
+              </span>
+            )}
+          </p>
+        ) : (
+          <p style={{ color: "var(--farbe-text-mute)", margin: 0 }}>Noch keine Prüfung durchgeführt.</p>
+        )}
+      </div>
+
       {/* --- Backup-Browser --- */}
       <div className="karte">
         <h2>Gespeicherte Backups</h2>
-        {backups.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Backups vorhanden.</p>}
+        {backups.length === 0 && <p className="text-mute">Noch keine Backups vorhanden.</p>}
         {backups.length > 0 && (
           <div className="tabelle-scroll">
             <table>
@@ -453,10 +509,10 @@ export function BackupModul() {
               <tbody>
                 {backups.map((b) => (
                   <tr key={b.id}>
-                    <td>{new Date(b.erstellt_am).toLocaleString("de-DE")}</td>
+                    <td>{formatiereDatumZeit(b.erstellt_am)}</td>
                     <td>{groesse(b.groesse_bytes)}</td>
                     <td>{b.ziele || "–"}</td>
-                    <td style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+                    <td className="hinweistext">
                       {b.status === "ok"
                         ? `${b.zusammenfassung?.datensaetze_gesamt ?? "?"} Datensätze, ${b.zusammenfassung?.datei_anzahl ?? "?"} Dateien${b.verschluesselt ? " · 🔒" : ""}`
                         : b.fehlermeldung}
@@ -483,7 +539,7 @@ export function BackupModul() {
       {/* --- Import --- */}
       <div className="karte">
         <h2>Backup importieren</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Backup-Datei (.ghb) hochladen, dann auswählen, welche Bereiche eingespielt werden.
         </p>
         <div className="formular-feld">
@@ -501,7 +557,7 @@ export function BackupModul() {
           <div style={{ marginTop: 16 }}>
             <p>
               Backup vom{" "}
-              <strong>{analyse.erstellt_am ? new Date(analyse.erstellt_am).toLocaleString("de-DE") : "?"}</strong>
+              <strong>{analyse.erstellt_am ? formatiereDatumZeit(analyse.erstellt_am) : "?"}</strong>
               {analyse.app_version ? ` · Version ${analyse.app_version}` : ""}
             </p>
             <p style={{ fontWeight: 600, margin: "8px 0 4px" }}>Was importieren?</p>
@@ -518,7 +574,7 @@ export function BackupModul() {
                     })
                   }
                 />
-                {k.label} <span style={{ color: "var(--farbe-text-mute)" }}>({k.anzahl})</span>
+                {k.label} <span className="text-mute">({k.anzahl})</span>
               </label>
             ))}
 
@@ -533,10 +589,10 @@ export function BackupModul() {
                 Zusammenführen (nur fehlende Datensätze ergänzen)
               </label>
             </div>
-            <p className="fehlertext" style={{ fontSize: "0.85rem" }}>
+            <Fehlertext style={{ fontSize: "0.85rem" }}>
               ⚠️ „Ersetzen" löscht die vorhandenen Daten der gewählten Bereiche. Enthält der Import
               Zugänge/Branding, kann sich Login und Erscheinungsbild ändern.
-            </p>
+            </Fehlertext>
             <button onClick={importieren} disabled={laeuft || gewaehlt.size === 0}>
               {laeuft ? "Importiert …" : "Import starten"}
             </button>

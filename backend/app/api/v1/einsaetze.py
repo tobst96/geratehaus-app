@@ -1,10 +1,20 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from app.api.deps import CurrentModerator, CurrentPerson, DbSession, require_modul_aktiv, require_zugriff
+from app.api.deps import (
+    CurrentPerson,
+    DbSession,
+    require_modul_aktiv,
+    require_modul_zugriff,
+    require_zugriff,
+)
+from app.models.moderator import Moderator
 from app.schemas.einsatz import (
     EinsatzAnlegen,
     EinsatzEreignisOut,
     EinsatzFehlversuchAnlegen,
+    EinsatzJahresStatistikOut,
     EinsatzOut,
     EinsatzZusatzfelderAktualisieren,
     TeilnahmeAnlegen,
@@ -12,7 +22,7 @@ from app.schemas.einsatz import (
 )
 from app.schemas.einsatz_feld import EinsatzFeldDefinitionOut
 from app.schemas.reservierung import ReservierungAnlegen, ReservierungOut
-from app.services import einsatz_service, pdf_service, reservierung_service, stammdaten_service
+from app.services import audit_service, einsatz_service, pdf_service, reservierung_service, stammdaten_service
 from app.services.config_service import config_service
 
 router = APIRouter(
@@ -23,6 +33,11 @@ router = APIRouter(
         Depends(require_zugriff),
     ],
 )
+
+# Moderator-Aktionen (Abschließen/Wieder-Öffnen/Löschen) erfordern das Modul-Recht
+# „einsatztagebuch" (Admin-Bypass). Die kiosk-/mitgliederseitigen Endpunkte laufen
+# weiter nur über require_zugriff und bleiben unangetastet.
+EinsatztagebuchZugriff = Annotated[Moderator, Depends(require_modul_zugriff("einsatztagebuch"))]
 
 
 @router.get("", response_model=list[EinsatzOut], dependencies=[])
@@ -46,6 +61,13 @@ async def feld_definitionen_liste(db: DbSession) -> list[EinsatzFeldDefinitionOu
     """Frei konfigurierte Zusatzfelder (Einsatzleiter, Erste Lage, …) – im
     Gerätehaus ohne Moderator-Login lesbar, damit das Formular gerendert werden kann."""
     return await stammdaten_service.liste_einsatz_felder(db, nur_aktive=True)
+
+
+@router.get("/statistik", response_model=EinsatzJahresStatistikOut, dependencies=[])
+async def einsatz_statistik(db: DbSession) -> EinsatzJahresStatistikOut:
+    """Jahres-Einsatzzahl (bis heute) mit Vorjahresvergleich zum selben Stichtag.
+    Muss vor '/{einsatz_id}' stehen, sonst würde 'statistik' als ID gedeutet."""
+    return EinsatzJahresStatistikOut(**await einsatz_service.jahres_statistik(db))
 
 
 @router.get("/{einsatz_id}", response_model=EinsatzOut, dependencies=[])
@@ -133,7 +155,7 @@ async def reservierung_anlegen(
 
 @router.post("/{einsatz_id}/abschliessen", response_model=EinsatzOut)
 async def einsatz_abschliessen(
-    db: DbSession, _moderator: CurrentModerator, einsatz_id: int
+    db: DbSession, _moderator: EinsatztagebuchZugriff, einsatz_id: int
 ) -> EinsatzOut:
     """Schließt einen Einsatz ab (Status 'offen' -> 'abgeschlossen')."""
     einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
@@ -144,7 +166,7 @@ async def einsatz_abschliessen(
 
 @router.post("/{einsatz_id}/wieder-oeffnen", response_model=EinsatzOut)
 async def einsatz_wieder_oeffnen(
-    db: DbSession, _moderator: CurrentModerator, einsatz_id: int
+    db: DbSession, _moderator: EinsatztagebuchZugriff, einsatz_id: int
 ) -> EinsatzOut:
     """Öffnet einen abgeschlossenen Einsatz wieder (Status -> 'offen')."""
     einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
@@ -154,13 +176,17 @@ async def einsatz_wieder_oeffnen(
 
 
 @router.delete("/{einsatz_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def einsatz_loeschen(db: DbSession, _moderator: CurrentModerator, einsatz_id: int) -> None:
+async def einsatz_loeschen(db: DbSession, moderator: EinsatztagebuchZugriff, einsatz_id: int) -> None:
     """Löscht einen Einsatz unwiderruflich inkl. aller Teilnahmen, Timeline-
     Einträge und Reservierungen. Nur für Moderatoren/Admins."""
     einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
     if einsatz is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
+    titel = einsatz.titel
     await einsatz_service.einsatz_loeschen(db, einsatz)
+    await audit_service.protokolliere(
+        db, moderator.username, "einsatz_geloescht", "einsatz", einsatz_id, titel
+    )
 
 
 @router.post("/{einsatz_id}/alle-eingetragen", response_model=EinsatzOut, dependencies=[])

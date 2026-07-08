@@ -1,6 +1,8 @@
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut, apiUpload } from "./client";
 import type {
+  AmpelEintrag,
   BuchungOut,
+  DienstbuchFeldDefinition,
   DienstbuchOut,
   DienststundenSummeOut,
   EinsatzFeldDefinition,
@@ -37,13 +39,46 @@ export interface ModeratorKonto {
   id: number;
   username: string;
   rolle: string;
+  email: string | null;
+  benachrichtigungen_aktiv: boolean;
 }
 
 export const holeModeratoren = () =>
   apiGet<ModeratorKonto[]>("/moderator/einstellungen/moderatoren");
 
-export const moderatorAnlegen = (username: string, passwort: string, rolle: string) =>
-  apiPost<ModeratorKonto>("/moderator/einstellungen/moderatoren", { username, passwort, rolle });
+export const moderatorAnlegen = (
+  username: string,
+  passwort: string,
+  rolle: string,
+  email: string | null = null
+) =>
+  apiPost<ModeratorKonto>("/moderator/einstellungen/moderatoren", { username, passwort, rolle, email });
+
+export const moderatorEmailAendern = (id: number, email: string | null) =>
+  apiPatch<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}`, { email });
+export const moderatorBenachrichtigungenAendern = (id: number, benachrichtigungen_aktiv: boolean) =>
+  apiPatch<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}`, { benachrichtigungen_aktiv });
+
+export const moderator2faZuruecksetzen = (id: number) =>
+  apiPost<void>(`/moderator/einstellungen/moderatoren/${id}/2fa-zuruecksetzen`);
+
+// --- Eigenes Konto: Zwei-Faktor (jeder Moderator, auch Gruppenführer) --------
+export interface ZweiFaktorStatus {
+  aktiv: boolean;
+  email_gesetzt: boolean;
+}
+
+export const holeZweiFaktorStatus = () =>
+  apiGet<ZweiFaktorStatus>("/moderator/konto/2fa");
+
+export const zweiFaktorAktivieren = () =>
+  apiPost<{ codes: string[] }>("/moderator/konto/2fa/aktivieren");
+
+export const zweiFaktorRecoveryNeu = () =>
+  apiPost<{ codes: string[] }>("/moderator/konto/2fa/recovery-codes-neu");
+
+export const zweiFaktorDeaktivieren = () =>
+  apiPost<void>("/moderator/konto/2fa/deaktivieren");
 
 export const moderatorPasswortAendern = (id: number, passwort: string) =>
   apiPut<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}/passwort`, { passwort });
@@ -220,7 +255,31 @@ export const einsatzFeldAktualisieren = (
 export const einsatzFeldLoeschen = (id: number) =>
   apiDelete<void>(`/moderator/stammdaten/einsatz-felder/${id}`);
 
+export const holeAlleDienstbuchFelder = () =>
+  apiGet<DienstbuchFeldDefinition[]>("/moderator/stammdaten/dienstbuch-felder");
+export const dienstbuchFeldAnlegen = (daten: {
+  label: string;
+  typ: DienstbuchFeldDefinition["typ"];
+  optionen: string[];
+  reihenfolge: number;
+  aktiv: boolean;
+}) => apiPost<DienstbuchFeldDefinition>("/moderator/stammdaten/dienstbuch-felder", daten);
+export const dienstbuchFeldAktualisieren = (
+  id: number,
+  daten: Partial<{
+    label: string;
+    typ: DienstbuchFeldDefinition["typ"];
+    optionen: string[];
+    reihenfolge: number;
+    aktiv: boolean;
+  }>
+) => apiPut<DienstbuchFeldDefinition>(`/moderator/stammdaten/dienstbuch-felder/${id}`, daten);
+export const dienstbuchFeldLoeschen = (id: number) =>
+  apiDelete<void>(`/moderator/stammdaten/dienstbuch-felder/${id}`);
+
 export const holeAllePersonen = () => apiGet<Person[]>("/moderator/stammdaten/personen");
+export const holeAmpelUebersicht = () =>
+  apiGet<AmpelEintrag[]>("/moderator/stammdaten/personen/ampel");
 export const personAnlegen = (daten: {
   vorname: string;
   zwischenname: string | null;
@@ -239,10 +298,33 @@ export const personAktualisieren = (
     gruppe_id: number | null;
     funktion_id: number | null;
     benachrichtigungen_aktiv: boolean;
+    inaktiv: boolean;
   }>
 ) => apiPut<Person>(`/moderator/stammdaten/personen/${id}`, daten);
 export const personPinSetzen = (id: number, pin: string) =>
   apiPut<Person>(`/moderator/stammdaten/personen/${id}/pin`, { pin });
+export const personPinEntsperren = (id: number) =>
+  apiPost<Person>(`/moderator/stammdaten/personen/${id}/pin-entsperren`);
+
+export interface PersonCsvImportErgebnis {
+  angelegt: number;
+  fehler: { zeile: number; fehler: string }[];
+}
+export const personenCsvImportieren = (datei: File) =>
+  apiUpload<PersonCsvImportErgebnis>("/moderator/stammdaten/personen/csv-import", datei);
+/** Beispiel-CSV herunterladen. Authentifizierter Blob-Request (nicht als <a href>,
+ * da der Bearer-Token sonst nicht mitgeht → 401). */
+export async function personenCsvVorlageHerunterladen(): Promise<void> {
+  const blob = await apiGet<Blob>("/moderator/stammdaten/personen/csv-vorlage");
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "personen-vorlage.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 export const holePersonTimeline = (id: number) =>
   apiGet<PersonEreignis[]>(`/moderator/stammdaten/personen/${id}/timeline`);
 export const holePersonDienststunden = (id: number) =>
@@ -343,6 +425,27 @@ export const kioskTokenLoeschen = (id: number) =>
   apiDelete<void>(`/moderator/barcodes/kiosk/${id}`);
 export const setzeKioskStartseiteModule = (id: number, keys: string[] | null) =>
   apiPatch<KioskTokenOut>(`/moderator/barcodes/kiosk/${id}`, { startseite_module: keys });
+
+async function pdfHerunterladen(pfad: string, dateiname: string): Promise<void> {
+  const blob = await apiGet<Blob>(pfad);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = dateiname;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export const ladeKioskPdf = (id: number, bezeichnung: string) =>
+  pdfHerunterladen(`/moderator/barcodes/kiosk/${id}/pdf`, `kiosk-${bezeichnung.replace(/[^\w.-]+/g, "_") || id}.pdf`);
+
+export const ladeFunktionStempelPdf = (id: number, name: string) =>
+  pdfHerunterladen(
+    `/moderator/stammdaten/funktionen-dienststunden/${id}/pdf`,
+    `dienststunden-stempel-${name.replace(/[^\w.-]+/g, "_") || id}.pdf`
+  );
 
 // --- Buchungsmanagement -----------------------------------------------------
 

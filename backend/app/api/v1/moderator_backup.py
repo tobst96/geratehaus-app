@@ -11,6 +11,7 @@ from app.schemas.backup import (
     BackupEinstellungenUpdate,
     BackupImportAnfrage,
     BackupImportErgebnis,
+    BackupIntegritaet,
     BackupKategorie,
     BackupOut,
 )
@@ -136,6 +137,36 @@ async def jetzt_sichern(db: DbSession, _admin: CurrentAdmin) -> BackupOut:
     out = BackupOut.model_validate(backup)
     out.datei_vorhanden = True
     return out
+
+
+def _integritaet_aus_config(werte: dict) -> BackupIntegritaet:
+    ok_roh = str(werte.get("backup_integritaet_ok", "") or "")
+    ok = None if ok_roh == "" else ok_roh == "true"
+    return BackupIntegritaet(
+        ok=ok,
+        detail=str(werte.get("backup_integritaet_detail", "") or ""),
+        geprueft_am=str(werte.get("backup_integritaet_am", "") or "") or None,
+        datei=str(werte.get("backup_integritaet_datei", "") or ""),
+    )
+
+
+@router.get("/integritaet", response_model=BackupIntegritaet)
+async def integritaet_lesen(db: DbSession, _admin: CurrentAdmin) -> BackupIntegritaet:
+    """Ergebnis der letzten (automatischen oder manuellen) Integritätsprüfung."""
+    return _integritaet_aus_config(await config_service.get_all(db))
+
+
+@router.post("/integritaet-pruefen", response_model=BackupIntegritaet)
+async def integritaet_pruefen(db: DbSession, _admin: CurrentAdmin) -> BackupIntegritaet:
+    """Prüft jetzt das neueste Backup (rein lesend, kein Restore) und liefert das
+    Ergebnis; speichert es zugleich fürs Reporting."""
+    ergebnis = await backup_service.integritaet_pruefen_und_speichern(db)
+    return BackupIntegritaet(
+        ok=ergebnis["ok"],
+        detail=ergebnis["detail"],
+        geprueft_am=ergebnis["geprueft_am"],
+        datei=ergebnis["datei"],
+    )
 
 
 async def _backup_oder_404(db: DbSession, backup_id: int) -> Backup:

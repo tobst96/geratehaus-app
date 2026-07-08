@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -33,10 +33,22 @@ class Person(Base, TimestampMixin):
     )
     pin_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     pin_gesetzt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Brute-Force-Schutz für den öffentlichen Name+PIN-Login: Zähler
+    # aufeinanderfolgender Fehlversuche und Zeitpunkt, bis zu dem der PIN-Login
+    # dieser Person gesperrt ist (NULL = nicht gesperrt; nach Ablauf automatisch frei).
+    pin_fehlversuche: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    pin_gesperrt_bis: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Zeitpunkt der letzten PIN-Erinnerungsmail (Person ohne PIN); steuert das
     # Intervall des Erinnerungs-Jobs. NULL = noch nie erinnert.
     pin_erinnerung_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     benachrichtigungen_aktiv: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Aktivitäts-Ampel: manuell auf inaktiv gesetzte Personen (z. B. Beurlaubung)
+    # werden von Ampel-Färbung und Ampel-Benachrichtigung ausgenommen. Die separate
+    # Inaktivitäts-Auto-Löschung bleibt davon unberührt (eigene Schwelle).
+    inaktiv: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Zuletzt per Benachrichtigung gemeldete Ampelstufe (gruen/gelb/rot) – damit die
+    # Benachrichtigung nur einmal beim Überschreiten einer Schwelle ausgelöst wird.
+    ampel_gemeldet: Mapped[str] = mapped_column(String(10), default="gruen", nullable=False)
 
     # passive_deletes: überlässt das Entfernen abhängiger Zeilen der
     # DB-FK-CASCADE (siehe Migration 0023), statt dass SQLAlchemy versucht,

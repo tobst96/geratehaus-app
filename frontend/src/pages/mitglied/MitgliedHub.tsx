@@ -4,12 +4,14 @@ import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { holeMeinProfil } from "../../api/auth";
 import { KACHEL_ICONS, type KachelModulKey } from "../kachelIcons";
+import { PushAktivierung } from "../../components/PushAktivierung";
 
 const MODULE: { key: KachelModulKey; aktivKey: string; aussenKey: string; route: string; label: string }[] = [
   { key: "einsatzbericht", aktivKey: "modul_einsatztagebuch_aktiv", aussenKey: "modul_einsatztagebuch_aussenzugriff", route: "/einsatztagebuch", label: "Einsatzbericht" },
   { key: "dienstbuch", aktivKey: "modul_dienstbuch_aktiv", aussenKey: "modul_dienstbuch_aussenzugriff", route: "/dienstbuch", label: "Dienstbuch" },
   { key: "dienststunden", aktivKey: "modul_dienststunden_aktiv", aussenKey: "modul_dienststunden_aussenzugriff", route: "/dienststunden", label: "Dienststunden" },
   { key: "fahrzeugbuchung", aktivKey: "modul_fahrzeugbuchung_aktiv", aussenKey: "modul_fahrzeugbuchung_aussenzugriff", route: "/fahrzeugbuchung", label: "Fahrzeugbuchung" },
+  { key: "formulare", aktivKey: "modul_formular_aktiv", aussenKey: "modul_formular_aussenzugriff", route: "/formulare", label: "Formulare" },
 ];
 
 function initialen(name: string): string {
@@ -69,7 +71,7 @@ export function MitgliedHub() {
       <h2 className="mitglied-frage">Was möchtest du machen?</h2>
 
       {sichtbar.length === 0 ? (
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Aktuell sind keine Module für den Mitglieder-Login freigegeben. Bitte den Admin ansprechen.
         </p>
       ) : (
@@ -87,6 +89,8 @@ export function MitgliedHub() {
           ))}
         </div>
       )}
+
+      <PushAktivierung />
     </div>
   );
 }

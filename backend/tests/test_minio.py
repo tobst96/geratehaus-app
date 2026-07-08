@@ -1,6 +1,7 @@
 """Tests fürs MinIO-Modul: Aktiv-Logik, Dokument-Ablage (Einsatz-Ordner/JSON/PDF,
 Dienstbuch flach) und MinIO-Backup-Ziel-Auswahl."""
 
+import re
 from datetime import datetime, timezone
 from types import SimpleNamespace
 
@@ -63,8 +64,10 @@ async def test_einsatz_dokumente(db, monkeypatch):
     keys = {k for (_b, k) in fake.objekte}
     assert "einsatz-12/" in keys
     assert "einsatz-12/einsatz.json" in keys
-    assert "einsatz-12/bericht.pdf" in keys
-    assert ("einsaetze", "einsatz-12/bericht.pdf") in fake.objekte
+    # PDF trägt Datum+Uhrzeit im Namen, damit unterschiedliche Stände koexistieren.
+    pdf_keys = [k for (_b, k) in fake.objekte if k.endswith("_Bericht.pdf")]
+    assert len(pdf_keys) == 1
+    assert re.fullmatch(r"einsatz-12/\d{4}_\d{2}_\d{2}_\d{2}Uhr\d{2}_Bericht\.pdf", pdf_keys[0])
 
 
 @pytest.mark.asyncio
@@ -74,7 +77,9 @@ async def test_dienstbuch_dokument_flach(db, monkeypatch):
     await _minio_aktivieren(db)
 
     await minio_service.dienstbuch_dokument(db, 7, b"PDF")
-    assert ("dienstbuecher", "dienstbuch-7.pdf") in fake.objekte
+    dk = [k for (b, k) in fake.objekte if b == "dienstbuecher"]
+    assert len(dk) == 1
+    assert re.fullmatch(r"\d{4}_\d{2}_\d{2}_\d{2}Uhr\d{2}_Dienstbuch-7\.pdf", dk[0])
 
 
 @pytest.mark.asyncio

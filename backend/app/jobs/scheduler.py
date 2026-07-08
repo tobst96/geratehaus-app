@@ -1,9 +1,11 @@
 """Zentraler APScheduler-Prozess für periodische Hintergrund-Jobs
 (Divera-Polling, Archivierung). Wird im FastAPI-Lifespan gestartet/gestoppt."""
 
+import functools
 import random
 from datetime import datetime, timezone
 
+import sentry_sdk
 import structlog
 from zoneinfo import ZoneInfo
 
@@ -14,13 +16,16 @@ from app.core import zeit
 from app.db.session import AsyncSessionLocal
 from app.models.backup import Backup
 from app.services import (
+    ampel_service,
     archive_service,
+    audit_service,
     backup_service,
     barcode_service,
     dienstbuch_service,
     divera_personal_service,
     divera_service,
     einsatz_service,
+    formular_service,
     pin_service,
     stammdaten_service,
 )
@@ -29,6 +34,30 @@ from app.services.config_service import config_service
 logger = structlog.get_logger(__name__)
 
 DIVERA_POLL_INTERVALL_SEKUNDEN = 300
+
+
+def _ueberwacht(slug: str, schedule: dict):
+    """Dekorator: meldet jeden Lauf des Scheduler-Jobs als Sentry-Cron-Check-in
+    (Sentry „Crons"). So erkennt Sentry ausgefallene/verspätete Läufe und misst
+    die Laufzeit. Ist Sentry nicht initialisiert (Fehlerberichte aus), ist der
+    Check-in ein No-op – der Job läuft unverändert. Job-interne Fehler werden
+    zusätzlich weiterhin über die LoggingIntegration als Issue gemeldet."""
+    monitor_config = {
+        "schedule": schedule,
+        "timezone": zeit.STANDARD_ZEITZONE,
+        "failure_issue_threshold": 1,
+        "recovery_threshold": 1,
+    }
+
+    def deko(func):
+        @functools.wraps(func)
+        async def wrapper() -> None:
+            with sentry_sdk.monitor(monitor_slug=slug, monitor_config=monitor_config):
+                await func()
+
+        return wrapper
+
+    return deko
 
 # Cron-Jobs (Archivierung, Barcode-Erneuerung, PIN-Erinnerung usw.) sollen zur
 # lokalen Uhrzeit feuern, unabhängig von der Container-Zeit (i. d. R. UTC).
@@ -42,6 +71,7 @@ _DIVERA_PERSONAL_SYNC_STUNDE = random.randint(2, 5)
 _DIVERA_PERSONAL_SYNC_MINUTE = random.randint(0, 59)
 
 
+@_ueberwacht("divera-polling", {"type": "interval", "value": 5, "unit": "minute"})
 async def _divera_polling_job() -> None:
     async with AsyncSessionLocal() as db:
         try:
@@ -53,6 +83,7 @@ async def _divera_polling_job() -> None:
             logger.warning("divera_polling_fehlgeschlagen", exc_info=True)
 
 
+@_ueberwacht("divera-personal-sync", {"type": "interval", "value": 1, "unit": "day"})
 async def _divera_personal_sync_job() -> None:
     """Läuft täglich zu einer beim Prozessstart zufällig gewählten Uhrzeit;
     holt Divera-Personal-Vorschläge (neue Personen, E-Mail-Abweichungen) und
@@ -74,6 +105,7 @@ async def _divera_personal_sync_job() -> None:
             logger.warning("divera_personal_sync_fehlgeschlagen", exc_info=True)
 
 
+@_ueberwacht("archivierung", {"type": "crontab", "value": "0 3 * * *"})
 async def _archivierung_job() -> None:
     async with AsyncSessionLocal() as db:
         try:
@@ -82,6 +114,7 @@ async def _archivierung_job() -> None:
             logger.warning("archivierung_fehlgeschlagen", exc_info=True)
 
 
+@_ueberwacht("einsatz-autoabschluss", {"type": "crontab", "value": "0 * * * *"})
 async def _einsatz_autoabschluss_job() -> None:
     """Läuft stündlich; schließt offene, inaktive Einsätze aber nur in der
     in den Einstellungen konfigurierten Stunde – so wirkt eine Änderung der
@@ -103,6 +136,7 @@ async def _einsatz_autoabschluss_job() -> None:
             logger.warning("einsatz_autoabschluss_fehlgeschlagen", exc_info=True)
 
 
+@_ueberwacht("einsatz-geplanter-abschluss", {"type": "interval", "value": 1, "unit": "minute"})
 async def _einsatz_geplanter_abschluss_job() -> None:
     """Läuft minütlich; schließt Einsätze, deren über 'Alle eingetragen'
     geplanter Abschlusszeitpunkt erreicht ist."""
@@ -115,6 +149,7 @@ async def _einsatz_geplanter_abschluss_job() -> None:
             logger.warning("einsatz_geplanter_abschluss_fehlgeschlagen", exc_info=True)
 
 
+@_ueberwacht("personen-inaktivitaet", {"type": "crontab", "value": "0 0 * * *"})
 async def _personen_inaktivitaet_job() -> None:
     """Läuft täglich um 0 Uhr; warnt inaktive Personen einmalig 7 Tage vor
     Ablauf und löscht Personen, die die eingestellte Inaktivitätsschwelle
@@ -130,6 +165,7 @@ async def _personen_inaktivitaet_job() -> None:
             logger.warning("personen_inaktivitaet_fehlgeschlagen", exc_info=True)
 
 
+@_ueberwacht("barcode-erneuerung", {"type": "crontab", "value": "30 3 * * *"})
 async def _barcode_erneuerung_job() -> None:
     """Läuft täglich um 3:30 Uhr; erneuert abgelaufene Barcodes und versendet
     die neuen per E-Mail an Personen mit aktivierten Benachrichtigungen."""
@@ -149,6 +185,7 @@ async def _barcode_erneuerung_job() -> None:
             logger.warning("barcode_erneuerung_job_fehlgeschlagen", exc_info=True)
 
 
+@_ueberwacht("dienstbuch-autoschluss", {"type": "crontab", "value": "0 * * * *"})
 async def _dienstbuch_autoschluss_job() -> None:
     """Läuft stündlich; schließt alle noch offenen Dienstbücher in der in
     den Einstellungen konfigurierten Stunde (Standard 4 Uhr)."""
@@ -166,6 +203,7 @@ async def _dienstbuch_autoschluss_job() -> None:
             logger.warning("dienstbuch_autoschluss_fehlgeschlagen", exc_info=True)
 
 
+@_ueberwacht("pin-erinnerung", {"type": "crontab", "value": "0 8 * * *"})
 async def _pin_erinnerung_job() -> None:
     """Läuft täglich um 8:00 Uhr; erinnert Personen ohne gesetzten PIN (mit
     E-Mail) alle X Tage per Self-Service-Mail. Nur aktiv, wenn das Barcode-Modul
@@ -179,6 +217,59 @@ async def _pin_erinnerung_job() -> None:
             logger.warning("pin_erinnerung_fehlgeschlagen", exc_info=True)
 
 
+@_ueberwacht("personal-ampel", {"type": "crontab", "value": "15 7 * * *"})
+async def _personal_ampel_job() -> None:
+    """Läuft täglich um 7:15 Uhr; meldet Personen, die neu die gelbe bzw. rote
+    Aktivitäts-Ampel überschritten haben (einmalig je Schwelle)."""
+    async with AsyncSessionLocal() as db:
+        try:
+            gesendet = await ampel_service.ampel_benachrichtigungen_versenden(db)
+            if gesendet:
+                logger.info("personal_ampel_benachrichtigungen", anzahl=gesendet)
+        except Exception:
+            logger.warning("personal_ampel_job_fehlgeschlagen", exc_info=True)
+
+
+@_ueberwacht("formular-aufbewahrung", {"type": "crontab", "value": "20 3 * * *"})
+async def _formular_aufbewahrung_job() -> None:
+    """Läuft täglich um 3:20 Uhr; löscht Formular-Einreichungen, die älter als die
+    je Formular gesetzte Aufbewahrungsfrist sind."""
+    async with AsyncSessionLocal() as db:
+        try:
+            geloescht = await formular_service.einreichungen_aufbewahrung_bereinigen(db)
+            if geloescht:
+                logger.info("formular_einreichungen_bereinigt", anzahl=geloescht)
+        except Exception:
+            logger.warning("formular_aufbewahrung_job_fehlgeschlagen", exc_info=True)
+
+
+@_ueberwacht("formular-ablauf", {"type": "interval", "value": 15, "unit": "minute"})
+async def _formular_ablauf_job() -> None:
+    """Läuft alle 15 min; schickt für gerade abgelaufene Formulare einmalig eine
+    Auswertung per Mail an den hinterlegten Empfänger."""
+    async with AsyncSessionLocal() as db:
+        try:
+            gesendet = await formular_service.ablauf_zusammenfassungen_versenden(db)
+            if gesendet:
+                logger.info("formular_ablauf_auswertungen_versendet", anzahl=gesendet)
+        except Exception:
+            logger.warning("formular_ablauf_job_fehlgeschlagen", exc_info=True)
+
+
+@_ueberwacht("audit-retention", {"type": "crontab", "value": "50 3 * * *"})
+async def _audit_retention_job() -> None:
+    """Läuft täglich um 3:50 Uhr; löscht Audit-Log-Einträge, die älter als die
+    konfigurierte Aufbewahrungsfrist sind (Datenminimierung)."""
+    async with AsyncSessionLocal() as db:
+        try:
+            geloescht = await audit_service.aufbewahrung_bereinigen(db)
+            if geloescht:
+                logger.info("audit_log_bereinigt", anzahl=geloescht)
+        except Exception:
+            logger.warning("audit_retention_job_fehlgeschlagen", exc_info=True)
+
+
+@_ueberwacht("backup", {"type": "interval", "value": 15, "unit": "minute"})
 async def _backup_job() -> None:
     """Läuft alle 15 min; erstellt höchstens EIN Backup pro Tag zur konfigurierten
     Uhrzeit an den gewählten Wochentagen (mit Nachhol-Logik nach Ausfall)."""
@@ -211,6 +302,17 @@ async def _backup_job() -> None:
             await backup_service.erstelle_backup(db, ausloeser="geplant")
         except Exception:
             logger.warning("backup_job_fehlgeschlagen", exc_info=True)
+
+
+@_ueberwacht("backup_integritaet", {"type": "interval", "value": 24, "unit": "hour"})
+async def _backup_integritaet_job() -> None:
+    """Prüft täglich die Integrität des neuesten Backups (rein lesend, kein
+    Restore) und legt das Ergebnis fürs Admin-Reporting in app_config ab."""
+    async with AsyncSessionLocal() as db:
+        try:
+            await backup_service.integritaet_pruefen_und_speichern(db)
+        except Exception:
+            logger.warning("backup_integritaet_job_fehlgeschlagen", exc_info=True)
 
 
 def registriere_jobs() -> None:
@@ -308,6 +410,46 @@ def registriere_jobs() -> None:
     )
     logger.info("pin_erinnerung_job_registriert", uhrzeit="08:00")
 
+    scheduler.add_job(
+        _personal_ampel_job,
+        "cron",
+        hour=7,
+        minute=15,
+        id="personal_ampel",
+        replace_existing=True,
+    )
+    logger.info("personal_ampel_job_registriert", uhrzeit="07:15")
+
+    # Alle 15 min prüfen, ob Formulare abgelaufen sind (zeitnahe Auswertungs-Mail).
+    scheduler.add_job(
+        _formular_ablauf_job,
+        "interval",
+        minutes=15,
+        id="formular_ablauf",
+        replace_existing=True,
+    )
+    logger.info("formular_ablauf_job_registriert")
+
+    scheduler.add_job(
+        _formular_aufbewahrung_job,
+        "cron",
+        hour=3,
+        minute=20,
+        id="formular_aufbewahrung",
+        replace_existing=True,
+    )
+    logger.info("formular_aufbewahrung_job_registriert", uhrzeit="03:20")
+
+    scheduler.add_job(
+        _audit_retention_job,
+        "cron",
+        hour=3,
+        minute=50,
+        id="audit_retention",
+        replace_existing=True,
+    )
+    logger.info("audit_retention_job_registriert", uhrzeit="03:50")
+
     # Alle 15 min; ob/ wann tatsächlich gesichert wird, entscheidet der Job anhand
     # der konfigurierten Uhrzeit/Wochentage (einmal pro Tag, mit Nachhol-Logik).
     scheduler.add_job(
@@ -315,6 +457,13 @@ def registriere_jobs() -> None:
         "interval",
         minutes=15,
         id="backup",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        _backup_integritaet_job,
+        "interval",
+        hours=24,
+        id="backup_integritaet",
         replace_existing=True,
     )
     logger.info("backup_job_registriert")

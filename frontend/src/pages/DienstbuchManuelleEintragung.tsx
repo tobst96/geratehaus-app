@@ -1,3 +1,4 @@
+import { Fehlertext } from "../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -106,7 +107,7 @@ export function DienstbuchManuelleEintragung() {
   if (ladeFehler) {
     return (
       <div className="seite">
-        <p className="fehlertext">{ladeFehler}</p>
+        <Fehlertext>{ladeFehler}</Fehlertext>
       </div>
     );
   }
@@ -159,21 +160,14 @@ export function DienstbuchManuelleEintragung() {
     <div className="seite">
       <div className="karte">
         <h1>Ohne Barcode eintragen</h1>
-        <p style={{ color: "var(--farbe-text-mute)" }}>Dienstbuch „{info.dienstbuch_titel}“</p>
+        <p className="text-mute">Dienstbuch „{info.dienstbuch_titel}“</p>
 
         <form onSubmit={absenden}>
           <div className="formular-feld">
           <label htmlFor="dbme-person">Wer bist du?</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
-              {ausgewaehltePerson.bild_url ? (
-                <img
-                  src={ausgewaehltePerson.bild_url}
-                  alt={ausgewaehltePerson.name}
-                  style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover" }}
-                />
-              ) : (
-                <div
+              <div
                   style={{
                     width: 64,
                     height: 64,
@@ -188,7 +182,6 @@ export function DienstbuchManuelleEintragung() {
                 >
                   {initialenAus(ausgewaehltePerson.name)}
                 </div>
-              )}
               <strong>{ausgewaehltePerson.name}</strong>
               <button type="button" className="sekundaer" onClick={() => setAusgewaehltePerson(null)}>
                 Ändern
@@ -220,7 +213,7 @@ export function DienstbuchManuelleEintragung() {
                 </ul>
               )}
               {suche.trim().length > 0 && trefferliste.length === 0 && (
-                <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem" }}>
+                <p className="hinweistext">
                   Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
                 </p>
               )}
@@ -229,10 +222,10 @@ export function DienstbuchManuelleEintragung() {
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <p className="fehlertext">
+            <Fehlertext>
               Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich –
               bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
-            </p>
+            </Fehlertext>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
@@ -264,7 +257,7 @@ export function DienstbuchManuelleEintragung() {
             </select>
           </div>
 
-          {fehler && <p className="fehlertext">{fehler}</p>}
+          {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
           <button
             type="submit"

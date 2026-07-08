@@ -1,23 +1,24 @@
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 
 from app.api.deps import CurrentPerson, DbSession
+from app.core import datei_token, mitglied_session, moderator_2fa_session
 from app.core.rate_limit import rate_limit
-from app.core.security import create_access_token, verify_secret
+from app.core.security import create_access_token
 from app.models.barcode_token import BarcodeToken
-from app.models.moderator import Moderator
 from app.models.person import Person
 from app.schemas.auth import (
     BarcodeEinscannen,
     BarcodeIdentitaet,
     BarcodeVorschau,
     MeinProfil,
+    Moderator2FA,
+    ModeratorLoginErgebnis,
     ModeratorToken,
-    NameEintragen,
     NamePinLogin,
     NamePinVorschau,
     PersonAuswahl,
@@ -25,18 +26,35 @@ from app.schemas.auth import (
 )
 from app.db.session import AsyncSessionLocal
 from app.services import (
-    auth_service,
     barcode_service,
     feature_modul_service,
     mitglied_login_reservierung_service,
+    moderator_service,
     pin_service,
     stammdaten_service,
+    zwei_faktor_service,
 )
+
+TRUSTED_DEVICE_COOKIE = "moderator_trusted_device"
+TRUSTED_DEVICE_MAX_AGE_SECONDS = 60 * 60 * 24 * zwei_faktor_service.TRUSTED_DEVICE_TAGE
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 NAME_COOKIE = "geraetehaus_name"
 NAME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365 * 5  # 5 Jahre
+
+
+def _setze_namens_cookie(response: Response, name: str) -> None:
+    """Setzt das Mitglieder-Identitäts-Cookie mit einem SIGNIERTEN Wert (nur nach
+    echter Identifikation via Barcode/Name+PIN). Der Name steht nicht mehr im
+    Klartext im Cookie und ist damit nicht fälschbar."""
+    response.set_cookie(
+        NAME_COOKIE,
+        mitglied_session.signiere_name(name),
+        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
+        httponly=True,
+        samesite="lax",
+    )
 
 
 @router.post("/abmelden", status_code=status.HTTP_204_NO_CONTENT)
@@ -52,29 +70,9 @@ async def abmelden(response: Response) -> None:
 async def mein_profil(person: CurrentPerson) -> MeinProfil:
     return MeinProfil(
         name=person.name,
-        bild_url=person.bild_url,
+        bild_url=datei_token.signierte_url(person.bild_url),
         gruppe_id=person.gruppe_id,
         funktion_id=person.funktion_id,
-    )
-
-
-@router.post("/name", status_code=status.HTTP_204_NO_CONTENT)
-async def name_eintragen(
-    db: DbSession,
-    response: Response,
-    daten: NameEintragen,
-    geraetehaus_name: Annotated[str | None, Cookie()] = None,
-) -> None:
-    """Trägt den Namen dauerhaft im Cookie ein."""
-    if geraetehaus_name and geraetehaus_name != daten.name:
-        await auth_service.protokolliere_namensabweichung(db, geraetehaus_name, daten.name)
-    await auth_service.get_or_create_person(db, daten.name)
-    response.set_cookie(
-        NAME_COOKIE,
-        daten.name,
-        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
-        httponly=True,
-        samesite="lax",
     )
 
 
@@ -117,13 +115,7 @@ async def barcode_einscannen(
     barcode.last_used_at = datetime.utcnow()
     await db.commit()
 
-    response.set_cookie(
-        NAME_COOKIE,
-        person.name,
-        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
-        httponly=True,
-        samesite="lax",
-    )
+    _setze_namens_cookie(response, person.name)
     return BarcodeIdentitaet(name=person.name)
 
 
@@ -157,13 +149,7 @@ async def mitglied_login_einloesen(db: DbSession, response: Response, token: str
     reservierung.eingeloest = True
     await db.commit()
 
-    response.set_cookie(
-        NAME_COOKIE,
-        person.name,
-        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
-        httponly=True,
-        samesite="lax",
-    )
+    _setze_namens_cookie(response, person.name)
     return BarcodeIdentitaet(name=person.name)
 
 
@@ -188,9 +174,18 @@ async def barcode_vorschau(db: DbSession, token: str) -> BarcodeVorschau:
 
     return BarcodeVorschau(
         name=person.name,
-        bild_url=person.bild_url,
+        bild_url=datei_token.signierte_url(person.bild_url),
         gruppe_id=person.gruppe_id,
         funktion_id=person.funktion_id,
+    )
+
+
+def _pin_gesperrt_http(sperre: "stammdaten_service.PinGesperrtError") -> HTTPException:
+    """429 mit Restdauer (Minuten) bei temporär gesperrtem PIN-Login."""
+    minuten = max(1, round(sperre.verbleibend_sekunden / 60))
+    return HTTPException(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        detail=f"Zu viele Fehlversuche. PIN-Login für {minuten} Minute(n) gesperrt.",
     )
 
 
@@ -212,7 +207,7 @@ async def personen_auswahl(db: DbSession, suche: str = "") -> list[PersonAuswahl
         PersonAuswahl(
             id=p.id,
             name=p.name,
-            bild_url=p.bild_url,
+            bild_url=datei_token.signierte_url(p.bild_url),
             pin_gesetzt=p.pin_gesetzt,
             funktion_id=p.funktion_id,
             gruppe_id=p.gruppe_id,
@@ -228,13 +223,20 @@ async def personen_auswahl(db: DbSession, suche: str = "") -> list[PersonAuswahl
 )
 async def name_pin_pruefen(db: DbSession, daten: NamePinLogin) -> NamePinVorschau:
     """Prüft den PIN, OHNE einzuloggen (kein Cookie) – nur für die Bildvorschau am
-    Kiosk, sobald der korrekte PIN eingegeben wurde. Bei falschem/fehlendem PIN 401."""
+    Kiosk, sobald der korrekte PIN eingegeben wurde. Bei falschem/fehlendem PIN 401,
+    bei zu vielen Fehlversuchen 429 (temporäre Sperre)."""
     person = await stammdaten_service.get_person(db, daten.person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
-    if not person.pin_gesetzt or not stammdaten_service.person_pin_korrekt(person, daten.pin):
+    if not person.pin_gesetzt:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="PIN falsch.")
-    return NamePinVorschau(name=person.name, bild_url=person.bild_url)
+    try:
+        korrekt = await stammdaten_service.pin_login_versuch(db, person, daten.pin)
+    except stammdaten_service.PinGesperrtError as sperre:
+        raise _pin_gesperrt_http(sperre)
+    if not korrekt:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="PIN falsch.")
+    return NamePinVorschau(name=person.name, bild_url=datei_token.signierte_url(person.bild_url))
 
 
 @router.post(
@@ -250,16 +252,14 @@ async def name_pin_login(db: DbSession, response: Response, daten: NamePinLogin)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
     if not person.pin_gesetzt:
         raise HTTPException(status_code=status.HTTP_428_PRECONDITION_REQUIRED, detail="kein_pin")
-    if not stammdaten_service.person_pin_korrekt(person, daten.pin):
+    try:
+        korrekt = await stammdaten_service.pin_login_versuch(db, person, daten.pin)
+    except stammdaten_service.PinGesperrtError as sperre:
+        raise _pin_gesperrt_http(sperre)
+    if not korrekt:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="PIN falsch.")
 
-    response.set_cookie(
-        NAME_COOKIE,
-        person.name,
-        max_age=NAME_COOKIE_MAX_AGE_SECONDS,
-        httponly=True,
-        samesite="lax",
-    )
+    _setze_namens_cookie(response, person.name)
     return BarcodeIdentitaet(name=person.name)
 
 
@@ -276,18 +276,83 @@ async def pin_anfordern(db: DbSession, daten: PinAnfordern) -> dict[str, str]:
     return {"weg": weg}
 
 
+def _moderator_token(moderator) -> str:
+    return create_access_token(subject=moderator.username, extra_claims={"rolle": moderator.rolle})
+
+
 @router.post(
-    "/moderator/login", response_model=ModeratorToken, dependencies=[Depends(rate_limit(10, 60))]
+    "/moderator/login",
+    response_model=ModeratorLoginErgebnis,
+    dependencies=[Depends(rate_limit(10, 60))],
 )
 async def moderator_login(
-    db: DbSession, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
-) -> ModeratorToken:
-    result = await db.execute(select(Moderator).where(Moderator.username == form_data.username))
-    moderator = result.scalar_one_or_none()
-    if moderator is None or not verify_secret(form_data.password, moderator.passwort_hash):
+    db: DbSession,
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    moderator_trusted_device: Annotated[str | None, Cookie()] = None,
+) -> ModeratorLoginErgebnis:
+    try:
+        moderator = await moderator_service.login_pruefen(db, form_data.username, form_data.password)
+    except moderator_service.ModeratorGesperrtError as sperre:
+        minuten = max(1, round(sperre.verbleibend_sekunden / 60))
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Zu viele Fehlversuche. Login für {minuten} Minute(n) gesperrt.",
+        )
+    if moderator is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Benutzername oder Passwort falsch.",
         )
-    token = create_access_token(subject=moderator.username, extra_claims={"rolle": moderator.rolle})
-    return ModeratorToken(access_token=token)
+
+    # Kein 2FA (oder bereits vertrauenswürdiges Gerät) → direkt Token ausstellen.
+    if not moderator.zwei_faktor_aktiv or await zwei_faktor_service.trusted_device_gueltig(
+        db, moderator, moderator_trusted_device
+    ):
+        return ModeratorLoginErgebnis(access_token=_moderator_token(moderator))
+
+    # 2FA: OTP per E-Mail senden (Best-Effort – ohne E-Mail bleibt der
+    # Recovery-Code-Weg) und Challenge für den zweiten Schritt zurückgeben.
+    try:
+        await zwei_faktor_service.otp_erzeugen_und_senden(db, moderator)
+    except ValueError:
+        pass
+    return ModeratorLoginErgebnis(
+        zwei_faktor_erforderlich=True,
+        challenge=moderator_2fa_session.signiere_challenge(moderator.id),
+    )
+
+
+@router.post(
+    "/moderator/2fa",
+    response_model=ModeratorLoginErgebnis,
+    dependencies=[Depends(rate_limit(10, 60))],
+)
+async def moderator_2fa(db: DbSession, response: Response, daten: Moderator2FA) -> ModeratorLoginErgebnis:
+    """Zweiter Login-Schritt: prüft den E-Mail-OTP **oder** einen Recovery-Code
+    zum vorher ausgestellten `challenge`-Token."""
+    moderator_id = moderator_2fa_session.lese_challenge(daten.challenge)
+    if moderator_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Anmeldung abgelaufen. Bitte erneut mit Passwort anmelden.",
+        )
+    moderator = await moderator_service.get_moderator(db, moderator_id)
+    if moderator is None or not moderator.zwei_faktor_aktiv:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Nicht angemeldet.")
+
+    ok = await zwei_faktor_service.otp_pruefen(db, moderator, daten.code) or (
+        await zwei_faktor_service.recovery_code_pruefen(db, moderator, daten.code)
+    )
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Code ungültig oder abgelaufen.")
+
+    if daten.angemeldet_bleiben:
+        roh = await zwei_faktor_service.trusted_device_ausstellen(db, moderator)
+        response.set_cookie(
+            TRUSTED_DEVICE_COOKIE,
+            roh,
+            max_age=TRUSTED_DEVICE_MAX_AGE_SECONDS,
+            httponly=True,
+            samesite="lax",
+        )
+    return ModeratorLoginErgebnis(access_token=_moderator_token(moderator))

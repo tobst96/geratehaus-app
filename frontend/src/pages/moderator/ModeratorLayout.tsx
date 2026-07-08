@@ -4,14 +4,27 @@ import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { holeFeatureModule, type FeatureModul } from "../../api/featureModule";
 import { navIcon } from "./navIcons";
+import { GRANTBARE_MODUL_UNTERSEITEN } from "./modulRechte";
 
 type ModulKey =
   | "modul_einsatztagebuch_aktiv"
   | "modul_dienstbuch_aktiv"
   | "modul_dienststunden_aktiv"
-  | "modul_fahrzeugbuchung_aktiv";
+  | "modul_fahrzeugbuchung_aktiv"
+  | "modul_formular_aktiv";
 
-type NavItem = { pfad: string; titel: string; icon: string; modulKey?: ModulKey };
+type NavItem = {
+  pfad: string;
+  titel: string;
+  icon: string;
+  modulKey?: ModulKey;
+  // Individueller Modul-Zugriff (Berechtigungssystem). Ist er gesetzt, wird der
+  // Punkt statt über die Rolle über `hat_zugriff` eingeblendet (Admins via Bypass).
+  berechtigungKey?: string;
+  // Nur für Admins sichtbar (Backend-Endpunkt ist CurrentAdmin, kein granulares
+  // Modul-Recht) – auch wenn die Gruppe für einen Gruppenführer sichtbar wird.
+  nurAdmin?: boolean;
+};
 type NavGruppe = {
   id: string;
   titel: string | null;
@@ -27,7 +40,7 @@ const NAV_GRUPPEN: NavGruppe[] = [
     id: "buchungen",
     titel: null,
     admin: false,
-    items: [{ pfad: "/moderator/buchungen", titel: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv" }],
+    items: [{ pfad: "/moderator/buchungen", titel: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv", berechtigungKey: "fahrzeugbuchung" }],
   },
   { id: "listen", titel: "Listen", admin: false, listen: true, items: [] },
   {
@@ -35,25 +48,31 @@ const NAV_GRUPPEN: NavGruppe[] = [
     titel: "Module",
     admin: true,
     module: true,
-    items: [{ pfad: "/moderator/module", titel: "Übersicht", icon: "module" }],
+    items: [{ pfad: "/moderator/module", titel: "Übersicht", icon: "module", berechtigungKey: "einstellungen" }],
   },
   {
     id: "verwaltung",
     titel: "Verwaltung",
     admin: true,
     items: [
-      { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen" },
-      { pfad: "/moderator/update", titel: "Update", icon: "update" },
-      { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen" },
+      { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen", berechtigungKey: "berechtigungen" },
+      { pfad: "/moderator/audit", titel: "Audit-Log", icon: "berechtigungen", nurAdmin: true },
+      { pfad: "/moderator/systemstatus", titel: "Systemstatus", icon: "update", nurAdmin: true },
+      { pfad: "/moderator/update", titel: "Update", icon: "update", berechtigungKey: "einstellungen" },
+      { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen", berechtigungKey: "einstellungen" },
     ],
   },
 ];
 
-const LISTEN_UNTERPUNKTE: { tab: string; icon: string; modulKey: ModulKey }[] = [
-  { tab: "Einsätze", icon: "einsatz", modulKey: "modul_einsatztagebuch_aktiv" },
-  { tab: "Dienstbücher", icon: "dienstbuch", modulKey: "modul_dienstbuch_aktiv" },
-  { tab: "Dienststunden", icon: "dienststunden", modulKey: "modul_dienststunden_aktiv" },
-  { tab: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv" },
+// `perm` = Berechtigungs-Key: der Listen-Tab erscheint für Gruppenführer nur mit
+// diesem Modul-Recht (Admins via Bypass). Formulare hat kein perm – die Sichtbarkeit
+// der Einreichungen steuert der Server über `moderator_sichtbar`.
+const LISTEN_UNTERPUNKTE: { tab: string; icon: string; modulKey: ModulKey; perm?: string }[] = [
+  { tab: "Einsätze", icon: "einsatz", modulKey: "modul_einsatztagebuch_aktiv", perm: "einsatztagebuch" },
+  { tab: "Dienstbücher", icon: "dienstbuch", modulKey: "modul_dienstbuch_aktiv", perm: "dienstbuch" },
+  { tab: "Dienststunden", icon: "dienststunden", modulKey: "modul_dienststunden_aktiv", perm: "dienststunden" },
+  { tab: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv", perm: "fahrzeugbuchung" },
+  { tab: "Formulare", icon: "formular", modulKey: "modul_formular_aktiv" },
 ];
 
 const MODUL_ICON: Record<string, string> = {
@@ -61,6 +80,7 @@ const MODUL_ICON: Record<string, string> = {
   dienstbuch: "dienstbuch",
   dienststunden: "dienststunden",
   fahrzeugbuchung: "fahrzeug",
+  formular: "formular",
   divera: "divera",
   personal: "personal",
   fahrzeuge: "fahrzeug",
@@ -72,23 +92,45 @@ const MODUL_ICON: Record<string, string> = {
 };
 
 export function ModeratorLayout() {
-  const { moderatorAbmelden, moderatorRolle } = useAuth();
-  const { config } = useConfig();
+  const { moderatorAbmelden, moderatorRolle, hatModulZugriff } = useAuth();
+  const { config, neuLaden } = useConfig();
   const navigate = useNavigate();
   const location = useLocation();
   const istAdmin = moderatorRolle === "admin";
-  const sichtbareGruppen = NAV_GRUPPEN.filter((g) => !g.admin || istAdmin);
+
+  // Ein Nav-Punkt ist sichtbar, wenn er keinen Berechtigungs-Key hat (dann greift
+  // die Gruppen-Rollenregel) oder der Moderator den Modul-Zugriff besitzt.
+  const itemSichtbar = (item: NavItem) =>
+    (!item.nurAdmin || istAdmin) && (!item.berechtigungKey || hatModulZugriff(item.berechtigungKey));
+  // Admin-Gruppen: für Admins immer sichtbar; sonst nur, wenn mindestens ein Punkt
+  // über einen Berechtigungs-Key freigeschaltet ist (rein rollen-basierte
+  // Admin-Gruppen ohne Keys bleiben für Nicht-Admins verborgen).
+  // Grantbare Modul-Unterseiten, die dieser Moderator freigeschaltet hat (für
+  // Gruppenführer, damit die "Module"-Gruppe + ihre Unterseiten erscheinen).
+  const grantbareUnterseiten = GRANTBARE_MODUL_UNTERSEITEN.filter((m) => hatModulZugriff(m.perm));
+  const gruppeSichtbar = (g: NavGruppe) =>
+    !g.admin ||
+    istAdmin ||
+    g.items.some((i) => i.berechtigungKey && hatModulZugriff(i.berechtigungKey)) ||
+    (!!g.module && grantbareUnterseiten.length > 0);
+  const sichtbareGruppen = NAV_GRUPPEN.filter(gruppeSichtbar);
   const [drawerOffen, setDrawerOffen] = useState(false);
-  const [moduleOffen, setModuleOffen] = useState(false);
+  const [moduleOffen, setModuleOffen] = useState(true);
   const [listenOffen, setListenOffen] = useState(true);
   const [aktiveModule, setAktiveModule] = useState<FeatureModul[]>([]);
 
+  // Aktive Module + Config bei jedem Seitenwechsel neu laden, damit ein gerade
+  // deaktiviertes Modul (auf der Modul-Seite umgeschaltet) auch aus der Navigation
+  // verschwindet.
   useEffect(() => {
-    if (!istAdmin) return;
-    holeFeatureModule()
-      .then((m) => setAktiveModule(m.filter((x) => x.aktiv)))
-      .catch(() => setAktiveModule([]));
-  }, [istAdmin]);
+    if (istAdmin) {
+      holeFeatureModule()
+        .then((m) => setAktiveModule(m.filter((x) => x.aktiv)))
+        .catch(() => setAktiveModule([]));
+    }
+    neuLaden();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, istAdmin]);
 
   // Beim Navigieren (Pfadwechsel) den mobilen Drawer schließen.
   useEffect(() => {
@@ -155,23 +197,30 @@ export function ModeratorLayout() {
                   <div className="mod-nav-section">{gruppe.titel}</div>
                 ))}
 
-              {gruppe.items
-                .filter((item) => !item.modulKey || modulAktiv(item.modulKey))
-                .map((item) => (
-                  <NavLink
-                    key={item.pfad}
-                    to={item.pfad}
-                    end={item.pfad === "/moderator/module"}
-                    className={linkClass(false)}
-                  >
-                    {navIcon(item.icon)}
-                    <span>{item.titel}</span>
-                  </NavLink>
-                ))}
+              {/* In der aufklappbaren „Module"-Gruppe gehört auch die „Übersicht"
+                  unter den Toggle (erst beim Aufklappen sichtbar), damit der Pfeil
+                  die ganze Sektion inkl. Übersicht steuert und nichts dazwischen
+                  „hängt". Nicht-aufklappbare Gruppen zeigen ihre Punkte wie bisher. */}
+              {(!gruppe.module || moduleOffen) &&
+                gruppe.items
+                  .filter((item) => (!item.modulKey || modulAktiv(item.modulKey)) && itemSichtbar(item))
+                  .map((item) => (
+                    <NavLink
+                      key={item.pfad}
+                      to={item.pfad}
+                      end={item.pfad === "/moderator/module"}
+                      className={linkClass(false)}
+                    >
+                      {navIcon(item.icon)}
+                      <span>{item.titel}</span>
+                    </NavLink>
+                  ))}
 
               {gruppe.listen && listenOffen && (
                 <>
-                  {LISTEN_UNTERPUNKTE.filter((u) => modulAktiv(u.modulKey)).map((u) => (
+                  {LISTEN_UNTERPUNKTE.filter(
+                    (u) => modulAktiv(u.modulKey) && (!u.perm || hatModulZugriff(u.perm))
+                  ).map((u) => (
                     <NavLink
                       key={u.tab}
                       to={`/moderator/listen?tab=${encodeURIComponent(u.tab)}`}
@@ -195,12 +244,19 @@ export function ModeratorLayout() {
 
               {gruppe.module &&
                 moduleOffen &&
-                aktiveModule.map((m) => (
-                  <NavLink key={m.key} to={`/moderator/module/${m.key}`} className={linkClass(true)}>
-                    {navIcon(MODUL_ICON[m.key])}
-                    <span>{m.name}</span>
-                  </NavLink>
-                ))}
+                (istAdmin
+                  ? aktiveModule.map((m) => (
+                      <NavLink key={m.key} to={`/moderator/module/${m.key}`} className={linkClass(true)}>
+                        {navIcon(MODUL_ICON[m.key])}
+                        <span>{m.name}</span>
+                      </NavLink>
+                    ))
+                  : grantbareUnterseiten.map((m) => (
+                      <NavLink key={m.key} to={`/moderator/module/${m.key}`} className={linkClass(true)}>
+                        {navIcon(m.icon)}
+                        <span>{m.titel}</span>
+                      </NavLink>
+                    )))}
             </Fragment>
           ))}
         </nav>
