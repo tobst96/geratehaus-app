@@ -1,3 +1,4 @@
+import { Fehlertext } from "../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import {
@@ -71,7 +72,7 @@ export function PersonFreigabe() {
       <div className="seite">
         <div className="karte">
           <h1>Personen-Freigabe</h1>
-          <p className="fehlertext">{ladeFehler}</p>
+          <Fehlertext>{ladeFehler}</Fehlertext>
         </div>
       </div>
     );
@@ -90,13 +91,13 @@ export function PersonFreigabe() {
         ) : ergebnis === "abgelehnt" ? (
           <p>Die Anfrage wurde abgelehnt.</p>
         ) : !info.offen ? (
-          <p className="fehlertext">Diese Freigabe ist nicht mehr offen.</p>
+          <Fehlertext>Diese Freigabe ist nicht mehr offen.</Fehlertext>
         ) : ablehnenModus ? (
           <>
             <p>
               Anfrage von <strong>{info.name}</strong> ablehnen?
             </p>
-            {fehler && <p className="fehlertext">{fehler}</p>}
+            {fehler && <Fehlertext>{fehler}</Fehlertext>}
             <button type="button" onClick={ablehnen} disabled={laeuft}>
               {laeuft ? "Wird abgelehnt…" : "Ablehnen"}
             </button>
@@ -129,7 +130,7 @@ export function PersonFreigabe() {
                 placeholder="Leer lassen, dann setzt die Person ihn selbst"
               />
             </div>
-            {fehler && <p className="fehlertext">{fehler}</p>}
+            {fehler && <Fehlertext>{fehler}</Fehlertext>}
             <button type="submit" disabled={laeuft}>
               {laeuft ? "Wird gespeichert…" : "Freigeben"}
             </button>

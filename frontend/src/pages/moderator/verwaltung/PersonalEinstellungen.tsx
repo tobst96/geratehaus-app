@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { Gespeichert } from "../../../components/Gespeichert";
 import { GruppenVerwaltung } from "./GruppenVerwaltung";
@@ -171,7 +172,7 @@ export function PersonalEinstellungen() {
         {speichert ? "Speichert …" : "Speichern"}
       </button>
       {gespeichert && <Gespeichert />}
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
     </div>
   );
 }

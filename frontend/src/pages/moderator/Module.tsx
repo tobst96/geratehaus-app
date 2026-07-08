@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -71,7 +72,7 @@ export function Module() {
     }
   }
 
-  if (fehler && !module) return <p className="fehlertext">{fehler}</p>;
+  if (fehler && !module) return <Fehlertext>{fehler}</Fehlertext>;
   if (!module) return <Ladeanzeige />;
 
   return (
@@ -82,7 +83,7 @@ export function Module() {
         Einstellungen des Moduls (Unterseite) zu öffnen. Die Reihenfolge gilt für die Kiosk-Kacheln
         und die Navigation. Deaktivierte Module verschwinden aus der Navigation.
       </p>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
       <input
         type="text"

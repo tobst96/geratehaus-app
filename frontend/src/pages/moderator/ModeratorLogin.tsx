@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -77,7 +78,7 @@ export function ModeratorLogin() {
             />
             Diesem Gerät 30 Tage vertrauen (kein Code mehr nötig)
           </label>
-          {fehler && <p className="fehlertext">{fehler}</p>}
+          {fehler && <Fehlertext>{fehler}</Fehlertext>}
           <button type="submit" disabled={ladevorgang}>
             {ladevorgang ? "Prüfe …" : "Bestätigen"}
           </button>
@@ -111,7 +112,7 @@ export function ModeratorLogin() {
             required
           />
         </div>
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
         <button type="submit" disabled={ladevorgang}>
           {ladevorgang ? "Anmelden …" : "Anmelden"}
         </button>

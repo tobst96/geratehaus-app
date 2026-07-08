@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { formatiereDatumZeit } from "../../../utils/datum";
 import QRCode from "qrcode";
@@ -194,7 +195,7 @@ export function FormularModul() {
     setEinreichungen(await holeEinreichungen(ausgewaehlt.id));
   }
 
-  if (fehler && !formulare) return <p className="fehlertext">{fehler}</p>;
+  if (fehler && !formulare) return <Fehlertext>{fehler}</Fehlertext>;
   if (!formulare) return <Ladeanzeige />;
 
   return (
@@ -203,7 +204,7 @@ export function FormularModul() {
         <Link to="/moderator/module">← Zurück zu den Modulen</Link>
       </p>
       <h1>Formulare</h1>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         <input

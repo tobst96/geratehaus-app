@@ -1493,8 +1493,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   EinsatzDetail, Dienstbuch, Dienststunden, Fahrzeugbuchung, FahrzeugView) – vier
   davon mit Retry auf ihre `laden()`-Funktion. Test `SeitenFehler.test.tsx` (3).
   `npm run build` + `npm run test` (21) grün.
-- **Noch offen:** Inline-Formularfehler (viele `<p className="fehlertext">`) und ein
-  echtes Toast-Muster – separater Folge-Slice.
+- Fortschritt (08.07.2026, direkt auf beta): **Inline-Formularfehler vereinheitlicht.**
+  Neue Komponente `Fehlertext` (`<p className="fehlertext" role="alert">` – Screenreader
+  sagen Fehler jetzt an; Styling bleibt aus der geteilten `.fehlertext`-Klasse). Die 87
+  einzeiligen `<p className="fehlertext">…</p>` in 50 Dateien darauf umgestellt
+  (verhaltensgleich, nur `role="alert"` ergänzt). `npm run build` + `npm run test` (26) grün.
+- **Noch offen:** 12 mehrzeilige/gestylte `fehlertext`-Stellen (manuell, geringe Zahl)
+  sowie ein echtes **Toast-Muster** (Design-Entscheidung) – separater Folge-Slice.
 
 ### Inline-Styles → CSS-Klassen
 

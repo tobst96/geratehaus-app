@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   holeKioskTokens,
@@ -108,7 +109,7 @@ export function KioskGeraete() {
     moduleSetzen(g.id, neu);
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!geraete) return <Ladeanzeige />;
 
   return (

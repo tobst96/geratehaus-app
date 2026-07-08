@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import { useAuth } from "../../context/AuthContext";
@@ -288,7 +289,7 @@ export function Fahrzeugbuchung() {
               <PersonIdentifikation ref={identRef} autoFocus />
             </div>
           )}
-          {qrFehler && <p className="fehlertext">{qrFehler}</p>}
+          {qrFehler && <Fehlertext>{qrFehler}</Fehlertext>}
           <button type="submit" disabled={laeuft}>
             {laeuft ? "Wird gestellt…" : "Anfrage stellen"}
           </button>{" "}

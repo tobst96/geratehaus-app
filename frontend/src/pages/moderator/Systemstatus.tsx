@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import { holeSystemStatus, type SystemStatus } from "../../api/meta";
@@ -52,7 +53,7 @@ export function Systemstatus() {
     laden();
   }, []);
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!status) return <Ladeanzeige />;
 
   return (

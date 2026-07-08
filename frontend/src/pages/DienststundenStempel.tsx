@@ -1,3 +1,4 @@
+import { Fehlertext } from "../components/Fehlertext";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { holeStempelInfo, type DienststundenStempelInfo } from "../api/dienststundenStempel";
@@ -66,7 +67,7 @@ export function DienststundenStempel() {
     return (
       <div className="seite">
         <div className="karte">
-          <p className="fehlertext">{ladeFehler}</p>
+          <Fehlertext>{ladeFehler}</Fehlertext>
         </div>
       </div>
     );
@@ -157,7 +158,7 @@ export function DienststundenStempel() {
           <PersonIdentifikation ref={identRef} autoFocus />
         </div>
 
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
         <button type="button" onClick={eintragen} disabled={laeuft}>
           {laeuft ? "Wird gespeichert…" : "Eintragen"}

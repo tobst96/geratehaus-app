@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import {
@@ -54,7 +55,7 @@ export function Buchungsmanagement() {
     }
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!buchungen) return <Ladeanzeige />;
 
   return (

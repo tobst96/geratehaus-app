@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import QRCode from "qrcode";
@@ -230,8 +231,8 @@ export function MitgliedLogin() {
               </div>
             )}
 
-            {fehler && <p className="fehlertext">{fehler}</p>}
-            {qrFehler && <p className="fehlertext">{qrFehler}</p>}
+            {fehler && <Fehlertext>{fehler}</Fehlertext>}
+            {qrFehler && <Fehlertext>{qrFehler}</Fehlertext>}
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button type="submit" disabled={laeuft}>

@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { formatiereDatum,formatiereDatumZeit,formatiereZeit } from "../../utils/datum";
 import QRCode from "qrcode";
@@ -473,7 +474,7 @@ export function Personal() {
     await laden();
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!liste) return <Ladeanzeige />;
 
   const suchbegriff = suche.trim().toLowerCase();
@@ -581,7 +582,7 @@ export function Personal() {
                 {importLaeuft ? "Importiere…" : "Import starten"}
               </button>
             </div>
-            {importFehler && <p className="fehlertext">{importFehler}</p>}
+            {importFehler && <Fehlertext>{importFehler}</Fehlertext>}
             {importErgebnis && (
               <div style={{ marginTop: 12 }}>
                 <p style={{ fontWeight: 600 }}>
@@ -635,7 +636,7 @@ export function Personal() {
                     value={neuerNachname}
                     onChange={(e) => setNeuerNachname(e.target.value)}
                   />
-                  {anlegenFehler && <p className="fehlertext">{anlegenFehler}</p>}
+                  {anlegenFehler && <Fehlertext>{anlegenFehler}</Fehlertext>}
                   <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
                     <button type="button" className="sekundaer" onClick={anlegenModalSchliessen}>
                       Abbrechen

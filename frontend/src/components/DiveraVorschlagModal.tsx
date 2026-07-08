@@ -1,3 +1,4 @@
+import { Fehlertext } from "./Fehlertext";
 import { useEffect, useState } from "react";
 import {
   diveraIgnorierteZuruecksetzen,
@@ -116,7 +117,7 @@ export function DiveraVorschlagModal({ onSchliessen, onUebernommen }: Props) {
           </button>
         </div>
 
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
         {vorschlaege === null ? (
           <Ladeanzeige />

@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ApiError } from "../../api/client";
@@ -339,7 +340,7 @@ export function FormularAusfuellen() {
           </label>
         )}
 
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
         <button onClick={absenden} disabled={sendet}>
           {sendet ? "Sendet …" : "Absenden"}
         </button>

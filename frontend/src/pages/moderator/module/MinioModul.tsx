@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useRef, useState } from "react";
 import { formatiereDatumZeit } from "../../../utils/datum";
 import { Link } from "react-router-dom";
@@ -134,7 +135,7 @@ export function MinioModul() {
     }
   }
 
-  if (!einst) return fehler ? <p className="fehlertext">{fehler}</p> : <Ladeanzeige />;
+  if (!einst) return fehler ? <Fehlertext>{fehler}</Fehlertext> : <Ladeanzeige />;
 
   return (
     <div>
@@ -147,7 +148,7 @@ export function MinioModul() {
         automatisch abgelegt (Einsätze als Ordner je Einsatz, Dienstbücher flach) und das Backup-Modul
         kann „MinIO Backup" nutzen. Das Modul lässt sich unter „Module" an-/abschalten.
       </p>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {meldung && <p style={{ color: "var(--farbe-text-mute)" }}>{meldung}</p>}
 
       {/* --- Dateibrowser (läuft über die App, kein Port-Öffnen nötig) --- */}
@@ -157,7 +158,7 @@ export function MinioModul() {
           Buckets und Dateien direkt hier ansehen, hoch- und herunterladen – ohne den MinIO-Port zu
           öffnen.
         </p>
-        {browserFehler && <p className="fehlertext">{browserFehler}</p>}
+        {browserFehler && <Fehlertext>{browserFehler}</Fehlertext>}
 
         <div className="formular-feld" style={{ maxWidth: 320 }}>
           <label htmlFor="bucketsel">Bucket</label>

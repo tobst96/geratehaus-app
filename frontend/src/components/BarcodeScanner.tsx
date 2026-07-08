@@ -1,3 +1,4 @@
+import { Fehlertext } from "./Fehlertext";
 import { useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
@@ -142,7 +143,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <h3 style={{ marginTop: 0 }}>Barcode scannen</h3>
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
         <div style={{ position: "relative" }}>
           <video
             ref={videoRef}

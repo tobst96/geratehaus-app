@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { formatiereDatum } from "../../utils/datum";
 import {
@@ -130,7 +131,7 @@ export function BarcodeGenerator() {
     URL.revokeObjectURL(url);
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!personen) return <Ladeanzeige />;
 
   return (

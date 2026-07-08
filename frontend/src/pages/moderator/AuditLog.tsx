@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useMemo, useState } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import { exportiereAuditLog, holeAuditLog, type AuditEintrag } from "../../api/audit";
@@ -45,7 +46,7 @@ export function AuditLog() {
     [eintraege]
   );
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!eintraege) return <Ladeanzeige />;
 
   const sichtbar = filterAktion ? eintraege.filter((e) => e.aktion === filterAktion) : eintraege;

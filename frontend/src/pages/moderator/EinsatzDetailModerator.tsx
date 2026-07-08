@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -106,7 +107,7 @@ export function EinsatzDetailModerator() {
     }
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!einsatz) return <Ladeanzeige />;
 
   function sitzplatzBezeichnung(fahrzeugId: number | null, sitzplatzId: string | null): string {

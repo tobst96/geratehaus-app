@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { Gespeichert } from "../../../components/Gespeichert";
 import { Link } from "react-router-dom";
@@ -82,7 +83,7 @@ export function FahrzeugbuchungModul() {
             {gespeichert && <Gespeichert />}
           </>
         )}
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
       </div>
     </div>
   );

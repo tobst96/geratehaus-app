@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import {
   holeBerechtigungen,
@@ -49,7 +50,7 @@ export function Berechtigungen() {
     }
   }
 
-  if (fehler) return <p className="fehlertext">{fehler}</p>;
+  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!matrix) return <Ladeanzeige />;
 
   function hatZugriff(mod: ModeratorBerechtigung, modulKey: string): boolean {

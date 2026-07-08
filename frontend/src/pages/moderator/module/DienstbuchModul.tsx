@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { Gespeichert } from "../../../components/Gespeichert";
 import { Link } from "react-router-dom";
@@ -44,7 +45,7 @@ export function DienstbuchModul() {
     }
   }
 
-  if (fehler && !geladen) return <p className="fehlertext">{fehler}</p>;
+  if (fehler && !geladen) return <Fehlertext>{fehler}</Fehlertext>;
   if (!geladen) return <Ladeanzeige />;
 
   return (
@@ -83,7 +84,7 @@ export function DienstbuchModul() {
           {speichert ? "Speichert …" : "Speichern"}
         </button>
         {gespeichert && <Gespeichert />}
-        {fehler && <p className="fehlertext">{fehler}</p>}
+        {fehler && <Fehlertext>{fehler}</Fehlertext>}
       </div>
 
       <div className="karte">

@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useRef, useState } from "react";
 import { formatiereDatumZeit } from "../../../utils/datum";
 import { Link } from "react-router-dom";
@@ -218,7 +219,7 @@ export function BackupModul() {
           {laeuft ? "Sichert …" : "Jetzt Backup erstellen"}
         </button>
       </div>
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {meldung && <p style={{ color: "var(--farbe-text-mute)" }}>{meldung}</p>}
 
       {/* --- Zeitplan & Aufbewahrung --- */}

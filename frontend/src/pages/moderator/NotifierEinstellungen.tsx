@@ -1,3 +1,4 @@
+import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
 import { holeEinstellungen, schreibeEinstellungen, sendeTestmail } from "../../api/moderator";
 import { ApiError } from "../../api/client";
@@ -160,7 +161,7 @@ export function NotifierEinstellungen() {
       <h1>Benachrichtigungen konfigurieren</h1>
       <p>Stelle hier Telegram, Email und Web Push ein – ganz ohne .env!</p>
 
-      {fehler && <p className="fehlertext">{fehler}</p>}
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {gespeichert && <Banner art="erfolg">Konfiguration gespeichert</Banner>}
 
       <form onSubmit={speichern}>
