@@ -1541,13 +1541,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Fortschritt (07.07.2026): **`.flex-zwischen`** (Space-between-Zeile, vertikal
   zentriert) für den 5-fach exakten `style={{ display:flex; justify-content:
   space-between; align-items:center }}` – sauber, da ohne gap-Variation. Build/Test grün.
+- Fortschritt (08.07.2026, direkt auf beta): **`.text-mute`-Utility** – das mit Abstand
+  häufigste Inline-Objekt `style={{ color: "var(--farbe-text-mute)" }}` (**77 Stellen**
+  in 39 Dateien) durch die Klasse `.text-mute` ersetzt. Nur die Ein-Property-Farbe (keine
+  Größe); alle 77 lagen auf einfachen HTML-Tags **ohne** vorhandenes `className` →
+  konfliktfrei und **1:1 gleiche Optik** (per Konstruktion; Build fängt jeden
+  Doppel-`className`-Fall ab). `npm run build` + `npm run test` (26) grün.
 - **Weiter offen (schrittweise, geringer Nutzen):** die verbliebenen Inline-Styles
   sind überwiegend **gap-variantenreiche Flex-Zeilen** (`display:flex; align-items:
   center; gap:4/6/8`) – eine Extraktion bräuchte gap-spezifische Klassen
   (Utility-Wildwuchs) und würde bei Vereinheitlichung die Optik minimal ändern; daher
   bewusst inline belassen. Die klar wiederkehrenden, sauber extrahierbaren Muster
-  (Modal-Overlay, Hinweistexte, „✓ gespeichert", Space-between-Zeile) sind damit
-  **erschöpft**.
+  (Modal-Overlay, Hinweistexte, Textfarbe, „✓ gespeichert", Space-between-Zeile) sind
+  damit **erschöpft**.
 
 ### Mehrsprachigkeit vorbereiten (i18n)
 

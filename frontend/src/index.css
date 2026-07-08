@@ -246,6 +246,12 @@ button.karte:focus-visible {
   font-weight: 600;
 }
 
+/* Gedämpfte Textfarbe (Utility) – ersetzt das ~77-fach kopierte Inline-
+   `style={{ color: "var(--farbe-text-mute)" }}` (nur Farbe, keine Größe). */
+.text-mute {
+  color: var(--farbe-text-mute);
+}
+
 /* Gedämpfter kleiner Hinweistext (Utility) – ersetzt das vielfach kopierte
    Inline-`{ color: var(--farbe-text-mute), fontSize: 0.85rem }`. */
 .hinweistext {

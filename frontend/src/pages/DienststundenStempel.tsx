@@ -113,7 +113,7 @@ export function DienststundenStempel() {
     <div className="seite">
       <div className="karte">
         <h1>Dienststunden eintragen</h1>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Funktion: <strong>{info.funktion_name}</strong> · Datum: heute (
           {heuteAlsDatum().split("-").reverse().join(".")})
         </p>

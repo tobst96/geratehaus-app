@@ -61,7 +61,7 @@ export function Update() {
 
       <div className="karte">
         <h2>Update-Kanal</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           "Stable" zeigt nur fertige Veröffentlichungen an, "Beta" auch Vorabversionen. Ist eine
           neue Version verfügbar, kann sie unten per Klick installiert werden. Das Update wird von
           einem Skript auf dem Server ausgeführt (<code>git pull</code> +

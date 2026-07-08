@@ -148,7 +148,7 @@ export function FormularAusfuellen() {
         <Link to="/formulare">← Zu den Formularen</Link>
       </p>
       <h1>{formular.name}</h1>
-      {formular.beschreibung && <p style={{ color: "var(--farbe-text-mute)" }}>{formular.beschreibung}</p>}
+      {formular.beschreibung && <p className="text-mute">{formular.beschreibung}</p>}
       {formular.login_erforderlich && (
         <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.9rem" }}>
           🔒 Zum Absenden ist eine Anmeldung erforderlich.{" "}

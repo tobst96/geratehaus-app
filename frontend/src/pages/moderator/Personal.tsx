@@ -659,7 +659,7 @@ export function Personal() {
             ) : (
               <>
                 <h2>{neuePerson.name} angelegt</h2>
-                <p style={{ color: "var(--farbe-text-mute)" }}>
+                <p className="text-mute">
                   Mit dem Handy scannen, um direkt ein Profilfoto aufzunehmen oder hochzuladen.
                 </p>
                 <img src={bildQr.bildUrl} alt="QR-Code für Foto-Upload" style={{ width: 220, height: 220 }} />
@@ -699,7 +699,7 @@ export function Personal() {
             ) : (
               <>
                 <h2>Bild per QR-Code hochladen</h2>
-                <p style={{ color: "var(--farbe-text-mute)" }}>
+                <p className="text-mute">
                   Mit dem Handy scannen, um ein Profilfoto für <strong>{ausgewaehltePerson.name}</strong>{" "}
                   aufzunehmen oder hochzuladen.
                 </p>
@@ -760,7 +760,7 @@ export function Personal() {
               </select>
             </label>
             {filterAbo && (
-              <span style={{ color: "var(--farbe-text-mute)" }}>
+              <span className="text-mute">
                 📧 = aktiver Mail-Kanal mit hinterlegter E-Mail
               </span>
             )}
@@ -814,13 +814,13 @@ export function Personal() {
                 </button>
               </li>
             ))}
-            {gefiltert.length === 0 && <p style={{ color: "var(--farbe-text-mute)" }}>Keine Personen gefunden.</p>}
+            {gefiltert.length === 0 && <p className="text-mute">Keine Personen gefunden.</p>}
           </ul>
         </div>
 
         <div className="personal-detail">
           {!ausgewaehltePerson ? (
-            <p style={{ color: "var(--farbe-text-mute)" }}>Bitte links eine Person auswählen.</p>
+            <p className="text-mute">Bitte links eine Person auswählen.</p>
           ) : (
             <div className="karte" key={ausgewaehltePerson.id}>
               <button
@@ -1089,7 +1089,7 @@ export function Personal() {
                     inhalt: !timeline ? (
                       <Ladeanzeige />
                     ) : timeline.length === 0 ? (
-                      <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Ereignisse.</p>
+                      <p className="text-mute">Noch keine Ereignisse.</p>
                     ) : (
                       (() => {
                         const typen = Array.from(new Set(timeline.map((e) => e.typ))).sort();
@@ -1115,7 +1115,7 @@ export function Personal() {
                               </div>
                             )}
                             {gefiltert.length === 0 ? (
-                              <p style={{ color: "var(--farbe-text-mute)" }}>Keine Ereignisse für diesen Filter.</p>
+                              <p className="text-mute">Keine Ereignisse für diesen Filter.</p>
                             ) : (
                               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                                 {gefiltert

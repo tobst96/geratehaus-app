@@ -5,7 +5,7 @@ import type { Zusammenfassung } from "../../api/formular";
 export function FormularZusammenfassung({ daten }: { daten: Zusammenfassung }) {
   return (
     <div>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         {daten.anzahl_einreichungen} Einreichung{daten.anzahl_einreichungen === 1 ? "" : "en"}
       </p>
       {daten.felder.map((f) => (
@@ -34,7 +34,7 @@ export function FormularZusammenfassung({ daten }: { daten: Zusammenfassung }) {
                       width: Math.max(4, v * 18),
                     }}
                   />
-                  <span style={{ color: "var(--farbe-text-mute)" }}>{v}</span>
+                  <span className="text-mute">{v}</span>
                 </div>
               ))}
             </div>

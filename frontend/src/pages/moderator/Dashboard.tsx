@@ -74,7 +74,7 @@ export function Dashboard() {
         </thead>
         <tbody>
           {daten.schwellenwert_ueberschreitungen.length === 0 ? (
-            <tr><td colSpan={4} style={{ color: "var(--farbe-text-mute)" }}>Keine Überschreitungen.</td></tr>
+            <tr><td colSpan={4} className="text-mute">Keine Überschreitungen.</td></tr>
           ) : (
             daten.schwellenwert_ueberschreitungen.map((s, i) => (
               <tr key={i}>

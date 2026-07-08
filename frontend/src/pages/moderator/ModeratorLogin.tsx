@@ -55,7 +55,7 @@ export function ModeratorLogin() {
       <div>
         <h1>Bestätigungscode</h1>
         <form onSubmit={codeAbsenden} className="karte">
-          <p style={{ color: "var(--farbe-text-mute)" }}>
+          <p className="text-mute">
             Wir haben dir einen Anmelde-Code per E-Mail geschickt. Gib ihn hier ein (oder verwende
             einen deiner Recovery-Codes).
           </p>

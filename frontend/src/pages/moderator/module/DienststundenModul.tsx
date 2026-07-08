@@ -11,7 +11,7 @@ export function DienststundenModul() {
 
       <div className="karte">
         <h2>Funktionen &amp; Schwellenwerte</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Funktionen mit Schwellenwert (Stunden). Überschreitungen erscheinen im{" "}
           <Link to="/moderator/dashboard">Dashboard</Link>.
         </p>

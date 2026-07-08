@@ -131,7 +131,7 @@ export function DienstbuchDetailModerator() {
         <tbody>
           {dienstbuch.teilnehmer.length === 0 && (
             <tr>
-              <td colSpan={3} style={{ color: "var(--farbe-text-mute)" }}>
+              <td colSpan={3} className="text-mute">
                 Keine Teilnehmer eingetragen.
               </td>
             </tr>

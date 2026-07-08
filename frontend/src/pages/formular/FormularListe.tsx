@@ -25,7 +25,7 @@ export function FormularListe() {
     <div style={{ maxWidth: 640, margin: "24px auto", padding: "0 16px" }}>
       <h1>Formulare</h1>
       {formulare.length === 0 ? (
-        <p style={{ color: "var(--farbe-text-mute)" }}>Aktuell sind keine Formulare verfügbar.</p>
+        <p className="text-mute">Aktuell sind keine Formulare verfügbar.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {formulare.map((f) => (

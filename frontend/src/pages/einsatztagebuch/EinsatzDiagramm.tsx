@@ -599,7 +599,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
 
             {qrAnsicht ? (
               <div className="sitzplatz-qr-ansicht">
-                <p style={{ color: "var(--farbe-text-mute)" }}>
+                <p className="text-mute">
                   Mit dem Handy scannen – die Person trägt sich dort selbst für genau diesen Platz ein
                   (ohne Barcode, wird im Bericht entsprechend vermerkt).
                 </p>
@@ -655,7 +655,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                 <div className="sitzplatz-scan-felder">
                   <div className="formular-feld">
                     {mitgliedModus.aktiv ? (
-                      <p style={{ color: "var(--farbe-text-mute)" }}>
+                      <p className="text-mute">
                         Eingeloggt als <strong>{mitgliedModus.name}</strong>
                       </p>
                     ) : (

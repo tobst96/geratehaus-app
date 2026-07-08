@@ -47,7 +47,7 @@ export function FahrzeugbuchungModul() {
 
       <div className="karte">
         <h2>Fahrzeuge</h2>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           Welche Fahrzeuge buchbar sind, wird im Modul{" "}
           <Link to="/moderator/module/fahrzeuge">Fahrzeuge</Link> festgelegt (Schalter „buchbar").
           Eingehende Buchungsanfragen werden unter{" "}

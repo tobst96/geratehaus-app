@@ -78,7 +78,7 @@ export function Module() {
   return (
     <div>
       <h1>Module</h1>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Module ein-/ausschalten und sortieren. <strong>Auf den Modulnamen klicken</strong>, um die
         Einstellungen des Moduls (Unterseite) zu öffnen. Die Reihenfolge gilt für die Kiosk-Kacheln
         und die Navigation. Deaktivierte Module verschwinden aus der Navigation.
@@ -104,7 +104,7 @@ export function Module() {
         ];
         const gesamtTreffer = gruppen.reduce((n, g) => n + g.liste.filter(passt).length, 0);
         if (begriff !== "" && gesamtTreffer === 0) {
-          return <p style={{ color: "var(--farbe-text-mute)" }}>Keine Module gefunden.</p>;
+          return <p className="text-mute">Keine Module gefunden.</p>;
         }
         return gruppen.map((gruppe) => {
           const treffer = gruppe.liste.filter(passt);

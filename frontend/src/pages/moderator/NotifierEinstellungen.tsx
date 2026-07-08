@@ -387,7 +387,7 @@ export function NotifierEinstellungen() {
 
         <div className="karte">
           <h2>🔔 Welche Ereignisse benachrichtigen?</h2>
-          <p style={{ color: "var(--farbe-text-mute)" }}>
+          <p className="text-mute">
             Legt fest, bei welchen Ereignissen überhaupt eine Benachrichtigung verschickt wird.
           </p>
           {EREIGNISSE.map((e) => (

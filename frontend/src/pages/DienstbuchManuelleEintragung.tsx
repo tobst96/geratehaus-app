@@ -160,7 +160,7 @@ export function DienstbuchManuelleEintragung() {
     <div className="seite">
       <div className="karte">
         <h1>Ohne Barcode eintragen</h1>
-        <p style={{ color: "var(--farbe-text-mute)" }}>Dienstbuch „{info.dienstbuch_titel}“</p>
+        <p className="text-mute">Dienstbuch „{info.dienstbuch_titel}“</p>
 
         <form onSubmit={absenden}>
           <div className="formular-feld">

@@ -104,7 +104,7 @@ export function PersonFreigabe() {
           </>
         ) : (
           <form onSubmit={freigeben}>
-            <p style={{ color: "var(--farbe-text-mute)" }}>
+            <p className="text-mute">
               Für <strong>{info.name}</strong> eine E-Mail-Adresse hinterlegen (und optional direkt einen PIN
               setzen).
             </p>

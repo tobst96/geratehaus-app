@@ -141,7 +141,7 @@ export function DienstbuchFelderVerwaltung() {
                       style={{ width: 180 }}
                     />
                   ) : (
-                    <span style={{ color: "var(--farbe-text-mute)" }}>–</span>
+                    <span className="text-mute">–</span>
                   )}
                 </td>
                 <td>

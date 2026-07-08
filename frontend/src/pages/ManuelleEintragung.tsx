@@ -160,7 +160,7 @@ export function ManuelleEintragung() {
     <div className="seite">
       <div className="karte">
         <h1>Ohne Barcode eintragen</h1>
-        <p style={{ color: "var(--farbe-text-mute)" }}>
+        <p className="text-mute">
           {info.bezeichnung} · Einsatz „{info.einsatz_titel}“
           {info.fahrzeug_name ? ` · ${info.fahrzeug_name}` : ""}
         </p>

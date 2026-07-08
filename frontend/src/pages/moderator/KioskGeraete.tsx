@@ -115,7 +115,7 @@ export function KioskGeraete() {
   return (
     <div>
       <h1>Kiosk-Geräte</h1>
-      <p style={{ color: "var(--farbe-text-mute)" }}>
+      <p className="text-mute">
         Jedes Tablet im Gerätehaus braucht einen eigenen Link. Diesen Link einmalig als Lesezeichen /
         Startbildschirm-Symbol auf dem jeweiligen Tablet hinterlegen.
       </p>

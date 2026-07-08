@@ -65,7 +65,7 @@ export function PinSetzen() {
           <Fehlertext>Dieser Link ist abgelaufen oder wurde bereits verwendet.</Fehlertext>
         ) : (
           <form onSubmit={absenden}>
-            <p style={{ color: "var(--farbe-text-mute)" }}>
+            <p className="text-mute">
               Für <strong>{info.name}</strong> einen persönlichen PIN festlegen.
             </p>
             <div className="formular-feld">

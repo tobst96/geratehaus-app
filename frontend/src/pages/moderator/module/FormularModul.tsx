@@ -232,7 +232,7 @@ export function FormularModul() {
           </button>
         ))}
         {formulare.length === 0 && (
-          <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Formulare angelegt.</p>
+          <p className="text-mute">Noch keine Formulare angelegt.</p>
         )}
       </div>
 
@@ -549,7 +549,7 @@ export function FormularModul() {
           {einreichungen && (
             <div style={{ marginTop: 12 }}>
               {einreichungen.length === 0 ? (
-                <p style={{ color: "var(--farbe-text-mute)" }}>Noch keine Einreichungen.</p>
+                <p className="text-mute">Noch keine Einreichungen.</p>
               ) : (
                 einreichungen.map((e) => (
                   <div

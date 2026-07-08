@@ -140,7 +140,7 @@ export function MitgliedLogin() {
 
         {qrAnsicht ? (
           <div style={{ textAlign: "center" }}>
-            <p style={{ color: "var(--farbe-text-mute)" }}>
+            <p className="text-mute">
               Mit dem Handy scannen und dich dort auswählen – dieses Gerät meldet sich danach automatisch an.
             </p>
             <img src={qrAnsicht.bildUrl} alt="QR-Code für Login ohne Barcode" style={{ width: 220, height: 220 }} />
