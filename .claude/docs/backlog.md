@@ -1365,9 +1365,17 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Service-Worker). **Letzter Schritt = Nutzer-Entscheidung** (empfohlene Variante „A"):
   gesammelte Reports in Prod sichten + kurzer Browser-Smoke-Test, dann die beiden
   `-Report-Only`-Header auf `Content-Security-Policy` umstellen.
-- Notizen: Erwägenswert: Google Fonts self-hosten, um die externen
-  `fonts.googleapis.com`/`fonts.gstatic.com`-Ausnahmen zu streichen (dann `style-src`/
-  `font-src` auf `'self'` verschlanken).
+- Fortschritt (08.07.2026): **Google Fonts selbst gehostet** (direkt auf beta,
+  Commit `3e34d55`). Alata + Noto Sans (400/600/700, latin + latin-ext) liegen jetzt
+  lokal unter `frontend/public/fonts/` und werden über `/fonts/fonts.css` geladen;
+  `index.html` lädt nicht mehr von `fonts.googleapis.com`/`fonts.gstatic.com`
+  (preconnect entfernt). **DSGVO:** keine Besucher-IP mehr an Google (schließt eine
+  latente, nie in der Datenschutzerklärung ausgewiesene Lücke – jetzt nichts Externes
+  offenzulegen). **CSP** entsprechend verschlankt: `style-src 'self' 'unsafe-inline'`,
+  `font-src 'self'` (externe Font-Ausnahmen entfallen) – ein weiterer Schritt Richtung
+  Scharfschalten. Live verifiziert (CSP-Header, `/fonts/fonts.css` + woff2 → 200,
+  kein `googleapis` mehr in index.html); `npm run build` grün.
+- Notizen: ~~Erwägenswert: Google Fonts self-hosten~~ ✓ (08.07.2026, s. o.).
 
 ---
 
