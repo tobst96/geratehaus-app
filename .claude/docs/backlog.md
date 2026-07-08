@@ -1375,6 +1375,17 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `font-src 'self'` (externe Font-Ausnahmen entfallen) – ein weiterer Schritt Richtung
   Scharfschalten. Live verifiziert (CSP-Header, `/fonts/fonts.css` + woff2 → 200,
   kein `googleapis` mehr in index.html); `npm run build` grün.
+- Fortschritt (08.07.2026): **CSP scharfgeschaltet (enforcing) – direkt auf beta,
+  auf Nutzer-Freigabe.** Beide `Content-Security-Policy-Report-Only`-Header in
+  `nginx.conf` auf `Content-Security-Policy` umgestellt. Vorab-Analyse bestätigte, dass
+  die App **keine externen Runtime-Ressourcen** lädt: Schriften selbst gehostet, Logo =
+  same-origin-Upload (kein Freitext-URL-Feld), iCal/WebDAV läuft serverseitig, kein
+  CDN/iframe/Fremdskript; Sentry-Ingest ist in `connect-src`. `report-uri` bleibt aktiv
+  (Verstöße weiter geloggt). `npm run build` grün, Live-Header verifiziert. Zurücknehmen
+  = Header wieder auf `-Report-Only` (im Kommentar dokumentiert). **Nutzer macht** noch
+  einen Browser-Smoke-Test am Kiosk (Scan/Login/PDF/Bilder).
+- Akzeptanzkriterien: ~~Security-Header~~ ✓; ~~Dependency-/Secret-Scan~~ ✓;
+  ~~Rate-Limit öffentliche POSTs~~ ✓; ~~CSP enforcing~~ ✓ (08.07.2026).
 - Notizen: ~~Erwägenswert: Google Fonts self-hosten~~ ✓ (08.07.2026, s. o.).
 
 ---
