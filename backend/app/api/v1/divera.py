@@ -1,7 +1,7 @@
 import hmac
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
 from app.api.deps import CurrentModerator, DbSession
 from app.core.rate_limit import rate_limit
@@ -16,10 +16,17 @@ router = APIRouter(prefix="/divera", tags=["divera"])
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(rate_limit(60, 60))],
 )
-async def webhook(db: DbSession, request: Request, accesskey: str) -> None:
+async def webhook(
+    db: DbSession,
+    request: Request,
+    accesskey: str | None = None,
+    x_divera_accesskey: str | None = Header(default=None),
+) -> None:
     """Empfängt Alarme per Push, sofern Divera im Webhook-Modus konfiguriert
-    ist. Die URL muss bei Divera mit demselben accesskey hinterlegt werden,
-    der auch in den Moderator-Einstellungen als Divera API-Key gepflegt ist.
+    ist. Der accesskey muss dem in den Moderator-Einstellungen gepflegten Divera
+    API-Key entsprechen und kann **entweder** im Header `X-Divera-Accesskey`
+    (bevorzugt – hält das Secret aus URL/Access-Logs heraus) **oder** – wie bisher,
+    rückwärtskompatibel – als `?accesskey=`-Query-Parameter übergeben werden.
 
     Der öffentlich erreichbare Endpunkt ist ratenbegrenzt (60/min pro IP), und
     der accesskey wird **zeitkonstant** verglichen (`hmac.compare_digest`), damit
@@ -31,8 +38,10 @@ async def webhook(db: DbSession, request: Request, accesskey: str) -> None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Divera-Webhook ist nicht aktiv."
         )
+    # Header bevorzugt (Secret nicht in der URL); Query-Param bleibt kompatibel.
     # Nicht konfigurierter Key darf niemals durch einen leeren accesskey passieren.
-    if not api_key or not hmac.compare_digest(accesskey.encode(), api_key.encode()):
+    schluessel = x_divera_accesskey or accesskey or ""
+    if not api_key or not hmac.compare_digest(schluessel.encode(), api_key.encode()):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ungültiger accesskey.")
 
     payload: dict[str, Any] = await request.json()

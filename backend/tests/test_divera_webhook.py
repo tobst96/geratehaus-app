@@ -55,6 +55,34 @@ async def test_webhook_gueltiger_key_importiert(client, db: AsyncSession):
     assert resp.status_code == 204
 
 
+async def test_webhook_accesskey_per_header(client, db: AsyncSession):
+    # Secret im Header statt in der URL (bevorzugt) – muss ebenfalls akzeptiert werden.
+    await _webhook_aktivieren(db, api_key="geheim")
+    resp = await client.post(
+        "/api/v1/divera/webhook",
+        headers={"X-Divera-Accesskey": "geheim"},
+        json={"alarm": {"id": 1, "title": "Header-Alarm"}},
+    )
+    assert resp.status_code == 204
+
+
+async def test_webhook_falscher_header_403(client, db: AsyncSession):
+    await _webhook_aktivieren(db, api_key="geheim")
+    resp = await client.post(
+        "/api/v1/divera/webhook",
+        headers={"X-Divera-Accesskey": "falsch"},
+        json={"alarm": {}},
+    )
+    assert resp.status_code == 403
+
+
+async def test_webhook_ohne_key_403(client, db: AsyncSession):
+    # Weder Header noch Query-Param → abgelehnt (kein Durchrutschen ohne Secret).
+    await _webhook_aktivieren(db, api_key="geheim")
+    resp = await client.post("/api/v1/divera/webhook", json={"alarm": {}})
+    assert resp.status_code == 403
+
+
 @pytest.mark.usefixtures("db")
 async def test_webhook_rate_limit_greift(client, db: AsyncSession):
     await _webhook_aktivieren(db, api_key="geheim")

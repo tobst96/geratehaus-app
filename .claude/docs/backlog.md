@@ -1077,9 +1077,18 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (`hmac.compare_digest`, kein Timing-Seitenkanal auf den Divera-API-Key mehr), lehnt
   einen **nicht konfigurierten (leeren) Key** aktiv ab (kein Durchrutschen per leerem
   accesskey) und ist **ratenbegrenzt** (60/min pro IP) gegen Brute-Force. Tests
-  `test_divera_webhook.py` (5). **Rest offen:** `accesskey` steckt weiterhin in der
-  URL – die vollständige Verlagerung in einen Header/HMAC-Signatur setzt voraus, dass
-  Divera das serverseitig unterstützt (Capability klären), sonst bricht der Live-Webhook.
+  `test_divera_webhook.py` (5).
+- Fortschritt (08.07.2026): **Accesskey per Header ermöglicht (non-breaking).** Der
+  Webhook akzeptiert den Accesskey jetzt **entweder** im Header `X-Divera-Accesskey`
+  (bevorzugt – hält das Secret aus URL/Access-Logs heraus) **oder** wie bisher als
+  `?accesskey=`-Query-Param (rückwärtskompatibel). Zeitkonstanter Vergleich unverändert.
+  Tests `test_divera_webhook.py` (jetzt 8: Header ok / falscher Header / ohne Key → 403).
+  Doku `divera.md` ergänzt. Bewusst **additiv** statt „aus der URL entfernen": ob die
+  Verlagerung tatsächlich genutzt werden kann, hängt von der Webhook-Quelle (Divera) ab
+  – die sichere Option existiert nun, ohne den Live-Webhook zu brechen.
+- **Rest offen (optional, braucht Divera-Capability-Info):** echte **HMAC-Payload-
+  Signatur** (Divera signiert den Request) – nur sinnvoll, falls Divera Request-Signing
+  unterstützt.
 - **Offen (Rest von Phase 2):** `GET /auth/personen`-Namensliste ist bereits
   rate-limitiert (30/60); Divera-`accesskey` endgültig aus der URL in Header/HMAC
   verlagern (Divera-Capability vorausgesetzt).
