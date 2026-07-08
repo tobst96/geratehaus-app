@@ -7,6 +7,8 @@ bzw. über die Navigation (Admin/Gruppenführer mit Freigabe).
 ## Was das Modul kann
 
 - **Personen anlegen/bearbeiten/löschen** (mit Sicherheitsabfrage beim Löschen).
+- **CSV-Import**: mehrere Personen auf einmal aus einer CSV anlegen (Gruppe/Funktion
+  per Name zugeordnet, Fehlerreport pro Zeile); Beispieldatei zum Download.
 - **Stammdaten** je Person: Vor-/Zwischen-/Nachname, E-Mail, **Profilbild**
   (Upload oder per QR-Code vom Handy), **Gruppe** und **Default-Funktion**.
 - **PIN**: persönlicher PIN (nur als Hash gespeichert) zur Identifikation am Kiosk
@@ -16,7 +18,8 @@ bzw. über die Navigation (Admin/Gruppenführer mit Freigabe).
 - **Benachrichtigungen**: „Benachrichtigungen aktiv" (Haupt-Schalter je Person) plus
   Benachrichtigungskanäle und Ereignis-Abos (siehe
   [benachrichtigungen.md](benachrichtigungen.md)).
-- **Timeline**: relevante Änderungen je Person werden protokolliert.
+- **Timeline** (Tab „Verlauf"): relevante Änderungen je Person werden protokolliert –
+  **nach Ereignistyp filterbar**.
 - **Aktivitäts-Ampel**: Personen-Kacheln werden **gelb** bzw. **rot** umrandet, wenn
   sie seit den eingestellten Tagen keinen Einsatz, Dienst oder keine Dienststunden
   mehr hatten (nur aktive Module zählen; ohne Eintrag zählt das Anlagedatum).
