@@ -6,7 +6,7 @@ export function LandingPage() {
 
   return (
     <div className="seite">
-      <div className="karte" style={{ textAlign: "center" }}>
+      <div className="karte text-center">
         <h1>{config?.organisation_name ?? "Gerätehaus.app"}</h1>
         <p style={{ color: "var(--farbe-text-mute)", maxWidth: 560, margin: "0 auto" }}>
           Die digitale Einsatzverwaltung für Feuerwehren und ähnliche Organisationen: Einsatzberichte,
@@ -46,7 +46,7 @@ export function LandingPage() {
         </div>
       </div>
 
-      <div className="karte" style={{ textAlign: "center" }}>
+      <div className="karte text-center">
         <p style={{ margin: 0 }}>
           Du betreust ein Tablet im Gerätehaus? Den Kiosk-Modus-Link dafür erzeugt ein Admin unter
           "Kiosk-Geräte".

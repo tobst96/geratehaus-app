@@ -731,6 +731,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Beschreibung: `.claude/settings.json` ist leer – Permission-Allowlist für
   Routine-Kommandos (pytest, `npm run build`, `git`, `docker compose`) ergänzen.
 - Akzeptanzkriterien: Häufige Kommandos ohne wiederholte Nachfrage nutzbar.
+- Notiz (09.07.2026): Vom autonomen Loop **nicht ausführbar** – das Schreiben einer
+  Permission-Allowlist in `.claude/settings.json` ändert die eigenen Berechtigungen und
+  wird vom Self-Modification-Guard blockiert. Muss der Nutzer selbst anlegen/freigeben
+  (bewusst so). Vorschlag lag bereit (allow: scripts/test-backend.sh, npm run build,
+  git status/add/commit/checkout/pull/push, docker compose up/build/exec/run, gh pr; deny:
+  force-push, `docker compose down -v`).
 
 ### Frontend-Container-Healthcheck meldet „unhealthy" (IPv4/IPv6)
 
@@ -1578,13 +1584,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Größe); alle 77 lagen auf einfachen HTML-Tags **ohne** vorhandenes `className` →
   konfliktfrei und **1:1 gleiche Optik** (per Konstruktion; Build fängt jeden
   Doppel-`className`-Fall ab). `npm run build` + `npm run test` (26) grün.
+- Fortschritt (09.07.2026, direkt auf beta): **`.text-center` + `.nowrap`-Utilities** –
+  die zwei verbliebenen fixwertigen Ein-Property-Objekte extrahiert: `textAlign:"center"`
+  (7 Stellen; 4 mit vorhandenem `className="karte"` → zu `className="karte text-center"`
+  gemergt, 3 auf `className="text-center"`) und `whiteSpace:"nowrap"` (4 Tabellenzellen/
+  Button ohne `className` → `className="nowrap"`). 1:1 gleiche Optik. `npm run build` +
+  Vitest (26) grün.
 - **Weiter offen (schrittweise, geringer Nutzen):** die verbliebenen Inline-Styles
   sind überwiegend **gap-variantenreiche Flex-Zeilen** (`display:flex; align-items:
   center; gap:4/6/8`) – eine Extraktion bräuchte gap-spezifische Klassen
   (Utility-Wildwuchs) und würde bei Vereinheitlichung die Optik minimal ändern; daher
   bewusst inline belassen. Die klar wiederkehrenden, sauber extrahierbaren Muster
-  (Modal-Overlay, Hinweistexte, Textfarbe, „✓ gespeichert", Space-between-Zeile) sind
-  damit **erschöpft**.
+  (Modal-Overlay, Hinweistexte, Textfarbe, „✓ gespeichert", Space-between-Zeile,
+  Text-zentriert, nowrap) sind damit **erschöpft**.
 
 ### Begriff „Moderator" → „Gruppenführer" (durchgängig umbenennen)
 

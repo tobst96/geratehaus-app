@@ -139,7 +139,7 @@ export function MitgliedLogin() {
         <h1>Mitglieder-Login</h1>
 
         {qrAnsicht ? (
-          <div style={{ textAlign: "center" }}>
+          <div className="text-center">
             <p className="text-mute">
               Mit dem Handy scannen und dich dort auswählen – dieses Gerät meldet sich danach automatisch an.
             </p>

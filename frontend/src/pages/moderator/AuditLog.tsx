@@ -105,7 +105,7 @@ export function AuditLog() {
           <tbody>
             {sichtbar.map((e) => (
               <tr key={e.id}>
-                <td style={{ whiteSpace: "nowrap" }}>
+                <td className="nowrap">
                   {formatiereDatumZeit(e.zeitpunkt)}
                 </td>
                 <td>{e.akteur}</td>

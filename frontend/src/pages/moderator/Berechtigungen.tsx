@@ -103,7 +103,7 @@ export function Berechtigungen() {
                   )}
                 </td>
                 {matrix.module.map((m) => (
-                  <td key={m.key} style={{ textAlign: "center" }}>
+                  <td key={m.key} className="text-center">
                     <input
                       type="checkbox"
                       checked={hatZugriff(mod, m.key)}

@@ -518,7 +518,7 @@ export function BackupModul() {
                         : b.fehlermeldung}
                     </td>
                     <td>{b.status === "ok" ? (b.datei_vorhanden ? "✓" : "Datei fehlt") : "Fehler"}</td>
-                    <td style={{ whiteSpace: "nowrap" }}>
+                    <td className="nowrap">
                       {b.status === "ok" && b.datei_vorhanden && (
                         <button className="sekundaer" onClick={() => ladeBackupHerunter(b.id, b.dateiname)}>
                           Download

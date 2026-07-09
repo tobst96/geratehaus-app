@@ -143,7 +143,7 @@ function ModeratorenVerwaltung() {
                 <td style={{ color: m.email ? undefined : "var(--farbe-text-mute)" }}>
                   {m.email ?? "—"}
                 </td>
-                <td style={{ textAlign: "center" }}>
+                <td className="text-center">
                   <label
                     title={
                       m.email

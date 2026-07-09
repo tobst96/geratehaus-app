@@ -159,7 +159,7 @@ export function BarcodeGenerator() {
           <button
             onClick={alleBarcodesVersenden}
             disabled={sendetAlle}
-            style={{ whiteSpace: "nowrap" }}
+            className="nowrap"
           >
             {sendetAlle ? "Wird gesendet …" : "Alle neu generieren & senden"}
           </button>

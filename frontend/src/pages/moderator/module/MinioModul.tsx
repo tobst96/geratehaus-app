@@ -245,7 +245,7 @@ export function MinioModul() {
                         <td>📄 {basisname(d.key)}</td>
                         <td>{groesse(d.groesse)}</td>
                         <td>{formatiereDatumZeit(d.geaendert)}</td>
-                        <td style={{ whiteSpace: "nowrap" }}>
+                        <td className="nowrap">
                           <button type="button" className="sekundaer" onClick={() => ladeMinioObjekt(bucket, d.key)}>
                             Download
                           </button>{" "}

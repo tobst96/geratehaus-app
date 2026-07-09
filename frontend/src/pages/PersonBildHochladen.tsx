@@ -104,7 +104,7 @@ export function PersonBildHochladen() {
 
   return (
     <div className="seite">
-      <div className="karte" style={{ textAlign: "center" }}>
+      <div className="karte text-center">
         <h1>Profilfoto für {info.person_name}</h1>
 
         {(vorschauUrl || info.person_bild_url) && (
