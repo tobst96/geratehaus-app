@@ -73,6 +73,62 @@ def upgrade() -> None:
         )
         op.alter_column(tabelle, "moderator_id", existing_type=sa.Integer(), nullable=True)
 
+    # --- Admin-Übernahme: nur den/die Admin-Moderator(en) auf eine Person übertragen ---
+    # Gruppenführer werden bewusst NICHT migriert (manuell neu über Personal). Gegen
+    # Aussperren: pro Admin-Moderator die namens-/e-mail-gleiche Person suchen (dort
+    # Rolle/Passwort/2FA setzen) oder – ohne Treffer – eine neue Admin-Person anlegen;
+    # Rechte/Recovery/Trusted-Devices auf die Person umhängen.
+    conn = op.get_bind()
+    admins = conn.execute(
+        sa.text(
+            "SELECT id, username, passwort_hash, email, zwei_faktor_aktiv, otp_code_hash, "
+            "otp_ablauf_am, otp_versuche, login_fehlversuche, login_gesperrt_bis "
+            "FROM moderatoren WHERE rolle = 'admin'"
+        )
+    ).mappings().all()
+    for a in admins:
+        gemeinsam = {
+            "ph": a["passwort_hash"], "zfa": a["zwei_faktor_aktiv"], "och": a["otp_code_hash"],
+            "oam": a["otp_ablauf_am"], "ov": a["otp_versuche"], "lf": a["login_fehlversuche"],
+            "lg": a["login_gesperrt_bis"],
+        }
+        pid = conn.execute(
+            sa.text(
+                "SELECT id FROM personen WHERE name = :u OR (email IS NOT NULL AND email = :e) "
+                "ORDER BY id LIMIT 1"
+            ),
+            {"u": a["username"], "e": a["email"]},
+        ).scalar()
+        if pid is not None:
+            conn.execute(
+                sa.text(
+                    "UPDATE personen SET moderator_rolle = 'admin', passwort_hash = :ph, "
+                    "email = COALESCE(email, :em), zwei_faktor_aktiv = :zfa, otp_code_hash = :och, "
+                    "otp_ablauf_am = :oam, otp_versuche = :ov, login_fehlversuche = :lf, "
+                    "login_gesperrt_bis = :lg WHERE id = :pid"
+                ),
+                {**gemeinsam, "em": a["email"], "pid": pid},
+            )
+        else:
+            pid = conn.execute(
+                sa.text(
+                    "INSERT INTO personen (name, email, moderator_rolle, passwort_hash, "
+                    "pin_gesetzt, pin_fehlversuche, benachrichtigungen_aktiv, inaktiv, ampel_gemeldet, "
+                    "zwei_faktor_aktiv, otp_code_hash, otp_ablauf_am, otp_versuche, "
+                    "login_fehlversuche, login_gesperrt_bis) "
+                    "VALUES (:name, :em, 'admin', :ph, false, 0, false, false, 'gruen', "
+                    ":zfa, :och, :oam, :ov, :lf, :lg) RETURNING id"
+                ),
+                {**gemeinsam, "name": a["username"], "em": a["email"]},
+            ).scalar()
+        for tab in ("berechtigungen", "moderator_recovery_codes", "moderator_trusted_devices"):
+            conn.execute(
+                sa.text(
+                    f"UPDATE {tab} SET person_id = :pid WHERE moderator_id = :mid AND person_id IS NULL"
+                ),
+                {"pid": pid, "mid": a["id"]},
+            )
+
 
 def downgrade() -> None:
     for tabelle in ("moderator_recovery_codes", "moderator_trusted_devices"):

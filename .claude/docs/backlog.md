@@ -1047,10 +1047,17 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (alle Router mit Person-basiertem `deps`). Noch offen in `moderator_einstellungen`:
   die Konto-**Verwaltung** (anlegen/liste/löschen) hängt bewusst noch an der alten
   `moderatoren`-Tabelle (dead-ish) – Umbau zu Person-Elevation im Verwaltungs-Checkpoint.
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 4 (Admin-Datenmigration)**):
+  Datenmigration in `0060` ergänzt: pro **Admin**-Moderator die namens-/e-mail-gleiche
+  Person suchen → dort `moderator_rolle='admin'` + Passwort/2FA/Login-Felder übernehmen;
+  ohne Treffer → **neue Admin-Person** anlegen; Rechte/Recovery/Trusted-Devices auf
+  `person_id` umhängen. **Gruppenführer werden NICHT migriert** (manuell neu). **Ende-zu-
+  Ende auf Scratch-DB verifiziert** (Match-Fall, Neu-Fall, GF-Ausschluss, Rechte-Umhängen)
+  + `alembic downgrade` sauber.
 - Offen (nächste Checkpoints): **Verwaltungs-Umbau** (einstellungen → Person-Elevation +
-  Schemas); **Admin-Datenmigration** in `0060`; **31 Test-Dateien** → volle Suite grün;
-  **Frontend** (Personal-Verwaltung, Login „Name", alte Moderator-UI raus);
-  Moderator-Benachrichtigungen entfernen. Danach PR + Folge-`0061` (Drop `moderatoren`).
+  Schemas); **31 Test-Dateien** → volle Suite grün; **Frontend** (Personal-Verwaltung,
+  Login „Name", alte Moderator-UI raus); Moderator-Benachrichtigungen entfernen. Danach
+  PR + Folge-`0061` (Drop `moderatoren`).
 
 ---
 
