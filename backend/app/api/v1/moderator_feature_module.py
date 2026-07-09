@@ -46,7 +46,7 @@ async def flag_setzen(
     if gesetzt:
         aenderungen = ", ".join(f"{feld}={wert}" for feld, wert in gesetzt.items())
         await audit_service.protokolliere(
-            db, akteur.username, "modul_flag_geaendert", "feature_modul", None,
+            db, akteur.name, "modul_flag_geaendert", "feature_modul", None,
             f"{key}: {aenderungen}",
         )
     eintrag = await feature_modul_service.eintrag(db, key)

@@ -33,7 +33,7 @@ async def formulare_sichtbar(db: DbSession, moderator: CurrentModerator) -> list
     """Formulare, deren Einreichungen der angemeldete Moderator sehen darf: Admins
     alle, sonst nur Formulare mit `moderator_sichtbar`. Für die Listen-Ansicht."""
     formulare = await formular_service.liste_formulare(db)
-    if moderator.rolle == "admin":
+    if moderator.moderator_rolle == "admin":
         return formulare
     return [f for f in formulare if f.moderator_sichtbar]
 
@@ -113,7 +113,7 @@ async def einreichungen_liste(
     formular = await formular_service.get_formular(db, formular_id)
     if formular is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Formular nicht gefunden.")
-    if moderator.rolle != "admin" and not formular.moderator_sichtbar:
+    if moderator.moderator_rolle != "admin" and not formular.moderator_sichtbar:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Für dieses Formular sind die Einreichungen nicht freigegeben.",
@@ -129,7 +129,7 @@ async def zusammenfassung(
     formular = await formular_service.get_formular(db, formular_id)
     if formular is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Formular nicht gefunden.")
-    if moderator.rolle != "admin" and not formular.moderator_sichtbar:
+    if moderator.moderator_rolle != "admin" and not formular.moderator_sichtbar:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Für dieses Formular ist die Auswertung nicht freigegeben.",
@@ -144,7 +144,7 @@ async def einreichungen_export(
     formular = await formular_service.get_formular(db, formular_id)
     if formular is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Formular nicht gefunden.")
-    if moderator.rolle != "admin" and not formular.moderator_sichtbar:
+    if moderator.moderator_rolle != "admin" and not formular.moderator_sichtbar:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Für dieses Formular ist der Export nicht freigegeben.",

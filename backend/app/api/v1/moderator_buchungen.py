@@ -31,7 +31,7 @@ async def genehmigen(db: DbSession, moderator: FahrzeugbuchungZugriff, buchung_i
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Buchung nicht gefunden.")
     ergebnis = await buchung_service.genehmigen(db, buchung)
     await audit_service.protokolliere(
-        db, moderator.username, "buchung_genehmigt", "buchung", buchung_id,
+        db, moderator.name, "buchung_genehmigt", "buchung", buchung_id,
         f"{ergebnis.fahrzeug_name}",
     )
     return ergebnis
@@ -46,7 +46,7 @@ async def ablehnen(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Buchung nicht gefunden.")
     ergebnis = await buchung_service.ablehnen(db, buchung, daten.grund)
     await audit_service.protokolliere(
-        db, moderator.username, "buchung_abgelehnt", "buchung", buchung_id,
+        db, moderator.name, "buchung_abgelehnt", "buchung", buchung_id,
         f"{ergebnis.fahrzeug_name}: {daten.grund or ''}".strip(),
     )
     return ergebnis

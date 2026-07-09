@@ -24,7 +24,7 @@ async def zwei_faktor_aktivieren(db: DbSession, ich: CurrentModerator) -> Recove
         codes = await zwei_faktor_service.aktivieren(db, ich)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    await audit_service.protokolliere(db, ich.username, "moderator_2fa_aktiviert", "moderator", ich.id)
+    await audit_service.protokolliere(db, ich.name, "moderator_2fa_aktiviert", "moderator", ich.id)
     return RecoveryCodesOut(codes=codes)
 
 
@@ -34,7 +34,7 @@ async def recovery_codes_neu(db: DbSession, ich: CurrentModerator) -> RecoveryCo
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="2FA ist nicht aktiv.")
     codes = await zwei_faktor_service.recovery_codes_erzeugen(db, ich)
     await audit_service.protokolliere(
-        db, ich.username, "moderator_2fa_recovery_neu", "moderator", ich.id
+        db, ich.name, "moderator_2fa_recovery_neu", "moderator", ich.id
     )
     return RecoveryCodesOut(codes=codes)
 
@@ -42,4 +42,4 @@ async def recovery_codes_neu(db: DbSession, ich: CurrentModerator) -> RecoveryCo
 @router.post("/2fa/deaktivieren", status_code=status.HTTP_204_NO_CONTENT)
 async def zwei_faktor_deaktivieren(db: DbSession, ich: CurrentModerator) -> None:
     await zwei_faktor_service.deaktivieren(db, ich)
-    await audit_service.protokolliere(db, ich.username, "moderator_2fa_deaktiviert", "moderator", ich.id)
+    await audit_service.protokolliere(db, ich.name, "moderator_2fa_deaktiviert", "moderator", ich.id)

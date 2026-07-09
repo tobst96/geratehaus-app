@@ -185,7 +185,7 @@ async def einsatz_loeschen(db: DbSession, moderator: EinsatztagebuchZugriff, ein
     titel = einsatz.titel
     await einsatz_service.einsatz_loeschen(db, einsatz)
     await audit_service.protokolliere(
-        db, moderator.username, "einsatz_geloescht", "einsatz", einsatz_id, titel
+        db, moderator.name, "einsatz_geloescht", "einsatz", einsatz_id, titel
     )
 
 

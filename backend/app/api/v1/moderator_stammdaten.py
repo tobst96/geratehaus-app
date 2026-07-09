@@ -355,7 +355,7 @@ async def person_loeschen(db: DbSession, admin: PersonalZugriff, person_id: int)
     name = person.name
     await stammdaten_service.person_loeschen(db, person)
     await audit_service.protokolliere(
-        db, admin.username, "person_geloescht", "person", person_id, name
+        db, admin.name, "person_geloescht", "person", person_id, name
     )
 
 

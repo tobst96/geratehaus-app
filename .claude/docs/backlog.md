@@ -1039,11 +1039,18 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (`/moderator/login` Name+Passwort, `/moderator/2fa`, `_moderator_token` → `sub=Person.name`,
   Challenge/2FA über Person via `stammdaten_service.get_person`); `setup`/Wizard legt die
   **initiale Admin-Person** an (`ist_eingerichtet` am Config-Flag). Import-Check grün.
-- Offen (nächste Checkpoints, gleicher Branch): ~18 Endpunkte (`.username`→`.name`,
-  `.rolle`→`.moderator_rolle`) + Verwaltungs-Endpunkte (einstellungen/konto/berechtigungen)
-  auf Person; Admin-Datenmigration in `0060`; **31 Test-Dateien**; Frontend (Personal-
-  Verwaltung, Login „Name", alte Moderator-UI raus); Moderator-Benachrichtigungen
-  entfernen. Danach volle Suite grün + PR + Folge-`0061` (Drop `moderatoren`).
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 3 (Endpunkte)**): Akteur-Zugriffe
+  in allen Endpunkten auf Person (`moderator/akteur/admin/ich.username`→`.name`,
+  `moderator.rolle`→`.moderator_rolle` inkl. `moderator_formular` Admin-Check);
+  `moderator_berechtigungen`-Matrix auf **elevated Personen** (`set_berechtigung(person_id)`);
+  `moderator_konto`-2FA-Self auf Person. **`app.main` importiert vollständig sauber**
+  (alle Router mit Person-basiertem `deps`). Noch offen in `moderator_einstellungen`:
+  die Konto-**Verwaltung** (anlegen/liste/löschen) hängt bewusst noch an der alten
+  `moderatoren`-Tabelle (dead-ish) – Umbau zu Person-Elevation im Verwaltungs-Checkpoint.
+- Offen (nächste Checkpoints): **Verwaltungs-Umbau** (einstellungen → Person-Elevation +
+  Schemas); **Admin-Datenmigration** in `0060`; **31 Test-Dateien** → volle Suite grün;
+  **Frontend** (Personal-Verwaltung, Login „Name", alte Moderator-UI raus);
+  Moderator-Benachrichtigungen entfernen. Danach PR + Folge-`0061` (Drop `moderatoren`).
 
 ---
 

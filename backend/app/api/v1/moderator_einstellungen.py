@@ -102,7 +102,7 @@ async def moderator_anlegen(
         db, daten.username, daten.passwort, daten.rolle, daten.email, daten.benachrichtigungen_aktiv
     )
     await audit_service.protokolliere(
-        db, akteur.username, "moderator_angelegt", "moderator", neu.id,
+        db, akteur.name, "moderator_angelegt", "moderator", neu.id,
         f"{neu.username} (Rolle {neu.rolle})",
     )
     return neu
@@ -124,7 +124,7 @@ async def moderator_aktualisieren(
         benachrichtigungen_aktiv=daten.benachrichtigungen_aktiv if "benachrichtigungen_aktiv" in gesetzt else None,
     )
     await audit_service.protokolliere(
-        db, akteur.username, "moderator_geaendert", "moderator", moderator_id, ziel.username
+        db, akteur.name, "moderator_geaendert", "moderator", moderator_id, ziel.username
     )
     return ergebnis
 
@@ -138,7 +138,7 @@ async def moderator_passwort_aendern(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moderator nicht gefunden.")
     ergebnis = await moderator_service.moderator_passwort_aendern(db, ziel, daten.passwort)
     await audit_service.protokolliere(
-        db, akteur.username, "moderator_passwort_geaendert", "moderator", moderator_id,
+        db, akteur.name, "moderator_passwort_geaendert", "moderator", moderator_id,
         ziel.username,
     )
     return ergebnis
@@ -161,7 +161,7 @@ async def moderator_loeschen(db: DbSession, admin: CurrentModerator, moderator_i
     name = ziel.username
     await moderator_service.moderator_loeschen(db, ziel)
     await audit_service.protokolliere(
-        db, admin.username, "moderator_geloescht", "moderator", moderator_id, name
+        db, admin.name, "moderator_geloescht", "moderator", moderator_id, name
     )
 
 
@@ -176,5 +176,5 @@ async def moderator_2fa_zuruecksetzen(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moderator nicht gefunden.")
     await zwei_faktor_service.deaktivieren(db, ziel)
     await audit_service.protokolliere(
-        db, akteur.username, "moderator_2fa_zurueckgesetzt", "moderator", moderator_id, ziel.username
+        db, akteur.name, "moderator_2fa_zurueckgesetzt", "moderator", moderator_id, ziel.username
     )
