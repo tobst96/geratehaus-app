@@ -1032,11 +1032,18 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   umgestellt (`ist_admin/ist_elevated/hat_zugriff/meine_keys/matrix/set_berechtigung`
   gegen `Berechtigung.person_id`; `CurrentModerator`/`CurrentAdmin` = elevated `Person`,
   JWT-`sub` = `Person.name`). Import-Check grün. **Branch bewusst noch nicht test-grün.**
-- Offen (nächste Checkpoints, gleicher Branch): `moderator_service`/`zwei_faktor_service`/
-  `auth.py`-Login (Name+Passwort, 2FA, Token) → Person; `setup`/Wizard; ~18 Endpunkte
-  (`.username`→`.name`, `.rolle`→`.moderator_rolle`); Verwaltungs-Endpunkte
-  (einstellungen/konto/berechtigungen); Admin-Datenmigration in `0060`; 31 Test-Dateien;
-  Frontend; Moderator-Benachrichtigungen entfernen. Danach volle Suite + PR + Folge-`0061`.
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 2 (Login-Kern)**):
+  `zwei_faktor_service` (OTP/Recovery/Trusted-Device) auf **Person + `person_id`**;
+  `moderator_service.login_pruefen(name, passwort)` → **Person** (nur mit gesetztem
+  Passwort), `admin_benachrichtigungs_empfaenger` → elevated Personen; `auth.py`-Login
+  (`/moderator/login` Name+Passwort, `/moderator/2fa`, `_moderator_token` → `sub=Person.name`,
+  Challenge/2FA über Person via `stammdaten_service.get_person`); `setup`/Wizard legt die
+  **initiale Admin-Person** an (`ist_eingerichtet` am Config-Flag). Import-Check grün.
+- Offen (nächste Checkpoints, gleicher Branch): ~18 Endpunkte (`.username`→`.name`,
+  `.rolle`→`.moderator_rolle`) + Verwaltungs-Endpunkte (einstellungen/konto/berechtigungen)
+  auf Person; Admin-Datenmigration in `0060`; **31 Test-Dateien**; Frontend (Personal-
+  Verwaltung, Login „Name", alte Moderator-UI raus); Moderator-Benachrichtigungen
+  entfernen. Danach volle Suite grün + PR + Folge-`0061` (Drop `moderatoren`).
 
 ---
 

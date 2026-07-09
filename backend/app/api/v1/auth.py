@@ -276,8 +276,8 @@ async def pin_anfordern(db: DbSession, daten: PinAnfordern) -> dict[str, str]:
     return {"weg": weg}
 
 
-def _moderator_token(moderator) -> str:
-    return create_access_token(subject=moderator.username, extra_claims={"rolle": moderator.rolle})
+def _moderator_token(person) -> str:
+    return create_access_token(subject=person.name, extra_claims={"rolle": person.moderator_rolle})
 
 
 @router.post(
@@ -291,34 +291,34 @@ async def moderator_login(
     moderator_trusted_device: Annotated[str | None, Cookie()] = None,
 ) -> ModeratorLoginErgebnis:
     try:
-        moderator = await moderator_service.login_pruefen(db, form_data.username, form_data.password)
+        person = await moderator_service.login_pruefen(db, form_data.username, form_data.password)
     except moderator_service.ModeratorGesperrtError as sperre:
         minuten = max(1, round(sperre.verbleibend_sekunden / 60))
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Zu viele Fehlversuche. Login für {minuten} Minute(n) gesperrt.",
         )
-    if moderator is None:
+    if person is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Benutzername oder Passwort falsch.",
+            detail="Name oder Passwort falsch.",
         )
 
     # Kein 2FA (oder bereits vertrauenswürdiges Gerät) → direkt Token ausstellen.
-    if not moderator.zwei_faktor_aktiv or await zwei_faktor_service.trusted_device_gueltig(
-        db, moderator, moderator_trusted_device
+    if not person.zwei_faktor_aktiv or await zwei_faktor_service.trusted_device_gueltig(
+        db, person, moderator_trusted_device
     ):
-        return ModeratorLoginErgebnis(access_token=_moderator_token(moderator))
+        return ModeratorLoginErgebnis(access_token=_moderator_token(person))
 
     # 2FA: OTP per E-Mail senden (Best-Effort – ohne E-Mail bleibt der
     # Recovery-Code-Weg) und Challenge für den zweiten Schritt zurückgeben.
     try:
-        await zwei_faktor_service.otp_erzeugen_und_senden(db, moderator)
+        await zwei_faktor_service.otp_erzeugen_und_senden(db, person)
     except ValueError:
         pass
     return ModeratorLoginErgebnis(
         zwei_faktor_erforderlich=True,
-        challenge=moderator_2fa_session.signiere_challenge(moderator.id),
+        challenge=moderator_2fa_session.signiere_challenge(person.id),
     )
 
 
@@ -330,24 +330,24 @@ async def moderator_login(
 async def moderator_2fa(db: DbSession, response: Response, daten: Moderator2FA) -> ModeratorLoginErgebnis:
     """Zweiter Login-Schritt: prüft den E-Mail-OTP **oder** einen Recovery-Code
     zum vorher ausgestellten `challenge`-Token."""
-    moderator_id = moderator_2fa_session.lese_challenge(daten.challenge)
-    if moderator_id is None:
+    person_id = moderator_2fa_session.lese_challenge(daten.challenge)
+    if person_id is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Anmeldung abgelaufen. Bitte erneut mit Passwort anmelden.",
         )
-    moderator = await moderator_service.get_moderator(db, moderator_id)
-    if moderator is None or not moderator.zwei_faktor_aktiv:
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None or not person.zwei_faktor_aktiv:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Nicht angemeldet.")
 
-    ok = await zwei_faktor_service.otp_pruefen(db, moderator, daten.code) or (
-        await zwei_faktor_service.recovery_code_pruefen(db, moderator, daten.code)
+    ok = await zwei_faktor_service.otp_pruefen(db, person, daten.code) or (
+        await zwei_faktor_service.recovery_code_pruefen(db, person, daten.code)
     )
     if not ok:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Code ungültig oder abgelaufen.")
 
     if daten.angemeldet_bleiben:
-        roh = await zwei_faktor_service.trusted_device_ausstellen(db, moderator)
+        roh = await zwei_faktor_service.trusted_device_ausstellen(db, person)
         response.set_cookie(
             TRUSTED_DEVICE_COOKIE,
             roh,
@@ -355,4 +355,4 @@ async def moderator_2fa(db: DbSession, response: Response, daten: Moderator2FA) 
             httponly=True,
             samesite="lax",
         )
-    return ModeratorLoginErgebnis(access_token=_moderator_token(moderator))
+    return ModeratorLoginErgebnis(access_token=_moderator_token(person))
