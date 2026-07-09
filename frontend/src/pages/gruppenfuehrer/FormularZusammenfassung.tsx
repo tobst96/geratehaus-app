@@ -1,7 +1,7 @@
 import type { Zusammenfassung } from "../../api/formular";
 
 /** Aggregierter Zwischenstand eines Formulars (Ø Sterne, Verteilung je Option,
- * Freitext-Antworten). Wird im Admin-Modul und im Moderator-Listen-Tab genutzt. */
+ * Freitext-Antworten). Wird im Admin-Modul und im Gruppenführer-Listen-Tab genutzt. */
 export function FormularZusammenfassung({ daten }: { daten: Zusammenfassung }) {
   return (
     <div>

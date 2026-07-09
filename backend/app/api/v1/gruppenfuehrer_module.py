@@ -8,7 +8,7 @@ from app.services import modul_service
 # „einstellungen" nötig (Modulverwaltung gehört zu den Einstellungen).
 router = APIRouter(
     prefix="/gruppenfuehrer/module",
-    tags=["moderator:module"],
+    tags=["gruppenfuehrer:module"],
     dependencies=[Depends(require_modul_zugriff("einstellungen"))],
 )
 

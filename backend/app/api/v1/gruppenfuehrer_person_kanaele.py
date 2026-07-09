@@ -17,7 +17,7 @@ from app.services import benachrichtigungskanal_service as kanal_service
 # „personal" nötig (Kanäle werden in der Personal-Detailseite gepflegt).
 router = APIRouter(
     prefix="/gruppenfuehrer",
-    tags=["moderator:benachrichtigungskanaele"],
+    tags=["gruppenfuehrer:benachrichtigungskanaele"],
     dependencies=[Depends(require_modul_zugriff("personal"))],
 )
 

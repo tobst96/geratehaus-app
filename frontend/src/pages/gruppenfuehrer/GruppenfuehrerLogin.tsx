@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/client";
 
 export function GruppenfuehrerLogin() {
-  const { gruppenfuehrerAnmelden, moderator2faAbschliessen } = useAuth();
+  const { gruppenfuehrerAnmelden, gruppenfuehrer2faAbschliessen } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [passwort, setPasswort] = useState("");
@@ -41,7 +41,7 @@ export function GruppenfuehrerLogin() {
     setFehler(null);
     setLadevorgang(true);
     try {
-      await moderator2faAbschliessen(challenge, code, angemeldetBleiben);
+      await gruppenfuehrer2faAbschliessen(challenge, code, angemeldetBleiben);
       navigate("/gruppenfuehrer");
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Code ungültig.");

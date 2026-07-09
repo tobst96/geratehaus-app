@@ -65,7 +65,7 @@ export function App() {
               <Route index element={<Navigate to="/gruppenfuehrer/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="listen" element={<Listen />} />
-              {/* Moderator-Arbeitsbereiche granular gegated (Backend:
+              {/* Gruppenführer-Arbeitsbereiche granular gegated (Backend:
                   require_modul_zugriff, Admins via Bypass). Die Listen-Seite selbst
                   filtert ihre Tabs pro Recht. */}
               <Route element={<BerechtigungRoute modulKeys={["einsatztagebuch"]} />}>

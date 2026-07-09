@@ -13,9 +13,9 @@ const AKTION_LABEL: Record<string, string> = {
   buchung_genehmigt: "Buchung genehmigt",
   buchung_abgelehnt: "Buchung abgelehnt",
   berechtigung_geaendert: "Berechtigung geändert",
-  moderator_angelegt: "Moderator angelegt",
-  moderator_passwort_geaendert: "Moderator-Passwort geändert",
-  moderator_geloescht: "Moderator gelöscht",
+  moderator_angelegt: "Gruppenführer angelegt",
+  moderator_passwort_geaendert: "Gruppenführer-Passwort geändert",
+  moderator_geloescht: "Gruppenführer gelöscht",
   modul_flag_geaendert: "Modul-Einstellung geändert",
 };
 

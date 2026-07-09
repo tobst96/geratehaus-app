@@ -194,7 +194,7 @@ function PersonIdentifikationImpl(
       setMeldung(
         weg === "mail"
           ? "Ein Link zum Setzen des PINs wurde an die hinterlegte E-Mail geschickt."
-          : "Es wurde eine Freigabe-Anfrage an die Moderatoren geschickt (keine E-Mail hinterlegt)."
+          : "Es wurde eine Freigabe-Anfrage an die Gruppenführer geschickt (keine E-Mail hinterlegt)."
       );
     } catch (err) {
       setMeldung(err instanceof ApiError ? String(err.detail) : "Anfrage fehlgeschlagen.");

@@ -33,7 +33,7 @@ export function Berechtigungen() {
         if (!m) return m;
         return {
           ...m,
-          moderatoren: m.moderatoren.map((x) =>
+          gruppenfuehrer: m.gruppenfuehrer.map((x) =>
             x.id === mod.id
               ? {
                   ...x,
@@ -58,14 +58,14 @@ export function Berechtigungen() {
   }
 
   const sichtbareGruppenfuehreren = filterModul
-    ? matrix.moderatoren.filter((mod) => hatZugriff(mod, filterModul))
-    : matrix.moderatoren;
+    ? matrix.gruppenfuehrer.filter((mod) => hatZugriff(mod, filterModul))
+    : matrix.gruppenfuehrer;
 
   return (
     <div>
       <h1>Berechtigungen</h1>
       <p className="text-mute">
-        Zugriff je Moderator und Modul. Admins haben immer Vollzugriff. Hinweis: Die Berechtigungen
+        Zugriff je Gruppenführer und Modul. Admins haben immer Vollzugriff. Hinweis: Die Berechtigungen
         werden bereits gepflegt, greifen aber noch nicht (Aktivierung folgt in einem späteren Schritt).
       </p>
 
@@ -85,7 +85,7 @@ export function Berechtigungen() {
         <table>
           <thead>
             <tr>
-              <th>Moderator</th>
+              <th>Gruppenführer</th>
               {matrix.module.map((m) => (
                 <th key={m.key}>{m.name}</th>
               ))}
@@ -117,7 +117,7 @@ export function Berechtigungen() {
             {sichtbareGruppenfuehreren.length === 0 && (
               <tr>
                 <td colSpan={matrix.module.length + 1} className="text-mute">
-                  Keine Moderatoren mit diesem Zugriff.
+                  Keine Gruppenführer mit diesem Zugriff.
                 </td>
               </tr>
             )}

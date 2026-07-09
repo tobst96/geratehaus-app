@@ -7,7 +7,7 @@ Modul (Standard: **aus**). Zu finden unter **Module → Barcode**.
 
 - **Barcode-Modul AUS (Standard)**: Identifikation per **Namenssuche + persönlichem
   PIN**. Personen ohne PIN können sich einen Link zum Setzen schicken lassen bzw.
-  lösen (ohne E-Mail) eine Moderator-Freigabe aus.
+  lösen (ohne E-Mail) eine Gruppenführer-Freigabe aus.
 - **Barcode-Modul AN**: Identifikation per **Barcode-Scan** am Kiosk. Der Barcode ist
   dann der „Login" für genau eine Aktion.
 

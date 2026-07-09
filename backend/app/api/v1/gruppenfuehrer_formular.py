@@ -12,7 +12,7 @@ from app.schemas.formular import (
 )
 from app.services import formular_service
 
-router = APIRouter(prefix="/gruppenfuehrer/formulare", tags=["moderator:formular"])
+router = APIRouter(prefix="/gruppenfuehrer/formulare", tags=["gruppenfuehrer:formular"])
 
 
 # --- Formulare (Admin-Verwaltung) --------------------------------------------

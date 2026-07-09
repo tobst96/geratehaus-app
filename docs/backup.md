@@ -5,7 +5,7 @@ Vollständige Sicherung und Wiederherstellung einer Gerätehaus.app-Instanz –
 **einer verschlüsselten Datei** (`.ghb`). Damit lässt sich eine Instanz jederzeit
 per Import wieder auf denselben Stand bringen.
 
-Zu finden im Moderator-Bereich unter **Module → Backup** (nur für Admins).
+Zu finden im Gruppenführer-Bereich unter **Module → Backup** (nur für Admins).
 
 ---
 

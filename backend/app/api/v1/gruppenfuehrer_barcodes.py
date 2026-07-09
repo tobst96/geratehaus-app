@@ -13,7 +13,7 @@ from app.services import barcode_service, kiosk_token_service, pdf_service, stam
 
 logger = structlog.get_logger(__name__)
 
-router = APIRouter(prefix="/gruppenfuehrer/barcodes", tags=["moderator:barcodes"])
+router = APIRouter(prefix="/gruppenfuehrer/barcodes", tags=["gruppenfuehrer:barcodes"])
 
 
 @router.post(

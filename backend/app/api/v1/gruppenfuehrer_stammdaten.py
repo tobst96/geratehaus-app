@@ -45,7 +45,7 @@ from app.services import ampel_service, audit_service, barcode_service, dienstbu
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
-router = APIRouter(prefix="/gruppenfuehrer/stammdaten", tags=["moderator:stammdaten"])
+router = APIRouter(prefix="/gruppenfuehrer/stammdaten", tags=["gruppenfuehrer:stammdaten"])
 
 # Granulare Zugriffsgates (Admins via Bypass). Personal-Stammdaten =
 # Personen, Stammdaten = Fahrzeuge/Funktionen/Gruppen/Zusatzfelder.

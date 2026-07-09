@@ -20,7 +20,7 @@ from app.services.backup_service import BackupFehler
 from app.services.config_service import config_service
 
 # Immer aktives internes Modul, aber rein administrativ.
-router = APIRouter(prefix="/gruppenfuehrer/backup", tags=["moderator:backup"])
+router = APIRouter(prefix="/gruppenfuehrer/backup", tags=["gruppenfuehrer:backup"])
 
 
 def _wochentage_liste(roh: str) -> list[int]:

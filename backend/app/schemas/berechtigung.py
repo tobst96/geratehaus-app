@@ -6,7 +6,7 @@ class ModulKurz(BaseModel):
     name: str
 
 
-class ModeratorBerechtigungOut(BaseModel):
+class GruppenfuehrerBerechtigungOut(BaseModel):
     id: int
     username: str
     rolle: str
@@ -16,7 +16,7 @@ class ModeratorBerechtigungOut(BaseModel):
 
 class BerechtigungMatrixOut(BaseModel):
     module: list[ModulKurz]
-    moderatoren: list[ModeratorBerechtigungOut]
+    gruppenfuehrer: list[GruppenfuehrerBerechtigungOut]
 
 
 class BerechtigungSetzen(BaseModel):

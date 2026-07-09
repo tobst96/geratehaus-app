@@ -3,7 +3,7 @@ import { getGruppenfuehrerToken, setGruppenfuehrerToken } from "../api/client";
 import {
   barcodeEinscannen as barcodeEinscannenApi,
   mitgliedAbmelden as mitgliedAbmeldenApi,
-  moderator2fa,
+  gruppenfuehrer2fa,
   gruppenfuehrerLogin,
   namePinLogin,
 } from "../api/auth";
@@ -38,13 +38,13 @@ interface AuthContextValue {
   gruppenfuehrerRolle: string | null;
   /** True, sobald die eigenen Modul-Rechte geladen wurden (Guards warten darauf). */
   berechtigungenGeladen: boolean;
-  /** Ob der angemeldete Moderator auf ein Modul zugreifen darf (Admin: immer true). */
+  /** Ob der angemeldete Gruppenführer auf ein Modul zugreifen darf (Admin: immer true). */
   hatModulZugriff: (modulKey: string) => boolean;
   gruppenfuehrerAnmelden: (
     username: string,
     passwort: string
   ) => Promise<{ zweiFaktorErforderlich: boolean; challenge: string | null }>;
-  moderator2faAbschliessen: (
+  gruppenfuehrer2faAbschliessen: (
     challenge: string,
     code: string,
     angemeldetBleiben: boolean
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Backend alle Keys, sodass hatModulZugriff für sie stets true ist.
   const [modulRechte, setModulRechte] = useState<Set<string> | null>(null);
 
-  // Rechte laden, sobald ein Moderator angemeldet ist (und beim Abmelden leeren).
+  // Rechte laden, sobald ein Gruppenführer angemeldet ist (und beim Abmelden leeren).
   useEffect(() => {
     let aktiv = true;
     if (!gruppenfuehrerAngemeldet) {
@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   /** Login Schritt 1. Liefert `{ zweiFaktorErforderlich, challenge }`: ist 2FA
-   * nötig, muss der Aufrufer `moderator2faAbschliessen` mit dem Code aufrufen. */
+   * nötig, muss der Aufrufer `gruppenfuehrer2faAbschliessen` mit dem Code aufrufen. */
   async function gruppenfuehrerAnmelden(
     username: string,
     passwort: string
@@ -151,12 +151,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { zweiFaktorErforderlich: ergebnis.zwei_faktor_erforderlich, challenge: ergebnis.challenge };
   }
 
-  async function moderator2faAbschliessen(
+  async function gruppenfuehrer2faAbschliessen(
     challenge: string,
     code: string,
     angemeldetBleiben: boolean
   ): Promise<void> {
-    const ergebnis = await moderator2fa(challenge, code, angemeldetBleiben);
+    const ergebnis = await gruppenfuehrer2fa(challenge, code, angemeldetBleiben);
     if (!ergebnis.access_token) throw new Error("Kein Token erhalten.");
     sitzungSetzen(ergebnis.access_token);
   }
@@ -168,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   /** Beendet die Mitglied-Identität (Barcode-Scan/Name-Eintrag) wieder –
-   * anders als beim Moderator-Logout muss der Server aktiv werden, da das
+   * anders als beim Gruppenführer-Logout muss der Server aktiv werden, da das
    * Namens-Cookie httponly ist und nicht per JS gelöscht werden kann. */
   async function mitgliedAbmelden(): Promise<void> {
     await mitgliedAbmeldenApi();
@@ -190,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         berechtigungenGeladen: modulRechte !== null || gruppenfuehrerRolle === "admin",
         hatModulZugriff,
         gruppenfuehrerAnmelden,
-        moderator2faAbschliessen,
+        gruppenfuehrer2faAbschliessen,
         gruppenfuehrerAbmelden,
         mitgliedAbmelden,
       }}

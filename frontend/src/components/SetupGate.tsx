@@ -6,7 +6,7 @@ interface SetupGateProps {
   children: ReactNode;
 }
 
-/** Leitet auf den Setup-Wizard um, solange kein Moderator existiert
+/** Leitet auf den Setup-Wizard um, solange kein Gruppenführer existiert
  * (First-Run), bzw. von /setup weg, sobald die Einrichtung abgeschlossen ist. */
 export function SetupGate({ children }: SetupGateProps) {
   const location = useLocation();

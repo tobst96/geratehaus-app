@@ -4,7 +4,7 @@ from app.api.deps import CurrentGruppenfuehrer, DbSession, require_modul_zugriff
 from app.schemas.berechtigung import (
     BerechtigungMatrixOut,
     BerechtigungSetzen,
-    ModeratorBerechtigungOut,
+    GruppenfuehrerBerechtigungOut,
     ModulKurz,
 )
 from app.services import audit_service, berechtigungs_service
@@ -13,7 +13,7 @@ from app.services import audit_service, berechtigungs_service
 # andere Moderatoren nur mit Freigabe des Moduls „berechtigungen".
 router = APIRouter(
     prefix="/gruppenfuehrer/berechtigungen",
-    tags=["moderator:berechtigungen"],
+    tags=["gruppenfuehrer:berechtigungen"],
     dependencies=[Depends(require_modul_zugriff("berechtigungen"))],
 )
 
@@ -24,8 +24,8 @@ async def berechtigungen_matrix(db: DbSession) -> BerechtigungMatrixOut:
     module, personen, keys_je_person = await berechtigungs_service.matrix(db)
     return BerechtigungMatrixOut(
         module=[ModulKurz(key=m.key, name=m.name) for m in module],
-        moderatoren=[
-            ModeratorBerechtigungOut(
+        gruppenfuehrer=[
+            GruppenfuehrerBerechtigungOut(
                 id=p.id,
                 username=p.name,
                 rolle=p.gruppenfuehrer_rolle or "",

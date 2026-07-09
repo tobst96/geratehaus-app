@@ -4,7 +4,7 @@ from app.api.deps import CurrentGruppenfuehrer, DbSession
 from app.schemas.dashboard import DashboardOut
 from app.services import dashboard_service
 
-router = APIRouter(prefix="/gruppenfuehrer/dashboard", tags=["moderator:dashboard"])
+router = APIRouter(prefix="/gruppenfuehrer/dashboard", tags=["gruppenfuehrer:dashboard"])
 
 
 @router.get("", response_model=DashboardOut)

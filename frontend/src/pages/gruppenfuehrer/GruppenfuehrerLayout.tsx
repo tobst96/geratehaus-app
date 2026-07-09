@@ -99,13 +99,13 @@ export function GruppenfuehrerLayout() {
   const istAdmin = gruppenfuehrerRolle === "admin";
 
   // Ein Nav-Punkt ist sichtbar, wenn er keinen Berechtigungs-Key hat (dann greift
-  // die Gruppen-Rollenregel) oder der Moderator den Modul-Zugriff besitzt.
+  // die Gruppen-Rollenregel) oder der Gruppenführer den Modul-Zugriff besitzt.
   const itemSichtbar = (item: NavItem) =>
     (!item.nurAdmin || istAdmin) && (!item.berechtigungKey || hatModulZugriff(item.berechtigungKey));
   // Admin-Gruppen: für Admins immer sichtbar; sonst nur, wenn mindestens ein Punkt
   // über einen Berechtigungs-Key freigeschaltet ist (rein rollen-basierte
   // Admin-Gruppen ohne Keys bleiben für Nicht-Admins verborgen).
-  // Grantbare Modul-Unterseiten, die dieser Moderator freigeschaltet hat (für
+  // Grantbare Modul-Unterseiten, die dieser Gruppenführer freigeschaltet hat (für
   // Gruppenführer, damit die "Module"-Gruppe + ihre Unterseiten erscheinen).
   const grantbareUnterseiten = GRANTBARE_MODUL_UNTERSEITEN.filter((m) => hatModulZugriff(m.perm));
   const gruppeSichtbar = (g: NavGruppe) =>
@@ -170,7 +170,7 @@ export function GruppenfuehrerLayout() {
 
       <aside className={`mod-sidebar${drawerOffen ? " offen" : ""}`}>
         <div className="mod-sidebar-kopf">
-          <span>{config?.organisation_name ?? "Moderator"}</span>
+          <span>{config?.organisation_name ?? "Gruppenführer"}</span>
           <button type="button" className="mod-sidebar-close" onClick={() => setDrawerOffen(false)} aria-label="Schließen">
             ✕
           </button>

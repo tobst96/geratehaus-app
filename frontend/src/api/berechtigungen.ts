@@ -15,7 +15,7 @@ export interface GruppenfuehrerBerechtigung {
 
 export interface BerechtigungMatrix {
   module: ModulKurz[];
-  moderatoren: GruppenfuehrerBerechtigung[];
+  gruppenfuehrer: GruppenfuehrerBerechtigung[];
 }
 
 export const holeBerechtigungen = () => apiGet<BerechtigungMatrix>("/gruppenfuehrer/berechtigungen");

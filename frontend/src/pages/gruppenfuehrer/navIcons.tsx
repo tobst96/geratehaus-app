@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 
-// Schlanke Line-Icons (Feather-Stil) für die Moderator-Navigation.
+// Schlanke Line-Icons (Feather-Stil) für die Gruppenführer-Navigation.
 function icon(children: JSX.Element) {
   return (
     <svg

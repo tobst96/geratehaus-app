@@ -1,7 +1,7 @@
 # Modul „Fahrzeugbuchung"
 
 Reservierung von Fahrzeugen (z. B. für Übungen, Fahrten) mit Kalender und
-Moderator-Freigabe. Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Login).
+Gruppenführer-Freigabe. Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Login).
 
 ## Kiosk / Mitglieder
 
@@ -11,13 +11,13 @@ Moderator-Freigabe. Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Login).
 - Buchbar sind nur die im Modul [Fahrzeuge](fahrzeuge.md) als **„buchbar"**
   markierten Fahrzeuge.
 
-## Moderator (Buchungsmanagement)
+## Gruppenführer (Buchungsmanagement)
 
 - **Kalender/Liste** aller Buchungen und Anfragen.
 - Anfragen **freigeben oder ablehnen** (auch per Ja/Nein-Link aus der
   Benachrichtigungs-Mail).
 - Neue Buchungsanfragen lösen (falls aktiviert) eine Benachrichtigung an die
-  Moderatoren aus.
+  Gruppenführer aus.
 
 ## Externe Kalender (iCal)
 
@@ -36,4 +36,4 @@ die externen iCal-Kalender.
 ## Hinweis
 
 Überschneidende Buchungen (eigene wie externe) werden erkannt; die Freigabe
-entscheidet ein Moderator.
+entscheidet ein Gruppenführer.

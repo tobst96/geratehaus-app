@@ -57,8 +57,8 @@ async def test_matrix_endpoint_admin_only(client, db):
     assert resp.status_code == 200
     daten = resp.json()
     assert len(daten["module"]) == len(modul_service.MODUL_REGISTRY)
-    assert {"admin", "gf"} <= {m["username"] for m in daten["moderatoren"]}
-    admin_row = next(m for m in daten["moderatoren"] if m["username"] == "admin")
+    assert {"admin", "gf"} <= {m["username"] for m in daten["gruppenfuehrer"]}
+    admin_row = next(m for m in daten["gruppenfuehrer"] if m["username"] == "admin")
     assert admin_row["ist_admin"] is True
 
 
@@ -78,7 +78,7 @@ async def test_put_berechtigung_setzt_und_matrix_zeigt(client, db):
     resp = await client.get(
         "/api/v1/gruppenfuehrer/berechtigungen", headers={"Authorization": f"Bearer {token}"}
     )
-    gf_row = next(m for m in resp.json()["moderatoren"] if m["username"] == "gf")
+    gf_row = next(m for m in resp.json()["gruppenfuehrer"] if m["username"] == "gf")
     assert "dienstbuch" in gf_row["module"]
 
     fehlend = await client.put(

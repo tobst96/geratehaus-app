@@ -6,9 +6,9 @@ const navigate = vi.fn();
 vi.mock("react-router-dom", () => ({ useNavigate: () => navigate }));
 
 const gruppenfuehrerAnmelden = vi.fn();
-const moderator2faAbschliessen = vi.fn();
+const gruppenfuehrer2faAbschliessen = vi.fn();
 vi.mock("../../context/AuthContext", () => ({
-  useAuth: () => ({ gruppenfuehrerAnmelden, moderator2faAbschliessen }),
+  useAuth: () => ({ gruppenfuehrerAnmelden, gruppenfuehrer2faAbschliessen }),
 }));
 
 import { GruppenfuehrerLogin } from "./GruppenfuehrerLogin";
@@ -24,7 +24,7 @@ describe("GruppenfuehrerLogin", () => {
   beforeEach(() => {
     navigate.mockClear();
     gruppenfuehrerAnmelden.mockReset();
-    moderator2faAbschliessen.mockReset();
+    gruppenfuehrer2faAbschliessen.mockReset();
   });
 
   it("navigiert nach erfolgreichem Login ohne 2FA", async () => {

@@ -17,7 +17,7 @@ from app.schemas.einsatz import EinsatzOut
 from app.schemas.namens_abweichung import NamensAbweichungOut
 from app.services import auth_service, dienststunden_service, gruppenfuehrer_listen_service, pdf_service
 
-router = APIRouter(prefix="/gruppenfuehrer/listen", tags=["moderator:listen"])
+router = APIRouter(prefix="/gruppenfuehrer/listen", tags=["gruppenfuehrer:listen"])
 
 # Jede Liste/PDF erfordert das Recht des jeweiligen Moduls (Admin-Bypass): ein
 # Gruppenführer sieht nur die Listen der ihm freigegebenen Bereiche.

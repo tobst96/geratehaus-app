@@ -1716,11 +1716,20 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   →`Gruppenfuehrer{Login,Layout}`, `Einsatz-/DienstbuchDetailModerator`→`…Gruppenfuehrer`
   (+ `.css`). **Frontend-Build grün, Vitest 26 grün.** Bare-Word-Displaytext („Moderator"/
   „Moderatoren") bewusst noch offen → Schicht 4 (mit ü).
-- Offene Schichten (jeweils grün + committen): (4) **UI-Texte (mit ü)**
-  + Kommentare/Docstrings (Backend+Frontend) + `docs/*.md`/README/Datenschutz; (5) **aktive
-  2FA-Tabellen** `moderator_recovery_codes`/`moderator_trusted_devices` + Models
-  `ModeratorRecoveryCode`/`ModeratorTrustedDevice` (+ Migration) und Legacy-`moderatoren`-
-  Tabelle (mit dem aufgeschobenen Drop bündeln → spätere Migration). Historische Audit-
+- Fortschritt (09.07.2026, Schicht 4 – **UI-Texte (mit ü) + Frontend fertig**, grün):
+  Frontend-Prosa `Moderator`/`Moderatoren`/`Moderatorbereich` → `Gruppenführer`(-bereich)
+  in `.tsx/.ts/.css` (Kommentare, JSX-Text, Strings, Datenschutz); `docs/*.md` + README +
+  `docs/screenshots/README`; **Backend OpenAPI-Tags** `tags=["moderator:…"]`→`["gruppenfuehrer:…"]`;
+  **Matrix-Wire-Key** `moderatoren`→`gruppenfuehrer` + Schema `ModeratorBerechtigungOut`→
+  `GruppenfuehrerBerechtigungOut` (Schema+Endpoint+Frontend+Test koordiniert); Rest-Identifier
+  `moderator2fa*`→`gruppenfuehrer2fa*`. **Frontend damit vollständig umbenannt.** Backend-Suite
+  400 grün, Frontend-Build + Vitest 26 grün.
+- Offene Schichten (jeweils grün + committen): (5) **Backend-Prosa** (Kommentare/Docstrings
+  „Moderator") – am besten NACH dem Model-Rename, da `\bModerator\b` sonst die Model-Klasse
+  trifft; (6) **aktive 2FA-Tabellen** `moderator_recovery_codes`/`moderator_trusted_devices` +
+  Models `ModeratorRecoveryCode`/`ModeratorTrustedDevice`, Model-Klasse `Moderator` + Legacy-
+  `moderatoren`-Tabelle + `moderator_id`-Spalten (+ Migration; mit dem aufgeschobenen Drop
+  bündeln). `backup_service`-Tabellenliste-Eintrag `"moderatoren"` mitziehen. Historische Audit-
   Zeilen `moderator_angelegt`/`-geloescht`/`-passwort_geaendert` bleiben als Label-Keys
   (Daten). **Merge-PR erst nach allen Schichten** (Branch bleibt bis dahin vor beta).
 - Priorität: Mittel

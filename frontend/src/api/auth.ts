@@ -64,7 +64,7 @@ export const namePinPruefen = (personId: number, pin: string) =>
   apiPost<NamePinVorschau>("/auth/name-pin/pruefen", { person_id: personId, pin });
 
 /** Stößt für eine Person ohne PIN den passenden Weg an (Self-Service-Mail oder
- * Moderator-Freigabe). Gibt {weg: "mail" | "freigabe"} zurück. */
+ * Gruppenführer-Freigabe). Gibt {weg: "mail" | "freigabe"} zurück. */
 export const pinAnfordern = (personId: number) =>
   apiPost<{ weg: string }>("/auth/pin-anfordern", { person_id: personId });
 
@@ -126,7 +126,7 @@ export async function gruppenfuehrerLogin(
 }
 
 /** Zweiter Login-Schritt bei aktivem 2FA: E-Mail-Code oder Recovery-Code. */
-export async function moderator2fa(
+export async function gruppenfuehrer2fa(
   challenge: string,
   code: string,
   angemeldetBleiben: boolean

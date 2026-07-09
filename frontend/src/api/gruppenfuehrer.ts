@@ -38,7 +38,7 @@ export const sendeTestmail = () => apiPost<void>("/gruppenfuehrer/einstellungen/
 export const sendeTestdruck = () => apiPost<void>("/gruppenfuehrer/einstellungen/testdruck");
 
 // --- Erhöhte Zugänge (Person = Konto): Admin/Gruppenführer an der Person -----
-// Verwaltet direkt in Personal; die separate „Moderatoren"-Verwaltung entfällt.
+// Verwaltet direkt in Personal; die separate „Gruppenführer"-Verwaltung entfällt.
 
 export type ElevatedRolle = "admin" | "gruppenfuehrer";
 
@@ -72,7 +72,7 @@ export const personPasswortSetzen = (id: number, passwort: string) =>
 export const person2faZuruecksetzen = (id: number) =>
   apiPost<void>(`/gruppenfuehrer/stammdaten/personen/${id}/2fa-zuruecksetzen`);
 
-// --- Eigenes Konto: Zwei-Faktor (jeder Moderator, auch Gruppenführer) --------
+// --- Eigenes Konto: Zwei-Faktor (jeder Gruppenführer, auch Gruppenführer) --------
 export interface ZweiFaktorStatus {
   aktiv: boolean;
   email_gesetzt: boolean;

@@ -7,7 +7,7 @@ from app.services import audit_service, feature_modul_service
 # Granular geschützt: Admins immer (Bypass), sonst Freigabe „einstellungen".
 router = APIRouter(
     prefix="/gruppenfuehrer/feature-module",
-    tags=["moderator:feature-module"],
+    tags=["gruppenfuehrer:feature-module"],
     dependencies=[Depends(require_modul_zugriff("einstellungen"))],
 )
 

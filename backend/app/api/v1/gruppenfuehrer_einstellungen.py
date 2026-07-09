@@ -12,7 +12,7 @@ from app.services.notifier.email import EmailNotifier
 # „einstellungen" nötig.
 router = APIRouter(
     prefix="/gruppenfuehrer/einstellungen",
-    tags=["moderator:einstellungen"],
+    tags=["gruppenfuehrer:einstellungen"],
     dependencies=[Depends(require_modul_zugriff("einstellungen"))],
 )
 

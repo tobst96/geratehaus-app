@@ -52,5 +52,5 @@ bzw. über die Navigation (Admin/Gruppenführer mit Freigabe).
 ## Datenschutz-Hinweis
 
 Personen enthalten personenbezogene Daten (Name, E-Mail, Bild, PIN-Hash). Zugriff
-nur für berechtigte Moderatoren/Admins. Details zur Verarbeitung: Datenschutz-Seite
+nur für berechtigte Gruppenführer/Admins. Details zur Verarbeitung: Datenschutz-Seite
 der App.
