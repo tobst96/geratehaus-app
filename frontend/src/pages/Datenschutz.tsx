@@ -32,7 +32,7 @@ export function Datenschutz() {
         <p>
           Dein Name wird in einem Cookie auf deinem Gerät gespeichert, damit er bei jedem Besuch
           vorausgefüllt ist. Weicht der eingetragene Name vom zuvor gespeicherten Namen ab, wird
-          diese Abweichung serverseitig protokolliert, damit Moderatoren Unstimmigkeiten in den
+          diese Abweichung serverseitig protokolliert, damit Gruppenführer Unstimmigkeiten in den
           Aufzeichnungen nachvollziehen können.
         </p>
       </div>
@@ -49,7 +49,7 @@ export function Datenschutz() {
         <p>
           Hast du noch keinen PIN gesetzt, kannst du dir einen Link zum Setzen deines PINs an deine
           hinterlegte E-Mail-Adresse schicken lassen. Ist keine E-Mail hinterlegt, wird stattdessen
-          eine Freigabe-Anfrage an die Moderatoren deiner Organisation gesendet, die daraufhin eine
+          eine Freigabe-Anfrage an die Gruppenführer deiner Organisation gesendet, die daraufhin eine
           E-Mail-Adresse (und auf Wunsch direkt einen PIN) für dich hinterlegen können. Solange kein
           PIN gesetzt ist, kann an eine hinterlegte E-Mail-Adresse in einstellbaren Abständen eine
           Erinnerung zum Setzen des PINs versendet werden.
@@ -129,7 +129,7 @@ export function Datenschutz() {
           E-Mail-Benachrichtigung mit den übermittelten Antworten an eine hinterlegte Adresse versendet
           werden. Formulare können zudem eine ausdrückliche Einwilligung vor dem Absenden verlangen und
           eine Aufbewahrungsfrist haben, nach der die Einreichungen automatisch gelöscht werden. Zugriff
-          auf die Einreichungen haben nur Administratoren bzw. ausdrücklich freigegebene Moderatoren.
+          auf die Einreichungen haben nur Administratoren bzw. ausdrücklich freigegebene Gruppenführer.
         </p>
       </div>
 
@@ -137,7 +137,7 @@ export function Datenschutz() {
         <h2>Aufbewahrung &amp; Archivierung</h2>
         <p>
           Einsätze und Dienstbücher werden nach einem von der Organisation festgelegten Zeitraum
-          automatisch archiviert. Archivierte Einträge bleiben für Moderatoren einsehbar, werden
+          automatisch archiviert. Archivierte Einträge bleiben für Gruppenführer einsehbar, werden
           Kameraden aber nicht mehr in den laufenden Listen angezeigt.
         </p>
 

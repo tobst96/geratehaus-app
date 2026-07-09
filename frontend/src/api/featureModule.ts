@@ -11,12 +11,12 @@ export interface FeatureModul {
   aussenzugriff: boolean | null;
 }
 
-export const holeFeatureModule = () => apiGet<FeatureModul[]>("/moderator/feature-module");
+export const holeFeatureModule = () => apiGet<FeatureModul[]>("/gruppenfuehrer/feature-module");
 
 export const setFeatureModulFlag = (
   key: string,
   flags: Partial<Pick<FeatureModul, "aktiv" | "startseite" | "aussenzugriff">>
-) => apiPatch<FeatureModul>(`/moderator/feature-module/${encodeURIComponent(key)}`, flags);
+) => apiPatch<FeatureModul>(`/gruppenfuehrer/feature-module/${encodeURIComponent(key)}`, flags);
 
 export const setFeatureModulReihenfolge = (keys: string[]) =>
-  apiPut<FeatureModul[]>("/moderator/feature-module/reihenfolge", { keys });
+  apiPut<FeatureModul[]>("/gruppenfuehrer/feature-module/reihenfolge", { keys });

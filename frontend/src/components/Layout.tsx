@@ -4,8 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../hooks/useTheme";
 import { useKioskAutolock } from "../hooks/useKioskAutolock";
 
-function startseite(moderatorAngemeldet: boolean, angezeigterName: string | null): string {
-  if (moderatorAngemeldet) return "/moderator/dashboard";
+function startseite(gruppenfuehrerAngemeldet: boolean, angezeigterName: string | null): string {
+  if (gruppenfuehrerAngemeldet) return "/gruppenfuehrer/dashboard";
   // Auf einem Kiosk-Tablet führt das Logo zurück zur Kiosk-Startseite, nicht zur
   // öffentlichen Landing-/Login-Seite. localStorage wird zum Klickzeitpunkt
   // gelesen (der Kiosk-Token wird beim Öffnen erst in einem Effect gesetzt).
@@ -17,7 +17,7 @@ function startseite(moderatorAngemeldet: boolean, angezeigterName: string | null
 
 export function Layout() {
   const { config } = useConfig();
-  const { moderatorAngemeldet, angezeigterName } = useAuth();
+  const { gruppenfuehrerAngemeldet, angezeigterName } = useAuth();
   const { theme, umschalten } = useTheme();
   const navigate = useNavigate();
   useKioskAutolock();
@@ -29,7 +29,7 @@ export function Layout() {
       <header className="kopfzeile">
         <button
           type="button"
-          onClick={() => navigate(startseite(moderatorAngemeldet, angezeigterName))}
+          onClick={() => navigate(startseite(gruppenfuehrerAngemeldet, angezeigterName))}
           style={{
             display: "flex",
             alignItems: "center",
@@ -81,7 +81,7 @@ export function Layout() {
           Gerätehaus.app
         </a>{" "}
         ·{" "}
-        <Link to="/datenschutz">Datenschutz</Link> · <Link to="/moderator">Team-Login</Link>
+        <Link to="/datenschutz">Datenschutz</Link> · <Link to="/gruppenfuehrer">Team-Login</Link>
       </footer>
     </>
   );

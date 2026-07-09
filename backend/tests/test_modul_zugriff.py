@@ -6,8 +6,8 @@ from app.models.person import Person
 from app.services import berechtigungs_service, modul_service
 
 
-async def _moderator(db, username, rolle):
-    mod = Person(name=username, passwort_hash="x", moderator_rolle=rolle)
+async def _gruppenfuehrer(db, username, rolle):
+    mod = Person(name=username, passwort_hash="x", gruppenfuehrer_rolle=rolle)
     db.add(mod)
     await db.commit()
     await db.refresh(mod)
@@ -16,14 +16,14 @@ async def _moderator(db, username, rolle):
 
 async def test_require_modul_zugriff_admin_bypass(db):
     await modul_service.ensure_module(db)
-    admin = await _moderator(db, "admin", "admin")
+    admin = await _gruppenfuehrer(db, "admin", "admin")
     check = require_modul_zugriff("einsatztagebuch")
     assert await check(admin, db) is admin
 
 
 async def test_require_modul_zugriff_gruppenfuehrer(db):
     await modul_service.ensure_module(db)
-    gf = await _moderator(db, "gf", "gruppenfuehrer")
+    gf = await _gruppenfuehrer(db, "gf", "gruppenfuehrer")
     check = require_modul_zugriff("einsatztagebuch")
 
     with pytest.raises(HTTPException) as exc:

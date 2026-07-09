@@ -9,7 +9,7 @@ from app.db.base import Base
 class PersonBildReservierung(Base):
     """Kurzlebiger Reservierungs-Token, mit dem das Profilbild einer bereits
     angelegten Person per QR-Code vom eigenen Handy aus hochgeladen werden
-    kann (Foto aufnehmen oder Datei wählen), ohne Moderator-Login."""
+    kann (Foto aufnehmen oder Datei wählen), ohne Gruppenführer-Login."""
 
     __tablename__ = "person_bild_reservierungen"
 

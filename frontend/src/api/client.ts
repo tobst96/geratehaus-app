@@ -11,19 +11,19 @@ export class ApiError extends Error {
   }
 }
 
-let moderatorToken: string | null = localStorage.getItem("moderator_token");
+let gruppenfuehrerToken: string | null = localStorage.getItem("gruppenfuehrer_token");
 
-export function setModeratorToken(token: string | null): void {
-  moderatorToken = token;
+export function setGruppenfuehrerToken(token: string | null): void {
+  gruppenfuehrerToken = token;
   if (token) {
-    localStorage.setItem("moderator_token", token);
+    localStorage.setItem("gruppenfuehrer_token", token);
   } else {
-    localStorage.removeItem("moderator_token");
+    localStorage.removeItem("gruppenfuehrer_token");
   }
 }
 
-export function getModeratorToken(): string | null {
-  return moderatorToken;
+export function getGruppenfuehrerToken(): string | null {
+  return gruppenfuehrerToken;
 }
 
 interface RequestOptions {
@@ -47,8 +47,8 @@ function baueUrl(pfad: string, query?: RequestOptions["query"]): string {
 
 export async function anfrage<T>(pfad: string, optionen: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {};
-  if (moderatorToken) {
-    headers["Authorization"] = `Bearer ${moderatorToken}`;
+  if (gruppenfuehrerToken) {
+    headers["Authorization"] = `Bearer ${gruppenfuehrerToken}`;
   }
   // Kiosk-Tablets identifizieren sich gegenüber den (sonst öffentlichen) Daten-
   // Endpunkten über ihren Gerät-Token; wird beim Öffnen von /kiosk/<token> gesetzt.

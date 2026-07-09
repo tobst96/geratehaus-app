@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 
 from app.api.deps import CurrentPerson, DbSession
-from app.core import datei_token, mitglied_session, moderator_2fa_session
+from app.core import datei_token, mitglied_session, gruppenfuehrer_2fa_session
 from app.core.rate_limit import rate_limit
 from app.core.security import create_access_token
 from app.models.barcode_token import BarcodeToken
@@ -16,9 +16,9 @@ from app.schemas.auth import (
     BarcodeIdentitaet,
     BarcodeVorschau,
     MeinProfil,
-    Moderator2FA,
-    ModeratorLoginErgebnis,
-    ModeratorToken,
+    Gruppenfuehrer2FA,
+    GruppenfuehrerLoginErgebnis,
+    GruppenfuehrerToken,
     NamePinLogin,
     NamePinVorschau,
     PersonAuswahl,
@@ -29,13 +29,13 @@ from app.services import (
     barcode_service,
     feature_modul_service,
     mitglied_login_reservierung_service,
-    moderator_service,
+    gruppenfuehrer_service,
     pin_service,
     stammdaten_service,
     zwei_faktor_service,
 )
 
-TRUSTED_DEVICE_COOKIE = "moderator_trusted_device"
+TRUSTED_DEVICE_COOKIE = "gruppenfuehrer_trusted_device"
 TRUSTED_DEVICE_MAX_AGE_SECONDS = 60 * 60 * 24 * zwei_faktor_service.TRUSTED_DEVICE_TAGE
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -61,7 +61,7 @@ def _setze_namens_cookie(response: Response, name: str) -> None:
 async def abmelden(response: Response) -> None:
     """Löscht den Namens-Cookie, mit dem sich Personen ohne echten Login
     identifizieren (Barcode-Scan, Mitglieder-Login). Anders als beim
-    Moderator-Logout (rein clientseitig, da JWT im localStorage) muss der
+    Gruppenführer-Logout (rein clientseitig, da JWT im localStorage) muss der
     Server hier aktiv werden, weil das Cookie httponly ist."""
     response.delete_cookie(NAME_COOKIE)
 
@@ -268,7 +268,7 @@ async def name_pin_login(db: DbSession, response: Response, daten: NamePinLogin)
 )
 async def pin_anfordern(db: DbSession, daten: PinAnfordern) -> dict[str, str]:
     """Kiosk-Fallback für Personen ohne PIN: hat die Person eine E-Mail, bekommt
-    sie einen Self-Service-Link; sonst wird eine Moderator-Freigabe angestoßen."""
+    sie einen Self-Service-Link; sonst wird eine Gruppenführer-Freigabe angestoßen."""
     person = await stammdaten_service.get_person(db, daten.person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
@@ -276,23 +276,23 @@ async def pin_anfordern(db: DbSession, daten: PinAnfordern) -> dict[str, str]:
     return {"weg": weg}
 
 
-def _moderator_token(person) -> str:
-    return create_access_token(subject=person.name, extra_claims={"rolle": person.moderator_rolle})
+def _gruppenfuehrer_token(person) -> str:
+    return create_access_token(subject=person.name, extra_claims={"rolle": person.gruppenfuehrer_rolle})
 
 
 @router.post(
-    "/moderator/login",
-    response_model=ModeratorLoginErgebnis,
+    "/gruppenfuehrer/login",
+    response_model=GruppenfuehrerLoginErgebnis,
     dependencies=[Depends(rate_limit(10, 60))],
 )
-async def moderator_login(
+async def gruppenfuehrer_login(
     db: DbSession,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    moderator_trusted_device: Annotated[str | None, Cookie()] = None,
-) -> ModeratorLoginErgebnis:
+    gruppenfuehrer_trusted_device: Annotated[str | None, Cookie()] = None,
+) -> GruppenfuehrerLoginErgebnis:
     try:
-        person = await moderator_service.login_pruefen(db, form_data.username, form_data.password)
-    except moderator_service.ModeratorGesperrtError as sperre:
+        person = await gruppenfuehrer_service.login_pruefen(db, form_data.username, form_data.password)
+    except gruppenfuehrer_service.GruppenfuehrerGesperrtError as sperre:
         minuten = max(1, round(sperre.verbleibend_sekunden / 60))
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -306,9 +306,9 @@ async def moderator_login(
 
     # Kein 2FA (oder bereits vertrauenswürdiges Gerät) → direkt Token ausstellen.
     if not person.zwei_faktor_aktiv or await zwei_faktor_service.trusted_device_gueltig(
-        db, person, moderator_trusted_device
+        db, person, gruppenfuehrer_trusted_device
     ):
-        return ModeratorLoginErgebnis(access_token=_moderator_token(person))
+        return GruppenfuehrerLoginErgebnis(access_token=_gruppenfuehrer_token(person))
 
     # 2FA: OTP per E-Mail senden (Best-Effort – ohne E-Mail bleibt der
     # Recovery-Code-Weg) und Challenge für den zweiten Schritt zurückgeben.
@@ -316,21 +316,21 @@ async def moderator_login(
         await zwei_faktor_service.otp_erzeugen_und_senden(db, person)
     except ValueError:
         pass
-    return ModeratorLoginErgebnis(
+    return GruppenfuehrerLoginErgebnis(
         zwei_faktor_erforderlich=True,
-        challenge=moderator_2fa_session.signiere_challenge(person.id),
+        challenge=gruppenfuehrer_2fa_session.signiere_challenge(person.id),
     )
 
 
 @router.post(
-    "/moderator/2fa",
-    response_model=ModeratorLoginErgebnis,
+    "/gruppenfuehrer/2fa",
+    response_model=GruppenfuehrerLoginErgebnis,
     dependencies=[Depends(rate_limit(10, 60))],
 )
-async def moderator_2fa(db: DbSession, response: Response, daten: Moderator2FA) -> ModeratorLoginErgebnis:
+async def moderator_2fa(db: DbSession, response: Response, daten: Gruppenfuehrer2FA) -> GruppenfuehrerLoginErgebnis:
     """Zweiter Login-Schritt: prüft den E-Mail-OTP **oder** einen Recovery-Code
     zum vorher ausgestellten `challenge`-Token."""
-    person_id = moderator_2fa_session.lese_challenge(daten.challenge)
+    person_id = gruppenfuehrer_2fa_session.lese_challenge(daten.challenge)
     if person_id is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -355,4 +355,4 @@ async def moderator_2fa(db: DbSession, response: Response, daten: Moderator2FA) 
             httponly=True,
             samesite="lax",
         )
-    return ModeratorLoginErgebnis(access_token=_moderator_token(person))
+    return GruppenfuehrerLoginErgebnis(access_token=_gruppenfuehrer_token(person))

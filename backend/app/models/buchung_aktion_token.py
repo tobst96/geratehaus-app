@@ -7,12 +7,12 @@ from app.db.base import Base
 
 
 class BuchungAktionToken(Base):
-    """Kurzlebiger, einmal verwendbarer Token, mit dem ein Moderator eine
+    """Kurzlebiger, einmal verwendbarer Token, mit dem ein Gruppenführer eine
     Fahrzeugbuchungs-Anfrage direkt aus der Benachrichtigungsmail annehmen
     oder ablehnen kann, ohne sich einzuloggen (Annehmen/Ablehnen-Button in
     der Mail). Anders als die "Barcode vergessen"-Reservierungen (30 Min.
     gültig, für Personen ohne Login) ist dieser Token deutlich länger gültig
-    (siehe Service), da Moderatoren ihre Mails nicht sofort lesen."""
+    (siehe Service), da Gruppenführer ihre Mails nicht sofort lesen."""
 
     __tablename__ = "buchung_aktion_tokens"
 

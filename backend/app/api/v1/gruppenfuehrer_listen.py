@@ -1,0 +1,238 @@
+from datetime import date, datetime
+
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Response
+
+from app.api.deps import CurrentAdmin, DbSession, require_modul_zugriff
+from app.models.person import Person
+from app.schemas.buchung import BuchungOut
+from app.schemas.dienstbuch import DienstbuchOut
+from app.schemas.dienststunden import (
+    DienststundenEintragOut,
+    SchwellenwertEintragOut,
+    UebernahmeAnlegen,
+)
+from app.schemas.einsatz import EinsatzOut
+from app.schemas.namens_abweichung import NamensAbweichungOut
+from app.services import auth_service, dienststunden_service, gruppenfuehrer_listen_service, pdf_service
+
+router = APIRouter(prefix="/gruppenfuehrer/listen", tags=["gruppenfuehrer:listen"])
+
+# Jede Liste/PDF erfordert das Recht des jeweiligen Moduls (Admin-Bypass): ein
+# Gruppenführer sieht nur die Listen der ihm freigegebenen Bereiche.
+EinsatzZugriff = Annotated[Person, Depends(require_modul_zugriff("einsatztagebuch"))]
+DienstbuchZugriff = Annotated[Person, Depends(require_modul_zugriff("dienstbuch"))]
+DienststundenZugriff = Annotated[Person, Depends(require_modul_zugriff("dienststunden"))]
+FahrzeugbuchungZugriff = Annotated[Person, Depends(require_modul_zugriff("fahrzeugbuchung"))]
+
+
+@router.get("/einsaetze", response_model=list[EinsatzOut])
+async def einsaetze(
+    db: DbSession,
+    _gruppenfuehrer: EinsatzZugriff,
+    von: datetime | None = None,
+    bis: datetime | None = None,
+    fahrzeug_id: int | None = None,
+    person_id: int | None = None,
+    archiviert: bool | None = None,
+) -> list[EinsatzOut]:
+    return await gruppenfuehrer_listen_service.einsaetze_liste(
+        db, von, bis, fahrzeug_id, person_id, archiviert
+    )
+
+
+@router.get("/dienstbuecher", response_model=list[DienstbuchOut])
+async def dienstbuecher(
+    db: DbSession,
+    _gruppenfuehrer: DienstbuchZugriff,
+    von: datetime | None = None,
+    bis: datetime | None = None,
+    person_id: int | None = None,
+    archiviert: bool | None = None,
+) -> list[DienstbuchOut]:
+    return await gruppenfuehrer_listen_service.dienstbuecher_liste(db, von, bis, person_id, archiviert)
+
+
+@router.get("/dienststunden", response_model=list[DienststundenEintragOut])
+async def dienststunden(
+    db: DbSession,
+    _gruppenfuehrer: DienststundenZugriff,
+    von: date | None = None,
+    bis: date | None = None,
+    person_id: int | None = None,
+    funktion_id: int | None = None,
+) -> list[DienststundenEintragOut]:
+    return await gruppenfuehrer_listen_service.dienststunden_liste(db, von, bis, person_id, funktion_id)
+
+
+@router.get("/dienststunden-schwellenwert", response_model=list[SchwellenwertEintragOut])
+async def dienststunden_schwellenwert(
+    db: DbSession, _gruppenfuehrer: DienststundenZugriff
+) -> list[SchwellenwertEintragOut]:
+    return await dienststunden_service.schwellenwert_liste(db)
+
+
+@router.post(
+    "/dienststunden-schwellenwert/uebernahme", status_code=204
+)
+async def dienststunden_uebernahme_eintragen(
+    db: DbSession, _gruppenfuehrer: DienststundenZugriff, daten: UebernahmeAnlegen
+) -> None:
+    await dienststunden_service.uebernahme_eintragen(db, daten.person_id, daten.funktion_id, daten.stunden)
+
+
+@router.get("/buchungen", response_model=list[BuchungOut])
+async def buchungen(
+    db: DbSession,
+    _gruppenfuehrer: FahrzeugbuchungZugriff,
+    von: datetime | None = None,
+    bis: datetime | None = None,
+    fahrzeug_id: int | None = None,
+    person_id: int | None = None,
+    status: str | None = None,
+) -> list[BuchungOut]:
+    return await gruppenfuehrer_listen_service.buchungen_liste(
+        db, von, bis, fahrzeug_id, person_id, status
+    )
+
+
+@router.get("/namensabweichungen", response_model=list[NamensAbweichungOut])
+async def namensabweichungen(
+    db: DbSession, _admin: CurrentAdmin
+) -> list[NamensAbweichungOut]:
+    return await auth_service.liste_namensabweichungen(db)
+
+
+def _pdf_response(pdf_bytes: bytes, dateiname: str) -> Response:
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{dateiname}"'},
+    )
+
+
+@router.get("/einsaetze/pdf")
+async def einsaetze_pdf(
+    db: DbSession,
+    _gruppenfuehrer: EinsatzZugriff,
+    von: datetime | None = None,
+    bis: datetime | None = None,
+    fahrzeug_id: int | None = None,
+    person_id: int | None = None,
+    archiviert: bool | None = None,
+) -> Response:
+    rows = await gruppenfuehrer_listen_service.einsaetze_liste(
+        db, von, bis, fahrzeug_id, person_id, archiviert
+    )
+    spalten = [
+        {"key": "titel", "label": "Titel"},
+        {"key": "zeitpunkt", "label": "Zeitpunkt"},
+        {"key": "quelle", "label": "Quelle"},
+        {"key": "status", "label": "Status"},
+        {"key": "archiviert", "label": "Archiviert"},
+    ]
+    zeilen = [
+        {
+            "titel": e.titel,
+            "zeitpunkt": e.zeitpunkt.strftime("%d.%m.%Y %H:%M"),
+            "quelle": e.quelle,
+            "status": e.status,
+            "archiviert": "Ja" if e.archiviert else "",
+        }
+        for e in rows
+    ]
+    pdf_bytes = await pdf_service.liste_pdf(db, "Einsätze", spalten, zeilen)
+    return _pdf_response(pdf_bytes, "einsaetze.pdf")
+
+
+@router.get("/dienstbuecher/pdf")
+async def dienstbuecher_pdf(
+    db: DbSession,
+    _gruppenfuehrer: DienstbuchZugriff,
+    von: datetime | None = None,
+    bis: datetime | None = None,
+    person_id: int | None = None,
+    archiviert: bool | None = None,
+) -> Response:
+    rows = await gruppenfuehrer_listen_service.dienstbuecher_liste(db, von, bis, person_id, archiviert)
+    spalten = [
+        {"key": "titel", "label": "Titel"},
+        {"key": "eroeffnet_am", "label": "Eröffnet am"},
+        {"key": "archiviert", "label": "Archiviert"},
+    ]
+    zeilen = [
+        {
+            "titel": d.titel,
+            "eroeffnet_am": d.eroeffnet_am.strftime("%d.%m.%Y %H:%M"),
+            "archiviert": "Ja" if d.archiviert else "",
+        }
+        for d in rows
+    ]
+    pdf_bytes = await pdf_service.liste_pdf(db, "Dienstbücher", spalten, zeilen)
+    return _pdf_response(pdf_bytes, "dienstbuecher.pdf")
+
+
+@router.get("/dienststunden/pdf")
+async def dienststunden_pdf(
+    db: DbSession,
+    _gruppenfuehrer: DienststundenZugriff,
+    von: date | None = None,
+    bis: date | None = None,
+    person_id: int | None = None,
+    funktion_id: int | None = None,
+) -> Response:
+    rows = await gruppenfuehrer_listen_service.dienststunden_liste(db, von, bis, person_id, funktion_id)
+    spalten = [
+        {"key": "person", "label": "Name"},
+        {"key": "funktion", "label": "Funktion"},
+        {"key": "stunden", "label": "Stunden"},
+        {"key": "datum", "label": "Datum"},
+    ]
+    zeilen = [
+        {
+            "person": d.person_name,
+            "funktion": d.funktion_name,
+            "stunden": d.stunden,
+            "datum": d.datum.strftime("%d.%m.%Y"),
+        }
+        for d in rows
+    ]
+    pdf_bytes = await pdf_service.liste_pdf(db, "Dienststunden", spalten, zeilen)
+    return _pdf_response(pdf_bytes, "dienststunden.pdf")
+
+
+@router.get("/buchungen/pdf")
+async def buchungen_pdf(
+    db: DbSession,
+    _gruppenfuehrer: FahrzeugbuchungZugriff,
+    von: datetime | None = None,
+    bis: datetime | None = None,
+    fahrzeug_id: int | None = None,
+    person_id: int | None = None,
+    status: str | None = None,
+) -> Response:
+    rows = await gruppenfuehrer_listen_service.buchungen_liste(
+        db, von, bis, fahrzeug_id, person_id, status
+    )
+    spalten = [
+        {"key": "fahrzeug", "label": "Fahrzeug"},
+        {"key": "von", "label": "Von"},
+        {"key": "bis", "label": "Bis"},
+        {"key": "zweck", "label": "Zweck"},
+        {"key": "verantwortlich", "label": "Verantwortlich"},
+        {"key": "status", "label": "Status"},
+    ]
+    zeilen = [
+        {
+            "fahrzeug": b.fahrzeug.name,
+            "von": b.von.strftime("%d.%m.%Y %H:%M"),
+            "bis": b.bis.strftime("%d.%m.%Y %H:%M"),
+            "zweck": b.zweck,
+            "verantwortlich": b.verantwortliche_person.name,
+            "status": b.status,
+        }
+        for b in rows
+    ]
+    pdf_bytes = await pdf_service.liste_pdf(db, "Fahrzeugbuchungen", spalten, zeilen)
+    return _pdf_response(pdf_bytes, "buchungen.pdf")

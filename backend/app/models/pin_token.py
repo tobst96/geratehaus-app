@@ -25,8 +25,8 @@ class PinSetzenToken(Base):
 
 
 class PersonFreigabeToken(Base):
-    """Token für die Moderator-Freigabe, wenn eine Person ohne E-Mail einen PIN
-    anfordert: Die Moderatoren erhalten eine Mail mit Freigeben/Ablehnen-Link.
+    """Token für die Gruppenführer-Freigabe, wenn eine Person ohne E-Mail einen PIN
+    anfordert: Die Gruppenführer erhalten eine Mail mit Freigeben/Ablehnen-Link.
     „Freigeben" öffnet eine Seite, auf der für die Person eine E-Mail (und
     optional direkt der PIN) gesetzt wird."""
 

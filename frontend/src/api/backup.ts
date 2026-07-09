@@ -105,11 +105,11 @@ export interface BackupImportErgebnis {
   importierte_dateien: number;
 }
 
-export const holeBackupEinstellungen = () => apiGet<BackupEinstellungen>("/moderator/backup/einstellungen");
+export const holeBackupEinstellungen = () => apiGet<BackupEinstellungen>("/gruppenfuehrer/backup/einstellungen");
 export const setzeBackupEinstellungen = (d: BackupEinstellungenUpdate) =>
-  apiPatch<BackupEinstellungen>("/moderator/backup/einstellungen", d);
-export const holeBackups = () => apiGet<BackupOut[]>("/moderator/backup/liste");
-export const jetztSichern = () => apiPost<BackupOut>("/moderator/backup/jetzt");
+  apiPatch<BackupEinstellungen>("/gruppenfuehrer/backup/einstellungen", d);
+export const holeBackups = () => apiGet<BackupOut[]>("/gruppenfuehrer/backup/liste");
+export const jetztSichern = () => apiPost<BackupOut>("/gruppenfuehrer/backup/jetzt");
 
 export interface BackupIntegritaet {
   ok: boolean | null;
@@ -118,24 +118,24 @@ export interface BackupIntegritaet {
   datei: string;
 }
 export const holeBackupIntegritaet = () =>
-  apiGet<BackupIntegritaet>("/moderator/backup/integritaet");
+  apiGet<BackupIntegritaet>("/gruppenfuehrer/backup/integritaet");
 export const pruefeBackupIntegritaet = () =>
-  apiPost<BackupIntegritaet>("/moderator/backup/integritaet-pruefen");
-export const loescheBackup = (id: number) => apiDelete<void>(`/moderator/backup/${id}`);
+  apiPost<BackupIntegritaet>("/gruppenfuehrer/backup/integritaet-pruefen");
+export const loescheBackup = (id: number) => apiDelete<void>(`/gruppenfuehrer/backup/${id}`);
 export const analysiereBackup = (datei: File, passphrase?: string) =>
   apiUpload<BackupAnalyse>(
-    "/moderator/backup/analysieren",
+    "/gruppenfuehrer/backup/analysieren",
     datei,
     "datei",
     passphrase ? { passphrase } : undefined,
   );
 export const importiereBackup = (token: string, kategorien: string[], modus: "ersetzen" | "zusammenfuehren") =>
-  apiPost<BackupImportErgebnis>("/moderator/backup/importieren", { token, kategorien, modus });
+  apiPost<BackupImportErgebnis>("/gruppenfuehrer/backup/importieren", { token, kategorien, modus });
 
 /** Lädt die Backup-Datei (authentifiziert) als Blob und stößt den Browser-Download
  * an. */
 export async function ladeBackupHerunter(id: number, dateiname: string): Promise<void> {
-  const blob = await apiGet<Blob>(`/moderator/backup/${id}/download`);
+  const blob = await apiGet<Blob>(`/gruppenfuehrer/backup/${id}/download`);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

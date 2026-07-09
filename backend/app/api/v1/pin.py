@@ -1,4 +1,4 @@
-"""Öffentliche Endpunkte für PIN-Self-Service und Moderator-Freigabe.
+"""Öffentliche Endpunkte für PIN-Self-Service und Gruppenführer-Freigabe.
 
 Alle bewusst ohne Login – der jeweilige Token in der URL ist das Geheimnis
 (einmalig, ablaufend), analog zu den „Barcode vergessen"-Reservierungen und

@@ -2,12 +2,12 @@ import { apiGet, apiPost, ApiError } from "./client";
 
 const BASIS_URL = "/api/v1";
 
-export interface ModeratorToken {
+export interface GruppenfuehrerToken {
   access_token: string;
   token_type: string;
 }
 
-export interface ModeratorLoginErgebnis {
+export interface GruppenfuehrerLoginErgebnis {
   access_token: string | null;
   token_type: string;
   zwei_faktor_erforderlich: boolean;
@@ -64,7 +64,7 @@ export const namePinPruefen = (personId: number, pin: string) =>
   apiPost<NamePinVorschau>("/auth/name-pin/pruefen", { person_id: personId, pin });
 
 /** Stößt für eine Person ohne PIN den passenden Weg an (Self-Service-Mail oder
- * Moderator-Freigabe). Gibt {weg: "mail" | "freigabe"} zurück. */
+ * Gruppenführer-Freigabe). Gibt {weg: "mail" | "freigabe"} zurück. */
 export const pinAnfordern = (personId: number) =>
   apiPost<{ weg: string }>("/auth/pin-anfordern", { person_id: personId });
 
@@ -106,12 +106,12 @@ export const barcodeVorschau = (token: string) =>
 
 /** Eigener Aufruf statt apiPost: FastAPIs OAuth2PasswordRequestForm erwartet
  * application/x-www-form-urlencoded, nicht JSON. */
-export async function moderatorLogin(
+export async function gruppenfuehrerLogin(
   username: string,
   passwort: string
-): Promise<ModeratorLoginErgebnis> {
+): Promise<GruppenfuehrerLoginErgebnis> {
   const body = new URLSearchParams({ username, password: passwort });
-  const response = await fetch(`${BASIS_URL}/auth/moderator/login`, {
+  const response = await fetch(`${BASIS_URL}/auth/gruppenfuehrer/login`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     // credentials für das httponly Trusted-Device-Cookie (2FA-Überspringen).
@@ -126,12 +126,12 @@ export async function moderatorLogin(
 }
 
 /** Zweiter Login-Schritt bei aktivem 2FA: E-Mail-Code oder Recovery-Code. */
-export async function moderator2fa(
+export async function gruppenfuehrer2fa(
   challenge: string,
   code: string,
   angemeldetBleiben: boolean
-): Promise<ModeratorLoginErgebnis> {
-  const response = await fetch(`${BASIS_URL}/auth/moderator/2fa`, {
+): Promise<GruppenfuehrerLoginErgebnis> {
+  const response = await fetch(`${BASIS_URL}/auth/gruppenfuehrer/2fa`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

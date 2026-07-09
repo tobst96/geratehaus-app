@@ -17,10 +17,10 @@ async def _funktion(db, name="Maschinist", aktiv=True):
 
 
 async def _admin_headers(client, db):
-    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), moderator_rolle="admin"))
+    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     r = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
@@ -56,7 +56,7 @@ async def test_stempel_pdf_admin(client, db):
     await config_service.set(db, "oeffentliche_basis_url", "https://fw.example.org")
     f = await _funktion(db)
     h = await _admin_headers(client, db)
-    r = await client.get(f"/api/v1/moderator/stammdaten/funktionen-dienststunden/{f.id}/pdf", headers=h)
+    r = await client.get(f"/api/v1/gruppenfuehrer/stammdaten/funktionen-dienststunden/{f.id}/pdf", headers=h)
     assert r.status_code == 200
     assert r.headers["content-type"] == "application/pdf"
     assert r.content[:4] == b"%PDF"
@@ -65,5 +65,5 @@ async def test_stempel_pdf_admin(client, db):
 @pytest.mark.asyncio
 async def test_stempel_pdf_nur_admin(client, db):
     f = await _funktion(db)
-    r = await client.get(f"/api/v1/moderator/stammdaten/funktionen-dienststunden/{f.id}/pdf")
+    r = await client.get(f"/api/v1/gruppenfuehrer/stammdaten/funktionen-dienststunden/{f.id}/pdf")
     assert r.status_code == 401

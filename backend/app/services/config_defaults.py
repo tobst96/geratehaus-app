@@ -73,11 +73,11 @@ DEFAULTS: list[ConfigDefault] = [
     # Aufbewahrungsfrist des Audit-Logs: Einträge, die älter sind, werden
     # täglich automatisch gelöscht (Datenminimierung). 0 = keine Löschung.
     ConfigDefault("audit_aufbewahrung_tage", "365", ConfigTyp.INT, "Audit-Log: Aufbewahrungsfrist in Tagen (0 = unbegrenzt)"),
-    # Brute-Force-Schutz für den Moderator-Login (analog PIN). Nach so vielen
+    # Brute-Force-Schutz für den Gruppenführer-Login (analog PIN). Nach so vielen
     # aufeinanderfolgenden Fehlversuchen wird der betroffene Zugang für die
     # angegebene Dauer gesperrt (0 = Sperre aus; Sperre läuft automatisch ab).
-    ConfigDefault("moderator_login_max_fehlversuche", "5", ConfigTyp.INT, "Moderator-Login: Fehlversuche bis zur Sperre (0 = aus)"),
-    ConfigDefault("moderator_login_sperre_minuten", "15", ConfigTyp.INT, "Moderator-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
+    ConfigDefault("gruppenfuehrer_login_max_fehlversuche", "5", ConfigTyp.INT, "Gruppenführer-Login: Fehlversuche bis zur Sperre (0 = aus)"),
+    ConfigDefault("gruppenfuehrer_login_sperre_minuten", "15", ConfigTyp.INT, "Gruppenführer-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
     # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
     # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
     # anhand der Registry ergänzt bzw. ignoriert.

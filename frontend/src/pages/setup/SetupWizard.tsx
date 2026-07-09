@@ -179,7 +179,7 @@ export function SetupWizard() {
                 Technische Fehlerberichte an den Entwickler von Gerätehaus.app senden, damit Bugs
                 über alle Installationen hinweg schneller gefunden und behoben werden können. Es
                 werden nur Stacktraces und technische Fehlerdetails übertragen, keine Namen oder
-                sonstigen Inhalte. Jederzeit änderbar unter Moderator → Einstellungen.
+                sonstigen Inhalte. Jederzeit änderbar unter Gruppenführer → Einstellungen.
               </span>
             </label>
           </>

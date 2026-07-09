@@ -7,8 +7,8 @@ Zentrale Konfiguration, **wie** und **worüber** die App benachrichtigt. Interne
 
 - **E-Mail (SMTP)**: Host, Port, Benutzer, Passwort, TLS, Absender und
   Empfänger-Liste (Admins). „Testmail senden". Admin-/Betriebs-Mails
-  (Buchungsanfragen, Backup-Status) lassen sich zusätzlich **pro Moderatoren-Zugang**
-  abonnieren (Einstellungen → Moderatoren, Spalte „Benachrichtigungen") – zusätzlich
+  (Buchungsanfragen, Backup-Status) lassen sich zusätzlich **pro Gruppenführer-Zugang**
+  abonnieren (Einstellungen → Gruppenführer, Spalte „Benachrichtigungen") – zusätzlich
   zur globalen Empfänger-Liste.
 - **Telegram**: Bot-Token + Chat-IDs.
 - **Web Push (VAPID)**: für Browser-Push (Public/Private Key, Subject).

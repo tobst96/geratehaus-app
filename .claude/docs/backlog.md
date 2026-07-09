@@ -1692,8 +1692,63 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Begriff „Moderator" → „Gruppenführer" (durchgängig umbenennen)
 
-- Status: Backlog – **entblockt** (Umbau „Person = Konto" ist am 09.07.2026 in `beta`
-  gemergt; kann jetzt angegangen werden)
+- Status: Review (Feature-Branch `feature/rename-gruppenfuehrer` → PR nach beta,
+  09.07.2026; Nutzer wählte „wirklich alles inkl. Routen+DB"). **Vollständig umgesetzt** –
+  **0** „moderator" mehr in Backend/Frontend/Docs (außer 3 historische Audit-Aktionswerte).
+- Fortschritt (09.07.2026, Schicht 5 – **Legacy-DB-Cleanup + Backend-Prosa + Rest**, grün):
+  Nutzer gab den destruktiven Cleanup frei. Migration **0063** droppt Legacy-`moderatoren`-
+  Tabelle + alle `moderator_id`-Spalten und benennt die aktiven 2FA-Tabellen
+  `moderator_recovery_codes`/`_trusted_devices` → `gruppenfuehrer_*` (Models
+  `GruppenfuehrerRecoveryCode`/`TrustedDevice`, Datei `models/moderator.py`→`gruppenfuehrer.py`,
+  `Moderator`-Model gelöscht, verwaiste 2FA-Zeilen bereinigt). Gate-Aliase
+  `Annotated[Moderator]`→`[Person]`. Schemas `schemas/moderator.py`→`gruppenfuehrer.py`,
+  Auth-Schemas `Moderator{Token,LoginErgebnis}`/`Moderator2FA`→`Gruppenfuehrer*`,
+  `_moderator_token`/`moderator_login`/Trusted-Device-Cookie → gruppenfuehrer. **DB-Feld
+  `formulare.moderator_sichtbar`→`gruppenfuehrer_sichtbar`** (Model/Schema/Service/Endpoint/
+  Tests + **Migration 0064**; war nach Schicht 3 FE↔BE-Wire-mismatch → behoben). Backend-
+  Prosa (Kommentare/Docstrings) mit ü; Aktor-Params `_moderator`→`_gruppenfuehrer`; 4
+  Testdateien umbenannt. **Backend 400 grün, Frontend-Build + Vitest 26 grün, Migrationen
+  0061–0064 up+down auf Scratch-DB sauber.** → Merge-PR offen.
+- Historische Audit-Aktionswerte `moderator_angelegt`/`-geloescht`/`-passwort_geaendert`
+  bleiben als Datenwerte bestehender Audit-Zeilen (bewusst nicht geändert).
+- Fortschritt (09.07.2026, Schicht 1 – **DB + Routen**, grün committet `09058b7`):
+  DB-Spalte `personen.moderator_rolle` → `gruppenfuehrer_rolle` (Model/Schema/alle Refs +
+  Frontend `ElevatedPerson` + **Migration 0061** + Tests); **API-Routen** `/moderator/*` →
+  `/gruppenfuehrer/*` (16 Router-Prefixes, Auth-Login, alle Frontend-Calls + React-Router-
+  Pfade + Test-Pfade, 407 Stellen); Frontend-Verzeichnis `pages/moderator` →
+  `pages/gruppenfuehrer` (git mv). **Backend-Suite 400 grün, Frontend-Build grün.**
+- Fortschritt (09.07.2026, Schicht 2 – **Backend-Bezeichner + Dateien + Config**, grün
+  committet `c86cc6e`): `CurrentModerator`/`get_current_moderator`/`ModeratorGesperrtError`
+  umbenannt; `git mv` aller `api/v1/moderator_*.py`→`gruppenfuehrer_*.py`,
+  `services/moderator_service.py`+`moderator_listen_service.py`,
+  `core/moderator_2fa_session.py` (+ alle Importe); Audit-Aktionsstrings
+  `moderator_2fa_*`→`gruppenfuehrer_2fa_*`; Config-Keys `moderator_login_*`→
+  `gruppenfuehrer_login_*` (+ **Migration 0062**). Backend-Suite **400 grün**;
+  Migrationskette 0060→0061→0062 auf Scratch-DB sauber angewandt.
+- Fortschritt (09.07.2026, Schicht 3 – **Frontend-Bezeichner + Komponenten-Dateien**, grün):
+  Symbole umbenannt (`moderatorRolle`/`moderatorToken`/`moderatorAngemeldet`/
+  `moderatorAnmelden`/`moderatorAbmelden`/`ModeratorBerechtigung`/`moderator_sichtbar`/
+  `Moderator*Login/Layout/Route/Token` …); `git mv` `api/moderator.ts`→`api/gruppenfuehrer.ts`,
+  `components/ModeratorRoute`→`GruppenfuehrerRoute`, `pages/gruppenfuehrer/Moderator{Login,Layout}`
+  →`Gruppenfuehrer{Login,Layout}`, `Einsatz-/DienstbuchDetailModerator`→`…Gruppenfuehrer`
+  (+ `.css`). **Frontend-Build grün, Vitest 26 grün.** Bare-Word-Displaytext („Moderator"/
+  „Moderatoren") bewusst noch offen → Schicht 4 (mit ü).
+- Fortschritt (09.07.2026, Schicht 4 – **UI-Texte (mit ü) + Frontend fertig**, grün):
+  Frontend-Prosa `Moderator`/`Moderatoren`/`Moderatorbereich` → `Gruppenführer`(-bereich)
+  in `.tsx/.ts/.css` (Kommentare, JSX-Text, Strings, Datenschutz); `docs/*.md` + README +
+  `docs/screenshots/README`; **Backend OpenAPI-Tags** `tags=["moderator:…"]`→`["gruppenfuehrer:…"]`;
+  **Matrix-Wire-Key** `moderatoren`→`gruppenfuehrer` + Schema `ModeratorBerechtigungOut`→
+  `GruppenfuehrerBerechtigungOut` (Schema+Endpoint+Frontend+Test koordiniert); Rest-Identifier
+  `moderator2fa*`→`gruppenfuehrer2fa*`. **Frontend damit vollständig umbenannt.** Backend-Suite
+  400 grün, Frontend-Build + Vitest 26 grün.
+- Offene Schichten (jeweils grün + committen): (5) **Backend-Prosa** (Kommentare/Docstrings
+  „Moderator") – am besten NACH dem Model-Rename, da `\bModerator\b` sonst die Model-Klasse
+  trifft; (6) **aktive 2FA-Tabellen** `moderator_recovery_codes`/`moderator_trusted_devices` +
+  Models `ModeratorRecoveryCode`/`ModeratorTrustedDevice`, Model-Klasse `Moderator` + Legacy-
+  `moderatoren`-Tabelle + `moderator_id`-Spalten (+ Migration; mit dem aufgeschobenen Drop
+  bündeln). `backup_service`-Tabellenliste-Eintrag `"moderatoren"` mitziehen. Historische Audit-
+  Zeilen `moderator_angelegt`/`-geloescht`/`-passwort_geaendert` bleiben als Label-Keys
+  (Daten). **Merge-PR erst nach allen Schichten** (Branch bleibt bis dahin vor beta).
 - Priorität: Mittel
 - Kategorie: Wartung / Terminologie / Frontend + Backend
 - Plan: Nein (aber groß/mechanisch – sorgfältig, mit Tests + Build)

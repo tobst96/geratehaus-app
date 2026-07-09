@@ -12,11 +12,11 @@ from app.services import modul_service
 
 
 async def _admin(client, db):
-    m = Person(name="admin", passwort_hash=hash_secret("geheim123"), moderator_rolle="admin")
+    m = Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
     db.add(m)
     await db.commit()
     r = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
@@ -38,12 +38,12 @@ async def test_csv_import_legt_personen_an(client, db):
         "Erika;von;Musterfrau;;;\n"
     )
     r = await client.post(
-        "/api/v1/moderator/stammdaten/personen/csv-import", files=_upload(csv), headers=h
+        "/api/v1/gruppenfuehrer/stammdaten/personen/csv-import", files=_upload(csv), headers=h
     )
     assert r.status_code == 200
     assert r.json() == {"angelegt": 2, "fehler": []}
 
-    liste = (await client.get("/api/v1/moderator/stammdaten/personen", headers=h)).json()
+    liste = (await client.get("/api/v1/gruppenfuehrer/stammdaten/personen", headers=h)).json()
     namen = {p["name"] for p in liste}
     assert "Max Mustermann" in namen
     assert any("Musterfrau" in n for n in namen)
@@ -62,7 +62,7 @@ async def test_csv_import_sammelt_fehler_pro_zeile(client, db):
         "Gruppe;;Fehlt;;Existiert nicht;\n"
     )
     r = await client.post(
-        "/api/v1/moderator/stammdaten/personen/csv-import", files=_upload(csv), headers=h
+        "/api/v1/gruppenfuehrer/stammdaten/personen/csv-import", files=_upload(csv), headers=h
     )
     assert r.status_code == 200
     daten = r.json()
@@ -77,7 +77,7 @@ async def test_csv_import_komma_getrennt(client, db):
     h = await _admin(client, db)
     csv = "vorname,zwischenname,nachname,email,gruppe,funktion\nAnna,,Beispiel,,,\n"
     r = await client.post(
-        "/api/v1/moderator/stammdaten/personen/csv-import", files=_upload(csv), headers=h
+        "/api/v1/gruppenfuehrer/stammdaten/personen/csv-import", files=_upload(csv), headers=h
     )
     assert r.status_code == 200
     assert r.json()["angelegt"] == 1
@@ -86,16 +86,16 @@ async def test_csv_import_komma_getrennt(client, db):
 @pytest.mark.asyncio
 async def test_csv_import_gf_ohne_personal_403(client, db):
     await modul_service.ensure_module(db)
-    m = Person(name="gf", passwort_hash=hash_secret("geheim123"), moderator_rolle="gruppenfuehrer")
+    m = Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer")
     db.add(m)
     await db.commit()
     r = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "gf", "password": "geheim123"}
     )
     h = {"Authorization": f"Bearer {r.json()['access_token']}"}
     csv = "vorname;zwischenname;nachname;email;gruppe;funktion\nMax;;Mustermann;;;\n"
     r = await client.post(
-        "/api/v1/moderator/stammdaten/personen/csv-import", files=_upload(csv), headers=h
+        "/api/v1/gruppenfuehrer/stammdaten/personen/csv-import", files=_upload(csv), headers=h
     )
     assert r.status_code == 403
 
@@ -104,7 +104,7 @@ async def test_csv_import_gf_ohne_personal_403(client, db):
 async def test_csv_vorlage_download(client, db):
     await modul_service.ensure_module(db)
     h = await _admin(client, db)
-    r = await client.get("/api/v1/moderator/stammdaten/personen/csv-vorlage", headers=h)
+    r = await client.get("/api/v1/gruppenfuehrer/stammdaten/personen/csv-vorlage", headers=h)
     assert r.status_code == 200
     assert "vorname" in r.text
     assert "attachment" in r.headers["content-disposition"]

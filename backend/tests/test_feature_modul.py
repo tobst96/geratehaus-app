@@ -9,10 +9,10 @@ from app.services.config_service import config_service
 
 
 async def _admin_token(client, db):
-    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), moderator_rolle="admin"))
+    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     return login.json()["access_token"]
 
@@ -88,33 +88,33 @@ async def test_reihenfolge_robust_gegen_kaputte_config(db):
 
 
 async def test_endpoints_auth_und_flow(client, db):
-    ohne = await client.get("/api/v1/moderator/feature-module")
+    ohne = await client.get("/api/v1/gruppenfuehrer/feature-module")
     assert ohne.status_code == 401
 
     token = await _admin_token(client, db)
     h = {"Authorization": f"Bearer {token}"}
 
-    r = await client.get("/api/v1/moderator/feature-module", headers=h)
+    r = await client.get("/api/v1/gruppenfuehrer/feature-module", headers=h)
     assert r.status_code == 200
     assert [m["key"] for m in r.json()][0] == "personal"
 
     # An/Aus umschalten
-    r = await client.patch("/api/v1/moderator/feature-module/dienstbuch", json={"aktiv": False}, headers=h)
+    r = await client.patch("/api/v1/gruppenfuehrer/feature-module/dienstbuch", json={"aktiv": False}, headers=h)
     assert r.status_code == 200 and r.json()["aktiv"] is False
 
     # Divera-Startseite -> 400
-    r = await client.patch("/api/v1/moderator/feature-module/divera", json={"startseite": True}, headers=h)
+    r = await client.patch("/api/v1/gruppenfuehrer/feature-module/divera", json={"startseite": True}, headers=h)
     assert r.status_code == 400
 
     # Immer-aktives Modul abschalten -> 400
-    r = await client.patch("/api/v1/moderator/feature-module/personal", json={"aktiv": False}, headers=h)
+    r = await client.patch("/api/v1/gruppenfuehrer/feature-module/personal", json={"aktiv": False}, headers=h)
     assert r.status_code == 400
 
     # Reihenfolge setzen
     neu = ["divera", "barcode", "personal", "fahrzeuge", "benachrichtigungen", "kiosk", "backup", "minio", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung", "formular"]
-    r = await client.put("/api/v1/moderator/feature-module/reihenfolge", json={"keys": neu}, headers=h)
+    r = await client.put("/api/v1/gruppenfuehrer/feature-module/reihenfolge", json={"keys": neu}, headers=h)
     assert r.status_code == 200 and [m["key"] for m in r.json()] == neu
 
     # ungültige Reihenfolge -> 400
-    r = await client.put("/api/v1/moderator/feature-module/reihenfolge", json={"keys": ["divera"]}, headers=h)
+    r = await client.put("/api/v1/gruppenfuehrer/feature-module/reihenfolge", json={"keys": ["divera"]}, headers=h)
     assert r.status_code == 400

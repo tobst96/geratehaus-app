@@ -8,7 +8,7 @@ from app.db.base import Base
 
 class EinsatzEreignis(Base):
     """Chronologisches Ereignisprotokoll eines Einsatzes (Anlage, Eintragungen,
-    Aktualisierungen, Abschluss) – Grundlage der Timeline im Moderator-Bereich."""
+    Aktualisierungen, Abschluss) – Grundlage der Timeline im Gruppenführer-Bereich."""
 
     __tablename__ = "einsatz_ereignisse"
 

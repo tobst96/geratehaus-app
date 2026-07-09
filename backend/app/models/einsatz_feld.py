@@ -6,7 +6,7 @@ from app.models.mixins import TimestampMixin
 
 
 class EinsatzFeldDefinition(Base, TimestampMixin):
-    """Frei vom Moderator konfigurierbares Zusatzfeld für Einsatzberichte,
+    """Frei vom Gruppenführer konfigurierbares Zusatzfeld für Einsatzberichte,
     z. B. Einsatzleiter, Erste Lage, Tätigkeit. Werte selbst liegen pro
     Einsatz in Einsatz.zusatzfelder (JSON, keyed by schluessel)."""
 

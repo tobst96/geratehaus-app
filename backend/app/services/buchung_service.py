@@ -73,7 +73,7 @@ async def anfrage_erstellen(
     db: AsyncSession, person_id: int, daten: BuchungAnfrage
 ) -> tuple[FahrzeugBuchung, bool]:
     """Legt die Anfrage trotz möglichem Konflikt an (Anfrage bleibt möglich,
-    der Moderator entscheidet bei Konflikten – siehe Moderator-Bereich)."""
+    der Gruppenführer entscheidet bei Konflikten – siehe Gruppenführer-Bereich)."""
     konflikt = await hat_konflikt(db, daten.fahrzeug_id, daten.von, daten.bis)
     buchung = FahrzeugBuchung(
         fahrzeug_id=daten.fahrzeug_id,
@@ -106,7 +106,7 @@ async def _aktions_mail_versenden(
 ) -> None:
     """Zusätzlich zur regulären Benachrichtigung (an opted-in Personen) eine
     Mail mit Annehmen/Ablehnen-Buttons an die zentral konfigurierte
-    Moderator-Empfängerliste – nur Moderatoren dürfen über Buchungen
+    Gruppenführer-Empfängerliste – nur Gruppenführer dürfen über Buchungen
     entscheiden, daher bewusst nicht über den Person-Benachrichtigungsweg."""
     basis_url = str(await config_service.get(db, "oeffentliche_basis_url", "")).rstrip("/")
     if not basis_url:
@@ -141,7 +141,7 @@ async def zurueckziehen(db: AsyncSession, buchung: FahrzeugBuchung) -> FahrzeugB
 
 async def konfliktvergleich(db: AsyncSession, buchung: FahrzeugBuchung) -> list[FahrzeugBuchung]:
     """Andere aktive Buchungen desselben Fahrzeugs, die sich mit dieser
-    Anfrage zeitlich überschneiden – Entscheidungsgrundlage für den Moderator."""
+    Anfrage zeitlich überschneiden – Entscheidungsgrundlage für den Gruppenführer."""
     stmt = select(FahrzeugBuchung).options(*_DETAILS).where(
         FahrzeugBuchung.id != buchung.id,
         FahrzeugBuchung.fahrzeug_id == buchung.fahrzeug_id,

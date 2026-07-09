@@ -176,10 +176,10 @@ async def test_benachrichtigung_reset_bei_neuer_aktivitaet(db, monkeypatch):
 @pytest.mark.asyncio
 async def test_ampel_endpunkt(client, db):
     await _schwellen(db)
-    db.add(Person(name="gf", passwort_hash=hash_secret("geheim123"), moderator_rolle="gruppenfuehrer"))
+    db.add(Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer"))
     await db.commit()
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "gf", "password": "geheim123"}
     )
     token = login.json()["access_token"]
 
@@ -187,7 +187,7 @@ async def test_ampel_endpunkt(client, db):
     await _einsatz_teilnahme(db, p, 70)
 
     r = await client.get(
-        "/api/v1/moderator/stammdaten/personen/ampel",
+        "/api/v1/gruppenfuehrer/stammdaten/personen/ampel",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert r.status_code == 200
@@ -197,16 +197,16 @@ async def test_ampel_endpunkt(client, db):
 
 @pytest.mark.asyncio
 async def test_person_inaktiv_persistiert(client, db):
-    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), moderator_rolle="admin"))
+    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     token = login.json()["access_token"]
     p = await _person(db, "Max Muster")
 
     r = await client.put(
-        f"/api/v1/moderator/stammdaten/personen/{p.id}",
+        f"/api/v1/gruppenfuehrer/stammdaten/personen/{p.id}",
         headers={"Authorization": f"Bearer {token}"},
         json={"inaktiv": True},
     )

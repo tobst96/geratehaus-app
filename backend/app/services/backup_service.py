@@ -53,7 +53,7 @@ KATEGORIEN: list[tuple[str, str, list[str]]] = [
          "namens_abweichungen", "person_bild_reservierungen"],
     ),
     ("fahrzeuge", "Fahrzeuge & Sitzplätze", ["fahrzeuge"]),
-    ("zugaenge", "Zugänge & Berechtigungen", ["moderatoren", "berechtigungen", "module"]),
+    ("zugaenge", "Zugänge & Berechtigungen", ["berechtigungen", "module"]),
     (
         "einsaetze",
         "Einsätze",
@@ -508,9 +508,9 @@ async def _aktive_ziele(db: AsyncSession) -> list:
                 )
             )
     if await config_service.get(db, "backup_email_aktiv", False):
-        from app.services import moderator_service
+        from app.services import gruppenfuehrer_service
 
-        ziele.append(EmailZiel(db, await moderator_service.admin_benachrichtigungs_empfaenger(db)))
+        ziele.append(EmailZiel(db, await gruppenfuehrer_service.admin_benachrichtigungs_empfaenger(db)))
     return ziele
 
 
@@ -639,9 +639,9 @@ async def _mail_detailtext(db: AsyncSession, dateiname: str, kern: str) -> str:
 
 
 async def _fehler_mail(db: AsyncSession, betreff: str, text: str) -> None:
-    from app.services import moderator_service
+    from app.services import gruppenfuehrer_service
 
-    empfaenger = await moderator_service.admin_benachrichtigungs_empfaenger(db)
+    empfaenger = await gruppenfuehrer_service.admin_benachrichtigungs_empfaenger(db)
     if not empfaenger:
         return
     notifier = EmailNotifier()

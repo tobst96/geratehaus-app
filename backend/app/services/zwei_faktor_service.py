@@ -1,4 +1,4 @@
-"""Zwei-Faktor-Authentisierung (E-Mail-OTP) für Moderator-/Admin-Logins.
+"""Zwei-Faktor-Authentisierung (E-Mail-OTP) für Gruppenführer-/Admin-Logins.
 
 Opt-in pro Zugang. Nach korrektem Passwort wird – sofern das Gerät nicht als
 vertrauenswürdig bekannt ist – ein 6-stelliger Code an die hinterlegte E-Mail
@@ -20,7 +20,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_secret, verify_secret
-from app.models.moderator import ModeratorRecoveryCode, ModeratorTrustedDevice
+from app.models.gruppenfuehrer import GruppenfuehrerRecoveryCode, GruppenfuehrerTrustedDevice
 from app.models.person import Person
 
 OTP_GUELTIGKEIT_MINUTEN = 10
@@ -104,11 +104,11 @@ async def recovery_codes_erzeugen(db: AsyncSession, person: Person) -> list[str]
     """Erzeugt einen frischen Satz Recovery-Codes (ersetzt vorhandene) und gibt
     sie **einmalig im Klartext** zurück (danach nur noch als Hash gespeichert)."""
     await db.execute(
-        delete(ModeratorRecoveryCode).where(ModeratorRecoveryCode.person_id == person.id)
+        delete(GruppenfuehrerRecoveryCode).where(GruppenfuehrerRecoveryCode.person_id == person.id)
     )
     codes = [_recovery_code_erzeugen() for _ in range(RECOVERY_CODE_ANZAHL)]
     for code in codes:
-        db.add(ModeratorRecoveryCode(person_id=person.id, code_hash=hash_secret(code)))
+        db.add(GruppenfuehrerRecoveryCode(person_id=person.id, code_hash=hash_secret(code)))
     await db.commit()
     return codes
 
@@ -117,9 +117,9 @@ async def recovery_code_pruefen(db: AsyncSession, person: Person, code: str) -> 
     eingabe = code.strip().upper()
     offene = (
         await db.execute(
-            select(ModeratorRecoveryCode).where(
-                ModeratorRecoveryCode.person_id == person.id,
-                ModeratorRecoveryCode.benutzt.is_(False),
+            select(GruppenfuehrerRecoveryCode).where(
+                GruppenfuehrerRecoveryCode.person_id == person.id,
+                GruppenfuehrerRecoveryCode.benutzt.is_(False),
             )
         )
     ).scalars().all()
@@ -138,7 +138,7 @@ async def trusted_device_ausstellen(db: AsyncSession, person: Person) -> str:
     zurück (kommt als httponly-Cookie zum Client, DB speichert nur den Hash)."""
     roh = secrets.token_urlsafe(32)
     db.add(
-        ModeratorTrustedDevice(
+        GruppenfuehrerTrustedDevice(
             person_id=person.id,
             token_hash=_sha256(roh),
             ablauf_am=_jetzt() + timedelta(days=TRUSTED_DEVICE_TAGE),
@@ -154,9 +154,9 @@ async def trusted_device_gueltig(db: AsyncSession, person: Person, roh_token: st
         return False
     eintrag = (
         await db.execute(
-            select(ModeratorTrustedDevice).where(
-                ModeratorTrustedDevice.person_id == person.id,
-                ModeratorTrustedDevice.token_hash == _sha256(roh_token),
+            select(GruppenfuehrerTrustedDevice).where(
+                GruppenfuehrerTrustedDevice.person_id == person.id,
+                GruppenfuehrerTrustedDevice.token_hash == _sha256(roh_token),
             )
         )
     ).scalar_one_or_none()
@@ -185,9 +185,9 @@ async def deaktivieren(db: AsyncSession, person: Person) -> None:
     person.otp_ablauf_am = None
     person.otp_versuche = 0
     await db.execute(
-        delete(ModeratorRecoveryCode).where(ModeratorRecoveryCode.person_id == person.id)
+        delete(GruppenfuehrerRecoveryCode).where(GruppenfuehrerRecoveryCode.person_id == person.id)
     )
     await db.execute(
-        delete(ModeratorTrustedDevice).where(ModeratorTrustedDevice.person_id == person.id)
+        delete(GruppenfuehrerTrustedDevice).where(GruppenfuehrerTrustedDevice.person_id == person.id)
     )
     await db.commit()

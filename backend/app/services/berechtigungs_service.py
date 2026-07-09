@@ -1,8 +1,8 @@
 """Zentrale Berechtigungslogik: individueller Modul-Zugriff pro **Person**.
 
-Die Person ist das Konto (Ablösung der separaten `moderatoren`-Tabelle). „Elevated"
-(= Moderator/Admin) ist eine Person mit gesetzter `moderator_rolle`; Admins
-(`moderator_rolle == "admin"`) haben immer Vollzugriff (Admin-Bypass). Alle
+Die Person ist das Konto (Ablösung der separaten `Gruppenführer`-Tabelle). „Elevated"
+(= Gruppenführer/Admin) ist eine Person mit gesetzter `gruppenfuehrer_rolle`; Admins
+(`gruppenfuehrer_rolle == "admin"`) haben immer Vollzugriff (Admin-Bypass). Alle
 Zugriffsprüfungen laufen über `hat_zugriff()`.
 """
 
@@ -16,12 +16,12 @@ from app.services import modul_service
 
 
 def ist_elevated(person: Person) -> bool:
-    """True, wenn die Person Zugang zum Moderatorbereich hat (Admin oder Gruppenführer)."""
-    return person.moderator_rolle is not None
+    """True, wenn die Person Zugang zum Gruppenführerbereich hat (Admin oder Gruppenführer)."""
+    return person.gruppenfuehrer_rolle is not None
 
 
 def ist_admin(person: Person) -> bool:
-    return person.moderator_rolle == "admin"
+    return person.gruppenfuehrer_rolle == "admin"
 
 
 async def hat_zugriff(db: AsyncSession, person: Person, modul_key: str) -> bool:
@@ -58,14 +58,14 @@ async def meine_keys(db: AsyncSession, person: Person) -> list[str]:
 async def matrix(db: AsyncSession) -> tuple[list[Modul], list[Person], dict[int, set[str]]]:
     """Liefert (Module, elevated Personen, {person_id: set(freigegebene modul_keys)})
     für die Admin-Berechtigungsseite. „Elevated" = Person mit gesetzter
-    `moderator_rolle`."""
+    `gruppenfuehrer_rolle`."""
     module = await modul_service.liste_module(db)
     modul_key_by_id = {m.id: m.key for m in module}
 
     personen = list(
         (
             await db.execute(
-                select(Person).where(Person.moderator_rolle.is_not(None)).order_by(Person.name)
+                select(Person).where(Person.gruppenfuehrer_rolle.is_not(None)).order_by(Person.name)
             )
         ).scalars().all()
     )

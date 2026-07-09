@@ -222,7 +222,7 @@ async def eigene_summen(db: AsyncSession, person_id: int) -> list[DienststundenS
 async def schwellenwert_liste(db: AsyncSession) -> list[SchwellenwertEintragOut]:
     """Personen, die den Schwellenwert einer Funktion auch nach Abzug bereits
     übernommener Stunden noch überschreiten – für die Liste unter
-    Listen > Dienststunden im Moderator-Bereich."""
+    Listen > Dienststunden im Gruppenführer-Bereich."""
     summen_stmt = (
         select(
             Person.id,

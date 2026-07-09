@@ -5,7 +5,7 @@ export interface Meta {
   docs_basis_url: string;
 }
 
-export const holeMeta = () => apiGet<Meta>("/moderator/meta");
+export const holeMeta = () => apiGet<Meta>("/gruppenfuehrer/meta");
 
 export interface MeineBerechtigungen {
   ist_admin: boolean;
@@ -13,7 +13,7 @@ export interface MeineBerechtigungen {
 }
 
 export const holeMeineBerechtigungen = () =>
-  apiGet<MeineBerechtigungen>("/moderator/meta/meine-berechtigungen");
+  apiGet<MeineBerechtigungen>("/gruppenfuehrer/meta/meine-berechtigungen");
 
 export interface SchedulerJob {
   id: string;
@@ -29,4 +29,4 @@ export interface SystemStatus {
   scheduler: { laeuft: boolean; jobs: SchedulerJob[] };
 }
 
-export const holeSystemStatus = () => apiGet<SystemStatus>("/moderator/meta/systemstatus");
+export const holeSystemStatus = () => apiGet<SystemStatus>("/gruppenfuehrer/meta/systemstatus");

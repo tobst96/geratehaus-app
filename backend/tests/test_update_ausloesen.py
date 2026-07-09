@@ -57,5 +57,5 @@ async def test_ausloesen_kein_marker_bei_github_fehler(db, tmp_path, monkeypatch
 
 
 async def test_ausloesen_route_ohne_login_verweigert(client):
-    response = await client.post("/api/v1/moderator/update/ausloesen")
+    response = await client.post("/api/v1/gruppenfuehrer/update/ausloesen")
     assert response.status_code == 401

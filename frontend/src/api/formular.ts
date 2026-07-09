@@ -34,7 +34,7 @@ export interface Formular {
   aktiv: boolean;
   login_erforderlich: boolean;
   email_empfaenger: string | null;
-  moderator_sichtbar: boolean;
+  gruppenfuehrer_sichtbar: boolean;
   start_am: string | null;
   ablauf_am: string | null;
   max_einreichungen: number | null;
@@ -97,33 +97,33 @@ export type FeldEingabe = Partial<Omit<FormularFeld, "id">> & { label: string; t
 
 // --- Admin -------------------------------------------------------------------
 
-export const holeFormulare = () => apiGet<Formular[]>("/moderator/formulare");
-export const holeFormular = (id: number) => apiGet<Formular>(`/moderator/formulare/${id}`);
+export const holeFormulare = () => apiGet<Formular[]>("/gruppenfuehrer/formulare");
+export const holeFormular = (id: number) => apiGet<Formular>(`/gruppenfuehrer/formulare/${id}`);
 export const formularAnlegen = (daten: { name: string }) =>
-  apiPost<Formular>("/moderator/formulare", daten);
+  apiPost<Formular>("/gruppenfuehrer/formulare", daten);
 export const formularAktualisieren = (id: number, daten: FormularEingabe) =>
-  apiPut<Formular>(`/moderator/formulare/${id}`, daten);
-export const formularLoeschen = (id: number) => apiDelete<void>(`/moderator/formulare/${id}`);
+  apiPut<Formular>(`/gruppenfuehrer/formulare/${id}`, daten);
+export const formularLoeschen = (id: number) => apiDelete<void>(`/gruppenfuehrer/formulare/${id}`);
 
 export const feldAnlegen = (formularId: number, daten: FeldEingabe) =>
-  apiPost<FormularFeld>(`/moderator/formulare/${formularId}/felder`, daten);
+  apiPost<FormularFeld>(`/gruppenfuehrer/formulare/${formularId}/felder`, daten);
 export const feldAktualisieren = (feldId: number, daten: FeldEingabe) =>
-  apiPut<FormularFeld>(`/moderator/formulare/felder/${feldId}`, daten);
+  apiPut<FormularFeld>(`/gruppenfuehrer/formulare/felder/${feldId}`, daten);
 export const feldLoeschen = (feldId: number) =>
-  apiDelete<void>(`/moderator/formulare/felder/${feldId}`);
+  apiDelete<void>(`/gruppenfuehrer/formulare/felder/${feldId}`);
 
 export const holeEinreichungen = (formularId: number) =>
-  apiGet<Einreichung[]>(`/moderator/formulare/${formularId}/einreichungen`);
+  apiGet<Einreichung[]>(`/gruppenfuehrer/formulare/${formularId}/einreichungen`);
 export const holeZusammenfassung = (formularId: number) =>
-  apiGet<Zusammenfassung>(`/moderator/formulare/${formularId}/zusammenfassung`);
+  apiGet<Zusammenfassung>(`/gruppenfuehrer/formulare/${formularId}/zusammenfassung`);
 export const holeSichtbareFormulare = () =>
-  apiGet<Formular[]>("/moderator/formulare/sichtbar");
+  apiGet<Formular[]>("/gruppenfuehrer/formulare/sichtbar");
 export const formularDuplizieren = (id: number) =>
-  apiPost<Formular>(`/moderator/formulare/${id}/duplizieren`);
+  apiPost<Formular>(`/gruppenfuehrer/formulare/${id}/duplizieren`);
 /** CSV-Export herunterladen. Über einen authentifizierten Blob-Request (nicht als
  * <a href>, denn ein Link kann den Bearer-Token nicht mitsenden → 401). */
 export async function formularCsvHerunterladen(id: number, name: string): Promise<void> {
-  const blob = await apiGet<Blob>(`/moderator/formulare/${id}/export.csv`);
+  const blob = await apiGet<Blob>(`/gruppenfuehrer/formulare/${id}/export.csv`);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

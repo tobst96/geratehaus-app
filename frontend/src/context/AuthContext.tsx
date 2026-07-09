@@ -1,10 +1,10 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { getModeratorToken, setModeratorToken } from "../api/client";
+import { getGruppenfuehrerToken, setGruppenfuehrerToken } from "../api/client";
 import {
   barcodeEinscannen as barcodeEinscannenApi,
   mitgliedAbmelden as mitgliedAbmeldenApi,
-  moderator2fa,
-  moderatorLogin,
+  gruppenfuehrer2fa,
+  gruppenfuehrerLogin,
   namePinLogin,
 } from "../api/auth";
 import { holeMeineBerechtigungen } from "../api/meta";
@@ -34,22 +34,22 @@ interface AuthContextValue {
    * z. B. nach einem Namen+PIN-Login im Mitgliederbereich. */
   identitaetSpeichern: (name: string) => void;
   kioskScanBeenden: () => Promise<void>;
-  moderatorAngemeldet: boolean;
-  moderatorRolle: string | null;
+  gruppenfuehrerAngemeldet: boolean;
+  gruppenfuehrerRolle: string | null;
   /** True, sobald die eigenen Modul-Rechte geladen wurden (Guards warten darauf). */
   berechtigungenGeladen: boolean;
-  /** Ob der angemeldete Moderator auf ein Modul zugreifen darf (Admin: immer true). */
+  /** Ob der angemeldete Gruppenführer auf ein Modul zugreifen darf (Admin: immer true). */
   hatModulZugriff: (modulKey: string) => boolean;
-  moderatorAnmelden: (
+  gruppenfuehrerAnmelden: (
     username: string,
     passwort: string
   ) => Promise<{ zweiFaktorErforderlich: boolean; challenge: string | null }>;
-  moderator2faAbschliessen: (
+  gruppenfuehrer2faAbschliessen: (
     challenge: string,
     code: string,
     angemeldetBleiben: boolean
   ) => Promise<void>;
-  moderatorAbmelden: () => void;
+  gruppenfuehrerAbmelden: () => void;
   mitgliedAbmelden: () => Promise<void>;
 }
 
@@ -59,20 +59,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [angezeigterName, setAngezeigterName] = useState<string | null>(
     localStorage.getItem(NAME_SPEICHER_KEY)
   );
-  const [moderatorAngemeldet, setModeratorAngemeldet] = useState<boolean>(
-    getModeratorToken() !== null
+  const [gruppenfuehrerAngemeldet, setGruppenfuehrerAngemeldet] = useState<boolean>(
+    getGruppenfuehrerToken() !== null
   );
-  const [moderatorRolle, setModeratorRolle] = useState<string | null>(
-    rolleAusToken(getModeratorToken())
+  const [gruppenfuehrerRolle, setGruppenfuehrerRolle] = useState<string | null>(
+    rolleAusToken(getGruppenfuehrerToken())
   );
   // Eigene Modul-Rechte (Keys). null = noch nicht geladen. Admins bekommen vom
   // Backend alle Keys, sodass hatModulZugriff für sie stets true ist.
   const [modulRechte, setModulRechte] = useState<Set<string> | null>(null);
 
-  // Rechte laden, sobald ein Moderator angemeldet ist (und beim Abmelden leeren).
+  // Rechte laden, sobald ein Gruppenführer angemeldet ist (und beim Abmelden leeren).
   useEffect(() => {
     let aktiv = true;
-    if (!moderatorAngemeldet) {
+    if (!gruppenfuehrerAngemeldet) {
       setModulRechte(null);
       return;
     }
@@ -86,12 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       aktiv = false;
     };
-  }, [moderatorAngemeldet]);
+  }, [gruppenfuehrerAngemeldet]);
 
   function hatModulZugriff(modulKey: string): boolean {
     // Admin-Bypass zusätzlich zur (ohnehin alle Keys enthaltenden) Backend-Antwort,
     // damit die UI schon vor dem Laden der Rechte für Admins vollständig ist.
-    if (moderatorRolle === "admin") return true;
+    if (gruppenfuehrerRolle === "admin") return true;
     return modulRechte?.has(modulKey) ?? false;
   }
 
@@ -132,18 +132,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function sitzungSetzen(accessToken: string): void {
-    setModeratorToken(accessToken);
-    setModeratorAngemeldet(true);
-    setModeratorRolle(rolleAusToken(accessToken));
+    setGruppenfuehrerToken(accessToken);
+    setGruppenfuehrerAngemeldet(true);
+    setGruppenfuehrerRolle(rolleAusToken(accessToken));
   }
 
   /** Login Schritt 1. Liefert `{ zweiFaktorErforderlich, challenge }`: ist 2FA
-   * nötig, muss der Aufrufer `moderator2faAbschliessen` mit dem Code aufrufen. */
-  async function moderatorAnmelden(
+   * nötig, muss der Aufrufer `gruppenfuehrer2faAbschliessen` mit dem Code aufrufen. */
+  async function gruppenfuehrerAnmelden(
     username: string,
     passwort: string
   ): Promise<{ zweiFaktorErforderlich: boolean; challenge: string | null }> {
-    const ergebnis = await moderatorLogin(username, passwort);
+    const ergebnis = await gruppenfuehrerLogin(username, passwort);
     if (ergebnis.access_token) {
       sitzungSetzen(ergebnis.access_token);
       return { zweiFaktorErforderlich: false, challenge: null };
@@ -151,24 +151,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { zweiFaktorErforderlich: ergebnis.zwei_faktor_erforderlich, challenge: ergebnis.challenge };
   }
 
-  async function moderator2faAbschliessen(
+  async function gruppenfuehrer2faAbschliessen(
     challenge: string,
     code: string,
     angemeldetBleiben: boolean
   ): Promise<void> {
-    const ergebnis = await moderator2fa(challenge, code, angemeldetBleiben);
+    const ergebnis = await gruppenfuehrer2fa(challenge, code, angemeldetBleiben);
     if (!ergebnis.access_token) throw new Error("Kein Token erhalten.");
     sitzungSetzen(ergebnis.access_token);
   }
 
-  function moderatorAbmelden(): void {
-    setModeratorToken(null);
-    setModeratorAngemeldet(false);
-    setModeratorRolle(null);
+  function gruppenfuehrerAbmelden(): void {
+    setGruppenfuehrerToken(null);
+    setGruppenfuehrerAngemeldet(false);
+    setGruppenfuehrerRolle(null);
   }
 
   /** Beendet die Mitglied-Identität (Barcode-Scan/Name-Eintrag) wieder –
-   * anders als beim Moderator-Logout muss der Server aktiv werden, da das
+   * anders als beim Gruppenführer-Logout muss der Server aktiv werden, da das
    * Namens-Cookie httponly ist und nicht per JS gelöscht werden kann. */
   async function mitgliedAbmelden(): Promise<void> {
     await mitgliedAbmeldenApi();
@@ -185,13 +185,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         nameLoginEinmalig,
         identitaetSpeichern,
         kioskScanBeenden,
-        moderatorAngemeldet,
-        moderatorRolle,
-        berechtigungenGeladen: modulRechte !== null || moderatorRolle === "admin",
+        gruppenfuehrerAngemeldet,
+        gruppenfuehrerRolle,
+        berechtigungenGeladen: modulRechte !== null || gruppenfuehrerRolle === "admin",
         hatModulZugriff,
-        moderatorAnmelden,
-        moderator2faAbschliessen,
-        moderatorAbmelden,
+        gruppenfuehrerAnmelden,
+        gruppenfuehrer2faAbschliessen,
+        gruppenfuehrerAbmelden,
         mitgliedAbmelden,
       }}
     >

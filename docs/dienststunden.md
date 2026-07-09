@@ -9,7 +9,7 @@ Erfassung geleisteter Dienststunden je Person und Funktion. Mitgliederseitiges M
   Schnellauswahl-Chips oder Stepper (viertelstundengenau) und Datum eintragen.
 - „Barcode vergessen": Erfassung per Handy-QR-Code (Name + PIN erforderlich).
 
-## Moderator (Liste/Detail)
+## Gruppenführer (Liste/Detail)
 
 - Übersicht der erfassten Dienststunden, manuelle Nacherfassung, Korrekturen.
 - **Funktionen** für Dienststunden pflegen (je Funktion eigene Auswertung möglich).

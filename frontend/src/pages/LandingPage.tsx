@@ -27,7 +27,7 @@ export function LandingPage() {
         <div className="karte">
           <h2>{t.gruppenfuehrer.titel}</h2>
           <p className="text-mute">{t.gruppenfuehrer.beschreibung}</p>
-          <Link to="/moderator/login">
+          <Link to="/gruppenfuehrer/login">
             <button type="button">{t.gruppenfuehrer.login}</button>
           </Link>
         </div>
@@ -35,7 +35,7 @@ export function LandingPage() {
         <div className="karte">
           <h2>{t.admin.titel}</h2>
           <p className="text-mute">{t.admin.beschreibung}</p>
-          <Link to="/moderator/login">
+          <Link to="/gruppenfuehrer/login">
             <button type="button">{t.admin.login}</button>
           </Link>
         </div>

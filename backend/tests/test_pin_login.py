@@ -1,5 +1,5 @@
 """Tests für den Namen+PIN-Login (Barcode-Modul AUS): Personenauswahl,
-Login mit PIN, PIN-Self-Service, Moderator-Freigabe und Erinnerungs-Job."""
+Login mit PIN, PIN-Self-Service, Gruppenführer-Freigabe und Erinnerungs-Job."""
 
 import pytest
 
@@ -157,7 +157,7 @@ async def test_pin_setzen_per_token(client, db):
     assert r.status_code == 410
 
 
-# --- Moderator-Freigabe -----------------------------------------------------
+# --- Gruppenführer-Freigabe -----------------------------------------------------
 
 
 @pytest.mark.asyncio

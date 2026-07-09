@@ -1,5 +1,5 @@
 """Tests für das Zugriffs-Gate (require_zugriff): die sonst öffentlichen Daten-
-Endpunkte sind ohne Identität gesperrt (401) und mit Kiosk-Token / Moderator /
+Endpunkte sind ohne Identität gesperrt (401) und mit Kiosk-Token / Gruppenführer /
 Mitglieds-Cookie erreichbar."""
 
 from datetime import datetime, timezone
@@ -29,10 +29,10 @@ async def _kiosk_token(db) -> str:
 
 
 async def _moderator_header(client, db) -> dict:
-    db.add(Person(name="gf", passwort_hash=hash_secret("geheim123"), moderator_rolle="gruppenfuehrer"))
+    db.add(Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer"))
     await db.commit()
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "gf", "password": "geheim123"}
     )
     return {"Authorization": f"Bearer {login.json()['access_token']}"}
 
