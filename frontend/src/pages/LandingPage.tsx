@@ -1,59 +1,51 @@
 import { Link } from "react-router-dom";
 import { useConfig } from "../context/ConfigContext";
+import { texte } from "../i18n/texte";
 
 export function LandingPage() {
   const { config } = useConfig();
+  const t = texte.landing;
 
   return (
     <div className="seite">
       <div className="karte text-center">
         <h1>{config?.organisation_name ?? "Gerätehaus.app"}</h1>
         <p style={{ color: "var(--farbe-text-mute)", maxWidth: 560, margin: "0 auto" }}>
-          Die digitale Einsatzverwaltung für Feuerwehren und ähnliche Organisationen: Einsatzberichte,
-          Dienstbücher, Dienststunden und Fahrzeugbuchungen – papierlos, am Gerätehaus-Tablet und von
-          überall per Login.
+          {t.untertitel}
         </p>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
         <div className="karte">
-          <h2>Mitglied</h2>
-          <p className="text-mute">
-            Per Barcode anmelden und – falls freigegeben – eigene Einsätze, Dienstbuch, Dienststunden
-            oder Fahrzeugbuchungen verwalten.
-          </p>
+          <h2>{t.mitglied.titel}</h2>
+          <p className="text-mute">{t.mitglied.beschreibung}</p>
           <Link to="/mitglied/login">
-            <button type="button">Mitglieder-Login</button>
+            <button type="button">{t.mitglied.login}</button>
           </Link>
         </div>
 
         <div className="karte">
-          <h2>Gruppenführer</h2>
-          <p className="text-mute">
-            Einsatzberichte, Dienstbucheinträge und Fahrzeugreservierungen einsehen und bearbeiten.
-          </p>
+          <h2>{t.gruppenfuehrer.titel}</h2>
+          <p className="text-mute">{t.gruppenfuehrer.beschreibung}</p>
           <Link to="/moderator/login">
-            <button type="button">Gruppenführer-Login</button>
+            <button type="button">{t.gruppenfuehrer.login}</button>
           </Link>
         </div>
 
         <div className="karte">
-          <h2>Admin</h2>
-          <p className="text-mute">Personal, Stammdaten und alle Einstellungen verwalten.</p>
+          <h2>{t.admin.titel}</h2>
+          <p className="text-mute">{t.admin.beschreibung}</p>
           <Link to="/moderator/login">
-            <button type="button">Admin-Login</button>
+            <button type="button">{t.admin.login}</button>
           </Link>
         </div>
       </div>
 
       <div className="karte text-center">
-        <p style={{ margin: 0 }}>
-          Du betreust ein Tablet im Gerätehaus? Den Kiosk-Modus-Link dafür erzeugt ein Admin unter
-          "Kiosk-Geräte".
-        </p>
+        <p style={{ margin: 0 }}>{t.kiosk_hinweis}</p>
         <p style={{ margin: "0.5rem 0 0" }}>
           <a href="/api/v1/docs" target="_blank" rel="noreferrer">
-            API-Dokumentation (Swagger)
+            {t.api_doku}
           </a>
         </p>
       </div>

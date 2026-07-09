@@ -1627,6 +1627,14 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   i18n) erleichtert Wording-Anpassungen je Feuerwehr und spätere Sprachen.
 - Akzeptanzkriterien: Zentrale String-Quelle; erste Seiten umgestellt.
 - Notizen: Nutzen ⭐⭐.
+- Fortschritt (09.07.2026, direkt auf beta): **Zentrale String-Quelle etabliert** –
+  `frontend/src/i18n/texte.ts`, bewusst **ohne i18n-Framework/Hook** (Deutsch bleibt):
+  ein getyptes, nach Seite/Feature verschachteltes Objekt (`texte.<bereich>.<schlüssel>`).
+  Konvention: nur statische Texte zentral, dynamische Werte bleiben im Component;
+  Migration **seitenweise** (kein Big-Bang). **Erste Seite `LandingPage.tsx` umgestellt.**
+  Build grün. **Muster bitte gegenprüfen** – bei anderer Präferenz (z. B. `t("key")`-
+  Funktion, flache Keys) muss nur diese eine Seite + `texte.ts` angepasst werden.
+- Weiter offen: weitere Seiten schrittweise migrieren (nach demselben Muster).
 
 ### CI bei jedem PR (GitHub Actions)
 
