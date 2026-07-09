@@ -1606,7 +1606,7 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Einheitliche Fehler-/Ladezustände
 
-- Status: Backlog (Fortschritt 07.07.2026 – seitenfüllende Fehlerzustände vereinheitlicht)
+- Status: Erledigt (09.07.2026 – Toast-Muster als letztes offenes Stück umgesetzt)
 - Priorität: Niedrig
 - Kategorie: Frontend / UX
 - Skills: geraetehaus-patterns, review
@@ -1633,8 +1633,15 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `role="alert"`-Komponente. Bewusst **nicht** konvertiert: das `<li className="fehlertext">`
   in `Personal.tsx` (Listenelement) und das block-`<div className="fehlertext">` in
   `Buchungsmanagement.tsx` (kein Absatz). `npm run build` + `npm run test` (26) grün.
-- **Noch offen:** nur noch ein echtes **Toast-Muster** (Design-Entscheidung) – separater
-  Folge-Slice; Inline-Fehler sind damit abgeschlossen.
+- Umsetzung (09.07.2026, direkt auf beta): **Toast-Muster** (Design vom Agenten
+  entschieden). Leichtes, **abhängigkeitsfreies** Toast-System `context/ToastContext.tsx`
+  (`ToastProvider` + `useToast()` → `toast.erfolg/fehler/info`); unten mittig, auto-dismiss
+  (Fehler 6 s, sonst 4 s), manuell schließbar, **a11y** (`role="alert"` bei Fehlern, sonst
+  `role="status"`, `aria-label` am Schließen-Button), dark-mode-tauglich via CSS-Variablen
+  (`.toast*` in `index.css`). Provider in `main.tsx` gemountet. **Alle 8 nativen `alert()`**
+  (Personal 6, Einstellungen 2) durch Toasts ersetzt. Klare Abgrenzung dokumentiert:
+  `SeitenFehler` = seitenfüllend **+ Retry**, `Fehlertext` = inline, `Toast` = flüchtig.
+  Test `ToastContext.test.tsx` (3). `npm run build` + Vitest (29) grün. **Damit erledigt.**
 
 ### Inline-Styles → CSS-Klassen
 

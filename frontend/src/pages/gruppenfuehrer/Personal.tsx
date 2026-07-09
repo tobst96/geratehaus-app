@@ -39,6 +39,7 @@ import {
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import type {
   AmpelStatus,
@@ -179,6 +180,7 @@ function istPinGesperrt(person: Person): boolean {
 
 export function Personal() {
   const { config } = useConfig();
+  const toast = useToast();
   const [liste, setListe] = useState<Person[] | null>(null);
   const [gruppen, setGruppen] = useState<Gruppe[]>([]);
   const [funktionen, setFunktionen] = useState<FunktionDienststunden[]>([]);
@@ -496,13 +498,13 @@ export function Personal() {
     const pin = window.prompt("Neuen PIN für " + p.name + " festlegen (4-6 Ziffern):");
     if (!pin) return;
     if (!/^\d{4,6}$/.test(pin)) {
-      alert("Der PIN muss aus 4 bis 6 Ziffern bestehen.");
+      toast.fehler("Der PIN muss aus 4 bis 6 Ziffern bestehen.");
       return;
     }
     const wiederholung = window.prompt("PIN zur Bestätigung erneut eingeben:");
     if (!wiederholung) return;
     if (wiederholung !== pin) {
-      alert("Die beiden Eingaben stimmen nicht überein. Bitte erneut versuchen.");
+      toast.fehler("Die beiden Eingaben stimmen nicht überein. Bitte erneut versuchen.");
       return;
     }
     try {
@@ -510,7 +512,7 @@ export function Personal() {
       await laden();
       await timelineLaden(p.id);
     } catch (err) {
-      alert(err instanceof ApiError ? String(err.detail) : "PIN konnte nicht gespeichert werden.");
+      toast.fehler(err instanceof ApiError ? String(err.detail) : "PIN konnte nicht gespeichert werden.");
     }
   }
 
@@ -520,7 +522,7 @@ export function Personal() {
       await laden();
       await timelineLaden(p.id);
     } catch (err) {
-      alert(err instanceof ApiError ? String(err.detail) : "PIN-Sperre konnte nicht aufgehoben werden.");
+      toast.fehler(err instanceof ApiError ? String(err.detail) : "PIN-Sperre konnte nicht aufgehoben werden.");
     }
   }
 
@@ -558,9 +560,9 @@ export function Personal() {
   async function barcodePerMailSenden(p: Person) {
     try {
       await personBarcodePerMailSenden(p.id);
-      alert(`Barcode wurde an ${p.email} gesendet.`);
+      toast.erfolg(`Barcode wurde an ${p.email} gesendet.`);
     } catch (err) {
-      alert(err instanceof ApiError ? String(err.detail) : "Barcode konnte nicht per Mail gesendet werden.");
+      toast.fehler(err instanceof ApiError ? String(err.detail) : "Barcode konnte nicht per Mail gesendet werden.");
     }
   }
 

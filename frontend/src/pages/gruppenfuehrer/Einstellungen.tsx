@@ -15,6 +15,7 @@ import {
 import { setupErneutAusfuehren } from "../../api/setup";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
+import { useToast } from "../../context/ToastContext";
 import { Banner } from "../../components/Banner";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 
@@ -113,6 +114,7 @@ function ZweiFaktorVerwaltung() {
 
 export function Einstellungen() {
   const { neuLaden } = useConfig();
+  const toast = useToast();
   const [geladen, setGeladen] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [gespeichert, setGespeichert] = useState(false);
@@ -197,7 +199,7 @@ export function Einstellungen() {
       const ergebnis = await fuehreArchivierungAus();
       setGespeichert(false);
       setFehler(null);
-      alert(
+      toast.erfolg(
         `Archiviert: ${ergebnis.einsaetze} Einsätze, ${ergebnis.dienstbuecher} Dienstbücher.`
       );
     } catch (err) {
@@ -221,7 +223,7 @@ export function Einstellungen() {
         admin_passwort: prompt("Neues Admin-Passwort (mind. 8 Zeichen):") ?? "",
       });
       neuLaden();
-      alert("Setup erneut durchgeführt.");
+      toast.erfolg("Setup erneut durchgeführt.");
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Setup fehlgeschlagen.");
     }
