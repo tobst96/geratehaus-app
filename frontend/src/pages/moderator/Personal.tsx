@@ -380,22 +380,34 @@ export function Personal() {
   }, [bildQrStandalone, bildQrStandaloneHochgeladen]);
 
   async function feldAendern(p: Person, feld: "vorname" | "zwischenname" | "nachname" | "email", wert: string) {
-    await personAktualisieren(p.id, { [feld]: wert || null });
-    await laden();
-    await timelineLaden(p.id);
+    try {
+      await personAktualisieren(p.id, { [feld]: wert || null });
+      await laden();
+      await timelineLaden(p.id);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Änderung konnte nicht gespeichert werden.");
+    }
   }
 
   async function benachrichtigungenAendern(p: Person, aktiv: boolean) {
-    await personAktualisieren(p.id, { benachrichtigungen_aktiv: aktiv });
-    await laden();
-    await timelineLaden(p.id);
+    try {
+      await personAktualisieren(p.id, { benachrichtigungen_aktiv: aktiv });
+      await laden();
+      await timelineLaden(p.id);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Änderung konnte nicht gespeichert werden.");
+    }
   }
 
   async function inaktivAendern(p: Person, inaktiv: boolean) {
-    await personAktualisieren(p.id, { inaktiv });
-    await laden();
-    await ladeAmpel();
-    await timelineLaden(p.id);
+    try {
+      await personAktualisieren(p.id, { inaktiv });
+      await laden();
+      await ladeAmpel();
+      await timelineLaden(p.id);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Änderung konnte nicht gespeichert werden.");
+    }
   }
 
   async function pinSetzen(p: Person) {
@@ -431,15 +443,23 @@ export function Personal() {
   }
 
   async function gruppeFeldAendern(p: Person, gruppeId: number | null) {
-    await personAktualisieren(p.id, { gruppe_id: gruppeId });
-    await laden();
-    await timelineLaden(p.id);
+    try {
+      await personAktualisieren(p.id, { gruppe_id: gruppeId });
+      await laden();
+      await timelineLaden(p.id);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Gruppe konnte nicht gespeichert werden.");
+    }
   }
 
   async function funktionFeldAendern(p: Person, funktionId: number | null) {
-    await personAktualisieren(p.id, { funktion_id: funktionId });
-    await laden();
-    await timelineLaden(p.id);
+    try {
+      await personAktualisieren(p.id, { funktion_id: funktionId });
+      await laden();
+      await timelineLaden(p.id);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Funktion konnte nicht gespeichert werden.");
+    }
   }
 
   async function bildHochladen(p: Person, datei: File) {
