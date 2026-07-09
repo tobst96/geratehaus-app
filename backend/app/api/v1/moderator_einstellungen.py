@@ -11,8 +11,9 @@ from app.schemas.moderator import (
     RecoveryCodesOut,
     ZweiFaktorStatus,
 )
-from app.services import archive_service, audit_service, logo_service, moderator_service, zwei_faktor_service
+from app.services import archive_service, audit_service, druck_service, logo_service, moderator_service, zwei_faktor_service
 from app.services.config_service import config_service
+from app.services.druck_service import DruckFehler
 from app.services.notifier.email import EmailNotifier
 
 # Phase 4b: granular geschützt – Admins immer (Bypass), sonst Freigabe von
@@ -70,6 +71,19 @@ async def email_testen(db: DbSession) -> None:
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Versand fehlgeschlagen: {exc}"
+        ) from exc
+
+
+@router.post("/testdruck", status_code=status.HTTP_204_NO_CONTENT)
+async def testdruck(db: DbSession) -> None:
+    """Druckt eine kleine Test-Seite am konfigurierten Netzwerkdrucker (IPP),
+    damit Fehler in der Drucker-Konfiguration sofort sichtbar werden (analog
+    zur Testmail)."""
+    try:
+        await druck_service.test_drucken(db)
+    except DruckFehler as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Druck fehlgeschlagen: {exc}"
         ) from exc
 
 

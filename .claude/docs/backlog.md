@@ -491,7 +491,8 @@ Netzwerkdrucker mit IPP/CUPS im LAN.
 
 ### Druck-Fallback per IPP (gesamtes Feature)
 
-- Status: Backlog
+- Status: Review (Feature-Branch `feature/druck-ipp` → PR; wartet auf Verifikation
+  mit echtem IPP-Drucker vor Merge, 09.07.2026)
 - Priorität: Mittel
 - Kategorie: Feature / Backend / Frontend
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -510,6 +511,17 @@ Netzwerkdrucker mit IPP/CUPS im LAN.
      Checkboxen, Testdruck-Button) analog Testmail in `NotifierEinstellungen.tsx`.
 - Akzeptanzkriterien: Fallback- und „immer"-Pfad funktionieren; Testdruck-Button;
   Tests für SMTP-Fehlschlag→Druck und `drucker_immer_*`-Pfad (druck_service gemockt).
+- Umsetzung (09.07.2026, Feature-Branch `feature/druck-ipp`): `druck_service.py` mit
+  **minimalem IPP-`Print-Job` über httpx** (keine neue Abhängigkeit; `drucke_pdf`,
+  `drucke_pdf_falls_konfiguriert`, `test_drucken`). Config-Keys `drucker_aktiv`/
+  `drucker_ipp_url`/`drucker_immer_einsatz`/`drucker_immer_dienstbuch` in `config_defaults`.
+  Einsatz-/Dienstbuch-Abschluss-Hook druckt als **Fallback** bei Mail-Fehler und **immer**
+  bei `drucker_immer_*` (auch ohne Mail; PDF nur einmal erzeugt). Endpunkt
+  `POST /moderator/einstellungen/testdruck` (502 bei Druckfehler, analog Testmail).
+  Frontend: Karte „Netzwerkdrucker (IPP)" in `NotifierEinstellungen.tsx` (Schalter, URL,
+  zwei „immer"-Checkboxen, Testdruck-Button). Tests `test_druck.py` (12, grün: IPP-Kodierung,
+  HTTP/IPP-Fehler, Fallback- + Immer-Pfad Einsatz/Dienstbuch, Endpunkt); volle Suite 405 grün;
+  Frontend-Build grün. **Offen:** Verifikation an echtem IPP-Drucker + Doku bei Release.
 
 ---
 

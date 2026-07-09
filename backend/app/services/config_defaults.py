@@ -315,6 +315,27 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault(
         "notifier_email_recipients", "", ConfigTyp.STR, "Empfängeradressen, kommagetrennt"
     ),
+    # Druck-Fallback per IPP: druckt das bereits erzeugte Einsatz-/Dienstbuch-PDF
+    # an einen Netzwerkdrucker – als Fallback bei Mail-Fehler und optional „immer".
+    ConfigDefault("drucker_aktiv", "false", ConfigTyp.BOOL, "Netzwerkdrucker-Fallback (IPP) aktiv"),
+    ConfigDefault(
+        "drucker_ipp_url",
+        "",
+        ConfigTyp.STR,
+        "IPP-URL des Netzwerkdruckers (z. B. ipp://drucker.local:631/ipp/print)",
+    ),
+    ConfigDefault(
+        "drucker_immer_einsatz",
+        "false",
+        ConfigTyp.BOOL,
+        "Einsatz-PDF beim Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)",
+    ),
+    ConfigDefault(
+        "drucker_immer_dienstbuch",
+        "false",
+        ConfigTyp.BOOL,
+        "Dienstbuch-PDF beim Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)",
+    ),
     ConfigDefault("notifier_webpush_aktiv", "false", ConfigTyp.BOOL, "Web-Push-Versand aktiv"),
     ConfigDefault("notifier_webpush_vapid_public_key", "", ConfigTyp.STR, "VAPID Public Key"),
     ConfigDefault("notifier_webpush_vapid_private_key", "", ConfigTyp.STR, "VAPID Private Key"),

@@ -35,6 +35,8 @@ export const fuehreArchivierungAus = () =>
 
 export const sendeTestmail = () => apiPost<void>("/moderator/einstellungen/email-testen");
 
+export const sendeTestdruck = () => apiPost<void>("/moderator/einstellungen/testdruck");
+
 export interface ModeratorKonto {
   id: number;
   username: string;
