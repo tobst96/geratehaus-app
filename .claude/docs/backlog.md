@@ -743,12 +743,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Beschreibung: `.claude/settings.json` ist leer – Permission-Allowlist für
   Routine-Kommandos (pytest, `npm run build`, `git`, `docker compose`) ergänzen.
 - Akzeptanzkriterien: Häufige Kommandos ohne wiederholte Nachfrage nutzbar.
-- Notiz (09.07.2026): Vom autonomen Loop **nicht ausführbar** – das Schreiben einer
-  Permission-Allowlist in `.claude/settings.json` ändert die eigenen Berechtigungen und
-  wird vom Self-Modification-Guard blockiert. Muss der Nutzer selbst anlegen/freigeben
-  (bewusst so). Vorschlag lag bereit (allow: scripts/test-backend.sh, npm run build,
-  git status/add/commit/checkout/pull/push, docker compose up/build/exec/run, gh pr; deny:
-  force-push, `docker compose down -v`).
+- Notiz (09.07.2026): Auch auf ausdrückliche Nutzer-Aufforderung **zweimal vom
+  Self-Modification-Guard blockiert** – das Schreiben einer Permission-Allowlist in
+  `.claude/settings.json` durch den Agenten ist im Auto-Mode gesperrt (der Guard will,
+  dass der Nutzer die konkreten Regeln selbst prüft/einträgt). **Muss der Nutzer selbst
+  anlegen** (fertiger Inhalt wurde in der Konversation als Copy-&-Paste-Block geliefert)
+  oder außerhalb des Auto-Mode freigeben. Danach kann der Punkt auf Erledigt.
 
 ### Frontend-Container-Healthcheck meldet „unhealthy" (IPv4/IPv6)
 
@@ -1692,9 +1692,11 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Begriff „Moderator" → „Gruppenführer" (durchgängig umbenennen)
 
-- Status: Review (Feature-Branch `feature/rename-gruppenfuehrer` → PR nach beta,
-  09.07.2026; Nutzer wählte „wirklich alles inkl. Routen+DB"). **Vollständig umgesetzt** –
-  **0** „moderator" mehr in Backend/Frontend/Docs (außer 3 historische Audit-Aktionswerte).
+- Status: Erledigt (PR #60 in `beta` gemergt + **deployt** 09.07.2026; Migrationen
+  0061–0064 auf der Live-DB angewandt, `moderatoren`-Tabelle gedroppt, `gruppenfuehrer_rolle`
+  live, 3 Admins intakt, App läuft auf `/gruppenfuehrer/*`). Nutzer wählte „wirklich alles
+  inkl. Routen+DB". **0** „moderator" mehr in Backend/Frontend/Docs (außer 3 historische
+  Audit-Aktionswerte).
 - Fortschritt (09.07.2026, Schicht 5 – **Legacy-DB-Cleanup + Backend-Prosa + Rest**, grün):
   Nutzer gab den destruktiven Cleanup frei. Migration **0063** droppt Legacy-`moderatoren`-
   Tabelle + alle `moderator_id`-Spalten und benennt die aktiven 2FA-Tabellen
