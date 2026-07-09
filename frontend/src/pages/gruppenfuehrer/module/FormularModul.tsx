@@ -201,7 +201,7 @@ export function FormularModul() {
   return (
     <div>
       <p>
-        <Link to="/moderator/module">← Zurück zu den Modulen</Link>
+        <Link to="/gruppenfuehrer/module">← Zurück zu den Modulen</Link>
       </p>
       <h1>Formulare</h1>
       {fehler && <Fehlertext>{fehler}</Fehlertext>}

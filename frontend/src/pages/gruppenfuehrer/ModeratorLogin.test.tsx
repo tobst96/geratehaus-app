@@ -32,7 +32,7 @@ describe("ModeratorLogin", () => {
     render(<ModeratorLogin />);
     await anmelden();
     expect(moderatorAnmelden).toHaveBeenCalledWith("admin", "geheim123");
-    expect(navigate).toHaveBeenCalledWith("/moderator");
+    expect(navigate).toHaveBeenCalledWith("/gruppenfuehrer");
   });
 
   it("zeigt den Code-Schritt, wenn 2FA erforderlich ist", async () => {

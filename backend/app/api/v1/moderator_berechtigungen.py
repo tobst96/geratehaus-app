@@ -12,7 +12,7 @@ from app.services import audit_service, berechtigungs_service
 # Phase 4b: dieses Modul ist jetzt granular geschützt – Admins immer (Bypass),
 # andere Moderatoren nur mit Freigabe des Moduls „berechtigungen".
 router = APIRouter(
-    prefix="/moderator/berechtigungen",
+    prefix="/gruppenfuehrer/berechtigungen",
     tags=["moderator:berechtigungen"],
     dependencies=[Depends(require_modul_zugriff("berechtigungen"))],
 )
@@ -28,7 +28,7 @@ async def berechtigungen_matrix(db: DbSession) -> BerechtigungMatrixOut:
             ModeratorBerechtigungOut(
                 id=p.id,
                 username=p.name,
-                rolle=p.moderator_rolle or "",
+                rolle=p.gruppenfuehrer_rolle or "",
                 ist_admin=berechtigungs_service.ist_admin(p),
                 module=sorted(keys_je_person.get(p.id, set())),
             )

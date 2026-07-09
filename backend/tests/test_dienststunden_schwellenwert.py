@@ -85,10 +85,10 @@ async def test_vollstaendig_uebernommene_stunden_entfernen_person_aus_liste(db):
 
 
 async def test_endpunkt_liste_und_uebernahme_erfordert_moderator(client):
-    response = await client.get("/api/v1/moderator/listen/dienststunden-schwellenwert")
+    response = await client.get("/api/v1/gruppenfuehrer/listen/dienststunden-schwellenwert")
     assert response.status_code == 401
     response = await client.post(
-        "/api/v1/moderator/listen/dienststunden-schwellenwert/uebernahme",
+        "/api/v1/gruppenfuehrer/listen/dienststunden-schwellenwert/uebernahme",
         json={"person_id": 1, "funktion_id": 1, "stunden": 1},
     )
     assert response.status_code == 401

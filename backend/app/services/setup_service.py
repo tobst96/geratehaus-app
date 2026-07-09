@@ -39,11 +39,11 @@ async def setup_durchfuehren(db: AsyncSession, daten: SetupRequest) -> None:
     if person is None:
         person = Person(
             name=name,
-            moderator_rolle="admin",
+            gruppenfuehrer_rolle="admin",
             passwort_hash=hash_secret(daten.admin_passwort),
         )
         db.add(person)
     else:
-        person.moderator_rolle = "admin"
+        person.gruppenfuehrer_rolle = "admin"
         person.passwort_hash = hash_secret(daten.admin_passwort)
     await db.commit()

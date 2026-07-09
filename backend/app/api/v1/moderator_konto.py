@@ -8,7 +8,7 @@ from app.api.deps import CurrentModerator, DbSession
 from app.schemas.moderator import RecoveryCodesOut, ZweiFaktorStatus
 from app.services import audit_service, zwei_faktor_service
 
-router = APIRouter(prefix="/moderator/konto", tags=["moderator:konto"])
+router = APIRouter(prefix="/gruppenfuehrer/konto", tags=["moderator:konto"])
 
 
 @router.get("/2fa", response_model=ZweiFaktorStatus)

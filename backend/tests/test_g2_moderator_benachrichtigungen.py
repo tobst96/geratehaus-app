@@ -16,13 +16,13 @@ async def test_resolver_vereint_moderatoren_und_legacy(db):
         Person(
             name="m1",
             passwort_hash="x",
-            moderator_rolle="admin",
+            gruppenfuehrer_rolle="admin",
             email="mod@example.org",
             benachrichtigungen_aktiv=True,
         )
     )
     # Nicht opted-in → nicht enthalten.
-    db.add(Person(name="m2", passwort_hash="x", moderator_rolle="admin", email="aus@example.org"))
+    db.add(Person(name="m2", passwort_hash="x", gruppenfuehrer_rolle="admin", email="aus@example.org"))
     await db.commit()
     # Globale Liste (inkl. Dublette zu mod@ in anderer Schreibweise).
     await config_service.set(db, "notifier_email_recipients", "MOD@example.org, extern@example.org")

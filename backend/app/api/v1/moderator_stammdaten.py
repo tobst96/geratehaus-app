@@ -45,7 +45,7 @@ from app.services import ampel_service, audit_service, barcode_service, dienstbu
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
-router = APIRouter(prefix="/moderator/stammdaten", tags=["moderator:stammdaten"])
+router = APIRouter(prefix="/gruppenfuehrer/stammdaten", tags=["moderator:stammdaten"])
 
 # Granulare Zugriffsgates (Admins via Bypass). Personal-Stammdaten =
 # Personen, Stammdaten = Fahrzeuge/Funktionen/Gruppen/Zusatzfelder.
@@ -583,9 +583,9 @@ async def person_de_elevieren(db: DbSession, admin: CurrentAdmin, person_id: int
     """Entzieht den erhöhten Zugang (Person bleibt normales Mitglied). Der letzte
     verbleibende Admin kann nicht entzogen werden."""
     person = await stammdaten_service.get_person(db, person_id)
-    if person is None or person.moderator_rolle is None:
+    if person is None or person.gruppenfuehrer_rolle is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kein erhöhter Zugang.")
-    if person.moderator_rolle == "admin" and await moderator_service.anzahl_admins(db) <= 1:
+    if person.gruppenfuehrer_rolle == "admin" and await moderator_service.anzahl_admins(db) <= 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Der letzte verbleibende Administrator kann nicht entzogen werden.",
@@ -600,7 +600,7 @@ async def person_passwort_setzen(
 ) -> None:
     """Setzt das Login-Passwort einer (elevated) Person neu."""
     person = await stammdaten_service.get_person(db, person_id)
-    if person is None or person.moderator_rolle is None:
+    if person is None or person.gruppenfuehrer_rolle is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kein erhöhter Zugang.")
     await moderator_service.person_passwort_setzen(db, person, daten.passwort)
     await audit_service.protokolliere(db, admin.name, "person_passwort_gesetzt", "person", person_id)
@@ -610,7 +610,7 @@ async def person_passwort_setzen(
 async def person_2fa_zuruecksetzen(db: DbSession, admin: CurrentAdmin, person_id: int) -> None:
     """Admin-Reset der 2FA einer Person (hebt Aussperren auf)."""
     person = await stammdaten_service.get_person(db, person_id)
-    if person is None or person.moderator_rolle is None:
+    if person is None or person.gruppenfuehrer_rolle is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kein erhöhter Zugang.")
     await zwei_faktor_service.deaktivieren(db, person)
     await audit_service.protokolliere(db, admin.name, "person_2fa_zurueckgesetzt", "person", person_id)

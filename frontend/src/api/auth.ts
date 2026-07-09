@@ -111,7 +111,7 @@ export async function moderatorLogin(
   passwort: string
 ): Promise<ModeratorLoginErgebnis> {
   const body = new URLSearchParams({ username, password: passwort });
-  const response = await fetch(`${BASIS_URL}/auth/moderator/login`, {
+  const response = await fetch(`${BASIS_URL}/auth/gruppenfuehrer/login`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     // credentials für das httponly Trusted-Device-Cookie (2FA-Überspringen).
@@ -131,7 +131,7 @@ export async function moderator2fa(
   code: string,
   angemeldetBleiben: boolean
 ): Promise<ModeratorLoginErgebnis> {
-  const response = await fetch(`${BASIS_URL}/auth/moderator/2fa`, {
+  const response = await fetch(`${BASIS_URL}/auth/gruppenfuehrer/2fa`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

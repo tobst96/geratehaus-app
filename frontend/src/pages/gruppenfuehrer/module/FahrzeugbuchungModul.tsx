@@ -41,7 +41,7 @@ export function FahrzeugbuchungModul() {
   return (
     <div>
       <p>
-        <Link to="/moderator/module">← Zurück zu den Modulen</Link>
+        <Link to="/gruppenfuehrer/module">← Zurück zu den Modulen</Link>
       </p>
       <h1>Fahrzeugbuchung</h1>
 
@@ -49,9 +49,9 @@ export function FahrzeugbuchungModul() {
         <h2>Fahrzeuge</h2>
         <p className="text-mute">
           Welche Fahrzeuge buchbar sind, wird im Modul{" "}
-          <Link to="/moderator/module/fahrzeuge">Fahrzeuge</Link> festgelegt (Schalter „buchbar").
+          <Link to="/gruppenfuehrer/module/fahrzeuge">Fahrzeuge</Link> festgelegt (Schalter „buchbar").
           Eingehende Buchungsanfragen werden unter{" "}
-          <Link to="/moderator/buchungen">Buchungen</Link> freigegeben.
+          <Link to="/gruppenfuehrer/buchungen">Buchungen</Link> freigegeben.
         </p>
       </div>
 

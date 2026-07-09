@@ -1,7 +1,7 @@
 """Signierte Kurzzeit-Token für den Moderator-2FA-Flow.
 
 `challenge`: nach korrektem Passwort ausgestellt, beweist im zweiten Schritt
-(`POST /auth/moderator/2fa`), dass das Passwort bereits geprüft wurde – enthält
+(`POST /auth/gruppenfuehrer/2fa`), dass das Passwort bereits geprüft wurde – enthält
 nur die Moderator-ID und ist kurzlebig (10 Min). Verhindert, dass der
 OTP-Schritt ohne vorherige Passwortprüfung aufgerufen werden kann.
 """

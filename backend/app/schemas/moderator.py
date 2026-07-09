@@ -11,7 +11,7 @@ class ElevatedPersonOut(BaseModel):
 
     id: int
     name: str
-    moderator_rolle: str | None = None
+    gruppenfuehrer_rolle: str | None = None
     email: str | None = None
     benachrichtigungen_aktiv: bool = False
     zwei_faktor_aktiv: bool = False

@@ -140,7 +140,7 @@ export function MinioModul() {
   return (
     <div>
       <p>
-        <Link to="/moderator/module">← Zurück zu den Modulen</Link>
+        <Link to="/gruppenfuehrer/module">← Zurück zu den Modulen</Link>
       </p>
       <h1>MinIO</h1>
       <p className="text-mute">

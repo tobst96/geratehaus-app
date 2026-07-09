@@ -97,7 +97,7 @@ export function DiveraModul() {
   return (
     <div>
       <p>
-        <Link to="/moderator/module">← Zurück zu den Modulen</Link>
+        <Link to="/gruppenfuehrer/module">← Zurück zu den Modulen</Link>
       </p>
       <h1>Divera 24/7</h1>
 

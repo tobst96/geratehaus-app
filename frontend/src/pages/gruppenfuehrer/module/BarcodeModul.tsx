@@ -5,7 +5,7 @@ export function BarcodeModul() {
   return (
     <div>
       <p>
-        <Link to="/moderator/module">← Zurück zu den Modulen</Link>
+        <Link to="/gruppenfuehrer/module">← Zurück zu den Modulen</Link>
       </p>
       <h1>Barcode</h1>
       <p className="text-mute">

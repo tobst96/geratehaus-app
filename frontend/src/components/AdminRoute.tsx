@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 export function AdminRoute() {
   const { moderatorRolle } = useAuth();
   if (moderatorRolle !== "admin") {
-    return <Navigate to="/moderator/dashboard" replace />;
+    return <Navigate to="/gruppenfuehrer/dashboard" replace />;
   }
   return <Outlet />;
 }

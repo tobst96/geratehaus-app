@@ -22,7 +22,7 @@ async def _moderator(db, username="admin", passwort="richtig123"):
 
 async def _login(client, username, passwort):
     return await client.post(
-        "/api/v1/auth/moderator/login", data={"username": username, "password": passwort}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": username, "password": passwort}
     )
 
 

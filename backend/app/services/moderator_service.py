@@ -1,6 +1,6 @@
 """Login + Verwaltung des erhöhten Zugangs (Person = Konto).
 
-Eine „elevated" Person (`moderator_rolle` gesetzt: admin/gruppenfuehrer) meldet sich
+Eine „elevated" Person (`gruppenfuehrer_rolle` gesetzt: admin/gruppenfuehrer) meldet sich
 am Moderatorbereich mit Name + Passwort (+2FA) an; ihr PIN bleibt für Kiosk/Mitglied.
 Die Verwaltung (elevieren/de-elevieren/Passwort) läuft über Personal.
 """
@@ -30,7 +30,7 @@ def _als_utc(dt: datetime) -> datetime:
 async def login_pruefen(db: AsyncSession, name: str, passwort: str) -> Person | None:
     """Prüft die Anmeldedaten einer **Person** am Moderatorbereich (Name + Passwort)
     mit Brute-Force-Schutz. Login gelingt nur, wenn die Person ein Passwort gesetzt
-    hat; die Elevated-Prüfung (`moderator_rolle`) macht das Gate in deps.
+    hat; die Elevated-Prüfung (`gruppenfuehrer_rolle`) macht das Gate in deps.
 
     - Person existiert nicht / hat kein Passwort → None (401, ohne Enumeration/Sperre).
     - Gesperrt (`login_gesperrt_bis` in der Zukunft) → `ModeratorGesperrtError`.
@@ -88,7 +88,7 @@ async def admin_benachrichtigungs_empfaenger(db: AsyncSession) -> list[str]:
     Case-insensitiv dedupliziert, Reihenfolge stabil (Personen zuerst)."""
     result = await db.execute(
         select(Person.email).where(
-            Person.moderator_rolle.is_not(None),
+            Person.gruppenfuehrer_rolle.is_not(None),
             Person.benachrichtigungen_aktiv.is_(True),
             Person.email.is_not(None),
         )
@@ -112,7 +112,7 @@ async def admin_benachrichtigungs_empfaenger(db: AsyncSession) -> list[str]:
 async def elevated_liste(db: AsyncSession) -> list[Person]:
     """Alle Personen mit erhöhtem Zugang (Admin/Gruppenführer)."""
     result = await db.execute(
-        select(Person).where(Person.moderator_rolle.is_not(None)).order_by(Person.name)
+        select(Person).where(Person.gruppenfuehrer_rolle.is_not(None)).order_by(Person.name)
     )
     return list(result.scalars().all())
 
@@ -120,7 +120,7 @@ async def elevated_liste(db: AsyncSession) -> list[Person]:
 async def anzahl_admins(db: AsyncSession) -> int:
     return (
         await db.execute(
-            select(func.count()).select_from(Person).where(Person.moderator_rolle == "admin")
+            select(func.count()).select_from(Person).where(Person.gruppenfuehrer_rolle == "admin")
         )
     ).scalar_one()
 
@@ -131,7 +131,7 @@ async def person_elevieren(
     """Setzt/ändert die erhöhte Rolle (`admin`/`gruppenfuehrer`) einer Person und
     optional das Passwort. Hat die Person noch kein Passwort, MUSS eins mitgegeben
     werden (sonst kann sie sich nicht anmelden – Prüfung im Router)."""
-    person.moderator_rolle = rolle
+    person.gruppenfuehrer_rolle = rolle
     if passwort:
         person.passwort_hash = hash_secret(passwort)
     await db.commit()
@@ -149,7 +149,7 @@ async def person_passwort_setzen(db: AsyncSession, person: Person, passwort: str
 async def person_de_elevieren(db: AsyncSession, person: Person) -> Person:
     """Entzieht den erhöhten Zugang: Rolle + Passwort weg und 2FA/Recovery/Trusted-
     Devices abräumen. Die Person bleibt als normales Mitglied bestehen (PIN/Barcode)."""
-    person.moderator_rolle = None
+    person.gruppenfuehrer_rolle = None
     person.passwort_hash = None
     person.login_fehlversuche = 0
     person.login_gesperrt_bis = None

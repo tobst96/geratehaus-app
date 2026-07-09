@@ -26,7 +26,7 @@ export function ModeratorLogin() {
       if (zweiFaktorErforderlich && ch) {
         setChallenge(ch);
       } else {
-        navigate("/moderator");
+        navigate("/gruppenfuehrer");
       }
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Anmeldung fehlgeschlagen.");
@@ -42,7 +42,7 @@ export function ModeratorLogin() {
     setLadevorgang(true);
     try {
       await moderator2faAbschliessen(challenge, code, angemeldetBleiben);
-      navigate("/moderator");
+      navigate("/gruppenfuehrer");
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Code ungültig.");
     } finally {

@@ -38,25 +38,25 @@ export interface MinioBrowse {
   dateien: MinioObjekt[];
 }
 
-export const holeMinioEinstellungen = () => apiGet<MinioEinstellungen>("/moderator/minio/einstellungen");
+export const holeMinioEinstellungen = () => apiGet<MinioEinstellungen>("/gruppenfuehrer/minio/einstellungen");
 export const setzeMinioEinstellungen = (d: MinioEinstellungenUpdate) =>
-  apiPatch<MinioEinstellungen>("/moderator/minio/einstellungen", d);
-export const testeMinioVerbindung = () => apiPost<MinioTestErgebnis>("/moderator/minio/test");
+  apiPatch<MinioEinstellungen>("/gruppenfuehrer/minio/einstellungen", d);
+export const testeMinioVerbindung = () => apiPost<MinioTestErgebnis>("/gruppenfuehrer/minio/test");
 
-export const holeMinioBuckets = () => apiGet<string[]>("/moderator/minio/buckets");
+export const holeMinioBuckets = () => apiGet<string[]>("/gruppenfuehrer/minio/buckets");
 export const browseMinio = (bucket: string, prefix: string) =>
   apiGet<MinioBrowse>(
-    `/moderator/minio/browse?bucket=${encodeURIComponent(bucket)}&prefix=${encodeURIComponent(prefix)}`,
+    `/gruppenfuehrer/minio/browse?bucket=${encodeURIComponent(bucket)}&prefix=${encodeURIComponent(prefix)}`,
   );
 export const loescheMinioObjekt = (bucket: string, key: string) =>
-  apiDelete<void>(`/moderator/minio/object?bucket=${encodeURIComponent(bucket)}&key=${encodeURIComponent(key)}`);
+  apiDelete<void>(`/gruppenfuehrer/minio/object?bucket=${encodeURIComponent(bucket)}&key=${encodeURIComponent(key)}`);
 
 export const uploadMinioObjekt = (bucket: string, prefix: string, datei: File) =>
-  apiUpload<{ key: string }>("/moderator/minio/upload", datei, "datei", { bucket, prefix });
+  apiUpload<{ key: string }>("/gruppenfuehrer/minio/upload", datei, "datei", { bucket, prefix });
 
 export async function ladeMinioObjekt(bucket: string, key: string): Promise<void> {
   const blob = await apiGet<Blob>(
-    `/moderator/minio/download?bucket=${encodeURIComponent(bucket)}&key=${encodeURIComponent(key)}`,
+    `/gruppenfuehrer/minio/download?bucket=${encodeURIComponent(bucket)}&key=${encodeURIComponent(key)}`,
   );
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

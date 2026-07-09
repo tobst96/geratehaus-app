@@ -28,7 +28,7 @@ export function ModulUnterseite() {
   if (!istAdmin) {
     const perm = permFuerModulUnterseite(key);
     const erlaubt = perm ? hatModulZugriff(perm) : hatModulZugriff("einstellungen");
-    if (!erlaubt) return <Navigate to="/moderator/dashboard" replace />;
+    if (!erlaubt) return <Navigate to="/gruppenfuehrer/dashboard" replace />;
   }
 
   switch (key) {
@@ -62,7 +62,7 @@ export function ModulUnterseite() {
       return (
         <div>
           <p>
-            <Link to="/moderator/module">← Zurück zu den Modulen</Link>
+            <Link to="/gruppenfuehrer/module">← Zurück zu den Modulen</Link>
           </p>
           <Fehlertext>Unbekanntes Modul.</Fehlertext>
         </div>

@@ -7,7 +7,7 @@ export interface Modul {
   aktiv: boolean;
 }
 
-export const holeModule = () => apiGet<Modul[]>("/moderator/module");
+export const holeModule = () => apiGet<Modul[]>("/gruppenfuehrer/module");
 
 export const setModulAktiv = (key: string, aktiv: boolean) =>
-  apiPatch<Modul>(`/moderator/module/${encodeURIComponent(key)}`, { aktiv });
+  apiPatch<Modul>(`/gruppenfuehrer/module/${encodeURIComponent(key)}`, { aktiv });

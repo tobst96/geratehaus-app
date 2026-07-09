@@ -11,12 +11,12 @@ from app.services import berechtigungs_service, modul_service
 
 
 async def _token(client, db, username="admin", rolle="admin"):
-    m = Person(name=username, passwort_hash=hash_secret("geheim123"), moderator_rolle=rolle)
+    m = Person(name=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle)
     db.add(m)
     await db.commit()
     await db.refresh(m)
     r = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": username, "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": username, "password": "geheim123"}
     )
     return m, {"Authorization": f"Bearer {r.json()['access_token']}"}
 
@@ -25,14 +25,14 @@ async def _token(client, db, username="admin", rolle="admin"):
 async def test_fahrzeuge_admin_bypass(client, db):
     await modul_service.ensure_module(db)
     _m, h = await _token(client, db)
-    assert (await client.get("/api/v1/moderator/stammdaten/fahrzeuge", headers=h)).status_code == 200
+    assert (await client.get("/api/v1/gruppenfuehrer/stammdaten/fahrzeuge", headers=h)).status_code == 200
 
 
 @pytest.mark.asyncio
 async def test_fahrzeuge_gf_ohne_recht_403(client, db):
     await modul_service.ensure_module(db)
     _m, h = await _token(client, db, "gf", "gruppenfuehrer")
-    assert (await client.get("/api/v1/moderator/stammdaten/fahrzeuge", headers=h)).status_code == 403
+    assert (await client.get("/api/v1/gruppenfuehrer/stammdaten/fahrzeuge", headers=h)).status_code == 403
 
 
 @pytest.mark.asyncio
@@ -40,7 +40,7 @@ async def test_fahrzeuge_gf_mit_stammdaten_ok(client, db):
     await modul_service.ensure_module(db)
     gf, h = await _token(client, db, "gf", "gruppenfuehrer")
     await berechtigungs_service.set_berechtigung(db, gf.id, "stammdaten", True)
-    assert (await client.get("/api/v1/moderator/stammdaten/fahrzeuge", headers=h)).status_code == 200
+    assert (await client.get("/api/v1/gruppenfuehrer/stammdaten/fahrzeuge", headers=h)).status_code == 200
 
 
 @pytest.mark.asyncio
@@ -50,7 +50,7 @@ async def test_personen_mutation_braucht_personal_recht(client, db):
     # Ohne "personal" → 403; ein "stammdaten"-Recht genügt NICHT.
     await berechtigungs_service.set_berechtigung(db, gf.id, "stammdaten", True)
     r = await client.post(
-        "/api/v1/moderator/stammdaten/personen",
+        "/api/v1/gruppenfuehrer/stammdaten/personen",
         json={"vorname": "Max", "nachname": "Muster"},
         headers=h,
     )
@@ -62,4 +62,4 @@ async def test_personen_liste_bleibt_fuer_gruppenfuehrer_offen(client, db):
     # NON-BREAKING: /personen (CurrentModerator) ist weiterhin ohne Freigabe erreichbar.
     await modul_service.ensure_module(db)
     _m, h = await _token(client, db, "gf", "gruppenfuehrer")
-    assert (await client.get("/api/v1/moderator/stammdaten/personen", headers=h)).status_code == 200
+    assert (await client.get("/api/v1/gruppenfuehrer/stammdaten/personen", headers=h)).status_code == 200

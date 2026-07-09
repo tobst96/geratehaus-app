@@ -4,7 +4,7 @@ from app.api.deps import CurrentAdmin, DbSession
 from app.schemas.audit_log import AuditLogOut
 from app.services import audit_service
 
-router = APIRouter(prefix="/moderator/audit", tags=["moderator:audit"])
+router = APIRouter(prefix="/gruppenfuehrer/audit", tags=["moderator:audit"])
 
 
 @router.get("", response_model=list[AuditLogOut])

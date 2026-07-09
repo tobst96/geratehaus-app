@@ -4,7 +4,7 @@ from app.services import berechtigungs_service, modul_service
 
 
 async def _moderator(db, username, rolle):
-    mod = Person(name=username, passwort_hash=hash_secret("geheim123"), moderator_rolle=rolle)
+    mod = Person(name=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle)
     db.add(mod)
     await db.commit()
     await db.refresh(mod)
@@ -13,7 +13,7 @@ async def _moderator(db, username, rolle):
 
 async def _token(client, username):
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": username, "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": username, "password": "geheim123"}
     )
     return login.json()["access_token"]
 
@@ -47,12 +47,12 @@ async def test_matrix_endpoint_admin_only(client, db):
     await _moderator(db, "admin", "admin")
     await _moderator(db, "gf", "gruppenfuehrer")
 
-    ohne = await client.get("/api/v1/moderator/berechtigungen")
+    ohne = await client.get("/api/v1/gruppenfuehrer/berechtigungen")
     assert ohne.status_code == 401
 
     token = await _token(client, "admin")
     resp = await client.get(
-        "/api/v1/moderator/berechtigungen", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/gruppenfuehrer/berechtigungen", headers={"Authorization": f"Bearer {token}"}
     )
     assert resp.status_code == 200
     daten = resp.json()
@@ -69,20 +69,20 @@ async def test_put_berechtigung_setzt_und_matrix_zeigt(client, db):
     token = await _token(client, "admin")
 
     put = await client.put(
-        f"/api/v1/moderator/berechtigungen/{gf.id}/dienstbuch",
+        f"/api/v1/gruppenfuehrer/berechtigungen/{gf.id}/dienstbuch",
         json={"erlaubt": True},
         headers={"Authorization": f"Bearer {token}"},
     )
     assert put.status_code == 204
 
     resp = await client.get(
-        "/api/v1/moderator/berechtigungen", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/gruppenfuehrer/berechtigungen", headers={"Authorization": f"Bearer {token}"}
     )
     gf_row = next(m for m in resp.json()["moderatoren"] if m["username"] == "gf")
     assert "dienstbuch" in gf_row["module"]
 
     fehlend = await client.put(
-        f"/api/v1/moderator/berechtigungen/{gf.id}/gibt-es-nicht",
+        f"/api/v1/gruppenfuehrer/berechtigungen/{gf.id}/gibt-es-nicht",
         json={"erlaubt": True},
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -98,9 +98,9 @@ async def test_enforcement_berechtigungen_seite(client, db):
     gf = await _moderator(db, "gf", "gruppenfuehrer")
     h = {"Authorization": f"Bearer {await _token(client, 'gf')}"}
 
-    ohne = await client.get("/api/v1/moderator/berechtigungen", headers=h)
+    ohne = await client.get("/api/v1/gruppenfuehrer/berechtigungen", headers=h)
     assert ohne.status_code == 403
 
     await berechtigungs_service.set_berechtigung(db, gf.id, "berechtigungen", True)
-    mit = await client.get("/api/v1/moderator/berechtigungen", headers=h)
+    mit = await client.get("/api/v1/gruppenfuehrer/berechtigungen", headers=h)
     assert mit.status_code == 200

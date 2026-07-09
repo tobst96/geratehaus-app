@@ -7,7 +7,7 @@ from app.services import berechtigungs_service, modul_service
 
 
 async def _moderator(db, username, rolle):
-    mod = Person(name=username, passwort_hash="x", moderator_rolle=rolle)
+    mod = Person(name=username, passwort_hash="x", gruppenfuehrer_rolle=rolle)
     db.add(mod)
     await db.commit()
     await db.refresh(mod)

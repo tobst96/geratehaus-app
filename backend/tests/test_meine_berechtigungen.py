@@ -1,6 +1,6 @@
 """Tests für die eigenen Modul-Rechte (Grundlage der Frontend-Guards):
 Service `berechtigungs_service.meine_keys` und der Endpunkt
-`GET /moderator/meta/meine-berechtigungen`."""
+`GET /gruppenfuehrer/meta/meine-berechtigungen`."""
 
 import pytest
 
@@ -10,7 +10,7 @@ from app.services import berechtigungs_service, modul_service
 
 
 async def _moderator(db, username, rolle, passwort="geheim123"):
-    mod = Person(name=username, passwort_hash=hash_secret(passwort), moderator_rolle=rolle)
+    mod = Person(name=username, passwort_hash=hash_secret(passwort), gruppenfuehrer_rolle=rolle)
     db.add(mod)
     await db.commit()
     await db.refresh(mod)
@@ -41,11 +41,11 @@ async def test_endpunkt_gruppenfuehrer(client, db):
     gf = await _moderator(db, "gf", "gruppenfuehrer")
     await berechtigungs_service.set_berechtigung(db, gf.id, "berechtigungen", True)
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "gf", "password": "geheim123"}
     )
     token = login.json()["access_token"]
     r = await client.get(
-        "/api/v1/moderator/meta/meine-berechtigungen",
+        "/api/v1/gruppenfuehrer/meta/meine-berechtigungen",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert r.status_code == 200
@@ -59,11 +59,11 @@ async def test_endpunkt_admin(client, db):
     await modul_service.ensure_module(db)
     await _moderator(db, "admin", "admin")
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     token = login.json()["access_token"]
     r = await client.get(
-        "/api/v1/moderator/meta/meine-berechtigungen",
+        "/api/v1/gruppenfuehrer/meta/meine-berechtigungen",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert r.status_code == 200
@@ -73,5 +73,5 @@ async def test_endpunkt_admin(client, db):
 
 @pytest.mark.asyncio
 async def test_endpunkt_ohne_login_401(client, db):
-    r = await client.get("/api/v1/moderator/meta/meine-berechtigungen")
+    r = await client.get("/api/v1/gruppenfuehrer/meta/meine-berechtigungen")
     assert r.status_code == 401

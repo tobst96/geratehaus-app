@@ -3,7 +3,7 @@ from app.models.person import Person
 
 
 async def _moderator_anlegen(db, username="admin", passwort="geheim123", rolle="admin"):
-    moderator = Person(name=username, passwort_hash=hash_secret(passwort), moderator_rolle=rolle)
+    moderator = Person(name=username, passwort_hash=hash_secret(passwort), gruppenfuehrer_rolle=rolle)
     db.add(moderator)
     await db.commit()
     await db.refresh(moderator)
@@ -13,7 +13,7 @@ async def _moderator_anlegen(db, username="admin", passwort="geheim123", rolle="
 async def test_login_mit_korrektem_passwort(client, db):
     await _moderator_anlegen(db, "admin", "geheim123")
     response = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     assert response.status_code == 200
     assert "access_token" in response.json()
@@ -22,14 +22,14 @@ async def test_login_mit_korrektem_passwort(client, db):
 async def test_login_mit_falschem_passwort_schlaegt_fehl(client, db):
     await _moderator_anlegen(db, "admin", "geheim123")
     response = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "falsch"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "falsch"}
     )
     assert response.status_code == 401
 
 
 async def test_login_mit_unbekanntem_benutzer_schlaegt_fehl(client):
     response = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "niemand", "password": "egal"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "niemand", "password": "egal"}
     )
     assert response.status_code == 401
 
@@ -39,23 +39,23 @@ async def test_login_wird_nach_zu_vielen_fehlversuchen_geblockt(client, db):
     letzte_antwort = None
     for _ in range(15):
         letzte_antwort = await client.post(
-            "/api/v1/auth/moderator/login", data={"username": "admin", "password": "falsch"}
+            "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "falsch"}
         )
     assert letzte_antwort.status_code == 429
 
 
 async def test_admin_only_route_ohne_token_verweigert(client):
-    response = await client.get("/api/v1/moderator/einstellungen")
+    response = await client.get("/api/v1/gruppenfuehrer/einstellungen")
     assert response.status_code == 401
 
 
 async def test_moderator_route_mit_gruppenfuehrer_rolle_kein_admin_zugriff(client, db):
     await _moderator_anlegen(db, "gf", "geheim123", rolle="gruppenfuehrer")
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "gf", "password": "geheim123"}
     )
     token = login.json()["access_token"]
     response = await client.get(
-        "/api/v1/moderator/einstellungen", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/gruppenfuehrer/einstellungen", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == 403

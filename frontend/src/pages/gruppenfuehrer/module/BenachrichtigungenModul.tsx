@@ -5,7 +5,7 @@ export function BenachrichtigungenModul() {
   return (
     <div>
       <p>
-        <Link to="/moderator/module">← Zurück zu den Modulen</Link>
+        <Link to="/gruppenfuehrer/module">← Zurück zu den Modulen</Link>
       </p>
       <NotifierEinstellungen />
     </div>

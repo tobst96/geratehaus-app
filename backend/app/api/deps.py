@@ -13,7 +13,7 @@ from app.services.config_service import config_service
 
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 
-_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/moderator/login", auto_error=False)
+_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/gruppenfuehrer/login", auto_error=False)
 
 
 async def get_current_moderator(
@@ -21,7 +21,7 @@ async def get_current_moderator(
 ) -> Person:
     """Der/die im Moderatorbereich angemeldete **Person** (Konto). Das JWT trägt
     im `sub` den eindeutigen `Person.name`; zusätzlich muss die Person „elevated"
-    sein (`moderator_rolle` gesetzt), sonst 401 – eine normale Person ohne erhöhte
+    sein (`gruppenfuehrer_rolle` gesetzt), sonst 401 – eine normale Person ohne erhöhte
     Rechte kommt so nicht in den Moderatorbereich."""
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -35,7 +35,7 @@ async def get_current_moderator(
         raise credentials_error
     result = await db.execute(select(Person).where(Person.name == payload["sub"]))
     person = result.scalar_one_or_none()
-    if person is None or person.moderator_rolle is None:
+    if person is None or person.gruppenfuehrer_rolle is None:
         raise credentials_error
     return person
 
@@ -47,7 +47,7 @@ async def get_current_admin(person: CurrentModerator) -> Person:
     """Wie CurrentModerator, verlangt zusätzlich die Rolle "admin". Personal,
     Einstellungen und Verwaltung sind Admin-only; Gruppenführer sehen nur ihre
     freigegebenen Bereiche (CurrentModerator + granulare Rechte)."""
-    if person.moderator_rolle != "admin":
+    if person.gruppenfuehrer_rolle != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Nur für Admins zugänglich.",

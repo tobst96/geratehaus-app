@@ -11,13 +11,13 @@ export interface AuditEintrag {
 }
 
 export const holeAuditLog = (aktion?: string, limit = 200) =>
-  apiGet<AuditEintrag[]>("/moderator/audit", {
+  apiGet<AuditEintrag[]>("/gruppenfuehrer/audit", {
     ...(aktion ? { aktion } : {}),
     limit,
   });
 
 export async function exportiereAuditLog(format: "csv" | "json", aktion?: string): Promise<void> {
-  const blob = await apiGet<Blob>("/moderator/audit/export", {
+  const blob = await apiGet<Blob>("/gruppenfuehrer/audit/export", {
     format,
     ...(aktion ? { aktion } : {}),
   });

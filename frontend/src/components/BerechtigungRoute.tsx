@@ -13,5 +13,5 @@ export function BerechtigungRoute({ modulKeys }: { modulKeys: string[] }) {
   if (modulKeys.some((k) => hatModulZugriff(k))) {
     return <Outlet />;
   }
-  return <Navigate to="/moderator/dashboard" replace />;
+  return <Navigate to="/gruppenfuehrer/dashboard" replace />;
 }

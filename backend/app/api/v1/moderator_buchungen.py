@@ -7,7 +7,7 @@ from app.models.moderator import Moderator
 from app.schemas.buchung import BuchungAblehnen, BuchungOut
 from app.services import audit_service, buchung_service
 
-router = APIRouter(prefix="/moderator/buchungen", tags=["moderator:buchungen"])
+router = APIRouter(prefix="/gruppenfuehrer/buchungen", tags=["moderator:buchungen"])
 
 # Buchungen genehmigen/ablehnen/vergleichen erfordert das Modul-Recht
 # „fahrzeugbuchung" (Admin-Bypass).

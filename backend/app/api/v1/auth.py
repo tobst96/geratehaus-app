@@ -277,11 +277,11 @@ async def pin_anfordern(db: DbSession, daten: PinAnfordern) -> dict[str, str]:
 
 
 def _moderator_token(person) -> str:
-    return create_access_token(subject=person.name, extra_claims={"rolle": person.moderator_rolle})
+    return create_access_token(subject=person.name, extra_claims={"rolle": person.gruppenfuehrer_rolle})
 
 
 @router.post(
-    "/moderator/login",
+    "/gruppenfuehrer/login",
     response_model=ModeratorLoginErgebnis,
     dependencies=[Depends(rate_limit(10, 60))],
 )
@@ -323,7 +323,7 @@ async def moderator_login(
 
 
 @router.post(
-    "/moderator/2fa",
+    "/gruppenfuehrer/2fa",
     response_model=ModeratorLoginErgebnis,
     dependencies=[Depends(rate_limit(10, 60))],
 )

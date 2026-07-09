@@ -54,7 +54,7 @@ class Person(Base, TimestampMixin):
     # NULL = normale Person; sonst "admin" oder "gruppenfuehrer". Elevated-Personen
     # melden sich am Moderatorbereich mit Name + Passwort (+2FA) an – der PIN oben
     # bleibt für Kiosk/Mitglied. (Ablösung der separaten `moderatoren`-Tabelle.)
-    moderator_rolle: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    gruppenfuehrer_rolle: Mapped[str | None] = mapped_column(String(64), nullable=True)
     passwort_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # E-Mail-OTP-2FA für den Moderatorbereich (analog zum früheren Moderator-Konto).
     zwei_faktor_aktiv: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

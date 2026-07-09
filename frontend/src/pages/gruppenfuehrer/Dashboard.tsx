@@ -35,7 +35,7 @@ export function Dashboard() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
         <div
           className="karte"
-          onClick={() => navigate("/moderator/buchungen")}
+          onClick={() => navigate("/gruppenfuehrer/buchungen")}
           style={{ cursor: "pointer" }}
           title="Zu den Buchungen"
         >
@@ -44,7 +44,7 @@ export function Dashboard() {
         </div>
         <div
           className="karte"
-          onClick={() => navigate("/moderator/listen?tab=Dienststunden")}
+          onClick={() => navigate("/gruppenfuehrer/listen?tab=Dienststunden")}
           style={{ cursor: "pointer" }}
           title="Zu Listen → Dienststunden"
         >
@@ -56,7 +56,7 @@ export function Dashboard() {
       </div>
 
       <h2
-        onClick={() => navigate("/moderator/listen?tab=Dienststunden")}
+        onClick={() => navigate("/gruppenfuehrer/listen?tab=Dienststunden")}
         style={{ cursor: "pointer" }}
         title="Zu Listen → Dienststunden"
       >

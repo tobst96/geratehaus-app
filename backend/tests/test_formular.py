@@ -16,10 +16,10 @@ from app.schemas.formular import FormularCreate, FormularFeldCreate, FormularUpd
 
 async def _token(client, db, rolle="admin", username=None):
     username = username or rolle
-    db.add(Person(name=username, passwort_hash=hash_secret("geheim123"), moderator_rolle=rolle))
+    db.add(Person(name=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle))
     await db.commit()
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": username, "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": username, "password": "geheim123"}
     )
     return {"Authorization": f"Bearer {login.json()['access_token']}"}
 
@@ -40,23 +40,23 @@ async def _feld(db, formular_id, **kwargs):
 @pytest.mark.asyncio
 async def test_admin_crud_formular_und_feld(client, db):
     h = await _token(client, db)
-    r = await client.post("/api/v1/moderator/formulare", json={"name": "Rückmeldung"}, headers=h)
+    r = await client.post("/api/v1/gruppenfuehrer/formulare", json={"name": "Rückmeldung"}, headers=h)
     assert r.status_code == 201
     fid = r.json()["id"]
 
     r = await client.post(
-        f"/api/v1/moderator/formulare/{fid}/felder",
+        f"/api/v1/gruppenfuehrer/formulare/{fid}/felder",
         json={"label": "Bewertung", "typ": "sterne", "max_sterne": 5, "pflicht": True},
         headers=h,
     )
     assert r.status_code == 201
 
-    r = await client.get(f"/api/v1/moderator/formulare/{fid}", headers=h)
+    r = await client.get(f"/api/v1/gruppenfuehrer/formulare/{fid}", headers=h)
     assert r.status_code == 200
     assert len(r.json()["felder"]) == 1
 
     r = await client.put(
-        f"/api/v1/moderator/formulare/{fid}", json={"aktiv": True, "moderator_sichtbar": True}, headers=h
+        f"/api/v1/gruppenfuehrer/formulare/{fid}", json={"aktiv": True, "moderator_sichtbar": True}, headers=h
     )
     assert r.status_code == 200 and r.json()["aktiv"] is True
 
@@ -64,10 +64,10 @@ async def test_admin_crud_formular_und_feld(client, db):
 @pytest.mark.asyncio
 async def test_ungueltiger_feldtyp_abgelehnt(client, db):
     h = await _token(client, db)
-    r = await client.post("/api/v1/moderator/formulare", json={"name": "F"}, headers=h)
+    r = await client.post("/api/v1/gruppenfuehrer/formulare", json={"name": "F"}, headers=h)
     fid = r.json()["id"]
     r = await client.post(
-        f"/api/v1/moderator/formulare/{fid}/felder", json={"label": "X", "typ": "quatsch"}, headers=h
+        f"/api/v1/gruppenfuehrer/formulare/{fid}/felder", json={"label": "X", "typ": "quatsch"}, headers=h
     )
     assert r.status_code == 422
 
@@ -147,18 +147,18 @@ async def test_moderator_sichtbarkeit(client, db):
     formular = await _formular(db, moderator_sichtbar=False)
     h_mod = await _token(client, db, rolle="gruppenfuehrer", username="gf")
 
-    r = await client.get(f"/api/v1/moderator/formulare/{formular.id}/einreichungen", headers=h_mod)
+    r = await client.get(f"/api/v1/gruppenfuehrer/formulare/{formular.id}/einreichungen", headers=h_mod)
     assert r.status_code == 403
 
     # Freigeben -> Moderator darf sehen
     await formular_service.formular_aktualisieren(
         db, formular, FormularUpdate(moderator_sichtbar=True)
     )
-    r = await client.get(f"/api/v1/moderator/formulare/{formular.id}/einreichungen", headers=h_mod)
+    r = await client.get(f"/api/v1/gruppenfuehrer/formulare/{formular.id}/einreichungen", headers=h_mod)
     assert r.status_code == 200
 
     # "sichtbar"-Liste zeigt dem Gruppenführer nur freigegebene Formulare
-    r = await client.get("/api/v1/moderator/formulare/sichtbar", headers=h_mod)
+    r = await client.get("/api/v1/gruppenfuehrer/formulare/sichtbar", headers=h_mod)
     assert r.status_code == 200 and [f["id"] for f in r.json()] == [formular.id]
 
 
@@ -195,7 +195,7 @@ async def test_zusammenfassung_aggregiert(client, db):
         )
         assert r.status_code == 201
 
-    r = await client.get(f"/api/v1/moderator/formulare/{formular.id}/zusammenfassung", headers=h)
+    r = await client.get(f"/api/v1/gruppenfuehrer/formulare/{formular.id}/zusammenfassung", headers=h)
     assert r.status_code == 200
     daten = r.json()
     assert daten["anzahl_einreichungen"] == 3
@@ -344,7 +344,7 @@ async def test_duplizieren(client, db):
     await _feld(db, formular.id, label="Note", typ="sterne")
     await client.post(f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}})
 
-    r = await client.post(f"/api/v1/moderator/formulare/{formular.id}/duplizieren", headers=h)
+    r = await client.post(f"/api/v1/gruppenfuehrer/formulare/{formular.id}/duplizieren", headers=h)
     assert r.status_code == 201
     kopie = r.json()
     assert kopie["name"].endswith("(Kopie)") and kopie["aktiv"] is False
@@ -361,7 +361,7 @@ async def test_csv_export(client, db):
     await client.post(
         f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {str(feld.id): "Anna"}}
     )
-    r = await client.get(f"/api/v1/moderator/formulare/{formular.id}/export.csv", headers=h)
+    r = await client.get(f"/api/v1/gruppenfuehrer/formulare/{formular.id}/export.csv", headers=h)
     assert r.status_code == 200
     assert "Name" in r.text and "Anna" in r.text
 

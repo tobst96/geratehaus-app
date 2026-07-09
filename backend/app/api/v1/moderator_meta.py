@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from app.api.deps import CurrentAdmin, CurrentModerator, DbSession
 from app.services import berechtigungs_service, systemstatus_service, update_service
 
-router = APIRouter(prefix="/moderator/meta", tags=["moderator:meta"])
+router = APIRouter(prefix="/gruppenfuehrer/meta", tags=["moderator:meta"])
 
 
 class MetaOut(BaseModel):

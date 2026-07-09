@@ -18,9 +18,9 @@ export interface BerechtigungMatrix {
   moderatoren: ModeratorBerechtigung[];
 }
 
-export const holeBerechtigungen = () => apiGet<BerechtigungMatrix>("/moderator/berechtigungen");
+export const holeBerechtigungen = () => apiGet<BerechtigungMatrix>("/gruppenfuehrer/berechtigungen");
 
 export const setzeBerechtigung = (moderatorId: number, modulKey: string, erlaubt: boolean) =>
-  apiPut<void>(`/moderator/berechtigungen/${moderatorId}/${encodeURIComponent(modulKey)}`, {
+  apiPut<void>(`/gruppenfuehrer/berechtigungen/${moderatorId}/${encodeURIComponent(modulKey)}`, {
     erlaubt,
   });

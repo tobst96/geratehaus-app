@@ -148,7 +148,7 @@ function EinsaetzeTab() {
             {daten.map((e) => (
               <tr key={e.id}>
                 <td>
-                  <Link to={`/moderator/einsaetze/${e.id}`}>{e.titel}</Link>
+                  <Link to={`/gruppenfuehrer/einsaetze/${e.id}`}>{e.titel}</Link>
                 </td>
                 <td>{formatiereDatumZeit(e.zeitpunkt)}</td>
                 <td>{e.quelle}</td>
@@ -229,7 +229,7 @@ function DienstbuecherTab() {
             {gefiltert.map((d) => (
               <tr key={d.id}>
                 <td>
-                  <Link to={`/moderator/dienstbuecher/${d.id}`}>{d.titel}</Link>
+                  <Link to={`/gruppenfuehrer/dienstbuecher/${d.id}`}>{d.titel}</Link>
                 </td>
                 <td>{formatiereDatumZeit(d.eroeffnet_am)}</td>
                 <td>{d.geschlossen ? "Geschlossen" : "Offen"}</td>

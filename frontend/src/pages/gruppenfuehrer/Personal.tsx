@@ -282,7 +282,7 @@ export function Personal() {
 
   // Erhöhten Zugang setzen/ändern. Ohne bestehendes Passwort ist eins Pflicht.
   async function zugangSetzen(p: Person, rolle: ElevatedRolle) {
-    const bereits = elevatedMap[p.id]?.moderator_rolle;
+    const bereits = elevatedMap[p.id]?.gruppenfuehrer_rolle;
     const passwort = bereits ? undefined : zugangPasswort;
     if (!bereits && (!passwort || passwort.length < 8)) {
       setZugangFehler("Für den ersten Zugang ein Passwort mit mindestens 8 Zeichen setzen.");
@@ -1285,7 +1285,7 @@ export function Personal() {
                     sichtbar: istAdmin,
                     inhalt: (() => {
                       const eintrag = elevatedMap[person.id];
-                      const rolle = eintrag?.moderator_rolle ?? null;
+                      const rolle = eintrag?.gruppenfuehrer_rolle ?? null;
                       return (
                         <>
                           <p className="text-mute">

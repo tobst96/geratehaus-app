@@ -16,7 +16,7 @@ from app.services import benachrichtigungskanal_service as kanal_service
 # Phase 4b: granular geschützt – Admins immer (Bypass), sonst Freigabe des Moduls
 # „personal" nötig (Kanäle werden in der Personal-Detailseite gepflegt).
 router = APIRouter(
-    prefix="/moderator",
+    prefix="/gruppenfuehrer",
     tags=["moderator:benachrichtigungskanaele"],
     dependencies=[Depends(require_modul_zugriff("personal"))],
 )

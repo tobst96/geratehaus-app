@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
-import { FormularZusammenfassung } from "../moderator/FormularZusammenfassung";
+import { FormularZusammenfassung } from "../gruppenfuehrer/FormularZusammenfassung";
 import {
   formularDateiHochladen,
   formularEinreichen,

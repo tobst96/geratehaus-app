@@ -5,7 +5,7 @@ export function DienststundenModul() {
   return (
     <div>
       <p>
-        <Link to="/moderator/module">← Zurück zu den Modulen</Link>
+        <Link to="/gruppenfuehrer/module">← Zurück zu den Modulen</Link>
       </p>
       <h1>Dienststunden</h1>
 
@@ -13,7 +13,7 @@ export function DienststundenModul() {
         <h2>Funktionen &amp; Schwellenwerte</h2>
         <p className="text-mute">
           Funktionen mit Schwellenwert (Stunden). Überschreitungen erscheinen im{" "}
-          <Link to="/moderator/dashboard">Dashboard</Link>.
+          <Link to="/gruppenfuehrer/dashboard">Dashboard</Link>.
         </p>
         <FunktionenDienststundenVerwaltung />
       </div>

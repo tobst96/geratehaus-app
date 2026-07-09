@@ -13,7 +13,7 @@ from app.schemas.minio import (
 from app.services import minio_service
 from app.services.config_service import config_service
 
-router = APIRouter(prefix="/moderator/minio", tags=["moderator:minio"])
+router = APIRouter(prefix="/gruppenfuehrer/minio", tags=["moderator:minio"])
 
 
 @router.get("/einstellungen", response_model=MinioEinstellungen)

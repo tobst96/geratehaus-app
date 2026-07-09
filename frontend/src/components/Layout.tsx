@@ -5,7 +5,7 @@ import { useTheme } from "../hooks/useTheme";
 import { useKioskAutolock } from "../hooks/useKioskAutolock";
 
 function startseite(moderatorAngemeldet: boolean, angezeigterName: string | null): string {
-  if (moderatorAngemeldet) return "/moderator/dashboard";
+  if (moderatorAngemeldet) return "/gruppenfuehrer/dashboard";
   // Auf einem Kiosk-Tablet führt das Logo zurück zur Kiosk-Startseite, nicht zur
   // öffentlichen Landing-/Login-Seite. localStorage wird zum Klickzeitpunkt
   // gelesen (der Kiosk-Token wird beim Öffnen erst in einem Effect gesetzt).
@@ -81,7 +81,7 @@ export function Layout() {
           Gerätehaus.app
         </a>{" "}
         ·{" "}
-        <Link to="/datenschutz">Datenschutz</Link> · <Link to="/moderator">Team-Login</Link>
+        <Link to="/datenschutz">Datenschutz</Link> · <Link to="/gruppenfuehrer">Team-Login</Link>
       </footer>
     </>
   );

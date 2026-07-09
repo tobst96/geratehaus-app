@@ -7,7 +7,7 @@ from app.services import modul_service
 # Phase 4b: granular geschützt – Admins immer (Bypass), sonst Freigabe von
 # „einstellungen" nötig (Modulverwaltung gehört zu den Einstellungen).
 router = APIRouter(
-    prefix="/moderator/module",
+    prefix="/gruppenfuehrer/module",
     tags=["moderator:module"],
     dependencies=[Depends(require_modul_zugriff("einstellungen"))],
 )

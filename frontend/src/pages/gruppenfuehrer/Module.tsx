@@ -148,7 +148,7 @@ export function Module() {
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <Link
-                  to={`/moderator/module/${m.key}`}
+                  to={`/gruppenfuehrer/module/${m.key}`}
                   style={{
                     fontWeight: 700,
                     color: "var(--farbe-primaer)",

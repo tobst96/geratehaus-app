@@ -33,7 +33,7 @@ async def test_setup_mit_frontend_payload_erfolgreich(client):
 async def test_setup_login_funktioniert_nach_einrichtung(client):
     await client.post("/api/v1/setup", json=await _minimaler_frontend_payload())
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     assert login.status_code == 200
 

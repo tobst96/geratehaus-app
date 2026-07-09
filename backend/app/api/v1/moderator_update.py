@@ -6,7 +6,7 @@ from app.services import update_service
 
 # Phase 4b: granular geschützt – Admins immer (Bypass), sonst Freigabe „einstellungen".
 router = APIRouter(
-    prefix="/moderator/update",
+    prefix="/gruppenfuehrer/update",
     tags=["moderator:update"],
     dependencies=[Depends(require_modul_zugriff("einstellungen"))],
 )

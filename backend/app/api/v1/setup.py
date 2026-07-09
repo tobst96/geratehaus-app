@@ -30,7 +30,7 @@ async def setup_ausfuehren(db: DbSession, daten: SetupRequest) -> None:
 async def setup_logo_hochladen(db: DbSession, datei: UploadFile) -> dict[str, str]:
     """Logo-Upload während des First-Run-Wizards, vor dem ein Moderator
     existiert. Nach Abschluss des Setups läuft der Upload über
-    /moderator/einstellungen/logo."""
+    /gruppenfuehrer/einstellungen/logo."""
     if await setup_service.ist_eingerichtet(db):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

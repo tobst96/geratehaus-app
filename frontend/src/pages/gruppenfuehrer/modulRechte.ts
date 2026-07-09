@@ -1,4 +1,4 @@
-/** Module-Unterseiten (`/moderator/module/<key>`), die granular an Gruppenführer
+/** Module-Unterseiten (`/gruppenfuehrer/module/<key>`), die granular an Gruppenführer
  * freigebbar sind: Route-Segment `key` → Berechtigungs-Key `perm`. Nicht
  * gelistete Unterseiten (backup/minio/formular/einsatztagebuch-Einstellungen …)
  * bleiben admin-/`einstellungen`-gebunden. */

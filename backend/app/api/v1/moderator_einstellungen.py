@@ -11,7 +11,7 @@ from app.services.notifier.email import EmailNotifier
 # Phase 4b: granular geschützt – Admins immer (Bypass), sonst Freigabe von
 # „einstellungen" nötig.
 router = APIRouter(
-    prefix="/moderator/einstellungen",
+    prefix="/gruppenfuehrer/einstellungen",
     tags=["moderator:einstellungen"],
     dependencies=[Depends(require_modul_zugriff("einstellungen"))],
 )

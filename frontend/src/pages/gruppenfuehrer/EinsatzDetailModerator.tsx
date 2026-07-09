@@ -100,7 +100,7 @@ export function EinsatzDetailModerator() {
     setSchliesstAb(true);
     try {
       await einsatzLoeschen(einsatz.id);
-      navigate("/moderator/listen?tab=Eins%C3%A4tze");
+      navigate("/gruppenfuehrer/listen?tab=Eins%C3%A4tze");
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Löschen fehlgeschlagen.");
       setSchliesstAb(false);
@@ -120,7 +120,7 @@ export function EinsatzDetailModerator() {
   return (
     <div>
       <p>
-        <Link to="/moderator/listen">← Zurück zu den Listen</Link>
+        <Link to="/gruppenfuehrer/listen">← Zurück zu den Listen</Link>
       </p>
       <h1>{einsatz.titel}</h1>
       <div className="einsatz-status-zeile">

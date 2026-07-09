@@ -80,7 +80,7 @@ export function DienstbuchDetailModerator() {
   return (
     <div>
       <p>
-        <Link to="/moderator/listen">← Zurück zu den Listen</Link>
+        <Link to="/gruppenfuehrer/listen">← Zurück zu den Listen</Link>
       </p>
       <h1>{dienstbuch.titel}</h1>
       <div className="einsatz-status-zeile">

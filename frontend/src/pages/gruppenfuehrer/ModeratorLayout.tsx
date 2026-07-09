@@ -35,12 +35,12 @@ type NavGruppe = {
 };
 
 const NAV_GRUPPEN: NavGruppe[] = [
-  { id: "start", titel: null, admin: false, items: [{ pfad: "/moderator/dashboard", titel: "Dashboard", icon: "dashboard" }] },
+  { id: "start", titel: null, admin: false, items: [{ pfad: "/gruppenfuehrer/dashboard", titel: "Dashboard", icon: "dashboard" }] },
   {
     id: "buchungen",
     titel: null,
     admin: false,
-    items: [{ pfad: "/moderator/buchungen", titel: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv", berechtigungKey: "fahrzeugbuchung" }],
+    items: [{ pfad: "/gruppenfuehrer/buchungen", titel: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv", berechtigungKey: "fahrzeugbuchung" }],
   },
   { id: "listen", titel: "Listen", admin: false, listen: true, items: [] },
   {
@@ -48,18 +48,18 @@ const NAV_GRUPPEN: NavGruppe[] = [
     titel: "Module",
     admin: true,
     module: true,
-    items: [{ pfad: "/moderator/module", titel: "Übersicht", icon: "module", berechtigungKey: "einstellungen" }],
+    items: [{ pfad: "/gruppenfuehrer/module", titel: "Übersicht", icon: "module", berechtigungKey: "einstellungen" }],
   },
   {
     id: "verwaltung",
     titel: "Verwaltung",
     admin: true,
     items: [
-      { pfad: "/moderator/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen", berechtigungKey: "berechtigungen" },
-      { pfad: "/moderator/audit", titel: "Audit-Log", icon: "berechtigungen", nurAdmin: true },
-      { pfad: "/moderator/systemstatus", titel: "Systemstatus", icon: "update", nurAdmin: true },
-      { pfad: "/moderator/update", titel: "Update", icon: "update", berechtigungKey: "einstellungen" },
-      { pfad: "/moderator/einstellungen", titel: "Einstellungen", icon: "einstellungen", berechtigungKey: "einstellungen" },
+      { pfad: "/gruppenfuehrer/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen", berechtigungKey: "berechtigungen" },
+      { pfad: "/gruppenfuehrer/audit", titel: "Audit-Log", icon: "berechtigungen", nurAdmin: true },
+      { pfad: "/gruppenfuehrer/systemstatus", titel: "Systemstatus", icon: "update", nurAdmin: true },
+      { pfad: "/gruppenfuehrer/update", titel: "Update", icon: "update", berechtigungKey: "einstellungen" },
+      { pfad: "/gruppenfuehrer/einstellungen", titel: "Einstellungen", icon: "einstellungen", berechtigungKey: "einstellungen" },
     ],
   },
 ];
@@ -144,7 +144,7 @@ export function ModeratorLayout() {
 
   const modulAktiv = (key: ModulKey) => config?.[key] !== false;
   const listenTab =
-    location.pathname === "/moderator/listen"
+    location.pathname === "/gruppenfuehrer/listen"
       ? new URLSearchParams(location.search).get("tab") || "Einsätze"
       : null;
 
@@ -208,7 +208,7 @@ export function ModeratorLayout() {
                     <NavLink
                       key={item.pfad}
                       to={item.pfad}
-                      end={item.pfad === "/moderator/module"}
+                      end={item.pfad === "/gruppenfuehrer/module"}
                       className={linkClass(false)}
                     >
                       {navIcon(item.icon)}
@@ -223,7 +223,7 @@ export function ModeratorLayout() {
                   ).map((u) => (
                     <NavLink
                       key={u.tab}
-                      to={`/moderator/listen?tab=${encodeURIComponent(u.tab)}`}
+                      to={`/gruppenfuehrer/listen?tab=${encodeURIComponent(u.tab)}`}
                       className={`mod-nav-link mod-nav-link--sub${listenTab === u.tab ? " aktiv" : ""}`}
                     >
                       {navIcon(u.icon)}
@@ -232,7 +232,7 @@ export function ModeratorLayout() {
                   ))}
                   {istAdmin && (
                     <NavLink
-                      to="/moderator/listen?tab=Namensabweichungen"
+                      to="/gruppenfuehrer/listen?tab=Namensabweichungen"
                       className={`mod-nav-link mod-nav-link--sub${listenTab === "Namensabweichungen" ? " aktiv" : ""}`}
                     >
                       {navIcon("warnung")}
@@ -246,13 +246,13 @@ export function ModeratorLayout() {
                 moduleOffen &&
                 (istAdmin
                   ? aktiveModule.map((m) => (
-                      <NavLink key={m.key} to={`/moderator/module/${m.key}`} className={linkClass(true)}>
+                      <NavLink key={m.key} to={`/gruppenfuehrer/module/${m.key}`} className={linkClass(true)}>
                         {navIcon(MODUL_ICON[m.key])}
                         <span>{m.name}</span>
                       </NavLink>
                     ))
                   : grantbareUnterseiten.map((m) => (
-                      <NavLink key={m.key} to={`/moderator/module/${m.key}`} className={linkClass(true)}>
+                      <NavLink key={m.key} to={`/gruppenfuehrer/module/${m.key}`} className={linkClass(true)}>
                         {navIcon(m.icon)}
                         <span>{m.titel}</span>
                       </NavLink>

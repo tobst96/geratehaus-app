@@ -14,14 +14,14 @@ from app.services import berechtigungs_service, dienstbuch_service, modul_servic
 async def _moderator_token(client, db):
     # Dienstbuch-Moderator-Endpunkte sind granular geschützt (require_modul_zugriff);
     # der Test-Gruppenführer bekommt daher das „dienstbuch"-Recht.
-    gf = Person(name="gf", passwort_hash=hash_secret("geheim123"), moderator_rolle="gruppenfuehrer")
+    gf = Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer")
     db.add(gf)
     await db.commit()
     await db.refresh(gf)
     await modul_service.ensure_module(db)
     await berechtigungs_service.set_berechtigung(db, gf.id, "dienstbuch", True)
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "gf", "password": "geheim123"}
     )
     return login.json()["access_token"]
 

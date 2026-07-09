@@ -30,24 +30,24 @@ def test_ist_neuer_verhindert_downgrade():
 
 
 async def _admin_token(client, db):
-    moderator = Person(name="admin", passwort_hash=hash_secret("geheim123"), moderator_rolle="admin")
+    moderator = Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
     db.add(moderator)
     await db.commit()
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     return login.json()["access_token"]
 
 
 async def test_update_status_ohne_login_verweigert(client):
-    response = await client.get("/api/v1/moderator/update")
+    response = await client.get("/api/v1/gruppenfuehrer/update")
     assert response.status_code == 401
 
 
 async def test_update_status_default_kanal_ist_stable(client, db):
     token = await _admin_token(client, db)
     response = await client.get(
-        "/api/v1/moderator/update", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/gruppenfuehrer/update", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == 200
     assert response.json()["kanal"] == "stable"
@@ -56,7 +56,7 @@ async def test_update_status_default_kanal_ist_stable(client, db):
 async def test_update_kanal_auf_beta_umschalten(client, db):
     token = await _admin_token(client, db)
     response = await client.put(
-        "/api/v1/moderator/update/kanal",
+        "/api/v1/gruppenfuehrer/update/kanal",
         json={"kanal": "beta"},
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -64,7 +64,7 @@ async def test_update_kanal_auf_beta_umschalten(client, db):
     assert response.json()["kanal"] == "beta"
 
     erneut = await client.get(
-        "/api/v1/moderator/update", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/gruppenfuehrer/update", headers={"Authorization": f"Bearer {token}"}
     )
     assert erneut.json()["kanal"] == "beta"
 
@@ -72,7 +72,7 @@ async def test_update_kanal_auf_beta_umschalten(client, db):
 async def test_update_kanal_ungueltiger_wert_abgelehnt(client, db):
     token = await _admin_token(client, db)
     response = await client.put(
-        "/api/v1/moderator/update/kanal",
+        "/api/v1/gruppenfuehrer/update/kanal",
         json={"kanal": "nightly"},
         headers={"Authorization": f"Bearer {token}"},
     )

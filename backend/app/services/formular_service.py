@@ -406,7 +406,7 @@ async def _benachrichtige_empfaenger(
             f"Es ist eine neue Einreichung für das Formular {formular.name} eingegangen.\n"
             f"Zeitpunkt: {lokal:%d.%m.%Y %H:%M} Uhr\n\n"
             + "\n".join(zeilen)
-            + (f"\n\nIm System ansehen: {basis}/moderator/module/formular" if basis else "")
+            + (f"\n\nIm System ansehen: {basis}/gruppenfuehrer/module/formular" if basis else "")
         )
         await EmailNotifier().send_an(
             db, formular.email_empfaenger, f"Neue Formular-Einreichung: {formular.name}", nachricht

@@ -238,10 +238,10 @@ async def test_dienstbuch_immer_drucken(db, monkeypatch):
 
 
 async def _admin_headers(client, db):
-    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), moderator_rolle="admin"))
+    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     r = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
@@ -250,7 +250,7 @@ async def _admin_headers(client, db):
 async def test_testdruck_inaktiv_liefert_502(client, db):
     h = await _admin_headers(client, db)
     # drucker_aktiv Default false → DruckFehler → 502.
-    r = await client.post("/api/v1/moderator/einstellungen/testdruck", headers=h)
+    r = await client.post("/api/v1/gruppenfuehrer/einstellungen/testdruck", headers=h)
     assert r.status_code == 502
 
 
@@ -265,5 +265,5 @@ async def test_testdruck_erfolg(client, db, monkeypatch):
 
     monkeypatch.setattr(druck_service, "drucke_pdf", fake_druck)
 
-    r = await client.post("/api/v1/moderator/einstellungen/testdruck", headers=h)
+    r = await client.post("/api/v1/gruppenfuehrer/einstellungen/testdruck", headers=h)
     assert r.status_code == 204

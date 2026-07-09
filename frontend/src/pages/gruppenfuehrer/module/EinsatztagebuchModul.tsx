@@ -64,7 +64,7 @@ export function EinsatztagebuchModul() {
   return (
     <div>
       <p>
-        <Link to="/moderator/module">← Zurück zu den Modulen</Link>
+        <Link to="/gruppenfuehrer/module">← Zurück zu den Modulen</Link>
       </p>
       <h1>Einsatztagebuch</h1>
 

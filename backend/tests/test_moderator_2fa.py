@@ -13,7 +13,7 @@ from app.services import zwei_faktor_service
 
 async def _moderator(db, username="mod", rolle="admin", email="mod@example.org", passwort="geheim123"):
     m = Person(
-        name=username, passwort_hash=hash_secret(passwort), moderator_rolle=rolle, email=email
+        name=username, passwort_hash=hash_secret(passwort), gruppenfuehrer_rolle=rolle, email=email
     )
     db.add(m)
     await db.commit()
@@ -23,7 +23,7 @@ async def _moderator(db, username="mod", rolle="admin", email="mod@example.org",
 
 async def _login_headers(client, username="mod", passwort="geheim123"):
     r = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": username, "password": passwort}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": username, "password": passwort}
     )
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
@@ -39,7 +39,7 @@ async def _otp_setzen(db, moderator, code="123456"):
 @pytest.mark.asyncio
 async def test_login_ohne_2fa_liefert_token(client, db):
     await _moderator(db)
-    r = await client.post("/api/v1/auth/moderator/login", data={"username": "mod", "password": "geheim123"})
+    r = await client.post("/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"})
     assert r.status_code == 200
     assert r.json()["access_token"]
     assert r.json()["zwei_faktor_erforderlich"] is False
@@ -49,11 +49,11 @@ async def test_login_ohne_2fa_liefert_token(client, db):
 async def test_2fa_aktivieren_liefert_recovery_codes(client, db):
     await _moderator(db)
     h = await _login_headers(client)
-    r = await client.post("/api/v1/moderator/konto/2fa/aktivieren", headers=h)
+    r = await client.post("/api/v1/gruppenfuehrer/konto/2fa/aktivieren", headers=h)
     assert r.status_code == 200
     assert len(r.json()["codes"]) == zwei_faktor_service.RECOVERY_CODE_ANZAHL
 
-    status = await client.get("/api/v1/moderator/konto/2fa", headers=h)
+    status = await client.get("/api/v1/gruppenfuehrer/konto/2fa", headers=h)
     assert status.json() == {"aktiv": True, "email_gesetzt": True}
 
 
@@ -61,7 +61,7 @@ async def test_2fa_aktivieren_liefert_recovery_codes(client, db):
 async def test_2fa_aktivieren_ohne_email_400(client, db):
     await _moderator(db, email=None)
     h = await _login_headers(client)
-    r = await client.post("/api/v1/moderator/konto/2fa/aktivieren", headers=h)
+    r = await client.post("/api/v1/gruppenfuehrer/konto/2fa/aktivieren", headers=h)
     assert r.status_code == 400
 
 
@@ -70,7 +70,7 @@ async def test_login_mit_2fa_verlangt_code(client, db):
     m = await _moderator(db)
     m.zwei_faktor_aktiv = True
     await db.commit()
-    r = await client.post("/api/v1/auth/moderator/login", data={"username": "mod", "password": "geheim123"})
+    r = await client.post("/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"})
     assert r.status_code == 200
     body = r.json()
     assert body["access_token"] is None
@@ -84,7 +84,7 @@ async def test_2fa_mit_korrektem_otp_liefert_token(client, db):
     await _otp_setzen(db, m, "654321")
     challenge = moderator_2fa_session.signiere_challenge(m.id)
     r = await client.post(
-        "/api/v1/auth/moderator/2fa", json={"challenge": challenge, "code": "654321"}
+        "/api/v1/auth/gruppenfuehrer/2fa", json={"challenge": challenge, "code": "654321"}
     )
     assert r.status_code == 200
     assert r.json()["access_token"]
@@ -96,7 +96,7 @@ async def test_2fa_falscher_code_401(client, db):
     await _otp_setzen(db, m, "111111")
     challenge = moderator_2fa_session.signiere_challenge(m.id)
     r = await client.post(
-        "/api/v1/auth/moderator/2fa", json={"challenge": challenge, "code": "000000"}
+        "/api/v1/auth/gruppenfuehrer/2fa", json={"challenge": challenge, "code": "000000"}
     )
     assert r.status_code == 401
 
@@ -107,13 +107,13 @@ async def test_2fa_mit_recovery_code(client, db):
     codes = await zwei_faktor_service.aktivieren(db, m)  # aktiviert + Codes
     challenge = moderator_2fa_session.signiere_challenge(m.id)
     r = await client.post(
-        "/api/v1/auth/moderator/2fa", json={"challenge": challenge, "code": codes[0]}
+        "/api/v1/auth/gruppenfuehrer/2fa", json={"challenge": challenge, "code": codes[0]}
     )
     assert r.status_code == 200
     assert r.json()["access_token"]
     # Recovery-Code ist verbraucht → zweite Nutzung schlägt fehl.
     r2 = await client.post(
-        "/api/v1/auth/moderator/2fa", json={"challenge": challenge, "code": codes[0]}
+        "/api/v1/auth/gruppenfuehrer/2fa", json={"challenge": challenge, "code": codes[0]}
     )
     assert r2.status_code == 401
 
@@ -125,13 +125,13 @@ async def test_trusted_device_ueberspringt_2fa(client, db):
     challenge = moderator_2fa_session.signiere_challenge(m.id)
     # Mit "angemeldet bleiben" → Trusted-Device-Cookie wird gesetzt (im Client-Jar).
     r = await client.post(
-        "/api/v1/auth/moderator/2fa",
+        "/api/v1/auth/gruppenfuehrer/2fa",
         json={"challenge": challenge, "code": "222222", "angemeldet_bleiben": True},
     )
     assert r.status_code == 200
     # Erneuter Login: dank Trusted-Device direkt ein Token, kein 2FA nötig.
     r2 = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "mod", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"}
     )
     assert r2.json()["access_token"]
     assert r2.json()["zwei_faktor_erforderlich"] is False
@@ -145,7 +145,7 @@ async def test_admin_reset_2fa(client, db):
     h = await _login_headers(client, "admin")
 
     r = await client.post(
-        f"/api/v1/moderator/stammdaten/personen/{ziel.id}/2fa-zuruecksetzen", headers=h
+        f"/api/v1/gruppenfuehrer/stammdaten/personen/{ziel.id}/2fa-zuruecksetzen", headers=h
     )
     assert r.status_code == 204
     await db.refresh(ziel)
