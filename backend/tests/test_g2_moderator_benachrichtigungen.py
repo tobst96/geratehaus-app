@@ -6,7 +6,7 @@ die E-Mail zu verlieren."""
 import pytest
 
 from app.models.person import Person
-from app.services import moderator_service
+from app.services import gruppenfuehrer_service
 from app.services.config_service import config_service
 
 
@@ -27,7 +27,7 @@ async def test_resolver_vereint_moderatoren_und_legacy(db):
     # Globale Liste (inkl. Dublette zu mod@ in anderer Schreibweise).
     await config_service.set(db, "notifier_email_recipients", "MOD@example.org, extern@example.org")
 
-    empf = await moderator_service.admin_benachrichtigungs_empfaenger(db)
+    empf = await gruppenfuehrer_service.admin_benachrichtigungs_empfaenger(db)
     assert "mod@example.org" in empf
     assert "extern@example.org" in empf
     assert "aus@example.org" not in empf
@@ -39,5 +39,5 @@ async def test_resolver_vereint_moderatoren_und_legacy(db):
 async def test_resolver_non_breaking_nur_legacy(db):
     # Ohne opted-in Moderator bleibt die bestehende globale Liste erhalten.
     await config_service.set(db, "notifier_email_recipients", "alt@example.org")
-    empf = await moderator_service.admin_benachrichtigungs_empfaenger(db)
+    empf = await gruppenfuehrer_service.admin_benachrichtigungs_empfaenger(db)
     assert empf == ["alt@example.org"]

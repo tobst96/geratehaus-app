@@ -15,7 +15,7 @@ from app.models.person import Person
 from app.services.config_service import config_service
 
 
-class ModeratorGesperrtError(Exception):
+class GruppenfuehrerGesperrtError(Exception):
     """Der Passwort-Login ist wegen zu vieler Fehlversuche temporär gesperrt."""
 
     def __init__(self, verbleibend_sekunden: int) -> None:
@@ -33,10 +33,10 @@ async def login_pruefen(db: AsyncSession, name: str, passwort: str) -> Person | 
     hat; die Elevated-Prüfung (`gruppenfuehrer_rolle`) macht das Gate in deps.
 
     - Person existiert nicht / hat kein Passwort → None (401, ohne Enumeration/Sperre).
-    - Gesperrt (`login_gesperrt_bis` in der Zukunft) → `ModeratorGesperrtError`.
+    - Gesperrt (`login_gesperrt_bis` in der Zukunft) → `GruppenfuehrerGesperrtError`.
     - Passwort korrekt → Zähler/Sperre zurücksetzen, Person zurückgeben.
-    - Passwort falsch → Fehlversuchszähler erhöhen; ab `moderator_login_max_fehlversuche`
-      wird der Zugang für `moderator_login_sperre_minuten` gesperrt → None.
+    - Passwort falsch → Fehlversuchszähler erhöhen; ab `gruppenfuehrer_login_max_fehlversuche`
+      wird der Zugang für `gruppenfuehrer_login_sperre_minuten` gesperrt → None.
     """
     person = (
         await db.execute(select(Person).where(Person.name == name))
@@ -48,7 +48,7 @@ async def login_pruefen(db: AsyncSession, name: str, passwort: str) -> Person | 
     veraendert = False
     gesperrt_bis = _als_utc(person.login_gesperrt_bis) if person.login_gesperrt_bis else None
     if gesperrt_bis is not None and gesperrt_bis > jetzt:
-        raise ModeratorGesperrtError(int((gesperrt_bis - jetzt).total_seconds()) + 1)
+        raise GruppenfuehrerGesperrtError(int((gesperrt_bis - jetzt).total_seconds()) + 1)
     if gesperrt_bis is not None:  # Sperre abgelaufen
         person.login_gesperrt_bis = None
         person.login_fehlversuche = 0
@@ -63,8 +63,8 @@ async def login_pruefen(db: AsyncSession, name: str, passwort: str) -> Person | 
             await db.commit()
         return person
 
-    max_fehlversuche = int(await config_service.get(db, "moderator_login_max_fehlversuche", 5))
-    sperre_minuten = int(await config_service.get(db, "moderator_login_sperre_minuten", 15))
+    max_fehlversuche = int(await config_service.get(db, "gruppenfuehrer_login_max_fehlversuche", 5))
+    sperre_minuten = int(await config_service.get(db, "gruppenfuehrer_login_sperre_minuten", 15))
     person.login_fehlversuche = (person.login_fehlversuche or 0) + 1
     if max_fehlversuche > 0 and person.login_fehlversuche >= max_fehlversuche:
         person.login_gesperrt_bis = jetzt + timedelta(minutes=sperre_minuten)

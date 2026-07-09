@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.deps import CurrentModerator, DbSession, require_modul_zugriff
+from app.api.deps import CurrentGruppenfuehrer, DbSession, require_modul_zugriff
 from app.schemas.berechtigung import (
     BerechtigungMatrixOut,
     BerechtigungSetzen,
@@ -39,7 +39,7 @@ async def berechtigungen_matrix(db: DbSession) -> BerechtigungMatrixOut:
 
 @router.put("/{person_id}/{modul_key}", status_code=status.HTTP_204_NO_CONTENT)
 async def berechtigung_setzen(
-    db: DbSession, akteur: CurrentModerator, person_id: int, modul_key: str, daten: BerechtigungSetzen
+    db: DbSession, akteur: CurrentGruppenfuehrer, person_id: int, modul_key: str, daten: BerechtigungSetzen
 ) -> None:
     """Erteilt/entzieht einer (elevated) Person den Zugriff auf ein Modul (Admin-only)."""
     ok = await berechtigungs_service.set_berechtigung(db, person_id, modul_key, daten.erlaubt)

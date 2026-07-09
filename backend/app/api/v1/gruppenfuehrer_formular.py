@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Response, status
 
-from app.api.deps import CurrentAdmin, CurrentModerator, DbSession
+from app.api.deps import CurrentAdmin, CurrentGruppenfuehrer, DbSession
 from app.schemas.formular import (
     EinreichungOut,
     FormularCreate,
@@ -29,7 +29,7 @@ async def formular_anlegen(db: DbSession, _admin: CurrentAdmin, daten: FormularC
 
 
 @router.get("/sichtbar", response_model=list[FormularOut])
-async def formulare_sichtbar(db: DbSession, moderator: CurrentModerator) -> list[FormularOut]:
+async def formulare_sichtbar(db: DbSession, moderator: CurrentGruppenfuehrer) -> list[FormularOut]:
     """Formulare, deren Einreichungen der angemeldete Moderator sehen darf: Admins
     alle, sonst nur Formulare mit `moderator_sichtbar`. Für die Listen-Ansicht."""
     formulare = await formular_service.liste_formulare(db)
@@ -108,7 +108,7 @@ async def feld_loeschen(db: DbSession, _admin: CurrentAdmin, feld_id: int) -> No
 
 @router.get("/{formular_id}/einreichungen", response_model=list[EinreichungOut])
 async def einreichungen_liste(
-    db: DbSession, moderator: CurrentModerator, formular_id: int
+    db: DbSession, moderator: CurrentGruppenfuehrer, formular_id: int
 ) -> list[EinreichungOut]:
     formular = await formular_service.get_formular(db, formular_id)
     if formular is None:
@@ -123,7 +123,7 @@ async def einreichungen_liste(
 
 @router.get("/{formular_id}/zusammenfassung", response_model=ZusammenfassungOut)
 async def zusammenfassung(
-    db: DbSession, moderator: CurrentModerator, formular_id: int
+    db: DbSession, moderator: CurrentGruppenfuehrer, formular_id: int
 ) -> ZusammenfassungOut:
     """Aggregierter Zwischenstand (Ø/Verteilung/Freitexte) je Formular."""
     formular = await formular_service.get_formular(db, formular_id)
@@ -139,7 +139,7 @@ async def zusammenfassung(
 
 @router.get("/{formular_id}/export.csv")
 async def einreichungen_export(
-    db: DbSession, moderator: CurrentModerator, formular_id: int
+    db: DbSession, moderator: CurrentGruppenfuehrer, formular_id: int
 ) -> Response:
     formular = await formular_service.get_formular(db, formular_id)
     if formular is None:

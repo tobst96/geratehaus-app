@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFil
 
 from typing import Annotated
 
-from app.api.deps import CurrentAdmin, CurrentModerator, DbSession, require_modul_zugriff
+from app.api.deps import CurrentAdmin, CurrentGruppenfuehrer, DbSession, require_modul_zugriff
 from app.models.moderator import Moderator
 from app.schemas.moderator import ElevatedPersonOut, PersonElevieren, PersonPasswortSetzen
 from app.schemas.dienstbuch_feld import (
@@ -41,7 +41,7 @@ from app.schemas.stammdaten import (
     GruppeOut,
     GruppeUpdate,
 )
-from app.services import ampel_service, audit_service, barcode_service, dienstbuch_service, dienststunden_service, divera_personal_service, email_template_service, moderator_service, pdf_service, person_bild_reservierung_service, stammdaten_service, zwei_faktor_service
+from app.services import ampel_service, audit_service, barcode_service, dienstbuch_service, dienststunden_service, divera_personal_service, email_template_service, gruppenfuehrer_service, pdf_service, person_bild_reservierung_service, stammdaten_service, zwei_faktor_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -294,7 +294,7 @@ async def dienstbuch_feld_loeschen(db: DbSession, _admin: StammdatenZugriff, fel
 
 
 @router.get("/personen", response_model=list[PersonOut])
-async def personen_liste(db: DbSession, _moderator: CurrentModerator) -> list[PersonOut]:
+async def personen_liste(db: DbSession, _moderator: CurrentGruppenfuehrer) -> list[PersonOut]:
     """Bewusst für jeden Moderator lesbar (nicht nur Admin) – Gruppenführer
     brauchen die Personenliste an mehreren Stellen lesend. Schreibende
     Personen-Endpunkte bleiben admin-only."""
@@ -303,7 +303,7 @@ async def personen_liste(db: DbSession, _moderator: CurrentModerator) -> list[Pe
 
 
 @router.get("/personen/ampel", response_model=list[AmpelEintragOut])
-async def personen_ampel(db: DbSession, _moderator: CurrentModerator) -> list[AmpelEintragOut]:
+async def personen_ampel(db: DbSession, _moderator: CurrentGruppenfuehrer) -> list[AmpelEintragOut]:
     """Aktivitäts-Ampelstatus je Person (gruen/gelb/rot/inaktiv) für die
     Personal-Liste. Muss vor '/personen/{person_id}' stehen, sonst würde 'ampel'
     als person_id interpretiert."""
@@ -384,7 +384,7 @@ async def person_pin_setzen(
 
 @router.post("/personen/{person_id}/pin-entsperren", response_model=PersonOut)
 async def person_pin_entsperren(
-    db: DbSession, _moderator: CurrentModerator, person_id: int
+    db: DbSession, _moderator: CurrentGruppenfuehrer, person_id: int
 ) -> PersonOut:
     """Hebt eine durch zu viele Fehlversuche entstandene PIN-Sperre manuell auf
     (Gruppenführer/Moderator) und setzt den Fehlversuchszähler zurück."""
@@ -554,7 +554,7 @@ async def divera_vorschlag_entscheiden(
 @router.get("/elevated", response_model=list[ElevatedPersonOut])
 async def elevated_liste(db: DbSession, _admin: CurrentAdmin) -> list[ElevatedPersonOut]:
     """Alle Personen mit erhöhtem Zugang (Admin/Gruppenführer)."""
-    return await moderator_service.elevated_liste(db)
+    return await gruppenfuehrer_service.elevated_liste(db)
 
 
 @router.put("/personen/{person_id}/elevation", response_model=ElevatedPersonOut)
@@ -571,7 +571,7 @@ async def person_elevieren(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Für den erhöhten Zugang muss ein Passwort gesetzt werden.",
         )
-    person = await moderator_service.person_elevieren(db, person, daten.rolle, daten.passwort)
+    person = await gruppenfuehrer_service.person_elevieren(db, person, daten.rolle, daten.passwort)
     await audit_service.protokolliere(
         db, admin.name, "person_eleviert", "person", person_id, f"Rolle {daten.rolle}"
     )
@@ -585,12 +585,12 @@ async def person_de_elevieren(db: DbSession, admin: CurrentAdmin, person_id: int
     person = await stammdaten_service.get_person(db, person_id)
     if person is None or person.gruppenfuehrer_rolle is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kein erhöhter Zugang.")
-    if person.gruppenfuehrer_rolle == "admin" and await moderator_service.anzahl_admins(db) <= 1:
+    if person.gruppenfuehrer_rolle == "admin" and await gruppenfuehrer_service.anzahl_admins(db) <= 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Der letzte verbleibende Administrator kann nicht entzogen werden.",
         )
-    await moderator_service.person_de_elevieren(db, person)
+    await gruppenfuehrer_service.person_de_elevieren(db, person)
     await audit_service.protokolliere(db, admin.name, "person_de_eleviert", "person", person_id)
 
 
@@ -602,7 +602,7 @@ async def person_passwort_setzen(
     person = await stammdaten_service.get_person(db, person_id)
     if person is None or person.gruppenfuehrer_rolle is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kein erhöhter Zugang.")
-    await moderator_service.person_passwort_setzen(db, person, daten.passwort)
+    await gruppenfuehrer_service.person_passwort_setzen(db, person, daten.passwort)
     await audit_service.protokolliere(db, admin.name, "person_passwort_gesetzt", "person", person_id)
 
 

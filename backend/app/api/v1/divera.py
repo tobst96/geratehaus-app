@@ -3,7 +3,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
-from app.api.deps import CurrentModerator, DbSession
+from app.api.deps import CurrentGruppenfuehrer, DbSession
 from app.core.rate_limit import rate_limit
 from app.services import divera_client, divera_service
 from app.services.config_service import config_service
@@ -50,7 +50,7 @@ async def webhook(
 
 
 @router.post("/synchronisieren")
-async def manuell_synchronisieren(db: DbSession, _moderator: CurrentModerator) -> dict[str, int]:
+async def manuell_synchronisieren(db: DbSession, _moderator: CurrentGruppenfuehrer) -> dict[str, int]:
     """Stößt im Polling-Modus eine sofortige Synchronisation an (z. B. zum
     Testen der Konfiguration), unabhängig vom Scheduler-Intervall."""
     anzahl_neu = await divera_service.synchronisiere(db)
@@ -59,7 +59,7 @@ async def manuell_synchronisieren(db: DbSession, _moderator: CurrentModerator) -
 
 @router.post("/einsaetze-nachholen")
 async def einsaetze_nachholen(
-    db: DbSession, _moderator: CurrentModerator, tage: int = 1
+    db: DbSession, _moderator: CurrentGruppenfuehrer, tage: int = 1
 ) -> dict[str, int]:
     """Holt die Alarm-HISTORIE der letzten `tage` Tage über /api/v2/alarms und
     importiert fehlende Einsätze (Upsert über divera_id). Anders als der

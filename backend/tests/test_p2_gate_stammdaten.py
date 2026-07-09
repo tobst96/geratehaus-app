@@ -1,7 +1,7 @@
-"""Etappe P2: moderator_stammdaten granular geschaltet – Stammdaten-Config
+"""Etappe P2: gruppenfuehrer_stammdaten granular geschaltet – Stammdaten-Config
 (Fahrzeuge/Funktionen/Gruppen/Zusatzfelder) = Key `stammdaten`, Personen-
 Mutationen = Key `personal`. Admins via Bypass; die bisher für alle Moderatoren
-offenen `CurrentModerator`-Endpunkte (Personen-Liste) bleiben offen (non-breaking)."""
+offenen `CurrentGruppenfuehrer`-Endpunkte (Personen-Liste) bleiben offen (non-breaking)."""
 
 import pytest
 
@@ -59,7 +59,7 @@ async def test_personen_mutation_braucht_personal_recht(client, db):
 
 @pytest.mark.asyncio
 async def test_personen_liste_bleibt_fuer_gruppenfuehrer_offen(client, db):
-    # NON-BREAKING: /personen (CurrentModerator) ist weiterhin ohne Freigabe erreichbar.
+    # NON-BREAKING: /personen (CurrentGruppenfuehrer) ist weiterhin ohne Freigabe erreichbar.
     await modul_service.ensure_module(db)
     _m, h = await _token(client, db, "gf", "gruppenfuehrer")
     assert (await client.get("/api/v1/gruppenfuehrer/stammdaten/personen", headers=h)).status_code == 200

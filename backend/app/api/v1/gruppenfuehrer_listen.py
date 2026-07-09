@@ -15,7 +15,7 @@ from app.schemas.dienststunden import (
 )
 from app.schemas.einsatz import EinsatzOut
 from app.schemas.namens_abweichung import NamensAbweichungOut
-from app.services import auth_service, dienststunden_service, moderator_listen_service, pdf_service
+from app.services import auth_service, dienststunden_service, gruppenfuehrer_listen_service, pdf_service
 
 router = APIRouter(prefix="/gruppenfuehrer/listen", tags=["moderator:listen"])
 
@@ -37,7 +37,7 @@ async def einsaetze(
     person_id: int | None = None,
     archiviert: bool | None = None,
 ) -> list[EinsatzOut]:
-    return await moderator_listen_service.einsaetze_liste(
+    return await gruppenfuehrer_listen_service.einsaetze_liste(
         db, von, bis, fahrzeug_id, person_id, archiviert
     )
 
@@ -51,7 +51,7 @@ async def dienstbuecher(
     person_id: int | None = None,
     archiviert: bool | None = None,
 ) -> list[DienstbuchOut]:
-    return await moderator_listen_service.dienstbuecher_liste(db, von, bis, person_id, archiviert)
+    return await gruppenfuehrer_listen_service.dienstbuecher_liste(db, von, bis, person_id, archiviert)
 
 
 @router.get("/dienststunden", response_model=list[DienststundenEintragOut])
@@ -63,7 +63,7 @@ async def dienststunden(
     person_id: int | None = None,
     funktion_id: int | None = None,
 ) -> list[DienststundenEintragOut]:
-    return await moderator_listen_service.dienststunden_liste(db, von, bis, person_id, funktion_id)
+    return await gruppenfuehrer_listen_service.dienststunden_liste(db, von, bis, person_id, funktion_id)
 
 
 @router.get("/dienststunden-schwellenwert", response_model=list[SchwellenwertEintragOut])
@@ -92,7 +92,7 @@ async def buchungen(
     person_id: int | None = None,
     status: str | None = None,
 ) -> list[BuchungOut]:
-    return await moderator_listen_service.buchungen_liste(
+    return await gruppenfuehrer_listen_service.buchungen_liste(
         db, von, bis, fahrzeug_id, person_id, status
     )
 
@@ -122,7 +122,7 @@ async def einsaetze_pdf(
     person_id: int | None = None,
     archiviert: bool | None = None,
 ) -> Response:
-    rows = await moderator_listen_service.einsaetze_liste(
+    rows = await gruppenfuehrer_listen_service.einsaetze_liste(
         db, von, bis, fahrzeug_id, person_id, archiviert
     )
     spalten = [
@@ -155,7 +155,7 @@ async def dienstbuecher_pdf(
     person_id: int | None = None,
     archiviert: bool | None = None,
 ) -> Response:
-    rows = await moderator_listen_service.dienstbuecher_liste(db, von, bis, person_id, archiviert)
+    rows = await gruppenfuehrer_listen_service.dienstbuecher_liste(db, von, bis, person_id, archiviert)
     spalten = [
         {"key": "titel", "label": "Titel"},
         {"key": "eroeffnet_am", "label": "Eröffnet am"},
@@ -182,7 +182,7 @@ async def dienststunden_pdf(
     person_id: int | None = None,
     funktion_id: int | None = None,
 ) -> Response:
-    rows = await moderator_listen_service.dienststunden_liste(db, von, bis, person_id, funktion_id)
+    rows = await gruppenfuehrer_listen_service.dienststunden_liste(db, von, bis, person_id, funktion_id)
     spalten = [
         {"key": "person", "label": "Name"},
         {"key": "funktion", "label": "Funktion"},
@@ -212,7 +212,7 @@ async def buchungen_pdf(
     person_id: int | None = None,
     status: str | None = None,
 ) -> Response:
-    rows = await moderator_listen_service.buchungen_liste(
+    rows = await gruppenfuehrer_listen_service.buchungen_liste(
         db, von, bis, fahrzeug_id, person_id, status
     )
     spalten = [

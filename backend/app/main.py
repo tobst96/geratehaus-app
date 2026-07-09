@@ -22,23 +22,23 @@ from app.api.v1 import (
     formulare,
     manifest,
     mitglied_login_reservierungen,
-    moderator_audit,
-    moderator_backup,
-    moderator_formular,
-    moderator_barcodes,
-    moderator_minio,
-    moderator_berechtigungen,
-    moderator_buchungen,
-    moderator_dashboard,
-    moderator_einstellungen,
-    moderator_konto,
-    moderator_listen,
-    moderator_meta,
-    moderator_feature_module,
-    moderator_module,
-    moderator_person_kanaele,
-    moderator_stammdaten,
-    moderator_update,
+    gruppenfuehrer_audit,
+    gruppenfuehrer_backup,
+    gruppenfuehrer_formular,
+    gruppenfuehrer_barcodes,
+    gruppenfuehrer_minio,
+    gruppenfuehrer_berechtigungen,
+    gruppenfuehrer_buchungen,
+    gruppenfuehrer_dashboard,
+    gruppenfuehrer_einstellungen,
+    gruppenfuehrer_konto,
+    gruppenfuehrer_listen,
+    gruppenfuehrer_meta,
+    gruppenfuehrer_feature_module,
+    gruppenfuehrer_module,
+    gruppenfuehrer_person_kanaele,
+    gruppenfuehrer_stammdaten,
+    gruppenfuehrer_update,
     oeffentlich,
     person_bild_reservierungen,
     pin,
@@ -133,22 +133,22 @@ app.include_router(dienststunden_stempel.router, prefix="/api/v1")
 app.include_router(fahrzeugbuchung_reservierungen.router, prefix="/api/v1")
 app.include_router(buchungen.router, prefix="/api/v1")
 app.include_router(buchung_aktionen.router, prefix="/api/v1")
-app.include_router(moderator_audit.router, prefix="/api/v1")
-app.include_router(moderator_barcodes.router, prefix="/api/v1")
-app.include_router(moderator_backup.router, prefix="/api/v1")
-app.include_router(moderator_minio.router, prefix="/api/v1")
-app.include_router(moderator_einstellungen.router, prefix="/api/v1")
-app.include_router(moderator_konto.router, prefix="/api/v1")
-app.include_router(moderator_stammdaten.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_audit.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_barcodes.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_backup.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_minio.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_einstellungen.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_konto.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_stammdaten.router, prefix="/api/v1")
 app.include_router(person_bild_reservierungen.router, prefix="/api/v1")
-app.include_router(moderator_dashboard.router, prefix="/api/v1")
-app.include_router(moderator_listen.router, prefix="/api/v1")
-app.include_router(moderator_module.router, prefix="/api/v1")
-app.include_router(moderator_feature_module.router, prefix="/api/v1")
-app.include_router(moderator_meta.router, prefix="/api/v1")
-app.include_router(moderator_berechtigungen.router, prefix="/api/v1")
-app.include_router(moderator_person_kanaele.router, prefix="/api/v1")
-app.include_router(moderator_buchungen.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_dashboard.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_listen.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_module.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_feature_module.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_meta.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_berechtigungen.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_person_kanaele.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_buchungen.router, prefix="/api/v1")
 app.include_router(push.router, prefix="/api/v1")
 app.include_router(divera.router, prefix="/api/v1")
 app.include_router(oeffentlich.router, prefix="/api/v1")
@@ -157,9 +157,9 @@ app.include_router(pin.router, prefix="/api/v1")
 app.include_router(reservierungen.router, prefix="/api/v1")
 app.include_router(mitglied_login_reservierungen.router, prefix="/api/v1")
 app.include_router(formulare.router, prefix="/api/v1")
-app.include_router(moderator_formular.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_formular.router, prefix="/api/v1")
 app.include_router(manifest.router, prefix="/api/v1")
-app.include_router(moderator_update.router, prefix="/api/v1")
+app.include_router(gruppenfuehrer_update.router, prefix="/api/v1")
 
 class GeschuetzteUploads(StaticFiles):
     """Liefert `/uploads` aus, verlangt für **geschützte** Pfade

@@ -8,7 +8,7 @@ import pytest
 
 from app.core.security import hash_secret
 from app.models.person import Person
-from app.services import moderator_service
+from app.services import gruppenfuehrer_service
 from app.services.config_service import config_service
 
 
@@ -28,8 +28,8 @@ async def _login(client, username, passwort):
 
 @pytest.mark.asyncio
 async def test_lockout_nach_max_fehlversuchen(client, db):
-    await config_service.set(db, "moderator_login_max_fehlversuche", 5)
-    await config_service.set(db, "moderator_login_sperre_minuten", 15)
+    await config_service.set(db, "gruppenfuehrer_login_max_fehlversuche", 5)
+    await config_service.set(db, "gruppenfuehrer_login_sperre_minuten", 15)
     await _moderator(db)
 
     for _ in range(5):
@@ -42,7 +42,7 @@ async def test_lockout_nach_max_fehlversuchen(client, db):
 
 @pytest.mark.asyncio
 async def test_korrektes_passwort_setzt_zaehler_zurueck(client, db):
-    await config_service.set(db, "moderator_login_max_fehlversuche", 5)
+    await config_service.set(db, "gruppenfuehrer_login_max_fehlversuche", 5)
     m = await _moderator(db)
     await _login(client, "admin", "falsch")
     await _login(client, "admin", "falsch")
@@ -54,15 +54,15 @@ async def test_korrektes_passwort_setzt_zaehler_zurueck(client, db):
 
 @pytest.mark.asyncio
 async def test_sperre_laeuft_automatisch_ab(db):
-    await config_service.set(db, "moderator_login_max_fehlversuche", 3)
+    await config_service.set(db, "gruppenfuehrer_login_max_fehlversuche", 3)
     m = await _moderator(db)
     for _ in range(3):
-        assert await moderator_service.login_pruefen(db, "admin", "falsch") is None
+        assert await gruppenfuehrer_service.login_pruefen(db, "admin", "falsch") is None
     assert m.login_gesperrt_bis is not None
 
     m.login_gesperrt_bis = datetime.now(timezone.utc) - timedelta(minutes=1)
     await db.commit()
-    res = await moderator_service.login_pruefen(db, "admin", "richtig123")
+    res = await gruppenfuehrer_service.login_pruefen(db, "admin", "richtig123")
     assert res is not None
     assert m.login_gesperrt_bis is None
     assert m.login_fehlversuche == 0
@@ -76,8 +76,8 @@ async def test_unbekannter_user_401_ohne_sperre(client, db):
 
 @pytest.mark.asyncio
 async def test_lockout_deaktivierbar_ueber_config(db):
-    await config_service.set(db, "moderator_login_max_fehlversuche", 0)
+    await config_service.set(db, "gruppenfuehrer_login_max_fehlversuche", 0)
     m = await _moderator(db)
     for _ in range(8):
-        assert await moderator_service.login_pruefen(db, "admin", "falsch") is None
+        assert await gruppenfuehrer_service.login_pruefen(db, "admin", "falsch") is None
     assert m.login_gesperrt_bis is None

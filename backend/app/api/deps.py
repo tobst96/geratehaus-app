@@ -16,7 +16,7 @@ DbSession = Annotated[AsyncSession, Depends(get_db)]
 _oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/gruppenfuehrer/login", auto_error=False)
 
 
-async def get_current_moderator(
+async def get_current_gruppenfuehrer(
     db: DbSession, token: Annotated[str | None, Depends(_oauth2_scheme)] = None
 ) -> Person:
     """Der/die im Moderatorbereich angemeldete **Person** (Konto). Das JWT trägt
@@ -40,13 +40,13 @@ async def get_current_moderator(
     return person
 
 
-CurrentModerator = Annotated[Person, Depends(get_current_moderator)]
+CurrentGruppenfuehrer = Annotated[Person, Depends(get_current_gruppenfuehrer)]
 
 
-async def get_current_admin(person: CurrentModerator) -> Person:
-    """Wie CurrentModerator, verlangt zusätzlich die Rolle "admin". Personal,
+async def get_current_admin(person: CurrentGruppenfuehrer) -> Person:
+    """Wie CurrentGruppenfuehrer, verlangt zusätzlich die Rolle "admin". Personal,
     Einstellungen und Verwaltung sind Admin-only; Gruppenführer sehen nur ihre
-    freigegebenen Bereiche (CurrentModerator + granulare Rechte)."""
+    freigegebenen Bereiche (CurrentGruppenfuehrer + granulare Rechte)."""
     if person.gruppenfuehrer_rolle != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -140,7 +140,7 @@ def require_modul_zugriff(modul_key: str):
     angemeldete (elevated) Person Zugriff auf das Modul `modul_key` hat (Admins
     immer, via Admin-Bypass in berechtigungs_service). Gibt die Person zurück, sonst 403."""
 
-    async def _check(person: CurrentModerator, db: DbSession) -> Person:
+    async def _check(person: CurrentGruppenfuehrer, db: DbSession) -> Person:
         # lokaler Import vermeidet einen Import-Zyklus (Service nutzt Models/Config)
         from app.services import berechtigungs_service
 

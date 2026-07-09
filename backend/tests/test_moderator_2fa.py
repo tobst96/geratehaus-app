@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from app.core import moderator_2fa_session
+from app.core import gruppenfuehrer_2fa_session
 from app.core.security import hash_secret
 from app.models.person import Person
 from app.services import zwei_faktor_service
@@ -82,7 +82,7 @@ async def test_login_mit_2fa_verlangt_code(client, db):
 async def test_2fa_mit_korrektem_otp_liefert_token(client, db):
     m = await _moderator(db)
     await _otp_setzen(db, m, "654321")
-    challenge = moderator_2fa_session.signiere_challenge(m.id)
+    challenge = gruppenfuehrer_2fa_session.signiere_challenge(m.id)
     r = await client.post(
         "/api/v1/auth/gruppenfuehrer/2fa", json={"challenge": challenge, "code": "654321"}
     )
@@ -94,7 +94,7 @@ async def test_2fa_mit_korrektem_otp_liefert_token(client, db):
 async def test_2fa_falscher_code_401(client, db):
     m = await _moderator(db)
     await _otp_setzen(db, m, "111111")
-    challenge = moderator_2fa_session.signiere_challenge(m.id)
+    challenge = gruppenfuehrer_2fa_session.signiere_challenge(m.id)
     r = await client.post(
         "/api/v1/auth/gruppenfuehrer/2fa", json={"challenge": challenge, "code": "000000"}
     )
@@ -105,7 +105,7 @@ async def test_2fa_falscher_code_401(client, db):
 async def test_2fa_mit_recovery_code(client, db):
     m = await _moderator(db)
     codes = await zwei_faktor_service.aktivieren(db, m)  # aktiviert + Codes
-    challenge = moderator_2fa_session.signiere_challenge(m.id)
+    challenge = gruppenfuehrer_2fa_session.signiere_challenge(m.id)
     r = await client.post(
         "/api/v1/auth/gruppenfuehrer/2fa", json={"challenge": challenge, "code": codes[0]}
     )
@@ -122,7 +122,7 @@ async def test_2fa_mit_recovery_code(client, db):
 async def test_trusted_device_ueberspringt_2fa(client, db):
     m = await _moderator(db)
     await _otp_setzen(db, m, "222222")
-    challenge = moderator_2fa_session.signiere_challenge(m.id)
+    challenge = gruppenfuehrer_2fa_session.signiere_challenge(m.id)
     # Mit "angemeldet bleiben" → Trusted-Device-Cookie wird gesetzt (im Client-Jar).
     r = await client.post(
         "/api/v1/auth/gruppenfuehrer/2fa",

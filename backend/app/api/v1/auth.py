@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 
 from app.api.deps import CurrentPerson, DbSession
-from app.core import datei_token, mitglied_session, moderator_2fa_session
+from app.core import datei_token, mitglied_session, gruppenfuehrer_2fa_session
 from app.core.rate_limit import rate_limit
 from app.core.security import create_access_token
 from app.models.barcode_token import BarcodeToken
@@ -29,7 +29,7 @@ from app.services import (
     barcode_service,
     feature_modul_service,
     mitglied_login_reservierung_service,
-    moderator_service,
+    gruppenfuehrer_service,
     pin_service,
     stammdaten_service,
     zwei_faktor_service,
@@ -291,8 +291,8 @@ async def moderator_login(
     moderator_trusted_device: Annotated[str | None, Cookie()] = None,
 ) -> ModeratorLoginErgebnis:
     try:
-        person = await moderator_service.login_pruefen(db, form_data.username, form_data.password)
-    except moderator_service.ModeratorGesperrtError as sperre:
+        person = await gruppenfuehrer_service.login_pruefen(db, form_data.username, form_data.password)
+    except gruppenfuehrer_service.GruppenfuehrerGesperrtError as sperre:
         minuten = max(1, round(sperre.verbleibend_sekunden / 60))
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -318,7 +318,7 @@ async def moderator_login(
         pass
     return ModeratorLoginErgebnis(
         zwei_faktor_erforderlich=True,
-        challenge=moderator_2fa_session.signiere_challenge(person.id),
+        challenge=gruppenfuehrer_2fa_session.signiere_challenge(person.id),
     )
 
 
@@ -330,7 +330,7 @@ async def moderator_login(
 async def moderator_2fa(db: DbSession, response: Response, daten: Moderator2FA) -> ModeratorLoginErgebnis:
     """Zweiter Login-Schritt: prüft den E-Mail-OTP **oder** einen Recovery-Code
     zum vorher ausgestellten `challenge`-Token."""
-    person_id = moderator_2fa_session.lese_challenge(daten.challenge)
+    person_id = gruppenfuehrer_2fa_session.lese_challenge(daten.challenge)
     if person_id is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

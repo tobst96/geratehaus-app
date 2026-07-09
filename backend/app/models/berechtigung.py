@@ -11,7 +11,7 @@ class Berechtigung(Base, TimestampMixin):
     in `berechtigungs_service` immer Vollzugriff (unabhängig von diesen Zeilen).
 
     Phase 2 ist noch OHNE Enforcement: die Daten werden gepflegt, die bestehenden
-    `CurrentAdmin`/`CurrentModerator`-Prüfungen bleiben unverändert (Phase 4)."""
+    `CurrentAdmin`/`CurrentGruppenfuehrer`-Prüfungen bleiben unverändert (Phase 4)."""
 
     __tablename__ = "berechtigungen"
     __table_args__ = (

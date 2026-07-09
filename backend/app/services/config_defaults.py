@@ -76,8 +76,8 @@ DEFAULTS: list[ConfigDefault] = [
     # Brute-Force-Schutz für den Moderator-Login (analog PIN). Nach so vielen
     # aufeinanderfolgenden Fehlversuchen wird der betroffene Zugang für die
     # angegebene Dauer gesperrt (0 = Sperre aus; Sperre läuft automatisch ab).
-    ConfigDefault("moderator_login_max_fehlversuche", "5", ConfigTyp.INT, "Moderator-Login: Fehlversuche bis zur Sperre (0 = aus)"),
-    ConfigDefault("moderator_login_sperre_minuten", "15", ConfigTyp.INT, "Moderator-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
+    ConfigDefault("gruppenfuehrer_login_max_fehlversuche", "5", ConfigTyp.INT, "Moderator-Login: Fehlversuche bis zur Sperre (0 = aus)"),
+    ConfigDefault("gruppenfuehrer_login_sperre_minuten", "15", ConfigTyp.INT, "Moderator-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
     # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
     # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
     # anhand der Registry ergänzt bzw. ignoriert.

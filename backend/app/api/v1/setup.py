@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, status
 
-from app.api.deps import CurrentModerator, DbSession
+from app.api.deps import CurrentGruppenfuehrer, DbSession
 from app.schemas.setup import SetupRequest, SetupStatus
 from app.services import logo_service, setup_service
 from app.services.config_service import config_service
@@ -44,7 +44,7 @@ async def setup_logo_hochladen(db: DbSession, datei: UploadFile) -> dict[str, st
 
 @router.post("/erneut-ausfuehren", status_code=status.HTTP_204_NO_CONTENT)
 async def setup_erneut_ausfuehren(
-    db: DbSession, daten: SetupRequest, _moderator: CurrentModerator
+    db: DbSession, daten: SetupRequest, _moderator: CurrentGruppenfuehrer
 ) -> None:
     """Erlaubt Moderatoren, den Setup-Wizard nachträglich erneut zu
     durchlaufen, z. B. bei einer Migration auf eine neue Instanz."""

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.deps import CurrentModerator, DbSession, require_modul_zugriff
+from app.api.deps import CurrentGruppenfuehrer, DbSession, require_modul_zugriff
 from app.schemas.feature_modul import FeatureModulFlagSetzen, FeatureModulOut, ReihenfolgeSetzen
 from app.services import audit_service, feature_modul_service
 
@@ -31,7 +31,7 @@ async def reihenfolge_setzen(db: DbSession, daten: ReihenfolgeSetzen) -> list[Fe
 
 @router.patch("/{key}", response_model=FeatureModulOut)
 async def flag_setzen(
-    db: DbSession, akteur: CurrentModerator, key: str, daten: FeatureModulFlagSetzen
+    db: DbSession, akteur: CurrentGruppenfuehrer, key: str, daten: FeatureModulFlagSetzen
 ) -> FeatureModulOut:
     """Setzt aktiv/startseite/aussenzugriff eines Moduls (nur gesetzte Felder)."""
     if feature_modul_service.get_def(key) is None:

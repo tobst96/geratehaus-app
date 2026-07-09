@@ -4,7 +4,7 @@ from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.api.deps import CurrentAdmin, CurrentModerator, DbSession
+from app.api.deps import CurrentAdmin, CurrentGruppenfuehrer, DbSession
 from app.services import berechtigungs_service, systemstatus_service, update_service
 
 router = APIRouter(prefix="/gruppenfuehrer/meta", tags=["moderator:meta"])
@@ -50,7 +50,7 @@ def _version_zu_tag(version: str) -> str:
 
 
 @router.get("", response_model=MetaOut)
-async def meta(_mod: CurrentModerator) -> MetaOut:
+async def meta(_mod: CurrentGruppenfuehrer) -> MetaOut:
     version = update_service.installierte_version()
     tag = _version_zu_tag(version)
     return MetaOut(
@@ -60,7 +60,7 @@ async def meta(_mod: CurrentModerator) -> MetaOut:
 
 
 @router.get("/meine-berechtigungen", response_model=MeineBerechtigungenOut)
-async def meine_berechtigungen(db: DbSession, moderator: CurrentModerator) -> MeineBerechtigungenOut:
+async def meine_berechtigungen(db: DbSession, moderator: CurrentGruppenfuehrer) -> MeineBerechtigungenOut:
     """Eigene Modul-Zugriffe des angemeldeten Moderators – die Grundlage für die
     Frontend-Navigation/Routen-Guards (`hat_zugriff` statt Rolle). Bewusst NICHT
     modul-gegated, da jeder Moderator seine eigenen Rechte kennen muss."""

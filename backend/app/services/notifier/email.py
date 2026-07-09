@@ -92,9 +92,9 @@ class EmailNotifier(Notifier):
         echten Login-geschützten Endpunkten. Best-effort wie send(), da diese
         Mail nicht der einzige Weg ist, eine Buchung zu entscheiden."""
         # Admin-Empfänger: opted-in Moderatoren + globale Liste (non-breaking).
-        from app.services import moderator_service
+        from app.services import gruppenfuehrer_service
 
-        empfaenger = await moderator_service.admin_benachrichtigungs_empfaenger(db)
+        empfaenger = await gruppenfuehrer_service.admin_benachrichtigungs_empfaenger(db)
         if not empfaenger:
             return
         try:
