@@ -19,6 +19,7 @@ import {
 } from "../../components/PersonIdentifikation";
 import { useBarcodeSound } from "../../hooks/useBarcodeSound";
 import { formatiereZeit } from "../../utils/datum";
+import { texte } from "../../i18n/texte";
 
 function initialenAus(name: string): string {
   return name
@@ -31,6 +32,7 @@ function initialenAus(name: string): string {
 }
 
 export function MitgliedLogin() {
+  const t = texte.mitglied_login;
   const { barcodeEinscannen, identitaetSpeichern } = useAuth();
   const { config } = useConfig();
   const barcodeModus = config?.modul_barcode_aktiv !== false;
@@ -87,7 +89,7 @@ export function MitgliedLogin() {
       }
       navigate("/mitglied");
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Anmeldung fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.anmeldung_fehler);
     } finally {
       setLaeuft(false);
     }
@@ -102,7 +104,7 @@ export function MitgliedLogin() {
       const bildUrl = await QRCode.toDataURL(url, { width: 280, margin: 1 });
       setQrAnsicht({ token, bildUrl, ablaufAm: ablauf_am });
     } catch (err) {
-      setQrFehler(err instanceof ApiError ? String(err.detail) : "QR-Code konnte nicht erzeugt werden.");
+      setQrFehler(err instanceof ApiError ? String(err.detail) : t.qr_fehler);
     } finally {
       setQrLaeuft(false);
     }
@@ -136,14 +138,14 @@ export function MitgliedLogin() {
   return (
     <div className="seite">
       <div className="karte">
-        <h1>Mitglieder-Login</h1>
+        <h1>{t.titel}</h1>
 
         {qrAnsicht ? (
           <div className="text-center">
             <p className="text-mute">
-              Mit dem Handy scannen und dich dort auswählen – dieses Gerät meldet sich danach automatisch an.
+              {t.qr_hinweis}
             </p>
-            <img src={qrAnsicht.bildUrl} alt="QR-Code für Login ohne Barcode" style={{ width: 220, height: 220 }} />
+            <img src={qrAnsicht.bildUrl} alt={t.qr_alt} style={{ width: 220, height: 220 }} />
             {qrVorschauPerson && (
               <div style={{ marginTop: 12 }}>
                 {qrVorschauPerson.bildUrl ? (
@@ -174,10 +176,10 @@ export function MitgliedLogin() {
               </div>
             )}
             <p className="hinweis-klein">
-              Gültig bis {formatiereZeit(qrAnsicht.ablaufAm)}
+              {t.gueltig_bis} {formatiereZeit(qrAnsicht.ablaufAm)}
             </p>
             <button type="button" className="sekundaer" onClick={() => setQrAnsicht(null)}>
-              Zurück zum Scannen
+              {t.zurueck_scannen}
             </button>
           </div>
         ) : (
@@ -214,12 +216,12 @@ export function MitgliedLogin() {
                 )}
 
                 <div className="formular-feld">
-                  <label htmlFor="ml-barcode">Barcode einscannen</label>
+                  <label htmlFor="ml-barcode">{t.barcode_label}</label>
                   <BarcodeEingabe
                     id="ml-barcode"
                     value={barcode}
                     onChange={setBarcode}
-                    placeholder="Barcode scannen oder eingeben"
+                    placeholder={t.barcode_platzhalter}
                     autoFocus
                     required
                   />
@@ -236,11 +238,11 @@ export function MitgliedLogin() {
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button type="submit" disabled={laeuft}>
-                {laeuft ? "Wird angemeldet…" : "Anmelden"}
+                {laeuft ? t.anmelden_laeuft : t.anmelden}
               </button>
               {barcodeModus && (
                 <button type="button" className="sekundaer" onClick={barcodeVergessenKlick} disabled={qrLaeuft}>
-                  {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
+                  {qrLaeuft ? t.qr_erzeugen_laeuft : t.barcode_vergessen}
                 </button>
               )}
             </div>

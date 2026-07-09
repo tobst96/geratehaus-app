@@ -1798,9 +1798,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   PR #60 ist inzwischen gemergt → keine Konfliktbeschränkung mehr. Build grün.
 - Fortschritt (09.07.2026, direkt auf beta): **`pages/KioskHome.tsx` migriert** (Namespace
   `texte.kiosk`: Kachel-Labels + „Was möchtest du machen?"). Build grün.
+- Fortschritt (09.07.2026, direkt auf beta): **`pages/mitglied/MitgliedLogin.tsx` migriert**
+  (Namespace `texte.mitglied_login`: Titel, Barcode-/QR-Texte, Buttons, Fehler-Fallbacks;
+  Personennamen + Uhrzeit bleiben dynamisch). Build grün.
 - Weiter offen: weitere Seiten schrittweise migrieren (nach demselben Muster) – jetzt
   beliebige Seiten (auch Gruppenführer-Bereich), da #60 gemergt. Bisher migriert:
-  LandingPage, PinSetzen, PersonFreigabe, KioskHome.
+  LandingPage, PinSetzen, PersonFreigabe, KioskHome, MitgliedLogin.
 
 ### CI bei jedem PR (GitHub Actions)
 

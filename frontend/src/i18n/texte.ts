@@ -13,7 +13,7 @@
  * - Migration seitenweise – Bestand bleibt bis dahin inline (kein Big-Bang).
  *
  * Migrierte Seiten: `pages/LandingPage.tsx`, `pages/PinSetzen.tsx`, `pages/PersonFreigabe.tsx`,
- * `pages/KioskHome.tsx`.
+ * `pages/KioskHome.tsx`, `pages/mitglied/MitgliedLogin.tsx`.
  */
 export const texte = {
   landing: {
@@ -91,5 +91,21 @@ export const texte = {
       fahrzeugbuchung: "Fahrzeugbuchung",
       formulare: "Formulare",
     },
+  },
+  mitglied_login: {
+    titel: "Mitglieder-Login",
+    anmeldung_fehler: "Anmeldung fehlgeschlagen.",
+    qr_fehler: "QR-Code konnte nicht erzeugt werden.",
+    qr_hinweis:
+      "Mit dem Handy scannen und dich dort auswählen – dieses Gerät meldet sich danach automatisch an.",
+    qr_alt: "QR-Code für Login ohne Barcode",
+    gueltig_bis: "Gültig bis", // gefolgt von der dynamischen Uhrzeit
+    zurueck_scannen: "Zurück zum Scannen",
+    barcode_label: "Barcode einscannen",
+    barcode_platzhalter: "Barcode scannen oder eingeben",
+    anmelden: "Anmelden",
+    anmelden_laeuft: "Wird angemeldet…",
+    barcode_vergessen: "Barcode vergessen",
+    qr_erzeugen_laeuft: "Erzeuge QR-Code …",
   },
 } as const;
