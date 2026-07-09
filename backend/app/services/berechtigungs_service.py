@@ -1,101 +1,109 @@
-"""Zentrale Berechtigungslogik: individueller Modul-Zugriff pro Moderator.
+"""Zentrale Berechtigungslogik: individueller Modul-Zugriff pro **Person**.
 
-Alle Zugriffsprüfungen sollen künftig über `hat_zugriff()` laufen (kein verstreuter
-Tabellenzugriff). Admins haben immer Vollzugriff (Admin-Bypass).
-
-Phase 2: Daten werden gepflegt, aber `hat_zugriff()` wird noch NICHT zur
-Absicherung von Endpunkten genutzt (Enforcement folgt in Phase 4).
+Die Person ist das Konto (Ablösung der separaten `moderatoren`-Tabelle). „Elevated"
+(= Moderator/Admin) ist eine Person mit gesetzter `moderator_rolle`; Admins
+(`moderator_rolle == "admin"`) haben immer Vollzugriff (Admin-Bypass). Alle
+Zugriffsprüfungen laufen über `hat_zugriff()`.
 """
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.berechtigung import Berechtigung
-from app.models.moderator import Moderator
 from app.models.modul import Modul
+from app.models.person import Person
 from app.services import modul_service
 
 
-def ist_admin(moderator: Moderator) -> bool:
-    return moderator.rolle == "admin"
+def ist_elevated(person: Person) -> bool:
+    """True, wenn die Person Zugang zum Moderatorbereich hat (Admin oder Gruppenführer)."""
+    return person.moderator_rolle is not None
 
 
-async def hat_zugriff(db: AsyncSession, moderator: Moderator, modul_key: str) -> bool:
-    """Ob ein Moderator auf ein Modul zugreifen darf. Admin-Bypass: Admins immer True."""
-    if ist_admin(moderator):
+def ist_admin(person: Person) -> bool:
+    return person.moderator_rolle == "admin"
+
+
+async def hat_zugriff(db: AsyncSession, person: Person, modul_key: str) -> bool:
+    """Ob eine Person auf ein Modul zugreifen darf. Admin-Bypass: Admins immer True."""
+    if ist_admin(person):
         return True
     modul = await modul_service.get_by_key(db, modul_key)
     if modul is None:
         return False
     result = await db.execute(
         select(Berechtigung.id).where(
-            Berechtigung.moderator_id == moderator.id,
+            Berechtigung.person_id == person.id,
             Berechtigung.modul_id == modul.id,
         )
     )
     return result.scalar_one_or_none() is not None
 
 
-async def meine_keys(db: AsyncSession, moderator: Moderator) -> list[str]:
-    """Die Modul-Keys, auf die dieser Moderator zugreifen darf. Admins erhalten
-    alle registrierten Keys (Admin-Bypass). Grundlage für die Frontend-Guards
-    (Navigation/Routen prüfen `hat_zugriff` statt der Rolle)."""
+async def meine_keys(db: AsyncSession, person: Person) -> list[str]:
+    """Die Modul-Keys, auf die diese Person zugreifen darf. Admins erhalten alle
+    registrierten Keys (Admin-Bypass). Grundlage für die Frontend-Guards."""
     module = await modul_service.liste_module(db)
-    if ist_admin(moderator):
+    if ist_admin(person):
         return [m.key for m in module]
     key_by_id = {m.id: m.key for m in module}
     rows = (
         await db.execute(
-            select(Berechtigung.modul_id).where(Berechtigung.moderator_id == moderator.id)
+            select(Berechtigung.modul_id).where(Berechtigung.person_id == person.id)
         )
     ).scalars().all()
     return [key_by_id[mid] for mid in rows if mid in key_by_id]
 
 
-async def matrix(db: AsyncSession) -> tuple[list[Modul], list[Moderator], dict[int, set[str]]]:
-    """Liefert (Module, Moderatoren, {moderator_id: set(freigegebene modul_keys)})
-    für die Admin-Berechtigungsseite."""
+async def matrix(db: AsyncSession) -> tuple[list[Modul], list[Person], dict[int, set[str]]]:
+    """Liefert (Module, elevated Personen, {person_id: set(freigegebene modul_keys)})
+    für die Admin-Berechtigungsseite. „Elevated" = Person mit gesetzter
+    `moderator_rolle`."""
     module = await modul_service.liste_module(db)
     modul_key_by_id = {m.id: m.key for m in module}
 
-    moderatoren = list(
-        (await db.execute(select(Moderator).order_by(Moderator.username))).scalars().all()
+    personen = list(
+        (
+            await db.execute(
+                select(Person).where(Person.moderator_rolle.is_not(None)).order_by(Person.name)
+            )
+        ).scalars().all()
     )
     berechtigungen = list((await db.execute(select(Berechtigung))).scalars().all())
 
-    keys_je_moderator: dict[int, set[str]] = {}
+    keys_je_person: dict[int, set[str]] = {}
     for b in berechtigungen:
         key = modul_key_by_id.get(b.modul_id)
-        if key is not None:
-            keys_je_moderator.setdefault(b.moderator_id, set()).add(key)
-    return module, moderatoren, keys_je_moderator
+        if key is not None and b.person_id is not None:
+            keys_je_person.setdefault(b.person_id, set()).add(key)
+    return module, personen, keys_je_person
 
 
 async def set_berechtigung(
-    db: AsyncSession, moderator_id: int, modul_key: str, erlaubt: bool
+    db: AsyncSession, person_id: int, modul_key: str, erlaubt: bool
 ) -> bool:
-    """Erteilt/entzieht den Modul-Zugriff. Gibt False zurück, wenn Moderator oder
+    """Erteilt/entzieht den Modul-Zugriff. Gibt False zurück, wenn Person oder
     Modul nicht existieren (→ 404 im Router)."""
     modul = await modul_service.get_by_key(db, modul_key)
     if modul is None:
         return False
-    moderator = (
-        await db.execute(select(Moderator).where(Moderator.id == moderator_id))
+    person = (
+        await db.execute(select(Person).where(Person.id == person_id))
     ).scalar_one_or_none()
-    if moderator is None:
+    if person is None:
         return False
 
     vorhanden = (
         await db.execute(
             select(Berechtigung).where(
-                Berechtigung.moderator_id == moderator_id,
+                Berechtigung.person_id == person_id,
                 Berechtigung.modul_id == modul.id,
             )
         )
     ).scalar_one_or_none()
 
     if erlaubt and vorhanden is None:
-        db.add(Berechtigung(moderator_id=moderator_id, modul_id=modul.id))
+        db.add(Berechtigung(person_id=person_id, modul_id=modul.id))
         await db.commit()
     elif not erlaubt and vorhanden is not None:
         await db.delete(vorhanden)

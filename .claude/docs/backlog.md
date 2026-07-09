@@ -1026,10 +1026,17 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (Rollback möglich, `moderatoren` bleibt). **Rein additiv** – Code nutzt weiter die
   Moderator-Tabelle. Verifiziert: `alembic upgrade`→0060 **und** downgrade sauber auf
   Scratch-DB; volle Suite **393 grün**.
-- Offen (nächste Phasen, gleicher Branch): Auth auf Person umstellen (deps/services/
-  ~18 Endpunkte), Admin-Datenmigration, Wizard, Frontend (Personal-Verwaltung +
-  Moderator-Login „Name"), Moderator-Benachrichtigungen entfernen, Tests; danach Merge +
-  Folge-Migration `0061` (Drop `moderatoren`).
+- Fortschritt (09.07.2026, **Phase 2 – Auth-Engine, WIP-Checkpoint 1**): Strategie mit
+  Nutzer bestätigt = **voller Merge** (über mehrere Durchläufe, Merge erst nach voller
+  grüner Suite + Smoke-Test). `berechtigungs_service` + `api/deps.py` auf **Person**
+  umgestellt (`ist_admin/ist_elevated/hat_zugriff/meine_keys/matrix/set_berechtigung`
+  gegen `Berechtigung.person_id`; `CurrentModerator`/`CurrentAdmin` = elevated `Person`,
+  JWT-`sub` = `Person.name`). Import-Check grün. **Branch bewusst noch nicht test-grün.**
+- Offen (nächste Checkpoints, gleicher Branch): `moderator_service`/`zwei_faktor_service`/
+  `auth.py`-Login (Name+Passwort, 2FA, Token) → Person; `setup`/Wizard; ~18 Endpunkte
+  (`.username`→`.name`, `.rolle`→`.moderator_rolle`); Verwaltungs-Endpunkte
+  (einstellungen/konto/berechtigungen); Admin-Datenmigration in `0060`; 31 Test-Dateien;
+  Frontend; Moderator-Benachrichtigungen entfernen. Danach volle Suite + PR + Folge-`0061`.
 
 ---
 
