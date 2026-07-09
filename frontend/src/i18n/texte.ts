@@ -12,7 +12,7 @@
  *   `config`) bleiben im Component. Für Einsetzungen kleine Funktionen nutzen.
  * - Migration seitenweise – Bestand bleibt bis dahin inline (kein Big-Bang).
  *
- * Erste migrierte Seite: `pages/LandingPage.tsx`.
+ * Migrierte Seiten: `pages/LandingPage.tsx`, `pages/PinSetzen.tsx`.
  */
 export const texte = {
   landing: {
@@ -41,5 +41,20 @@ export const texte = {
     kiosk_hinweis:
       'Du betreust ein Tablet im Gerätehaus? Den Kiosk-Modus-Link dafür erzeugt ein Admin unter "Kiosk-Geräte".',
     api_doku: "API-Dokumentation (Swagger)",
+  },
+  pin_setzen: {
+    titel: "PIN setzen",
+    link_ungueltig: "Link ungültig.",
+    pin_zu_kurz: "Der PIN muss mindestens 4 Zeichen haben.",
+    pins_ungleich: "Die PINs stimmen nicht überein.",
+    fehler_speichern: "PIN konnte nicht gesetzt werden.",
+    fertig: "Dein PIN wurde gesetzt. Du kannst dich jetzt am Gerätehaus mit deinem Namen und PIN anmelden.",
+    link_abgelaufen: "Dieser Link ist abgelaufen oder wurde bereits verwendet.",
+    // „Für <Name> einen persönlichen PIN festlegen." – Name bleibt dynamisch im Component.
+    fuer_person_prefix: "Für",
+    fuer_person_suffix: "einen persönlichen PIN festlegen.",
+    label_pin: "Neuer PIN",
+    label_pin_wiederholen: "PIN wiederholen",
+    speichern_laeuft: "Wird gespeichert…",
   },
 } as const;

@@ -1726,7 +1726,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Migration **seitenweise** (kein Big-Bang). **Erste Seite `LandingPage.tsx` umgestellt.**
   Build grün. **Muster bitte gegenprüfen** – bei anderer Präferenz (z. B. `t("key")`-
   Funktion, flache Keys) muss nur diese eine Seite + `texte.ts` angepasst werden.
-- Weiter offen: weitere Seiten schrittweise migrieren (nach demselben Muster).
+- Fortschritt (09.07.2026, direkt auf beta): **`pages/PinSetzen.tsx` migriert** (Namespace
+  `texte.pin_setzen`). Bewusst eine von PR #60 (Rename) **nicht** berührte öffentliche Seite
+  gewählt → konfliktfrei. Build grün.
+- Weiter offen: weitere Seiten schrittweise migrieren (nach demselben Muster). Solange PR #60
+  offen ist, für Konfliktfreiheit **nur von #60 unberührte** Seiten nehmen (z. B. KioskHome,
+  PersonFreigabe, ManuelleEintragung); Gruppenführer-Seiten erst nach dem #60-Merge.
 
 ### CI bei jedem PR (GitHub Actions)
 
