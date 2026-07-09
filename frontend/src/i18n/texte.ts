@@ -14,7 +14,7 @@
  *
  * Migrierte Seiten: `pages/LandingPage.tsx`, `pages/PinSetzen.tsx`, `pages/PersonFreigabe.tsx`,
  * `pages/KioskHome.tsx`, `pages/mitglied/MitgliedLogin.tsx`, `pages/Start.tsx`,
- * `pages/NotFound.tsx`, `pages/PersonBildHochladen.tsx`.
+ * `pages/NotFound.tsx`, `pages/PersonBildHochladen.tsx`, `pages/ManuelleEintragung.tsx`.
  */
 export const texte = {
   landing: {
@@ -92,6 +92,43 @@ export const texte = {
       fahrzeugbuchung: "Fahrzeugbuchung",
       formulare: "Formulare",
     },
+  },
+  manuelle_eintragung: {
+    reservierung_fehler: "Reservierung konnte nicht geladen werden.",
+    eintragung_fehler: "Eintragung fehlgeschlagen.",
+    warten_titel: "Kurz gewartet",
+    // „… Bitte warte noch ca. <n> <Minute(n)>, bevor du es erneut versuchst."
+    warten_prefix: "Du hast dich auf diesem Gerät vor Kurzem bereits eingetragen. Bitte warte noch ca.",
+    warten_suffix: ", bevor du es erneut versuchst.",
+    minute: "Minute",
+    minuten: "Minuten",
+    eingetragen_titel: "Eingetragen!",
+    // „Du wurdest für <bezeichnung> im Einsatz „<titel>" eingetragen. …"
+    eingetragen_prefix: "Du wurdest für",
+    eingetragen_mitte: "im Einsatz",
+    eingetragen_suffix: "eingetragen. Du kannst diese Seite jetzt schließen.",
+    bereits_genutzt_titel: "Bereits genutzt",
+    bereits_genutzt_text:
+      "Diese Reservierung wurde bereits verwendet. Bitte am Gerätehaus einen neuen QR-Code erzeugen.",
+    abgelaufen_titel: "Abgelaufen",
+    abgelaufen_text: "Diese Reservierung ist abgelaufen. Bitte am Gerätehaus einen neuen QR-Code erzeugen.",
+    titel: "Ohne Barcode eintragen",
+    einsatz_label: "Einsatz",
+    wer_bist_du: "Wer bist du?",
+    aendern: "Ändern",
+    namen_platzhalter: "Namen eingeben und auswählen…",
+    keine_person:
+      "Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.",
+    kein_pin:
+      "Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich – bitte im Gerätehaus einen persönlichen PIN setzen (lassen).",
+    dein_pin: "Dein PIN",
+    vab: "Verdienstausfallbescheinigung",
+    atemschutz_angelegt: "Atemschutz angelegt",
+    atemschutzminuten_label: "Atemschutzminuten:",
+    bemerkung_label: "Bemerkung (optional)",
+    bemerkung_platzhalter: "Notizen…",
+    speichern_laeuft: "Wird gespeichert…",
+    eintragen: "Eintragen",
   },
   start: {
     frage: "Wähle einen Bereich:",
