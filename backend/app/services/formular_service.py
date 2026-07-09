@@ -428,7 +428,7 @@ async def einreichungen_fuer(db: AsyncSession, formular_id: int) -> list[Formula
 async def einreichungen_out(db: AsyncSession, formular_id: int) -> list[EinreichungOut]:
     """Wie `einreichungen_fuer`, aber als Response-DTOs mit **freigeschalteten**
     Datei-Antworten: `datei`-Werte (`/uploads/formulare/…`) bekommen einen
-    signierten `?token=` angehängt, damit der Moderator die hochgeladene Datei
+    signierten `?token=` angehängt, damit der Gruppenführer die hochgeladene Datei
     öffnen kann (der `/uploads`-Mount lehnt sie ohne Token ab). Der gespeicherte
     Antwort-Snapshot bleibt unverändert (der Token wird nur beim Ausliefern
     erzeugt und würde sonst mit-persistiert und ablaufen)."""
@@ -681,7 +681,7 @@ async def formular_duplizieren(db: AsyncSession, formular: Formular) -> Formular
         aktiv=False,
         login_erforderlich=formular.login_erforderlich,
         email_empfaenger=formular.email_empfaenger,
-        moderator_sichtbar=formular.moderator_sichtbar,
+        gruppenfuehrer_sichtbar=formular.gruppenfuehrer_sichtbar,
         max_einreichungen=formular.max_einreichungen,
         aufbewahrung_tage=formular.aufbewahrung_tage,
         danke_text=formular.danke_text,

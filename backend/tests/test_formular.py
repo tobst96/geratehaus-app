@@ -1,5 +1,5 @@
 """Tests für das Formular-Modul: CRUD, Einreichungsvalidierung, Mailversand,
-Zugriff (Login-Pflicht / Modul inaktiv), Moderator-Sichtbarkeit, Ablauf +
+Zugriff (Login-Pflicht / Modul inaktiv), Gruppenführer-Sichtbarkeit, Ablauf +
 Auswertung."""
 
 from datetime import datetime, timedelta, timezone
@@ -56,7 +56,7 @@ async def test_admin_crud_formular_und_feld(client, db):
     assert len(r.json()["felder"]) == 1
 
     r = await client.put(
-        f"/api/v1/gruppenfuehrer/formulare/{fid}", json={"aktiv": True, "moderator_sichtbar": True}, headers=h
+        f"/api/v1/gruppenfuehrer/formulare/{fid}", json={"aktiv": True, "gruppenfuehrer_sichtbar": True}, headers=h
     )
     assert r.status_code == 200 and r.json()["aktiv"] is True
 
@@ -139,20 +139,20 @@ async def test_modul_inaktiv_404(client, db):
     assert r.status_code == 404
 
 
-# --- Moderator-Sichtbarkeit --------------------------------------------------
+# --- Gruppenführer-Sichtbarkeit --------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_moderator_sichtbarkeit(client, db):
-    formular = await _formular(db, moderator_sichtbar=False)
+async def test_gruppenfuehrer_sichtbarkeit(client, db):
+    formular = await _formular(db, gruppenfuehrer_sichtbar=False)
     h_mod = await _token(client, db, rolle="gruppenfuehrer", username="gf")
 
     r = await client.get(f"/api/v1/gruppenfuehrer/formulare/{formular.id}/einreichungen", headers=h_mod)
     assert r.status_code == 403
 
-    # Freigeben -> Moderator darf sehen
+    # Freigeben -> Gruppenführer darf sehen
     await formular_service.formular_aktualisieren(
-        db, formular, FormularUpdate(moderator_sichtbar=True)
+        db, formular, FormularUpdate(gruppenfuehrer_sichtbar=True)
     )
     r = await client.get(f"/api/v1/gruppenfuehrer/formulare/{formular.id}/einreichungen", headers=h_mod)
     assert r.status_code == 200
@@ -184,7 +184,7 @@ async def test_abgelaufenes_formular_nicht_absendbar(client, db):
 @pytest.mark.asyncio
 async def test_zusammenfassung_aggregiert(client, db):
     h = await _token(client, db)
-    formular = await _formular(db, moderator_sichtbar=True)
+    formular = await _formular(db, gruppenfuehrer_sichtbar=True)
     sterne = await _feld(db, formular.id, label="Bewertung", typ="sterne", max_sterne=5)
     dd = await _feld(db, formular.id, label="Dienst", typ="dropdown", optionen=["A", "B"])
 
@@ -356,7 +356,7 @@ async def test_duplizieren(client, db):
 @pytest.mark.asyncio
 async def test_csv_export(client, db):
     h = await _token(client, db)
-    formular = await _formular(db, moderator_sichtbar=True)
+    formular = await _formular(db, gruppenfuehrer_sichtbar=True)
     feld = await _feld(db, formular.id, label="Name", typ="text")
     await client.post(
         f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {str(feld.id): "Anna"}}

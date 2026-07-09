@@ -1,5 +1,5 @@
-"""G2: Pro-Moderator-Opt-in für Admin-/Betriebs-Benachrichtigungen. Der
-Empfänger-Resolver vereint opted-in Moderatoren mit der bestehenden globalen
+"""G2: Pro-Gruppenführer-Opt-in für Admin-/Betriebs-Benachrichtigungen. Der
+Empfänger-Resolver vereint opted-in Gruppenführer mit der bestehenden globalen
 Liste (non-breaking); die API erlaubt das Setzen/Umschalten des Opt-ins, ohne
 die E-Mail zu verlieren."""
 
@@ -37,7 +37,7 @@ async def test_resolver_vereint_moderatoren_und_legacy(db):
 
 @pytest.mark.asyncio
 async def test_resolver_non_breaking_nur_legacy(db):
-    # Ohne opted-in Moderator bleibt die bestehende globale Liste erhalten.
+    # Ohne opted-in Gruppenführer bleibt die bestehende globale Liste erhalten.
     await config_service.set(db, "notifier_email_recipients", "alt@example.org")
     empf = await gruppenfuehrer_service.admin_benachrichtigungs_empfaenger(db)
     assert empf == ["alt@example.org"]

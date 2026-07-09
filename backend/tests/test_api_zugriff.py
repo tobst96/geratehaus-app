@@ -1,5 +1,5 @@
 """Tests für das Zugriffs-Gate (require_zugriff): die sonst öffentlichen Daten-
-Endpunkte sind ohne Identität gesperrt (401) und mit Kiosk-Token / Moderator /
+Endpunkte sind ohne Identität gesperrt (401) und mit Kiosk-Token / Gruppenführer /
 Mitglieds-Cookie erreichbar."""
 
 from datetime import datetime, timezone

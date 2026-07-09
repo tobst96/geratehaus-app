@@ -1,4 +1,4 @@
-"""Gefilterte Listen für den Moderator-Bereich – im Gegensatz zu den
+"""Gefilterte Listen für den Gruppenführer-Bereich – im Gegensatz zu den
 Kameraden-Endpoints werden hier auch archivierte Einträge berücksichtigt."""
 
 from datetime import date, datetime

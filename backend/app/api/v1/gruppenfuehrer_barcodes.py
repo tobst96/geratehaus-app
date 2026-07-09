@@ -62,7 +62,7 @@ async def generate_barcode_for_person(
 async def barcode_bild_rendern(token: str) -> Response:
     """Rendert den Token als echten Code128-Strichcode (PNG) zum Ausdrucken.
 
-    Bewusst ohne Moderator-Auth: ein <img>-Tag kann keinen Bearer-Token senden.
+    Bewusst ohne Gruppenführer-Auth: ein <img>-Tag kann keinen Bearer-Token senden.
     Unbedenklich, da das Bild nur den bereits bekannten Token visualisiert –
     wer den Token nicht hat, kann ihn auch nicht in die URL einsetzen."""
     return Response(content=barcode_service.render_png(token), media_type="image/png")

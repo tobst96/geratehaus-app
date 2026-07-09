@@ -1,8 +1,8 @@
-"""Signierte Kurzzeit-Token für den Moderator-2FA-Flow.
+"""Signierte Kurzzeit-Token für den Gruppenführer-2FA-Flow.
 
 `challenge`: nach korrektem Passwort ausgestellt, beweist im zweiten Schritt
 (`POST /auth/gruppenfuehrer/2fa`), dass das Passwort bereits geprüft wurde – enthält
-nur die Moderator-ID und ist kurzlebig (10 Min). Verhindert, dass der
+nur die Gruppenführer-ID und ist kurzlebig (10 Min). Verhindert, dass der
 OTP-Schritt ohne vorherige Passwortprüfung aufgerufen werden kann.
 """
 
@@ -13,12 +13,12 @@ from app.core.config import settings
 CHALLENGE_MAX_AGE_SECONDS = 60 * 10  # 10 Minuten
 
 _challenge_serializer = URLSafeTimedSerializer(
-    settings.cookie_secret_key, salt="moderator-2fa-challenge"
+    settings.cookie_secret_key, salt="gruppenfuehrer-2fa-challenge"
 )
 
 
-def signiere_challenge(moderator_id: int) -> str:
-    return _challenge_serializer.dumps(moderator_id)
+def signiere_challenge(person_id: int) -> str:
+    return _challenge_serializer.dumps(person_id)
 
 
 def lese_challenge(token: str | None) -> int | None:

@@ -19,7 +19,7 @@ async def ist_eingerichtet(db: AsyncSession) -> bool:
 async def setup_durchfuehren(db: AsyncSession, daten: SetupRequest) -> None:
     """Legt die **initiale Admin-Person** an (Name = `admin_username`, mit Passwort)
     und befüllt app_config. First-Run oder erneut über den authentifizierten
-    Moderator-Bereich."""
+    Gruppenführer-Bereich."""
     await config_service.ensure_defaults(db)
     await config_service.set_many(
         db,

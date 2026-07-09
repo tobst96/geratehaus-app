@@ -48,7 +48,7 @@ async def test_barcode_einscannen_wird_rate_limitiert(client, db):
 
 async def test_token_fuer_person_erneuert_abgelaufenen(db):
     """Regression: ein abgelaufener Barcode-Token darf beim Erzeugen/Abrufen für
-    den Moderator nicht unverändert zurückgegeben werden (sonst kopiert/mailt er
+    den Gruppenführer nicht unverändert zurückgegeben werden (sonst kopiert/mailt er
     einen Barcode, der beim Scannen sofort als abgelaufen gilt) – er wird frisch
     erzeugt."""
     from app.services import barcode_service

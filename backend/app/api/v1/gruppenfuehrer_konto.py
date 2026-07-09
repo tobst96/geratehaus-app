@@ -1,11 +1,11 @@
-"""Selbstverwaltung des eigenen Moderator-Kontos (jeder angemeldete Moderator,
+"""Selbstverwaltung des eigenen Gruppenführer-Kontos (jeder angemeldete Gruppenführer,
 auch Gruppenführer ohne Einstellungen-Zugriff) – aktuell die Zwei-Faktor-
 Authentisierung per E-Mail-OTP."""
 
 from fastapi import APIRouter, HTTPException, status
 
 from app.api.deps import CurrentGruppenfuehrer, DbSession
-from app.schemas.moderator import RecoveryCodesOut, ZweiFaktorStatus
+from app.schemas.gruppenfuehrer import RecoveryCodesOut, ZweiFaktorStatus
 from app.services import audit_service, zwei_faktor_service
 
 router = APIRouter(prefix="/gruppenfuehrer/konto", tags=["gruppenfuehrer:konto"])
@@ -24,7 +24,7 @@ async def zwei_faktor_aktivieren(db: DbSession, ich: CurrentGruppenfuehrer) -> R
         codes = await zwei_faktor_service.aktivieren(db, ich)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    await audit_service.protokolliere(db, ich.name, "gruppenfuehrer_2fa_aktiviert", "moderator", ich.id)
+    await audit_service.protokolliere(db, ich.name, "gruppenfuehrer_2fa_aktiviert", "gruppenfuehrer", ich.id)
     return RecoveryCodesOut(codes=codes)
 
 
@@ -34,7 +34,7 @@ async def recovery_codes_neu(db: DbSession, ich: CurrentGruppenfuehrer) -> Recov
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="2FA ist nicht aktiv.")
     codes = await zwei_faktor_service.recovery_codes_erzeugen(db, ich)
     await audit_service.protokolliere(
-        db, ich.name, "gruppenfuehrer_2fa_recovery_neu", "moderator", ich.id
+        db, ich.name, "gruppenfuehrer_2fa_recovery_neu", "gruppenfuehrer", ich.id
     )
     return RecoveryCodesOut(codes=codes)
 
@@ -42,4 +42,4 @@ async def recovery_codes_neu(db: DbSession, ich: CurrentGruppenfuehrer) -> Recov
 @router.post("/2fa/deaktivieren", status_code=status.HTTP_204_NO_CONTENT)
 async def zwei_faktor_deaktivieren(db: DbSession, ich: CurrentGruppenfuehrer) -> None:
     await zwei_faktor_service.deaktivieren(db, ich)
-    await audit_service.protokolliere(db, ich.name, "gruppenfuehrer_2fa_deaktiviert", "moderator", ich.id)
+    await audit_service.protokolliere(db, ich.name, "gruppenfuehrer_2fa_deaktiviert", "gruppenfuehrer", ich.id)

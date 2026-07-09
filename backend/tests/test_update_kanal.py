@@ -30,8 +30,8 @@ def test_ist_neuer_verhindert_downgrade():
 
 
 async def _admin_token(client, db):
-    moderator = Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
-    db.add(moderator)
+    gruppenfuehrer = Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
+    db.add(gruppenfuehrer)
     await db.commit()
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}

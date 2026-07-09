@@ -27,7 +27,7 @@ async def token_fuer_person(db: AsyncSession, person_id: int) -> BarcodeToken:
     bestehender = result.scalar_one_or_none()
     if bestehender is not None:
         # Einen bereits abgelaufenen Token NICHT weitergeben – sonst würde der
-        # Moderator einen abgelaufenen Barcode kopieren/drucken/mailen, der beim
+        # Gruppenführer einen abgelaufenen Barcode kopieren/drucken/mailen, der beim
         # Scannen sofort als abgelaufen abgewiesen wird. Stattdessen frisch erzeugen.
         if bestehender.ablauf_am is not None and bestehender.ablauf_am < datetime.utcnow():
             return await barcode_erneuern(db, person_id)

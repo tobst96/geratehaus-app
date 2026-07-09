@@ -1,4 +1,4 @@
-"""PIN-Self-Service und Moderator-Freigabe für den Namen+PIN-Login.
+"""PIN-Self-Service und Gruppenführer-Freigabe für den Namen+PIN-Login.
 
 Wird gebraucht, wenn das Barcode-Modul AUS ist: Personen ohne gesetzten PIN
 fordern über den Kiosk ("PIN anfordern") oder den periodischen Erinnerungs-Job
@@ -7,7 +7,7 @@ einen PIN-Setz-Link an.
 - Person MIT E-Mail  → `pin_setzen_tokens`-Token + Self-Service-Mail (Link, über
   den die Person ihren PIN selbst setzt).
 - Person OHNE E-Mail → `person_freigabe_tokens`-Token + Aktions-Mail an die
-  Moderatoren (Freigeben/Ablehnen). "Freigeben" öffnet eine Seite, auf der für
+  Gruppenführer (Freigeben/Ablehnen). "Freigeben" öffnet eine Seite, auf der für
   die Person eine E-Mail (und optional direkt der PIN) gesetzt wird.
 """
 
@@ -95,7 +95,7 @@ async def pin_setzen_per_token(db: AsyncSession, token: PinSetzenToken, pin: str
     return person
 
 
-# --- Moderator-Freigabe (Person ohne E-Mail) --------------------------------
+# --- Gruppenführer-Freigabe (Person ohne E-Mail) --------------------------------
 
 
 async def _freigabe_mail_senden(db: AsyncSession, person: Person, token: PersonFreigabeToken) -> None:
@@ -143,7 +143,7 @@ def freigabe_token_offen(token: PersonFreigabeToken) -> bool:
 async def freigabe_einloesen(
     db: AsyncSession, token: PersonFreigabeToken, email: str, pin: str | None
 ) -> Person:
-    """Moderator hinterlegt eine E-Mail (Pflicht) und optional direkt den PIN.
+    """Gruppenführer hinterlegt eine E-Mail (Pflicht) und optional direkt den PIN.
     Ist kein PIN gesetzt, wird der Person anschließend der Self-Service-Link
     geschickt."""
     person = await stammdaten_service.get_person(db, token.person_id)
@@ -199,7 +199,7 @@ async def erinnerungen_versenden(db: AsyncSession) -> int:
 async def pin_anfordern(db: AsyncSession, person: Person) -> str:
     """Löst je nach Datenlage den passenden Weg aus. Gibt einen Statuscode für
     das Frontend zurück: "mail" (Self-Service verschickt) oder "freigabe"
-    (Moderator-Freigabe angestoßen)."""
+    (Gruppenführer-Freigabe angestoßen)."""
     if person.email:
         await self_service_mail_senden(db, person)
         return "mail"

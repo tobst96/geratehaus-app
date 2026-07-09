@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFil
 from typing import Annotated
 
 from app.api.deps import CurrentAdmin, CurrentGruppenfuehrer, DbSession, require_modul_zugriff
-from app.models.moderator import Moderator
-from app.schemas.moderator import ElevatedPersonOut, PersonElevieren, PersonPasswortSetzen
+from app.models.person import Person
+from app.schemas.gruppenfuehrer import ElevatedPersonOut, PersonElevieren, PersonPasswortSetzen
 from app.schemas.dienstbuch_feld import (
     DienstbuchFeldDefinitionCreate,
     DienstbuchFeldDefinitionOut,
@@ -49,8 +49,8 @@ router = APIRouter(prefix="/gruppenfuehrer/stammdaten", tags=["gruppenfuehrer:st
 
 # Granulare Zugriffsgates (Admins via Bypass). Personal-Stammdaten =
 # Personen, Stammdaten = Fahrzeuge/Funktionen/Gruppen/Zusatzfelder.
-StammdatenZugriff = Annotated[Moderator, Depends(require_modul_zugriff("stammdaten"))]
-PersonalZugriff = Annotated[Moderator, Depends(require_modul_zugriff("personal"))]
+StammdatenZugriff = Annotated[Person, Depends(require_modul_zugriff("stammdaten"))]
+PersonalZugriff = Annotated[Person, Depends(require_modul_zugriff("personal"))]
 
 
 # --- Fahrzeuge ---------------------------------------------------------------
@@ -294,8 +294,8 @@ async def dienstbuch_feld_loeschen(db: DbSession, _admin: StammdatenZugriff, fel
 
 
 @router.get("/personen", response_model=list[PersonOut])
-async def personen_liste(db: DbSession, _moderator: CurrentGruppenfuehrer) -> list[PersonOut]:
-    """Bewusst für jeden Moderator lesbar (nicht nur Admin) – Gruppenführer
+async def personen_liste(db: DbSession, _gruppenfuehrer: CurrentGruppenfuehrer) -> list[PersonOut]:
+    """Bewusst für jeden Gruppenführer lesbar (nicht nur Admin) – Gruppenführer
     brauchen die Personenliste an mehreren Stellen lesend. Schreibende
     Personen-Endpunkte bleiben admin-only."""
     personen = await stammdaten_service.liste_personen(db)
@@ -303,7 +303,7 @@ async def personen_liste(db: DbSession, _moderator: CurrentGruppenfuehrer) -> li
 
 
 @router.get("/personen/ampel", response_model=list[AmpelEintragOut])
-async def personen_ampel(db: DbSession, _moderator: CurrentGruppenfuehrer) -> list[AmpelEintragOut]:
+async def personen_ampel(db: DbSession, _gruppenfuehrer: CurrentGruppenfuehrer) -> list[AmpelEintragOut]:
     """Aktivitäts-Ampelstatus je Person (gruen/gelb/rot/inaktiv) für die
     Personal-Liste. Muss vor '/personen/{person_id}' stehen, sonst würde 'ampel'
     als person_id interpretiert."""
@@ -384,10 +384,10 @@ async def person_pin_setzen(
 
 @router.post("/personen/{person_id}/pin-entsperren", response_model=PersonOut)
 async def person_pin_entsperren(
-    db: DbSession, _moderator: CurrentGruppenfuehrer, person_id: int
+    db: DbSession, _gruppenfuehrer: CurrentGruppenfuehrer, person_id: int
 ) -> PersonOut:
     """Hebt eine durch zu viele Fehlversuche entstandene PIN-Sperre manuell auf
-    (Gruppenführer/Moderator) und setzt den Fehlversuchszähler zurück."""
+    (Gruppenführer/Gruppenführer) und setzt den Fehlversuchszähler zurück."""
     person = await stammdaten_service.get_person(db, person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")

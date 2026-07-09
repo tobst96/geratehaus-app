@@ -84,14 +84,14 @@ class EmailNotifier(Notifier):
         aktionen: list[dict[str, str]],
     ) -> None:
         """Wie test_versenden(): an die zentral konfigurierte Empfängerliste
-        (Moderator-Einstellungen > Benachrichtigungen), zusätzlich mit
+        (Gruppenführer-Einstellungen > Benachrichtigungen), zusätzlich mit
         Annehmen/Ablehnen-Buttons in der HTML-Mail. Diese Liste ist – anders
         als die per-Person-Empfänger in send() – ausschließlich für
-        Moderatoren gedacht, da nur sie zu solchen Aktionen berechtigt sind;
+        Gruppenführer gedacht, da nur sie zu solchen Aktionen berechtigt sind;
         die Buttons verlinken auf einmal verwendbare, ablaufende Tokens statt
         echten Login-geschützten Endpunkten. Best-effort wie send(), da diese
         Mail nicht der einzige Weg ist, eine Buchung zu entscheiden."""
-        # Admin-Empfänger: opted-in Moderatoren + globale Liste (non-breaking).
+        # Admin-Empfänger: opted-in Gruppenführer + globale Liste (non-breaking).
         from app.services import gruppenfuehrer_service
 
         empfaenger = await gruppenfuehrer_service.admin_benachrichtigungs_empfaenger(db)
@@ -154,7 +154,7 @@ class EmailNotifier(Notifier):
     ) -> None:
         """Wie send_an(), zusätzlich mit Datei-Anhang (z. B. Barcode-PNG).
         Wirft Fehler weiter (wie test_versenden), da dies eine gezielte
-        Moderator-Aktion ist, deren Erfolg/Fehler zurückgemeldet werden soll."""
+        Gruppenführer-Aktion ist, deren Erfolg/Fehler zurückgemeldet werden soll."""
         await self._versenden(
             db,
             betreff,

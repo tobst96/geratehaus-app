@@ -29,13 +29,13 @@ async def formular_anlegen(db: DbSession, _admin: CurrentAdmin, daten: FormularC
 
 
 @router.get("/sichtbar", response_model=list[FormularOut])
-async def formulare_sichtbar(db: DbSession, moderator: CurrentGruppenfuehrer) -> list[FormularOut]:
-    """Formulare, deren Einreichungen der angemeldete Moderator sehen darf: Admins
-    alle, sonst nur Formulare mit `moderator_sichtbar`. Für die Listen-Ansicht."""
+async def formulare_sichtbar(db: DbSession, gruppenfuehrer: CurrentGruppenfuehrer) -> list[FormularOut]:
+    """Formulare, deren Einreichungen der angemeldete Gruppenführer sehen darf: Admins
+    alle, sonst nur Formulare mit `gruppenfuehrer_sichtbar`. Für die Listen-Ansicht."""
     formulare = await formular_service.liste_formulare(db)
-    if moderator.gruppenfuehrer_rolle == "admin":
+    if gruppenfuehrer.gruppenfuehrer_rolle == "admin":
         return formulare
-    return [f for f in formulare if f.moderator_sichtbar]
+    return [f for f in formulare if f.gruppenfuehrer_sichtbar]
 
 
 @router.get("/{formular_id}", response_model=FormularOut)
@@ -108,12 +108,12 @@ async def feld_loeschen(db: DbSession, _admin: CurrentAdmin, feld_id: int) -> No
 
 @router.get("/{formular_id}/einreichungen", response_model=list[EinreichungOut])
 async def einreichungen_liste(
-    db: DbSession, moderator: CurrentGruppenfuehrer, formular_id: int
+    db: DbSession, gruppenfuehrer: CurrentGruppenfuehrer, formular_id: int
 ) -> list[EinreichungOut]:
     formular = await formular_service.get_formular(db, formular_id)
     if formular is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Formular nicht gefunden.")
-    if moderator.gruppenfuehrer_rolle != "admin" and not formular.moderator_sichtbar:
+    if gruppenfuehrer.gruppenfuehrer_rolle != "admin" and not formular.gruppenfuehrer_sichtbar:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Für dieses Formular sind die Einreichungen nicht freigegeben.",
@@ -123,13 +123,13 @@ async def einreichungen_liste(
 
 @router.get("/{formular_id}/zusammenfassung", response_model=ZusammenfassungOut)
 async def zusammenfassung(
-    db: DbSession, moderator: CurrentGruppenfuehrer, formular_id: int
+    db: DbSession, gruppenfuehrer: CurrentGruppenfuehrer, formular_id: int
 ) -> ZusammenfassungOut:
     """Aggregierter Zwischenstand (Ø/Verteilung/Freitexte) je Formular."""
     formular = await formular_service.get_formular(db, formular_id)
     if formular is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Formular nicht gefunden.")
-    if moderator.gruppenfuehrer_rolle != "admin" and not formular.moderator_sichtbar:
+    if gruppenfuehrer.gruppenfuehrer_rolle != "admin" and not formular.gruppenfuehrer_sichtbar:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Für dieses Formular ist die Auswertung nicht freigegeben.",
@@ -139,12 +139,12 @@ async def zusammenfassung(
 
 @router.get("/{formular_id}/export.csv")
 async def einreichungen_export(
-    db: DbSession, moderator: CurrentGruppenfuehrer, formular_id: int
+    db: DbSession, gruppenfuehrer: CurrentGruppenfuehrer, formular_id: int
 ) -> Response:
     formular = await formular_service.get_formular(db, formular_id)
     if formular is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Formular nicht gefunden.")
-    if moderator.gruppenfuehrer_rolle != "admin" and not formular.moderator_sichtbar:
+    if gruppenfuehrer.gruppenfuehrer_rolle != "admin" and not formular.gruppenfuehrer_sichtbar:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Für dieses Formular ist der Export nicht freigegeben.",

@@ -23,7 +23,7 @@ async def webhook(
     x_divera_accesskey: str | None = Header(default=None),
 ) -> None:
     """Empfängt Alarme per Push, sofern Divera im Webhook-Modus konfiguriert
-    ist. Der accesskey muss dem in den Moderator-Einstellungen gepflegten Divera
+    ist. Der accesskey muss dem in den Gruppenführer-Einstellungen gepflegten Divera
     API-Key entsprechen und kann **entweder** im Header `X-Divera-Accesskey`
     (bevorzugt – hält das Secret aus URL/Access-Logs heraus) **oder** – wie bisher,
     rückwärtskompatibel – als `?accesskey=`-Query-Parameter übergeben werden.
@@ -50,7 +50,7 @@ async def webhook(
 
 
 @router.post("/synchronisieren")
-async def manuell_synchronisieren(db: DbSession, _moderator: CurrentGruppenfuehrer) -> dict[str, int]:
+async def manuell_synchronisieren(db: DbSession, _gruppenfuehrer: CurrentGruppenfuehrer) -> dict[str, int]:
     """Stößt im Polling-Modus eine sofortige Synchronisation an (z. B. zum
     Testen der Konfiguration), unabhängig vom Scheduler-Intervall."""
     anzahl_neu = await divera_service.synchronisiere(db)
@@ -59,7 +59,7 @@ async def manuell_synchronisieren(db: DbSession, _moderator: CurrentGruppenfuehr
 
 @router.post("/einsaetze-nachholen")
 async def einsaetze_nachholen(
-    db: DbSession, _moderator: CurrentGruppenfuehrer, tage: int = 1
+    db: DbSession, _gruppenfuehrer: CurrentGruppenfuehrer, tage: int = 1
 ) -> dict[str, int]:
     """Holt die Alarm-HISTORIE der letzten `tage` Tage über /api/v2/alarms und
     importiert fehlende Einsätze (Upsert über divera_id). Anders als der

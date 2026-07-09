@@ -10,7 +10,7 @@ from app.schemas.berechtigung import (
 from app.services import audit_service, berechtigungs_service
 
 # Phase 4b: dieses Modul ist jetzt granular geschützt – Admins immer (Bypass),
-# andere Moderatoren nur mit Freigabe des Moduls „berechtigungen".
+# andere Gruppenführer nur mit Freigabe des Moduls „berechtigungen".
 router = APIRouter(
     prefix="/gruppenfuehrer/berechtigungen",
     tags=["gruppenfuehrer:berechtigungen"],

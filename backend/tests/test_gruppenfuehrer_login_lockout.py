@@ -1,4 +1,4 @@
-"""Tests für den Brute-Force-Schutz des Moderator-Logins (Etappe P4, Phase 1):
+"""Tests für den Brute-Force-Schutz des Gruppenführer-Logins (Etappe P4, Phase 1):
 temporäre Sperre nach zu vielen Fehlversuchen, automatische Freigabe, Reset bei
 Erfolg, deaktivierbar über Config."""
 
@@ -12,7 +12,7 @@ from app.services import gruppenfuehrer_service
 from app.services.config_service import config_service
 
 
-async def _moderator(db, username="admin", passwort="richtig123"):
+async def _gruppenfuehrer(db, username="admin", passwort="richtig123"):
     m = Person(name=username, passwort_hash=hash_secret(passwort))
     db.add(m)
     await db.commit()
@@ -30,7 +30,7 @@ async def _login(client, username, passwort):
 async def test_lockout_nach_max_fehlversuchen(client, db):
     await config_service.set(db, "gruppenfuehrer_login_max_fehlversuche", 5)
     await config_service.set(db, "gruppenfuehrer_login_sperre_minuten", 15)
-    await _moderator(db)
+    await _gruppenfuehrer(db)
 
     for _ in range(5):
         r = await _login(client, "admin", "falsch")
@@ -43,7 +43,7 @@ async def test_lockout_nach_max_fehlversuchen(client, db):
 @pytest.mark.asyncio
 async def test_korrektes_passwort_setzt_zaehler_zurueck(client, db):
     await config_service.set(db, "gruppenfuehrer_login_max_fehlversuche", 5)
-    m = await _moderator(db)
+    m = await _gruppenfuehrer(db)
     await _login(client, "admin", "falsch")
     await _login(client, "admin", "falsch")
     r = await _login(client, "admin", "richtig123")
@@ -55,7 +55,7 @@ async def test_korrektes_passwort_setzt_zaehler_zurueck(client, db):
 @pytest.mark.asyncio
 async def test_sperre_laeuft_automatisch_ab(db):
     await config_service.set(db, "gruppenfuehrer_login_max_fehlversuche", 3)
-    m = await _moderator(db)
+    m = await _gruppenfuehrer(db)
     for _ in range(3):
         assert await gruppenfuehrer_service.login_pruefen(db, "admin", "falsch") is None
     assert m.login_gesperrt_bis is not None
@@ -77,7 +77,7 @@ async def test_unbekannter_user_401_ohne_sperre(client, db):
 @pytest.mark.asyncio
 async def test_lockout_deaktivierbar_ueber_config(db):
     await config_service.set(db, "gruppenfuehrer_login_max_fehlversuche", 0)
-    m = await _moderator(db)
+    m = await _gruppenfuehrer(db)
     for _ in range(8):
         assert await gruppenfuehrer_service.login_pruefen(db, "admin", "falsch") is None
     assert m.login_gesperrt_bis is None

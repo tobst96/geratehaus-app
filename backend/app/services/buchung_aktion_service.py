@@ -43,7 +43,7 @@ async def einloesen(
     """Wendet die Aktion an, sofern die Buchung noch "ausstehend" ist – sonst
     (z. B. schon per Login entschieden, oder zweiter Klick auf den anderen
     Button) wird der aktuelle Status unverändert zurückgegeben, ohne Fehler.
-    Gibt (buchung, hinweis) zurück, hinweis erklärt dem Moderator ggf., warum
+    Gibt (buchung, hinweis) zurück, hinweis erklärt dem Gruppenführer ggf., warum
     sich nichts (mehr) geändert hat."""
     from app.services import buchung_service  # lokal, um Zirkelimport zu vermeiden
 

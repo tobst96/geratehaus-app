@@ -8,7 +8,7 @@ from app.db.base import Base
 
 class NamensAbweichung(Base):
     """Protokolliert, wenn der im Cookie gespeicherte Name vom später
-    eingetragenen Namen abweicht – für die Moderator-Auswertung (DSGVO-relevant,
+    eingetragenen Namen abweicht – für die Gruppenführer-Auswertung (DSGVO-relevant,
     siehe Datenschutzhinweis)."""
 
     __tablename__ = "namens_abweichungen"

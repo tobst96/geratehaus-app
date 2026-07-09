@@ -67,12 +67,12 @@ class FreigabeEinloesen(BaseModel):
     pin: str | None = Field(default=None, min_length=4, max_length=64)
 
 
-class ModeratorToken(BaseModel):
+class GruppenfuehrerToken(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
 
-class ModeratorLoginErgebnis(BaseModel):
+class GruppenfuehrerLoginErgebnis(BaseModel):
     """Login-Ergebnis: entweder direkt ein Token, oder – bei aktivem 2FA auf einem
     unbekannten Gerät – die Aufforderung, den per E-Mail gesendeten Code einzugeben
     (mit kurzlebigem `challenge`-Token für den zweiten Schritt)."""
@@ -83,7 +83,7 @@ class ModeratorLoginErgebnis(BaseModel):
     challenge: str | None = None
 
 
-class Moderator2FA(BaseModel):
+class Gruppenfuehrer2FA(BaseModel):
     challenge: str
     code: str
     angemeldet_bleiben: bool = False

@@ -1,4 +1,4 @@
-"""Tests für das Löschen von Einsätzen (Moderator/Admin, inkl. Cascade)."""
+"""Tests für das Löschen von Einsätzen (Gruppenführer/Admin, inkl. Cascade)."""
 
 from datetime import datetime, timezone
 

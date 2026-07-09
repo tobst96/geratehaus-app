@@ -3,11 +3,11 @@ from app.models.person import Person
 
 
 async def _moderator_anlegen(db, username="admin", passwort="geheim123", rolle="admin"):
-    moderator = Person(name=username, passwort_hash=hash_secret(passwort), gruppenfuehrer_rolle=rolle)
-    db.add(moderator)
+    gruppenfuehrer = Person(name=username, passwort_hash=hash_secret(passwort), gruppenfuehrer_rolle=rolle)
+    db.add(gruppenfuehrer)
     await db.commit()
-    await db.refresh(moderator)
-    return moderator
+    await db.refresh(gruppenfuehrer)
+    return gruppenfuehrer
 
 
 async def test_login_mit_korrektem_passwort(client, db):

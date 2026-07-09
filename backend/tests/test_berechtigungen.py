@@ -3,7 +3,7 @@ from app.models.person import Person
 from app.services import berechtigungs_service, modul_service
 
 
-async def _moderator(db, username, rolle):
+async def _gruppenfuehrer(db, username, rolle):
     mod = Person(name=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle)
     db.add(mod)
     await db.commit()
@@ -20,14 +20,14 @@ async def _token(client, username):
 
 async def test_hat_zugriff_admin_bypass(db):
     await modul_service.ensure_module(db)
-    admin = await _moderator(db, "admin", "admin")
+    admin = await _gruppenfuehrer(db, "admin", "admin")
     # Admin hat immer Zugriff, auch ohne Berechtigungszeile.
     assert await berechtigungs_service.hat_zugriff(db, admin, "einsatztagebuch") is True
 
 
 async def test_hat_zugriff_gruppenfuehrer_ohne_und_mit_recht(db):
     await modul_service.ensure_module(db)
-    gf = await _moderator(db, "gf", "gruppenfuehrer")
+    gf = await _gruppenfuehrer(db, "gf", "gruppenfuehrer")
     assert await berechtigungs_service.hat_zugriff(db, gf, "einsatztagebuch") is False
     await berechtigungs_service.set_berechtigung(db, gf.id, "einsatztagebuch", True)
     assert await berechtigungs_service.hat_zugriff(db, gf, "einsatztagebuch") is True
@@ -37,15 +37,15 @@ async def test_hat_zugriff_gruppenfuehrer_ohne_und_mit_recht(db):
 
 async def test_set_berechtigung_unbekannt_gibt_false(db):
     await modul_service.ensure_module(db)
-    gf = await _moderator(db, "gf", "gruppenfuehrer")
+    gf = await _gruppenfuehrer(db, "gf", "gruppenfuehrer")
     assert await berechtigungs_service.set_berechtigung(db, gf.id, "gibt-es-nicht", True) is False
     assert await berechtigungs_service.set_berechtigung(db, 999999, "einsatztagebuch", True) is False
 
 
 async def test_matrix_endpoint_admin_only(client, db):
     await modul_service.ensure_module(db)
-    await _moderator(db, "admin", "admin")
-    await _moderator(db, "gf", "gruppenfuehrer")
+    await _gruppenfuehrer(db, "admin", "admin")
+    await _gruppenfuehrer(db, "gf", "gruppenfuehrer")
 
     ohne = await client.get("/api/v1/gruppenfuehrer/berechtigungen")
     assert ohne.status_code == 401
@@ -64,8 +64,8 @@ async def test_matrix_endpoint_admin_only(client, db):
 
 async def test_put_berechtigung_setzt_und_matrix_zeigt(client, db):
     await modul_service.ensure_module(db)
-    await _moderator(db, "admin", "admin")
-    gf = await _moderator(db, "gf", "gruppenfuehrer")
+    await _gruppenfuehrer(db, "admin", "admin")
+    gf = await _gruppenfuehrer(db, "gf", "gruppenfuehrer")
     token = await _token(client, "admin")
 
     put = await client.put(
@@ -94,8 +94,8 @@ async def test_enforcement_berechtigungen_seite(client, db):
     Gruppenführer ohne Freigabe des Moduls „berechtigungen" bekommt 403, nach der
     Freigabe 200 (Admin hätte via Bypass immer Zugriff)."""
     await modul_service.ensure_module(db)
-    await _moderator(db, "admin", "admin")
-    gf = await _moderator(db, "gf", "gruppenfuehrer")
+    await _gruppenfuehrer(db, "admin", "admin")
+    gf = await _gruppenfuehrer(db, "gf", "gruppenfuehrer")
     h = {"Authorization": f"Bearer {await _token(client, 'gf')}"}
 
     ohne = await client.get("/api/v1/gruppenfuehrer/berechtigungen", headers=h)

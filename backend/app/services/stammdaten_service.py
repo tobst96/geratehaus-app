@@ -689,7 +689,7 @@ async def pin_login_versuch(db: AsyncSession, person: Person, pin: str | None) -
 
 
 async def pin_sperre_aufheben(db: AsyncSession, person: Person) -> Person:
-    """Hebt eine (temporäre) PIN-Sperre manuell auf (Moderator) und setzt den
+    """Hebt eine (temporäre) PIN-Sperre manuell auf (Gruppenführer) und setzt den
     Fehlversuchszähler zurück. Wird in der Personen-Timeline vermerkt."""
     war_gesperrt = _pin_gesperrt_bis(person) is not None or bool(person.pin_fehlversuche)
     person.pin_gesperrt_bis = None

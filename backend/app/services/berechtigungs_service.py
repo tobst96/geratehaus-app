@@ -1,7 +1,7 @@
 """Zentrale Berechtigungslogik: individueller Modul-Zugriff pro **Person**.
 
-Die Person ist das Konto (Ablösung der separaten `moderatoren`-Tabelle). „Elevated"
-(= Moderator/Admin) ist eine Person mit gesetzter `gruppenfuehrer_rolle`; Admins
+Die Person ist das Konto (Ablösung der separaten `Gruppenführer`-Tabelle). „Elevated"
+(= Gruppenführer/Admin) ist eine Person mit gesetzter `gruppenfuehrer_rolle`; Admins
 (`gruppenfuehrer_rolle == "admin"`) haben immer Vollzugriff (Admin-Bypass). Alle
 Zugriffsprüfungen laufen über `hat_zugriff()`.
 """
@@ -16,7 +16,7 @@ from app.services import modul_service
 
 
 def ist_elevated(person: Person) -> bool:
-    """True, wenn die Person Zugang zum Moderatorbereich hat (Admin oder Gruppenführer)."""
+    """True, wenn die Person Zugang zum Gruppenführerbereich hat (Admin oder Gruppenführer)."""
     return person.gruppenfuehrer_rolle is not None
 
 

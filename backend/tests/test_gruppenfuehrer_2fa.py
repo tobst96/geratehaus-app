@@ -1,4 +1,4 @@
-"""Admin-/Moderator-2FA per E-Mail-OTP (Etappe P4): opt-in, OTP-Login,
+"""Admin-/Gruppenführer-2FA per E-Mail-OTP (Etappe P4): opt-in, OTP-Login,
 Recovery-Codes, Trusted-Device, Admin-Reset."""
 
 from datetime import datetime, timedelta, timezone
@@ -11,7 +11,7 @@ from app.models.person import Person
 from app.services import zwei_faktor_service
 
 
-async def _moderator(db, username="mod", rolle="admin", email="mod@example.org", passwort="geheim123"):
+async def _gruppenfuehrer(db, username="mod", rolle="admin", email="mod@example.org", passwort="geheim123"):
     m = Person(
         name=username, passwort_hash=hash_secret(passwort), gruppenfuehrer_rolle=rolle, email=email
     )
@@ -28,17 +28,17 @@ async def _login_headers(client, username="mod", passwort="geheim123"):
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
 
-async def _otp_setzen(db, moderator, code="123456"):
-    moderator.zwei_faktor_aktiv = True
-    moderator.otp_code_hash = hash_secret(code)
-    moderator.otp_ablauf_am = datetime.now(timezone.utc) + timedelta(minutes=5)
-    moderator.otp_versuche = 0
+async def _otp_setzen(db, gruppenfuehrer, code="123456"):
+    gruppenfuehrer.zwei_faktor_aktiv = True
+    gruppenfuehrer.otp_code_hash = hash_secret(code)
+    gruppenfuehrer.otp_ablauf_am = datetime.now(timezone.utc) + timedelta(minutes=5)
+    gruppenfuehrer.otp_versuche = 0
     await db.commit()
 
 
 @pytest.mark.asyncio
 async def test_login_ohne_2fa_liefert_token(client, db):
-    await _moderator(db)
+    await _gruppenfuehrer(db)
     r = await client.post("/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"})
     assert r.status_code == 200
     assert r.json()["access_token"]
@@ -47,7 +47,7 @@ async def test_login_ohne_2fa_liefert_token(client, db):
 
 @pytest.mark.asyncio
 async def test_2fa_aktivieren_liefert_recovery_codes(client, db):
-    await _moderator(db)
+    await _gruppenfuehrer(db)
     h = await _login_headers(client)
     r = await client.post("/api/v1/gruppenfuehrer/konto/2fa/aktivieren", headers=h)
     assert r.status_code == 200
@@ -59,7 +59,7 @@ async def test_2fa_aktivieren_liefert_recovery_codes(client, db):
 
 @pytest.mark.asyncio
 async def test_2fa_aktivieren_ohne_email_400(client, db):
-    await _moderator(db, email=None)
+    await _gruppenfuehrer(db, email=None)
     h = await _login_headers(client)
     r = await client.post("/api/v1/gruppenfuehrer/konto/2fa/aktivieren", headers=h)
     assert r.status_code == 400
@@ -67,7 +67,7 @@ async def test_2fa_aktivieren_ohne_email_400(client, db):
 
 @pytest.mark.asyncio
 async def test_login_mit_2fa_verlangt_code(client, db):
-    m = await _moderator(db)
+    m = await _gruppenfuehrer(db)
     m.zwei_faktor_aktiv = True
     await db.commit()
     r = await client.post("/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"})
@@ -80,7 +80,7 @@ async def test_login_mit_2fa_verlangt_code(client, db):
 
 @pytest.mark.asyncio
 async def test_2fa_mit_korrektem_otp_liefert_token(client, db):
-    m = await _moderator(db)
+    m = await _gruppenfuehrer(db)
     await _otp_setzen(db, m, "654321")
     challenge = gruppenfuehrer_2fa_session.signiere_challenge(m.id)
     r = await client.post(
@@ -92,7 +92,7 @@ async def test_2fa_mit_korrektem_otp_liefert_token(client, db):
 
 @pytest.mark.asyncio
 async def test_2fa_falscher_code_401(client, db):
-    m = await _moderator(db)
+    m = await _gruppenfuehrer(db)
     await _otp_setzen(db, m, "111111")
     challenge = gruppenfuehrer_2fa_session.signiere_challenge(m.id)
     r = await client.post(
@@ -103,7 +103,7 @@ async def test_2fa_falscher_code_401(client, db):
 
 @pytest.mark.asyncio
 async def test_2fa_mit_recovery_code(client, db):
-    m = await _moderator(db)
+    m = await _gruppenfuehrer(db)
     codes = await zwei_faktor_service.aktivieren(db, m)  # aktiviert + Codes
     challenge = gruppenfuehrer_2fa_session.signiere_challenge(m.id)
     r = await client.post(
@@ -120,7 +120,7 @@ async def test_2fa_mit_recovery_code(client, db):
 
 @pytest.mark.asyncio
 async def test_trusted_device_ueberspringt_2fa(client, db):
-    m = await _moderator(db)
+    m = await _gruppenfuehrer(db)
     await _otp_setzen(db, m, "222222")
     challenge = gruppenfuehrer_2fa_session.signiere_challenge(m.id)
     # Mit "angemeldet bleiben" → Trusted-Device-Cookie wird gesetzt (im Client-Jar).
@@ -139,8 +139,8 @@ async def test_trusted_device_ueberspringt_2fa(client, db):
 
 @pytest.mark.asyncio
 async def test_admin_reset_2fa(client, db):
-    admin = await _moderator(db, username="admin", email="a@example.org")
-    ziel = await _moderator(db, username="kollege", email="k@example.org")
+    admin = await _gruppenfuehrer(db, username="admin", email="a@example.org")
+    ziel = await _gruppenfuehrer(db, username="kollege", email="k@example.org")
     await zwei_faktor_service.aktivieren(db, ziel)
     h = await _login_headers(client, "admin")
 

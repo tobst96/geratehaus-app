@@ -1,5 +1,5 @@
 """Tests für die „relevant"-Markierung von Dienstbüchern
-(PATCH /dienstbuecher/{id}/relevant, Moderator)."""
+(PATCH /dienstbuecher/{id}/relevant, Gruppenführer)."""
 
 from datetime import datetime, timezone
 
@@ -12,7 +12,7 @@ from app.services import berechtigungs_service, dienstbuch_service, modul_servic
 
 
 async def _moderator_token(client, db):
-    # Dienstbuch-Moderator-Endpunkte sind granular geschützt (require_modul_zugriff);
+    # Dienstbuch-Gruppenführer-Endpunkte sind granular geschützt (require_modul_zugriff);
     # der Test-Gruppenführer bekommt daher das „dienstbuch"-Recht.
     gf = Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer")
     db.add(gf)

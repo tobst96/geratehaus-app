@@ -1,7 +1,7 @@
 """Audit-Log: zentrales Protokollieren sicherheitsrelevanter Aktionen.
 
 Aktionen werden aus den Routern heraus protokolliert (dort ist der auslösende
-Moderator bekannt). `protokolliere()` committet selbst, damit der Eintrag auch
+Gruppenführer bekannt). `protokolliere()` committet selbst, damit der Eintrag auch
 dann erhalten bleibt, wenn er nach der eigentlichen (bereits committeten) Aktion
 geschrieben wird.
 """

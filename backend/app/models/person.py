@@ -14,7 +14,7 @@ class Person(Base, TimestampMixin):
 
     `name` ist der vollständige Anzeigename und bleibt die Identität für
     Cookie/Barcode-Auflösung (historisch gewachsen, von vielen Stellen
-    referenziert). Bei moderator-gepflegten Personen wird er aus
+    referenziert). Bei gruppenfuehrer-gepflegten Personen wird er aus
     vorname/zwischenname/nachname zusammengesetzt und synchron gehalten."""
 
     __tablename__ = "personen"
@@ -50,13 +50,13 @@ class Person(Base, TimestampMixin):
     # Benachrichtigung nur einmal beim Überschreiten einer Schwelle ausgelöst wird.
     ampel_gemeldet: Mapped[str] = mapped_column(String(10), default="gruen", nullable=False)
 
-    # --- Erhöhte Rechte (Moderator/Admin): die Person IST das Konto ---
+    # --- Erhöhte Rechte (Gruppenführer/Admin): die Person IST das Konto ---
     # NULL = normale Person; sonst "admin" oder "gruppenfuehrer". Elevated-Personen
-    # melden sich am Moderatorbereich mit Name + Passwort (+2FA) an – der PIN oben
-    # bleibt für Kiosk/Mitglied. (Ablösung der separaten `moderatoren`-Tabelle.)
+    # melden sich am Gruppenführerbereich mit Name + Passwort (+2FA) an – der PIN oben
+    # bleibt für Kiosk/Mitglied. (Ablösung der separaten `Gruppenführer`-Tabelle.)
     gruppenfuehrer_rolle: Mapped[str | None] = mapped_column(String(64), nullable=True)
     passwort_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    # E-Mail-OTP-2FA für den Moderatorbereich (analog zum früheren Moderator-Konto).
+    # E-Mail-OTP-2FA für den Gruppenführerbereich (analog zum früheren Gruppenführer-Konto).
     zwei_faktor_aktiv: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     otp_code_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     otp_ablauf_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -1,5 +1,5 @@
 """JWT-Handling (nach Migration python-jose → PyJWT): Erzeugen/Prüfen von
-Moderator-Access-Tokens. Sicherheitsrelevant – manipulierte, falsch signierte
+Gruppenführer-Access-Tokens. Sicherheitsrelevant – manipulierte, falsch signierte
 oder abgelaufene Tokens dürfen NICHT akzeptiert werden."""
 
 from datetime import datetime, timedelta, timezone

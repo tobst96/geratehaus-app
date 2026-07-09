@@ -1,7 +1,7 @@
 """Login + Verwaltung des erhöhten Zugangs (Person = Konto).
 
 Eine „elevated" Person (`gruppenfuehrer_rolle` gesetzt: admin/gruppenfuehrer) meldet sich
-am Moderatorbereich mit Name + Passwort (+2FA) an; ihr PIN bleibt für Kiosk/Mitglied.
+am Gruppenführerbereich mit Name + Passwort (+2FA) an; ihr PIN bleibt für Kiosk/Mitglied.
 Die Verwaltung (elevieren/de-elevieren/Passwort) läuft über Personal.
 """
 
@@ -28,7 +28,7 @@ def _als_utc(dt: datetime) -> datetime:
 
 
 async def login_pruefen(db: AsyncSession, name: str, passwort: str) -> Person | None:
-    """Prüft die Anmeldedaten einer **Person** am Moderatorbereich (Name + Passwort)
+    """Prüft die Anmeldedaten einer **Person** am Gruppenführerbereich (Name + Passwort)
     mit Brute-Force-Schutz. Login gelingt nur, wenn die Person ein Passwort gesetzt
     hat; die Elevated-Prüfung (`gruppenfuehrer_rolle`) macht das Gate in deps.
 

@@ -3,7 +3,7 @@
 Archiviert werden Einsätze und Dienstbücher, die älter als der konfigurierte
 Archivierungszeitraum (Default 2 Jahre) sind – sie bleiben in der Datenbank
 erhalten, verschwinden aber aus den Kameraden-Ansichten und sind nur noch
-über die Moderator-Listen (mit archiviert=true) einsehbar.
+über die Gruppenführer-Listen (mit archiviert=true) einsehbar.
 """
 
 from datetime import datetime, timezone

@@ -1692,8 +1692,25 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Begriff „Moderator" → „Gruppenführer" (durchgängig umbenennen)
 
-- Status: In Bearbeitung (Feature-Branch `feature/rename-gruppenfuehrer`; Nutzer wählte
-  09.07.2026 „wirklich alles inkl. Routen+DB"). Großer Umbau → in grünen Schichten.
+- Status: Review (Feature-Branch `feature/rename-gruppenfuehrer` → PR nach beta,
+  09.07.2026; Nutzer wählte „wirklich alles inkl. Routen+DB"). **Vollständig umgesetzt** –
+  **0** „moderator" mehr in Backend/Frontend/Docs (außer 3 historische Audit-Aktionswerte).
+- Fortschritt (09.07.2026, Schicht 5 – **Legacy-DB-Cleanup + Backend-Prosa + Rest**, grün):
+  Nutzer gab den destruktiven Cleanup frei. Migration **0063** droppt Legacy-`moderatoren`-
+  Tabelle + alle `moderator_id`-Spalten und benennt die aktiven 2FA-Tabellen
+  `moderator_recovery_codes`/`_trusted_devices` → `gruppenfuehrer_*` (Models
+  `GruppenfuehrerRecoveryCode`/`TrustedDevice`, Datei `models/moderator.py`→`gruppenfuehrer.py`,
+  `Moderator`-Model gelöscht, verwaiste 2FA-Zeilen bereinigt). Gate-Aliase
+  `Annotated[Moderator]`→`[Person]`. Schemas `schemas/moderator.py`→`gruppenfuehrer.py`,
+  Auth-Schemas `Moderator{Token,LoginErgebnis}`/`Moderator2FA`→`Gruppenfuehrer*`,
+  `_moderator_token`/`moderator_login`/Trusted-Device-Cookie → gruppenfuehrer. **DB-Feld
+  `formulare.moderator_sichtbar`→`gruppenfuehrer_sichtbar`** (Model/Schema/Service/Endpoint/
+  Tests + **Migration 0064**; war nach Schicht 3 FE↔BE-Wire-mismatch → behoben). Backend-
+  Prosa (Kommentare/Docstrings) mit ü; Aktor-Params `_moderator`→`_gruppenfuehrer`; 4
+  Testdateien umbenannt. **Backend 400 grün, Frontend-Build + Vitest 26 grün, Migrationen
+  0061–0064 up+down auf Scratch-DB sauber.** → Merge-PR offen.
+- Historische Audit-Aktionswerte `moderator_angelegt`/`-geloescht`/`-passwort_geaendert`
+  bleiben als Datenwerte bestehender Audit-Zeilen (bewusst nicht geändert).
 - Fortschritt (09.07.2026, Schicht 1 – **DB + Routen**, grün committet `09058b7`):
   DB-Spalte `personen.moderator_rolle` → `gruppenfuehrer_rolle` (Model/Schema/alle Refs +
   Frontend `ElevatedPerson` + **Migration 0061** + Tests); **API-Routen** `/moderator/*` →

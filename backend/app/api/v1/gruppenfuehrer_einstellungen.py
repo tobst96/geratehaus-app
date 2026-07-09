@@ -20,7 +20,7 @@ router = APIRouter(
 @router.get("")
 async def einstellungen_lesen(db: DbSession) -> dict[str, Any]:
     """Alle app_config-Werte. Wirkt als einzige Quelle der Wahrheit für die
-    Einstellungen-UI im Moderator-Bereich."""
+    Einstellungen-UI im Gruppenführer-Bereich."""
     return await config_service.get_all(db, refresh=True)
 
 

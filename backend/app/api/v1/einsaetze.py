@@ -9,7 +9,7 @@ from app.api.deps import (
     require_modul_zugriff,
     require_zugriff,
 )
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.schemas.einsatz import (
     EinsatzAnlegen,
     EinsatzEreignisOut,
@@ -34,10 +34,10 @@ router = APIRouter(
     ],
 )
 
-# Moderator-Aktionen (Abschließen/Wieder-Öffnen/Löschen) erfordern das Modul-Recht
+# Gruppenführer-Aktionen (Abschließen/Wieder-Öffnen/Löschen) erfordern das Modul-Recht
 # „einsatztagebuch" (Admin-Bypass). Die kiosk-/mitgliederseitigen Endpunkte laufen
 # weiter nur über require_zugriff und bleiben unangetastet.
-EinsatztagebuchZugriff = Annotated[Moderator, Depends(require_modul_zugriff("einsatztagebuch"))]
+EinsatztagebuchZugriff = Annotated[Person, Depends(require_modul_zugriff("einsatztagebuch"))]
 
 
 @router.get("", response_model=list[EinsatzOut], dependencies=[])
@@ -59,7 +59,7 @@ async def einsatz_anlegen(db: DbSession, daten: EinsatzAnlegen) -> EinsatzOut:
 @router.get("/feld-definitionen", response_model=list[EinsatzFeldDefinitionOut], dependencies=[])
 async def feld_definitionen_liste(db: DbSession) -> list[EinsatzFeldDefinitionOut]:
     """Frei konfigurierte Zusatzfelder (Einsatzleiter, Erste Lage, …) – im
-    Gerätehaus ohne Moderator-Login lesbar, damit das Formular gerendert werden kann."""
+    Gerätehaus ohne Gruppenführer-Login lesbar, damit das Formular gerendert werden kann."""
     return await stammdaten_service.liste_einsatz_felder(db, nur_aktive=True)
 
 
@@ -155,7 +155,7 @@ async def reservierung_anlegen(
 
 @router.post("/{einsatz_id}/abschliessen", response_model=EinsatzOut)
 async def einsatz_abschliessen(
-    db: DbSession, _moderator: EinsatztagebuchZugriff, einsatz_id: int
+    db: DbSession, _gruppenfuehrer: EinsatztagebuchZugriff, einsatz_id: int
 ) -> EinsatzOut:
     """Schließt einen Einsatz ab (Status 'offen' -> 'abgeschlossen')."""
     einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
@@ -166,7 +166,7 @@ async def einsatz_abschliessen(
 
 @router.post("/{einsatz_id}/wieder-oeffnen", response_model=EinsatzOut)
 async def einsatz_wieder_oeffnen(
-    db: DbSession, _moderator: EinsatztagebuchZugriff, einsatz_id: int
+    db: DbSession, _gruppenfuehrer: EinsatztagebuchZugriff, einsatz_id: int
 ) -> EinsatzOut:
     """Öffnet einen abgeschlossenen Einsatz wieder (Status -> 'offen')."""
     einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
@@ -176,16 +176,16 @@ async def einsatz_wieder_oeffnen(
 
 
 @router.delete("/{einsatz_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def einsatz_loeschen(db: DbSession, moderator: EinsatztagebuchZugriff, einsatz_id: int) -> None:
+async def einsatz_loeschen(db: DbSession, gruppenfuehrer: EinsatztagebuchZugriff, einsatz_id: int) -> None:
     """Löscht einen Einsatz unwiderruflich inkl. aller Teilnahmen, Timeline-
-    Einträge und Reservierungen. Nur für Moderatoren/Admins."""
+    Einträge und Reservierungen. Nur für Gruppenführer/Admins."""
     einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
     if einsatz is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")
     titel = einsatz.titel
     await einsatz_service.einsatz_loeschen(db, einsatz)
     await audit_service.protokolliere(
-        db, moderator.name, "einsatz_geloescht", "einsatz", einsatz_id, titel
+        db, gruppenfuehrer.name, "einsatz_geloescht", "einsatz", einsatz_id, titel
     )
 
 
@@ -193,7 +193,7 @@ async def einsatz_loeschen(db: DbSession, moderator: EinsatztagebuchZugriff, ein
 async def einsatz_alle_eingetragen(db: DbSession, einsatz_id: int) -> EinsatzOut:
     """Plant den Abschluss des Einsatzes für in einigen Minuten ein (statt
     sofort zu schließen), damit Nachzügler sich noch eintragen können. Bewusst
-    ohne Auth, da der Button im Gerätehaus-Kiosk ohne Moderator-Login steht."""
+    ohne Auth, da der Button im Gerätehaus-Kiosk ohne Gruppenführer-Login steht."""
     einsatz = await einsatz_service.get_einsatz(db, einsatz_id)
     if einsatz is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Einsatz nicht gefunden.")

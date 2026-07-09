@@ -9,7 +9,7 @@ from app.models.person import Person
 from app.services import berechtigungs_service, modul_service
 
 
-async def _moderator(db, username, rolle, passwort="geheim123"):
+async def _gruppenfuehrer(db, username, rolle, passwort="geheim123"):
     mod = Person(name=username, passwort_hash=hash_secret(passwort), gruppenfuehrer_rolle=rolle)
     db.add(mod)
     await db.commit()
@@ -20,7 +20,7 @@ async def _moderator(db, username, rolle, passwort="geheim123"):
 @pytest.mark.asyncio
 async def test_meine_keys_admin_hat_alle(db):
     await modul_service.ensure_module(db)
-    admin = await _moderator(db, "admin", "admin")
+    admin = await _gruppenfuehrer(db, "admin", "admin")
     keys = set(await berechtigungs_service.meine_keys(db, admin))
     registry = {d.key for d in modul_service.MODUL_REGISTRY}
     assert registry <= keys
@@ -29,7 +29,7 @@ async def test_meine_keys_admin_hat_alle(db):
 @pytest.mark.asyncio
 async def test_meine_keys_gruppenfuehrer_nur_freigegebene(db):
     await modul_service.ensure_module(db)
-    gf = await _moderator(db, "gf", "gruppenfuehrer")
+    gf = await _gruppenfuehrer(db, "gf", "gruppenfuehrer")
     assert await berechtigungs_service.meine_keys(db, gf) == []
     await berechtigungs_service.set_berechtigung(db, gf.id, "einstellungen", True)
     assert await berechtigungs_service.meine_keys(db, gf) == ["einstellungen"]
@@ -38,7 +38,7 @@ async def test_meine_keys_gruppenfuehrer_nur_freigegebene(db):
 @pytest.mark.asyncio
 async def test_endpunkt_gruppenfuehrer(client, db):
     await modul_service.ensure_module(db)
-    gf = await _moderator(db, "gf", "gruppenfuehrer")
+    gf = await _gruppenfuehrer(db, "gf", "gruppenfuehrer")
     await berechtigungs_service.set_berechtigung(db, gf.id, "berechtigungen", True)
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": "gf", "password": "geheim123"}
@@ -57,7 +57,7 @@ async def test_endpunkt_gruppenfuehrer(client, db):
 @pytest.mark.asyncio
 async def test_endpunkt_admin(client, db):
     await modul_service.ensure_module(db)
-    await _moderator(db, "admin", "admin")
+    await _gruppenfuehrer(db, "admin", "admin")
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )

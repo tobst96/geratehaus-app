@@ -1,6 +1,6 @@
 """Etappe P2: gruppenfuehrer_stammdaten granular geschaltet – Stammdaten-Config
 (Fahrzeuge/Funktionen/Gruppen/Zusatzfelder) = Key `stammdaten`, Personen-
-Mutationen = Key `personal`. Admins via Bypass; die bisher für alle Moderatoren
+Mutationen = Key `personal`. Admins via Bypass; die bisher für alle Gruppenführer
 offenen `CurrentGruppenfuehrer`-Endpunkte (Personen-Liste) bleiben offen (non-breaking)."""
 
 import pytest

@@ -26,7 +26,7 @@ from app.models.funktion import FunktionDienststunden, FunktionEinsatz
 from app.models.gruppe import Gruppe
 from app.models.kiosk_token import KioskToken
 from app.models.mitglied_login_reservierung import MitgliedLoginReservierung
-from app.models.moderator import Moderator, ModeratorRecoveryCode, ModeratorTrustedDevice
+from app.models.gruppenfuehrer import GruppenfuehrerRecoveryCode, GruppenfuehrerTrustedDevice
 from app.models.modul import Modul
 from app.models.namens_abweichung import NamensAbweichung
 from app.models.person import Person
@@ -67,9 +67,8 @@ __all__ = [
     "Gruppe",
     "KioskToken",
     "MitgliedLoginReservierung",
-    "Moderator",
-    "ModeratorRecoveryCode",
-    "ModeratorTrustedDevice",
+    "GruppenfuehrerRecoveryCode",
+    "GruppenfuehrerTrustedDevice",
     "Modul",
     "NamensAbweichung",
     "Person",

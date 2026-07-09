@@ -19,7 +19,7 @@ class MetaOut(BaseModel):
 
 class MeineBerechtigungenOut(BaseModel):
     ist_admin: bool
-    # Modul-Keys, auf die der angemeldete Moderator zugreifen darf (Admins: alle).
+    # Modul-Keys, auf die der angemeldete Gruppenführer zugreifen darf (Admins: alle).
     keys: list[str]
 
 
@@ -60,13 +60,13 @@ async def meta(_mod: CurrentGruppenfuehrer) -> MetaOut:
 
 
 @router.get("/meine-berechtigungen", response_model=MeineBerechtigungenOut)
-async def meine_berechtigungen(db: DbSession, moderator: CurrentGruppenfuehrer) -> MeineBerechtigungenOut:
-    """Eigene Modul-Zugriffe des angemeldeten Moderators – die Grundlage für die
+async def meine_berechtigungen(db: DbSession, gruppenfuehrer: CurrentGruppenfuehrer) -> MeineBerechtigungenOut:
+    """Eigene Modul-Zugriffe des angemeldeten Gruppenführers – die Grundlage für die
     Frontend-Navigation/Routen-Guards (`hat_zugriff` statt Rolle). Bewusst NICHT
-    modul-gegated, da jeder Moderator seine eigenen Rechte kennen muss."""
+    modul-gegated, da jeder Gruppenführer seine eigenen Rechte kennen muss."""
     return MeineBerechtigungenOut(
-        ist_admin=berechtigungs_service.ist_admin(moderator),
-        keys=await berechtigungs_service.meine_keys(db, moderator),
+        ist_admin=berechtigungs_service.ist_admin(gruppenfuehrer),
+        keys=await berechtigungs_service.meine_keys(db, gruppenfuehrer),
     )
 
 

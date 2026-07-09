@@ -33,7 +33,7 @@ async def _aktion_ausfuehren(db: DbSession, token: str, aktion: str) -> HTMLResp
         return await _ergebnis_seite(
             db,
             "Link abgelaufen",
-            "Dieser Link ist abgelaufen. Bitte die Buchung im Moderator-Bereich entscheiden.",
+            "Dieser Link ist abgelaufen. Bitte die Buchung im Gruppenführer-Bereich entscheiden.",
             status_code=410,
         )
 

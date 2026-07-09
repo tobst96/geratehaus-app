@@ -287,7 +287,7 @@ export function FormularModul() {
               checked={ausgewaehlt.gruppenfuehrer_sichtbar}
               onChange={(e) => formularFeldAendern(ausgewaehlt, { gruppenfuehrer_sichtbar: e.target.checked })}
             />
-            Einreichungen auch für Gruppenführer/Gruppenführer sichtbar
+            Einreichungen auch für Gruppenführer sichtbar
           </label>
           <div className="formular-feld">
             <label>Ablaufdatum (leer = dauerhaft gültig)</label>

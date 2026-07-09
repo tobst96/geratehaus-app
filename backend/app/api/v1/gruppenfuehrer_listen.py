@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Response
 
 from app.api.deps import CurrentAdmin, DbSession, require_modul_zugriff
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.schemas.buchung import BuchungOut
 from app.schemas.dienstbuch import DienstbuchOut
 from app.schemas.dienststunden import (
@@ -21,16 +21,16 @@ router = APIRouter(prefix="/gruppenfuehrer/listen", tags=["gruppenfuehrer:listen
 
 # Jede Liste/PDF erfordert das Recht des jeweiligen Moduls (Admin-Bypass): ein
 # Gruppenführer sieht nur die Listen der ihm freigegebenen Bereiche.
-EinsatzZugriff = Annotated[Moderator, Depends(require_modul_zugriff("einsatztagebuch"))]
-DienstbuchZugriff = Annotated[Moderator, Depends(require_modul_zugriff("dienstbuch"))]
-DienststundenZugriff = Annotated[Moderator, Depends(require_modul_zugriff("dienststunden"))]
-FahrzeugbuchungZugriff = Annotated[Moderator, Depends(require_modul_zugriff("fahrzeugbuchung"))]
+EinsatzZugriff = Annotated[Person, Depends(require_modul_zugriff("einsatztagebuch"))]
+DienstbuchZugriff = Annotated[Person, Depends(require_modul_zugriff("dienstbuch"))]
+DienststundenZugriff = Annotated[Person, Depends(require_modul_zugriff("dienststunden"))]
+FahrzeugbuchungZugriff = Annotated[Person, Depends(require_modul_zugriff("fahrzeugbuchung"))]
 
 
 @router.get("/einsaetze", response_model=list[EinsatzOut])
 async def einsaetze(
     db: DbSession,
-    _moderator: EinsatzZugriff,
+    _gruppenfuehrer: EinsatzZugriff,
     von: datetime | None = None,
     bis: datetime | None = None,
     fahrzeug_id: int | None = None,
@@ -45,7 +45,7 @@ async def einsaetze(
 @router.get("/dienstbuecher", response_model=list[DienstbuchOut])
 async def dienstbuecher(
     db: DbSession,
-    _moderator: DienstbuchZugriff,
+    _gruppenfuehrer: DienstbuchZugriff,
     von: datetime | None = None,
     bis: datetime | None = None,
     person_id: int | None = None,
@@ -57,7 +57,7 @@ async def dienstbuecher(
 @router.get("/dienststunden", response_model=list[DienststundenEintragOut])
 async def dienststunden(
     db: DbSession,
-    _moderator: DienststundenZugriff,
+    _gruppenfuehrer: DienststundenZugriff,
     von: date | None = None,
     bis: date | None = None,
     person_id: int | None = None,
@@ -68,7 +68,7 @@ async def dienststunden(
 
 @router.get("/dienststunden-schwellenwert", response_model=list[SchwellenwertEintragOut])
 async def dienststunden_schwellenwert(
-    db: DbSession, _moderator: DienststundenZugriff
+    db: DbSession, _gruppenfuehrer: DienststundenZugriff
 ) -> list[SchwellenwertEintragOut]:
     return await dienststunden_service.schwellenwert_liste(db)
 
@@ -77,7 +77,7 @@ async def dienststunden_schwellenwert(
     "/dienststunden-schwellenwert/uebernahme", status_code=204
 )
 async def dienststunden_uebernahme_eintragen(
-    db: DbSession, _moderator: DienststundenZugriff, daten: UebernahmeAnlegen
+    db: DbSession, _gruppenfuehrer: DienststundenZugriff, daten: UebernahmeAnlegen
 ) -> None:
     await dienststunden_service.uebernahme_eintragen(db, daten.person_id, daten.funktion_id, daten.stunden)
 
@@ -85,7 +85,7 @@ async def dienststunden_uebernahme_eintragen(
 @router.get("/buchungen", response_model=list[BuchungOut])
 async def buchungen(
     db: DbSession,
-    _moderator: FahrzeugbuchungZugriff,
+    _gruppenfuehrer: FahrzeugbuchungZugriff,
     von: datetime | None = None,
     bis: datetime | None = None,
     fahrzeug_id: int | None = None,
@@ -115,7 +115,7 @@ def _pdf_response(pdf_bytes: bytes, dateiname: str) -> Response:
 @router.get("/einsaetze/pdf")
 async def einsaetze_pdf(
     db: DbSession,
-    _moderator: EinsatzZugriff,
+    _gruppenfuehrer: EinsatzZugriff,
     von: datetime | None = None,
     bis: datetime | None = None,
     fahrzeug_id: int | None = None,
@@ -149,7 +149,7 @@ async def einsaetze_pdf(
 @router.get("/dienstbuecher/pdf")
 async def dienstbuecher_pdf(
     db: DbSession,
-    _moderator: DienstbuchZugriff,
+    _gruppenfuehrer: DienstbuchZugriff,
     von: datetime | None = None,
     bis: datetime | None = None,
     person_id: int | None = None,
@@ -176,7 +176,7 @@ async def dienstbuecher_pdf(
 @router.get("/dienststunden/pdf")
 async def dienststunden_pdf(
     db: DbSession,
-    _moderator: DienststundenZugriff,
+    _gruppenfuehrer: DienststundenZugriff,
     von: date | None = None,
     bis: date | None = None,
     person_id: int | None = None,
@@ -205,7 +205,7 @@ async def dienststunden_pdf(
 @router.get("/buchungen/pdf")
 async def buchungen_pdf(
     db: DbSession,
-    _moderator: FahrzeugbuchungZugriff,
+    _gruppenfuehrer: FahrzeugbuchungZugriff,
     von: datetime | None = None,
     bis: datetime | None = None,
     fahrzeug_id: int | None = None,

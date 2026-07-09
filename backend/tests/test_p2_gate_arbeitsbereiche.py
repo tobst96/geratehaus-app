@@ -1,6 +1,6 @@
 """Etappe P2 („Phase 5"): die vier Gruppenführer-Arbeitsbereiche
 (einsatztagebuch/dienstbuch/dienststunden/fahrzeugbuchung) sind jetzt granular
-über `require_modul_zugriff` geschützt statt „jeder Moderator".
+über `require_modul_zugriff` geschützt statt „jeder Gruppenführer".
 
 - Admin → Zugriff via Bypass (200),
 - Gruppenführer ohne Recht → 403,
@@ -77,7 +77,7 @@ async def test_recht_ist_bereichsspezifisch(client, db):
 async def test_kiosk_leseendpunkt_bleibt_ungegatet(client, db):
     # NON-BREAKING: die mitglieder-/kioskseitige Einsatzliste (require_zugriff)
     # ist NICHT vom Modul-Recht abhängig – ein Gruppenführer ohne
-    # „einsatztagebuch"-Recht erreicht sie weiterhin (Moderator-JWT genügt fürs Gate).
+    # „einsatztagebuch"-Recht erreicht sie weiterhin (Gruppenführer-JWT genügt fürs Gate).
     await modul_service.ensure_module(db)
     await config_service.set(db, "modul_einsatztagebuch_aktiv", True)
     _m, h = await _token(client, db, "gf", "gruppenfuehrer")
