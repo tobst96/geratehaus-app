@@ -1,15 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { KACHEL_ICONS, type KachelModulKey } from "./kachelIcons";
+import { texte } from "../i18n/texte";
 import "./KioskHome.css";
 
 type ActionKey = KachelModulKey;
 
 const ACTIONS: Record<ActionKey, { label: string; route: string; icon: JSX.Element }> = {
-  einsatzbericht: { label: "Einsatzbericht", route: "/einsatztagebuch", icon: KACHEL_ICONS.einsatzbericht },
-  dienstbuch: { label: "Dienstbuch", route: "/dienstbuch", icon: KACHEL_ICONS.dienstbuch },
-  dienststunden: { label: "Dienststunden", route: "/dienststunden", icon: KACHEL_ICONS.dienststunden },
-  fahrzeugbuchung: { label: "Fahrzeugbuchung", route: "/fahrzeugbuchung", icon: KACHEL_ICONS.fahrzeugbuchung },
-  formulare: { label: "Formulare", route: "/formulare", icon: KACHEL_ICONS.formulare },
+  einsatzbericht: { label: texte.kiosk.kacheln.einsatzbericht, route: "/einsatztagebuch", icon: KACHEL_ICONS.einsatzbericht },
+  dienstbuch: { label: texte.kiosk.kacheln.dienstbuch, route: "/dienstbuch", icon: KACHEL_ICONS.dienstbuch },
+  dienststunden: { label: texte.kiosk.kacheln.dienststunden, route: "/dienststunden", icon: KACHEL_ICONS.dienststunden },
+  fahrzeugbuchung: { label: texte.kiosk.kacheln.fahrzeugbuchung, route: "/fahrzeugbuchung", icon: KACHEL_ICONS.fahrzeugbuchung },
+  formulare: { label: texte.kiosk.kacheln.formulare, route: "/formulare", icon: KACHEL_ICONS.formulare },
 };
 
 // Der Server liefert Feature-Modul-Keys; das Einsatztagebuch heißt als Kachel
@@ -34,7 +35,7 @@ export function KioskHome({ module }: { module: string[] }) {
         <h1 className="kiosk-title">
           Gerätehaus<span className="kiosk-title-accent">.app</span>
         </h1>
-        <p className="kiosk-subtitle">Was möchtest du machen?</p>
+        <p className="kiosk-subtitle">{texte.kiosk.frage}</p>
       </div>
 
       <div className="kiosk-grid">

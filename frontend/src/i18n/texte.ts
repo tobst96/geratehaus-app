@@ -12,7 +12,8 @@
  *   `config`) bleiben im Component. Für Einsetzungen kleine Funktionen nutzen.
  * - Migration seitenweise – Bestand bleibt bis dahin inline (kein Big-Bang).
  *
- * Migrierte Seiten: `pages/LandingPage.tsx`, `pages/PinSetzen.tsx`, `pages/PersonFreigabe.tsx`.
+ * Migrierte Seiten: `pages/LandingPage.tsx`, `pages/PinSetzen.tsx`, `pages/PersonFreigabe.tsx`,
+ * `pages/KioskHome.tsx`.
  */
 export const texte = {
   landing: {
@@ -80,5 +81,15 @@ export const texte = {
     ablehnen_laeuft: "Wird abgelehnt…",
     freigeben: "Freigeben",
     speichern_laeuft: "Wird gespeichert…",
+  },
+  kiosk: {
+    frage: "Was möchtest du machen?",
+    kacheln: {
+      einsatzbericht: "Einsatzbericht",
+      dienstbuch: "Dienstbuch",
+      dienststunden: "Dienststunden",
+      fahrzeugbuchung: "Fahrzeugbuchung",
+      formulare: "Formulare",
+    },
   },
 } as const;
