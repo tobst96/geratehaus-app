@@ -1579,6 +1579,24 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (Modal-Overlay, Hinweistexte, Textfarbe, „✓ gespeichert", Space-between-Zeile) sind
   damit **erschöpft**.
 
+### Begriff „Moderator" → „Gruppenführer" (durchgängig umbenennen)
+
+- Status: Backlog (**erst nach** dem Umbau „Moderator-Zugänge in Personal integrieren"
+  ausführen – der aktuelle Feature-Branch nutzt noch „Moderator"-Naming)
+- Priorität: Mittel
+- Kategorie: Wartung / Terminologie / Frontend + Backend
+- Plan: Nein (aber groß/mechanisch – sorgfältig, mit Tests + Build)
+- Beschreibung: „Moderator" ist ein Altbegriff aus der Startzeit → **überall** durch
+  **„Gruppenführer"** ersetzen (Nutzerwunsch „an jeder Stelle"). „Administrator/Admin"
+  bleibt als höhere Stufe; „Gruppenführer" wird der Oberbegriff für den erhöhten Zugang.
+- Umfang: **UI-Texte** (Labels, „Moderatorbereich"/„Moderator-Login" → „Gruppenführer-
+  Bereich"/„…-Login"), **Code-Bezeichner** (`CurrentModerator`, `moderator_service`,
+  `get_current_moderator`, Routen `/moderator/*`, `moderator_rolle`-Spalte via Migration),
+  **Kommentare/Docstrings**, **Docs** (`docs/*.md`, README, permissions.md, Datenschutz).
+  Die `moderatoren`-Tabelle entfällt ohnehin mit dem Umbau (Folge-`0061`).
+- Notiz: durabel in Memory `feedback-begriff-gruppenfuehrer` hinterlegt; in neuen
+  Features **kein** „Moderator" mehr einführen.
+
 ### Mehrsprachigkeit vorbereiten (i18n)
 
 - Status: Backlog
