@@ -1801,9 +1801,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Fortschritt (09.07.2026, direkt auf beta): **`pages/mitglied/MitgliedLogin.tsx` migriert**
   (Namespace `texte.mitglied_login`: Titel, Barcode-/QR-Texte, Buttons, Fehler-Fallbacks;
   Personennamen + Uhrzeit bleiben dynamisch). Build grün.
+- Fortschritt (09.07.2026, direkt auf beta): **`Start.tsx`, `NotFound.tsx`,
+  `PersonBildHochladen.tsx` migriert** (Namespaces `texte.start`/`not_found`/`bild_hochladen`;
+  dynamische Werte inline). Build + Vitest (29) grün.
 - Weiter offen: weitere Seiten schrittweise migrieren (nach demselben Muster) – jetzt
   beliebige Seiten (auch Gruppenführer-Bereich), da #60 gemergt. Bisher migriert:
-  LandingPage, PinSetzen, PersonFreigabe, KioskHome, MitgliedLogin.
+  LandingPage, PinSetzen, PersonFreigabe, KioskHome, MitgliedLogin, Start, NotFound,
+  PersonBildHochladen. Größte Rest-Brocken: Gruppenführer-Bereich (viele Seiten).
 
 ### CI bei jedem PR (GitHub Actions)
 

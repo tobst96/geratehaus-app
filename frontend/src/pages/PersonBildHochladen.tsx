@@ -8,8 +8,10 @@ import {
 } from "../api/personBildReservierungen";
 import { ApiError } from "../api/client";
 import { Ladeanzeige } from "../components/Ladeanzeige";
+import { texte } from "../i18n/texte";
 
 export function PersonBildHochladen() {
+  const t = texte.bild_hochladen;
   const { token } = useParams<{ token: string }>();
   const [info, setInfo] = useState<PersonBildReservierungInfo | null>(null);
   const [ladeFehler, setLadeFehler] = useState<string | null>(null);
@@ -24,7 +26,7 @@ export function PersonBildHochladen() {
     holePersonBildReservierung(token)
       .then(setInfo)
       .catch((err) =>
-        setLadeFehler(err instanceof ApiError ? String(err.detail) : "Reservierung konnte nicht geladen werden.")
+        setLadeFehler(err instanceof ApiError ? String(err.detail) : t.reservierung_fehler)
       );
   }, [token]);
 
@@ -37,7 +39,7 @@ export function PersonBildHochladen() {
       await personBildReservierungEinloesen(token, datei);
       setErfolg(true);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Foto konnte nicht hochgeladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.upload_fehler);
     } finally {
       setLaeuft(false);
     }
@@ -63,17 +65,16 @@ export function PersonBildHochladen() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Foto gespeichert!</h1>
+          <h1>{t.gespeichert_titel}</h1>
           {vorschauUrl && (
             <img
               src={vorschauUrl}
-              alt="Hochgeladenes Foto"
+              alt={t.hochgeladenes_foto_alt}
               style={{ width: 200, height: 200, borderRadius: 16, objectFit: "cover" }}
             />
           )}
           <p>
-            Das Profilfoto für <strong>{info.person_name}</strong> wurde gespeichert. Du kannst diese
-            Seite jetzt schließen.
+            {t.gespeichert_prefix} <strong>{info.person_name}</strong> {t.gespeichert_suffix}
           </p>
         </div>
       </div>
@@ -84,8 +85,8 @@ export function PersonBildHochladen() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Bereits genutzt</h1>
-          <p>Dieser QR-Code wurde bereits verwendet. Bitte am Gerätehaus einen neuen erzeugen lassen.</p>
+          <h1>{t.bereits_genutzt_titel}</h1>
+          <p>{t.bereits_genutzt_text}</p>
         </div>
       </div>
     );
@@ -95,8 +96,8 @@ export function PersonBildHochladen() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Abgelaufen</h1>
-          <p>Dieser QR-Code ist abgelaufen. Bitte am Gerätehaus einen neuen erzeugen lassen.</p>
+          <h1>{t.abgelaufen_titel}</h1>
+          <p>{t.abgelaufen_text}</p>
         </div>
       </div>
     );
@@ -105,7 +106,7 @@ export function PersonBildHochladen() {
   return (
     <div className="seite">
       <div className="karte text-center">
-        <h1>Profilfoto für {info.person_name}</h1>
+        <h1>{t.profilfoto_prefix} {info.person_name}</h1>
 
         {(vorschauUrl || info.person_bild_url) && (
           <img
@@ -138,7 +139,7 @@ export function PersonBildHochladen() {
           onClick={() => dateiEingabeRef.current?.click()}
           style={{ marginTop: "1rem" }}
         >
-          {laeuft ? "Wird hochgeladen…" : "Foto aufnehmen oder auswählen"}
+          {laeuft ? t.hochladen_laeuft : t.foto_aufnehmen}
         </button>
       </div>
     </div>

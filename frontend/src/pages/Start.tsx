@@ -1,27 +1,29 @@
 import { Link } from "react-router-dom";
 import { useConfig } from "../context/ConfigContext";
+import { texte } from "../i18n/texte";
 
 export function Start() {
   const { config } = useConfig();
   if (!config) return null;
+  const t = texte.start;
 
   const kacheln = [
     config.modul_einsatztagebuch_aktiv && {
       pfad: "/einsatztagebuch",
-      titel: "Einsatztagebuch",
+      titel: t.kacheln.einsatztagebuch,
     },
-    config.modul_dienstbuch_aktiv && { pfad: "/dienstbuch", titel: "Dienstbuch" },
-    config.modul_dienststunden_aktiv && { pfad: "/dienststunden", titel: "Dienststunden" },
+    config.modul_dienstbuch_aktiv && { pfad: "/dienstbuch", titel: t.kacheln.dienstbuch },
+    config.modul_dienststunden_aktiv && { pfad: "/dienststunden", titel: t.kacheln.dienststunden },
     config.modul_fahrzeugbuchung_aktiv && {
       pfad: "/fahrzeugbuchung",
-      titel: "Fahrzeugbuchung",
+      titel: t.kacheln.fahrzeugbuchung,
     },
   ].filter(Boolean) as { pfad: string; titel: string }[];
 
   return (
     <div>
       <h1>{config.organisation_name}</h1>
-      <p>Wähle einen Bereich:</p>
+      <p>{t.frage}</p>
       <div className="kachel-raster">
         {kacheln.map((k) => (
           <Link key={k.pfad} to={k.pfad} className="kachel">
@@ -31,8 +33,8 @@ export function Start() {
       </div>
 
       <p style={{ marginTop: 32 }}>
-        <Link to="/pin-einrichten">PIN einrichten</Link> (nur im Gerätehaus) ·{" "}
-        <Link to="/aussen/login">Ich bin nicht im Gerätehaus</Link>
+        <Link to="/pin-einrichten">{t.pin_einrichten}</Link> {t.nur_geraetehaus} ·{" "}
+        <Link to="/aussen/login">{t.nicht_im_geraetehaus}</Link>
       </p>
     </div>
   );

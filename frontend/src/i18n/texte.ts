@@ -13,7 +13,8 @@
  * - Migration seitenweise – Bestand bleibt bis dahin inline (kein Big-Bang).
  *
  * Migrierte Seiten: `pages/LandingPage.tsx`, `pages/PinSetzen.tsx`, `pages/PersonFreigabe.tsx`,
- * `pages/KioskHome.tsx`, `pages/mitglied/MitgliedLogin.tsx`.
+ * `pages/KioskHome.tsx`, `pages/mitglied/MitgliedLogin.tsx`, `pages/Start.tsx`,
+ * `pages/NotFound.tsx`, `pages/PersonBildHochladen.tsx`.
  */
 export const texte = {
   landing: {
@@ -91,6 +92,41 @@ export const texte = {
       fahrzeugbuchung: "Fahrzeugbuchung",
       formulare: "Formulare",
     },
+  },
+  start: {
+    frage: "Wähle einen Bereich:",
+    kacheln: {
+      einsatztagebuch: "Einsatztagebuch",
+      dienstbuch: "Dienstbuch",
+      dienststunden: "Dienststunden",
+      fahrzeugbuchung: "Fahrzeugbuchung",
+    },
+    pin_einrichten: "PIN einrichten",
+    nur_geraetehaus: "(nur im Gerätehaus)",
+    nicht_im_geraetehaus: "Ich bin nicht im Gerätehaus",
+  },
+  not_found: {
+    titel: "Seite nicht gefunden",
+    zur_startseite: "Zurück zur Startseite",
+  },
+  bild_hochladen: {
+    reservierung_fehler: "Reservierung konnte nicht geladen werden.",
+    upload_fehler: "Foto konnte nicht hochgeladen werden.",
+    gespeichert_titel: "Foto gespeichert!",
+    hochgeladenes_foto_alt: "Hochgeladenes Foto",
+    // „Das Profilfoto für <Name> wurde gespeichert. …" – Name dynamisch.
+    gespeichert_prefix: "Das Profilfoto für",
+    gespeichert_suffix: "wurde gespeichert. Du kannst diese Seite jetzt schließen.",
+    bereits_genutzt_titel: "Bereits genutzt",
+    bereits_genutzt_text:
+      "Dieser QR-Code wurde bereits verwendet. Bitte am Gerätehaus einen neuen erzeugen lassen.",
+    abgelaufen_titel: "Abgelaufen",
+    abgelaufen_text:
+      "Dieser QR-Code ist abgelaufen. Bitte am Gerätehaus einen neuen erzeugen lassen.",
+    // „Profilfoto für <Name>" – Name dynamisch.
+    profilfoto_prefix: "Profilfoto für",
+    hochladen_laeuft: "Wird hochgeladen…",
+    foto_aufnehmen: "Foto aufnehmen oder auswählen",
   },
   mitglied_login: {
     titel: "Mitglieder-Login",
