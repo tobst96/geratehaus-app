@@ -50,6 +50,21 @@ class Person(Base, TimestampMixin):
     # Benachrichtigung nur einmal beim Überschreiten einer Schwelle ausgelöst wird.
     ampel_gemeldet: Mapped[str] = mapped_column(String(10), default="gruen", nullable=False)
 
+    # --- Erhöhte Rechte (Moderator/Admin): die Person IST das Konto ---
+    # NULL = normale Person; sonst "admin" oder "gruppenfuehrer". Elevated-Personen
+    # melden sich am Moderatorbereich mit Name + Passwort (+2FA) an – der PIN oben
+    # bleibt für Kiosk/Mitglied. (Ablösung der separaten `moderatoren`-Tabelle.)
+    moderator_rolle: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    passwort_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # E-Mail-OTP-2FA für den Moderatorbereich (analog zum früheren Moderator-Konto).
+    zwei_faktor_aktiv: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    otp_code_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    otp_ablauf_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    otp_versuche: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # Brute-Force-Schutz für den Passwort-Login (getrennt vom PIN-Login oben).
+    login_fehlversuche: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    login_gesperrt_bis: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     # passive_deletes: überlässt das Entfernen abhängiger Zeilen der
     # DB-FK-CASCADE (siehe Migration 0023), statt dass SQLAlchemy versucht,
     # die NOT NULL person_id-Spalte beim Löschen auf NULL zu setzen.

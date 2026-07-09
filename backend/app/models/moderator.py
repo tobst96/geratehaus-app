@@ -42,8 +42,11 @@ class ModeratorRecoveryCode(Base):
     __tablename__ = "moderator_recovery_codes"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    moderator_id: Mapped[int] = mapped_column(
-        ForeignKey("moderatoren.id", ondelete="CASCADE"), nullable=False, index=True
+    moderator_id: Mapped[int | None] = mapped_column(
+        ForeignKey("moderatoren.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    person_id: Mapped[int | None] = mapped_column(
+        ForeignKey("personen.id", ondelete="CASCADE"), nullable=True, index=True
     )
     code_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     benutzt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -55,8 +58,11 @@ class ModeratorTrustedDevice(Base):
     __tablename__ = "moderator_trusted_devices"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    moderator_id: Mapped[int] = mapped_column(
-        ForeignKey("moderatoren.id", ondelete="CASCADE"), nullable=False, index=True
+    moderator_id: Mapped[int | None] = mapped_column(
+        ForeignKey("moderatoren.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    person_id: Mapped[int | None] = mapped_column(
+        ForeignKey("personen.id", ondelete="CASCADE"), nullable=True, index=True
     )
     token_hash: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     ablauf_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

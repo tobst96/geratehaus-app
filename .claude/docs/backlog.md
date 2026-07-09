@@ -1008,6 +1008,29 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
     **Etappe M** (einheitliche Modul-Architektur/Registry) – bei der Umsetzung
     zusammenführen.
 
+### Moderator-Zugänge in Personal integrieren (Person = Konto)
+
+- Status: In Bearbeitung (Feature-Branch `feature/moderator-in-person`; Plan:
+  `.claude/plans/deep-sparking-mist.md`; Phase 1 = DB-Fundament, 09.07.2026)
+- Priorität: Hoch
+- Kategorie: Auth / Datenbank / Feature (breaking)
+- Plan: Ja
+- Beschreibung: Die **Person wird das Konto**. „Administrator"/„Gruppenführer" wird in
+  Personal an der Person vergeben; Login elevated = **Name + Passwort (+2FA)** an der
+  Person (PIN bleibt für Kiosk/Mitglied); Wizard legt erste Person als Admin an; separate
+  Moderator-Benachrichtigungen entfallen. Migration: **nur Admin automatisch**, GF manuell.
+- Fortschritt (09.07.2026, **Phase 1 – additive DB-Basis**): Migration `0060` +
+  Models. `personen` um Moderator-Auth-Felder erweitert (`moderator_rolle`,
+  `passwort_hash`, 2FA-Felder, Login-Sperre); `berechtigungen`/`moderator_recovery_codes`/
+  `moderator_trusted_devices` um nullable `person_id` (FK), `moderator_id` → nullable
+  (Rollback möglich, `moderatoren` bleibt). **Rein additiv** – Code nutzt weiter die
+  Moderator-Tabelle. Verifiziert: `alembic upgrade`→0060 **und** downgrade sauber auf
+  Scratch-DB; volle Suite **393 grün**.
+- Offen (nächste Phasen, gleicher Branch): Auth auf Person umstellen (deps/services/
+  ~18 Endpunkte), Admin-Datenmigration, Wizard, Frontend (Personal-Verwaltung +
+  Moderator-Login „Name"), Moderator-Benachrichtigungen entfernen, Tests; danach Merge +
+  Folge-Migration `0061` (Drop `moderatoren`).
+
 ---
 
 ## Monitoring & Fehler-Analyse (Sentry)
