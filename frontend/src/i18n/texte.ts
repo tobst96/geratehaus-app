@@ -12,7 +12,7 @@
  *   `config`) bleiben im Component. Für Einsetzungen kleine Funktionen nutzen.
  * - Migration seitenweise – Bestand bleibt bis dahin inline (kein Big-Bang).
  *
- * Migrierte Seiten: `pages/LandingPage.tsx`, `pages/PinSetzen.tsx`.
+ * Migrierte Seiten: `pages/LandingPage.tsx`, `pages/PinSetzen.tsx`, `pages/PersonFreigabe.tsx`.
  */
 export const texte = {
   landing: {
@@ -55,6 +55,30 @@ export const texte = {
     fuer_person_suffix: "einen persönlichen PIN festlegen.",
     label_pin: "Neuer PIN",
     label_pin_wiederholen: "PIN wiederholen",
+    speichern_laeuft: "Wird gespeichert…",
+  },
+  person_freigabe: {
+    titel: "Personen-Freigabe",
+    ungueltig: "Freigabe ungültig.",
+    email_pflicht: "Bitte eine E-Mail-Adresse angeben.",
+    pin_zu_kurz: "Der PIN muss mindestens 4 Zeichen haben.",
+    freigeben_fehler: "Freigabe fehlgeschlagen.",
+    ablehnen_fehler: "Ablehnen fehlgeschlagen.",
+    abgelehnt: "Die Anfrage wurde abgelehnt.",
+    nicht_mehr_offen: "Diese Freigabe ist nicht mehr offen.",
+    // Name bleibt dynamisch im Component → Text als Suffix/Prefix.
+    freigegeben_suffix:
+      "wurde freigegeben. Falls kein PIN direkt gesetzt wurde, erhält die Person einen Link zum Setzen des PINs per E-Mail.",
+    ablehnen_frage_prefix: "Anfrage von",
+    ablehnen_frage_suffix: "ablehnen?",
+    hinterlegen_prefix: "Für",
+    hinterlegen_suffix: "eine E-Mail-Adresse hinterlegen (und optional direkt einen PIN setzen).",
+    label_email: "E-Mail-Adresse",
+    label_pin_optional: "PIN (optional)",
+    pin_platzhalter: "Leer lassen, dann setzt die Person ihn selbst",
+    ablehnen: "Ablehnen",
+    ablehnen_laeuft: "Wird abgelehnt…",
+    freigeben: "Freigeben",
     speichern_laeuft: "Wird gespeichert…",
   },
 } as const;

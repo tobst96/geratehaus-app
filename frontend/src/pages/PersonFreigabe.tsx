@@ -9,8 +9,10 @@ import {
 } from "../api/auth";
 import { ApiError } from "../api/client";
 import { Ladeanzeige } from "../components/Ladeanzeige";
+import { texte } from "../i18n/texte";
 
 export function PersonFreigabe() {
+  const t = texte.person_freigabe;
   const { token = "" } = useParams<{ token: string }>();
   const [params] = useSearchParams();
   const ablehnenModus = params.get("entscheidung") === "ablehnen";
@@ -29,18 +31,18 @@ export function PersonFreigabe() {
         setInfo(i);
         if (i.email) setEmail(i.email);
       })
-      .catch((err) => setLadeFehler(err instanceof ApiError ? String(err.detail) : "Freigabe ungültig."));
-  }, [token]);
+      .catch((err) => setLadeFehler(err instanceof ApiError ? String(err.detail) : t.ungueltig));
+  }, [token, t.ungueltig]);
 
   async function freigeben(e: FormEvent) {
     e.preventDefault();
     setFehler(null);
     if (!email.trim()) {
-      setFehler("Bitte eine E-Mail-Adresse angeben.");
+      setFehler(t.email_pflicht);
       return;
     }
     if (pin && pin.length < 4) {
-      setFehler("Der PIN muss mindestens 4 Zeichen haben.");
+      setFehler(t.pin_zu_kurz);
       return;
     }
     setLaeuft(true);
@@ -48,7 +50,7 @@ export function PersonFreigabe() {
       await freigabeFreigeben(token, email.trim(), pin || null);
       setErgebnis("freigegeben");
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Freigabe fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.freigeben_fehler);
     } finally {
       setLaeuft(false);
     }
@@ -61,7 +63,7 @@ export function PersonFreigabe() {
       await freigabeAblehnen(token);
       setErgebnis("abgelehnt");
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Ablehnen fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.ablehnen_fehler);
     } finally {
       setLaeuft(false);
     }
@@ -71,7 +73,7 @@ export function PersonFreigabe() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Personen-Freigabe</h1>
+          <h1>{t.titel}</h1>
           <Fehlertext>{ladeFehler}</Fehlertext>
         </div>
       </div>
@@ -82,34 +84,32 @@ export function PersonFreigabe() {
   return (
     <div className="seite">
       <div className="karte">
-        <h1>Personen-Freigabe</h1>
+        <h1>{t.titel}</h1>
         {ergebnis === "freigegeben" ? (
           <p>
-            <strong>{info.name}</strong> wurde freigegeben. Falls kein PIN direkt gesetzt wurde, erhält die
-            Person einen Link zum Setzen des PINs per E-Mail.
+            <strong>{info.name}</strong> {t.freigegeben_suffix}
           </p>
         ) : ergebnis === "abgelehnt" ? (
-          <p>Die Anfrage wurde abgelehnt.</p>
+          <p>{t.abgelehnt}</p>
         ) : !info.offen ? (
-          <Fehlertext>Diese Freigabe ist nicht mehr offen.</Fehlertext>
+          <Fehlertext>{t.nicht_mehr_offen}</Fehlertext>
         ) : ablehnenModus ? (
           <>
             <p>
-              Anfrage von <strong>{info.name}</strong> ablehnen?
+              {t.ablehnen_frage_prefix} <strong>{info.name}</strong> {t.ablehnen_frage_suffix}
             </p>
             {fehler && <Fehlertext>{fehler}</Fehlertext>}
             <button type="button" onClick={ablehnen} disabled={laeuft}>
-              {laeuft ? "Wird abgelehnt…" : "Ablehnen"}
+              {laeuft ? t.ablehnen_laeuft : t.ablehnen}
             </button>
           </>
         ) : (
           <form onSubmit={freigeben}>
             <p className="text-mute">
-              Für <strong>{info.name}</strong> eine E-Mail-Adresse hinterlegen (und optional direkt einen PIN
-              setzen).
+              {t.hinterlegen_prefix} <strong>{info.name}</strong> {t.hinterlegen_suffix}
             </p>
             <div className="formular-feld">
-              <label htmlFor="pf-email">E-Mail-Adresse</label>
+              <label htmlFor="pf-email">{t.label_email}</label>
               <input
                 id="pf-email"
                 type="email"
@@ -120,19 +120,19 @@ export function PersonFreigabe() {
               />
             </div>
             <div className="formular-feld">
-              <label htmlFor="pf-pin">PIN (optional)</label>
+              <label htmlFor="pf-pin">{t.label_pin_optional}</label>
               <input
                 id="pf-pin"
                 type="password"
                 inputMode="numeric"
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
-                placeholder="Leer lassen, dann setzt die Person ihn selbst"
+                placeholder={t.pin_platzhalter}
               />
             </div>
             {fehler && <Fehlertext>{fehler}</Fehlertext>}
             <button type="submit" disabled={laeuft}>
-              {laeuft ? "Wird gespeichert…" : "Freigeben"}
+              {laeuft ? t.speichern_laeuft : t.freigeben}
             </button>
           </form>
         )}

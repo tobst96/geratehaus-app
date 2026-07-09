@@ -1786,9 +1786,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Fortschritt (09.07.2026, direkt auf beta): **`pages/PinSetzen.tsx` migriert** (Namespace
   `texte.pin_setzen`). Bewusst eine von PR #60 (Rename) **nicht** berührte öffentliche Seite
   gewählt → konfliktfrei. Build grün.
-- Weiter offen: weitere Seiten schrittweise migrieren (nach demselben Muster). Solange PR #60
-  offen ist, für Konfliktfreiheit **nur von #60 unberührte** Seiten nehmen (z. B. KioskHome,
-  PersonFreigabe, ManuelleEintragung); Gruppenführer-Seiten erst nach dem #60-Merge.
+- Fortschritt (09.07.2026, direkt auf beta): **`pages/PersonFreigabe.tsx` migriert**
+  (Namespace `texte.person_freigabe`; dynamischer Personenname via prefix/suffix inline).
+  PR #60 ist inzwischen gemergt → keine Konfliktbeschränkung mehr. Build grün.
+- Weiter offen: weitere Seiten schrittweise migrieren (nach demselben Muster) – jetzt
+  beliebige Seiten (auch Gruppenführer-Bereich), da #60 gemergt. Bisher migriert:
+  LandingPage, PinSetzen, PersonFreigabe.
 
 ### CI bei jedem PR (GitHub Actions)
 
