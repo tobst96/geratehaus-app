@@ -587,9 +587,24 @@ async def ablauf_zusammenfassungen_versenden(db: AsyncSession) -> int:
     email_aktiv = await config_service.get(db, "notifier_email_aktiv", False)
     gesendet = 0
     for formular in formulare:
-        # Zuerst markieren, damit ein einmal abgelaufenes Formular nicht wiederholt
-        # verarbeitet wird (auch bei fehlendem Empfänger / Mailfehler).
+        # Skalare vorab sichern: nach commit/rollback sind die ORM-Attribute
+        # „expired" und würden beim (synchronen) Logging einen Lazy-Load in der
+        # falschen Umgebung auslösen (MissingGreenlet).
+        formular_id = formular.id
+        # Marker SOFORT und pro Formular persistieren, damit ein einmal abgelaufenes
+        # Formular nicht wiederholt verarbeitet wird – auch wenn der Mailversand unten
+        # scheitert und dabei die Transaktion invalidiert. Früher lag der einzige
+        # commit() am Schleifenende: ein Fehler dort ließ ALLE Marker verloren gehen,
+        # sodass der Job alle 15 min erneut dieselben Formulare fand und fehlschlug.
         formular.zusammenfassung_gesendet_am = jetzt
+        try:
+            await db.commit()
+        except Exception:  # noqa: BLE001
+            await db.rollback()
+            logger.warning(
+                "formular_ablauf_markierung_fehlgeschlagen", formular_id=formular_id, exc_info=True
+            )
+            continue
         if not (formular.email_empfaenger and email_aktiv):
             continue
         try:
@@ -602,8 +617,10 @@ async def ablauf_zusammenfassungen_versenden(db: AsyncSession) -> int:
             )
             gesendet += 1
         except Exception:  # noqa: BLE001
-            logger.warning("formular_ablauf_mail_fehlgeschlagen", formular_id=formular.id, exc_info=True)
-    await db.commit()
+            # Der Marker ist bereits committet; ein Mailfehler darf ihn nicht
+            # zurücknehmen. Transaktion für den nächsten Durchlauf säubern.
+            await db.rollback()
+            logger.warning("formular_ablauf_mail_fehlgeschlagen", formular_id=formular_id, exc_info=True)
     return gesendet
 
 

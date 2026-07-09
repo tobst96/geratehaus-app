@@ -391,3 +391,30 @@ async def test_datei_referenz_validierung(client, db):
     )
     assert r.status_code == 422
     assert str(datei.id) in r.json()["detail"]["felder"]
+
+
+@pytest.mark.asyncio
+async def test_ablauf_job_persistiert_marker_trotz_transaktionsfehler(db, monkeypatch):
+    """Regression (JAVASCRIPT-39): ein die DB-Transaktion invalidierender Fehler beim
+    Erzeugen/Versenden der Ablauf-Auswertung darf den 'gesendet'-Marker nicht verlieren.
+    Sonst wird dasselbe abgelaufene Formular alle 15 min erneut verarbeitet und der
+    Scheduler-Job schlägt jedes Mal fehl (Endlosschleife)."""
+    from sqlalchemy import text
+
+    await config_service.set(db, "notifier_email_aktiv", True)
+    await _formular(
+        db,
+        email_empfaenger="a@example.org",
+        ablauf_am=datetime(2020, 1, 1, tzinfo=timezone.utc),
+    )
+
+    async def _kaputt(_db, _formular):
+        # Echter DB-Fehler → asyncpg-Transaktion wird invalidiert (wie in Produktion).
+        await _db.execute(text("SELECT 1 FROM tabelle_die_es_nicht_gibt"))
+
+    monkeypatch.setattr(formular_service, "zusammenfassung", _kaputt)
+
+    # Der Job darf NICHT werfen …
+    await formular_service.ablauf_zusammenfassungen_versenden(db)
+    # … und der Marker ist persistiert → ein zweiter Lauf findet nichts mehr.
+    assert await formular_service.ablauf_zusammenfassungen_versenden(db) == 0
