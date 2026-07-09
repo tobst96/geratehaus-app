@@ -3,32 +3,29 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class ModeratorOut(BaseModel):
+class ElevatedPersonOut(BaseModel):
+    """Person mit erhöhtem Zugang (Admin/Gruppenführer) – für die Verwaltung.
+    Passwort-Hash/2FA-Secrets werden nie ausgegeben, nur Status-Flags."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    username: str
-    rolle: str
+    name: str
+    moderator_rolle: str | None = None
     email: str | None = None
     benachrichtigungen_aktiv: bool = False
+    zwei_faktor_aktiv: bool = False
 
 
-class ModeratorAnlegen(BaseModel):
-    username: str = Field(min_length=1, max_length=255)
-    passwort: str = Field(min_length=8)
-    rolle: Literal["admin", "gruppenfuehrer"] = "gruppenfuehrer"
-    email: str | None = Field(default=None, max_length=255)
-    benachrichtigungen_aktiv: bool = False
+class PersonElevieren(BaseModel):
+    """Person auf Admin/Gruppenführer heben (oder Rolle ändern). `passwort` ist
+    optional, wenn die Person schon eins hat – sonst Pflicht (Prüfung im Router)."""
+
+    rolle: Literal["admin", "gruppenfuehrer"]
+    passwort: str | None = Field(default=None, min_length=8)
 
 
-class ModeratorAktualisieren(BaseModel):
-    # Nur mitgesendete Felder werden geändert (siehe model_fields_set im Endpunkt):
-    # email leerer String → entfernen; weggelassen → unverändert.
-    email: str | None = Field(default=None, max_length=255)
-    benachrichtigungen_aktiv: bool | None = None
-
-
-class ModeratorPasswortAendern(BaseModel):
+class PersonPasswortSetzen(BaseModel):
     passwort: str = Field(min_length=8)
 
 

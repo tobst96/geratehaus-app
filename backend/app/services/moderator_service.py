@@ -1,19 +1,25 @@
+"""Login + Verwaltung des erhöhten Zugangs (Person = Konto).
+
+Eine „elevated" Person (`moderator_rolle` gesetzt: admin/gruppenfuehrer) meldet sich
+am Moderatorbereich mit Name + Passwort (+2FA) an; ihr PIN bleibt für Kiosk/Mitglied.
+Die Verwaltung (elevieren/de-elevieren/Passwort) läuft über Personal.
+"""
+
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_secret, verify_secret
-from app.models.moderator import Moderator
 from app.models.person import Person
 from app.services.config_service import config_service
 
 
 class ModeratorGesperrtError(Exception):
-    """Der Moderator-Login ist wegen zu vieler Fehlversuche temporär gesperrt."""
+    """Der Passwort-Login ist wegen zu vieler Fehlversuche temporär gesperrt."""
 
     def __init__(self, verbleibend_sekunden: int) -> None:
-        super().__init__("Moderator-Login vorübergehend gesperrt.")
+        super().__init__("Login vorübergehend gesperrt.")
         self.verbleibend_sekunden = verbleibend_sekunden
 
 
@@ -24,7 +30,7 @@ def _als_utc(dt: datetime) -> datetime:
 async def login_pruefen(db: AsyncSession, name: str, passwort: str) -> Person | None:
     """Prüft die Anmeldedaten einer **Person** am Moderatorbereich (Name + Passwort)
     mit Brute-Force-Schutz. Login gelingt nur, wenn die Person ein Passwort gesetzt
-    hat (elevated); die Elevated-Prüfung (`moderator_rolle`) macht das Gate in deps.
+    hat; die Elevated-Prüfung (`moderator_rolle`) macht das Gate in deps.
 
     - Person existiert nicht / hat kein Passwort → None (401, ohne Enumeration/Sperre).
     - Gesperrt (`login_gesperrt_bis` in der Zukunft) → `ModeratorGesperrtError`.
@@ -67,73 +73,12 @@ async def login_pruefen(db: AsyncSession, name: str, passwort: str) -> Person | 
     return None
 
 
-async def liste_moderatoren(db: AsyncSession) -> list[Moderator]:
-    result = await db.execute(select(Moderator).order_by(Moderator.username))
-    return list(result.scalars().all())
-
-
-async def get_moderator(db: AsyncSession, moderator_id: int) -> Moderator | None:
-    result = await db.execute(select(Moderator).where(Moderator.id == moderator_id))
-    return result.scalar_one_or_none()
-
-
-async def get_moderator_by_username(db: AsyncSession, username: str) -> Moderator | None:
-    result = await db.execute(select(Moderator).where(Moderator.username == username))
-    return result.scalar_one_or_none()
-
-
 def _email_normalisieren(email: str | None) -> str | None:
     """Leeren/whitespace-String als „keine E-Mail" (NULL) behandeln."""
     if email is None:
         return None
     wert = email.strip()
     return wert or None
-
-
-async def moderator_anlegen(
-    db: AsyncSession,
-    username: str,
-    passwort: str,
-    rolle: str = "admin",
-    email: str | None = None,
-    benachrichtigungen_aktiv: bool = False,
-) -> Moderator:
-    moderator = Moderator(
-        username=username,
-        passwort_hash=hash_secret(passwort),
-        rolle=rolle,
-        email=_email_normalisieren(email),
-        benachrichtigungen_aktiv=benachrichtigungen_aktiv,
-    )
-    db.add(moderator)
-    await db.commit()
-    await db.refresh(moderator)
-    return moderator
-
-
-async def moderator_aktualisieren(
-    db: AsyncSession,
-    moderator: Moderator,
-    email: str | None = None,
-    email_gesetzt: bool = False,
-    benachrichtigungen_aktiv: bool | None = None,
-) -> Moderator:
-    """Aktualisiert E-Mail und/oder das Benachrichtigungs-Opt-in. `email_gesetzt`
-    unterscheidet „E-Mail nicht mitgesendet" von „E-Mail auf leer/NULL gesetzt"."""
-    if email_gesetzt:
-        moderator.email = _email_normalisieren(email)
-    if benachrichtigungen_aktiv is not None:
-        moderator.benachrichtigungen_aktiv = benachrichtigungen_aktiv
-    await db.commit()
-    await db.refresh(moderator)
-    return moderator
-
-
-async def moderator_email_setzen(db: AsyncSession, moderator: Moderator, email: str | None) -> Moderator:
-    moderator.email = _email_normalisieren(email)
-    await db.commit()
-    await db.refresh(moderator)
-    return moderator
 
 
 async def admin_benachrichtigungs_empfaenger(db: AsyncSession) -> list[str]:
@@ -161,18 +106,55 @@ async def admin_benachrichtigungs_empfaenger(db: AsyncSession) -> list[str]:
     return ergebnis
 
 
-async def moderator_passwort_aendern(db: AsyncSession, moderator: Moderator, passwort: str) -> Moderator:
-    moderator.passwort_hash = hash_secret(passwort)
+# --- Erhöhte Rechte verwalten (elevieren / de-elevieren / Passwort) ---
+
+
+async def elevated_liste(db: AsyncSession) -> list[Person]:
+    """Alle Personen mit erhöhtem Zugang (Admin/Gruppenführer)."""
+    result = await db.execute(
+        select(Person).where(Person.moderator_rolle.is_not(None)).order_by(Person.name)
+    )
+    return list(result.scalars().all())
+
+
+async def anzahl_admins(db: AsyncSession) -> int:
+    return (
+        await db.execute(
+            select(func.count()).select_from(Person).where(Person.moderator_rolle == "admin")
+        )
+    ).scalar_one()
+
+
+async def person_elevieren(
+    db: AsyncSession, person: Person, rolle: str, passwort: str | None = None
+) -> Person:
+    """Setzt/ändert die erhöhte Rolle (`admin`/`gruppenfuehrer`) einer Person und
+    optional das Passwort. Hat die Person noch kein Passwort, MUSS eins mitgegeben
+    werden (sonst kann sie sich nicht anmelden – Prüfung im Router)."""
+    person.moderator_rolle = rolle
+    if passwort:
+        person.passwort_hash = hash_secret(passwort)
     await db.commit()
-    await db.refresh(moderator)
-    return moderator
+    await db.refresh(person)
+    return person
 
 
-async def anzahl_moderatoren(db: AsyncSession) -> int:
-    result = await db.execute(select(func.count()).select_from(Moderator))
-    return result.scalar_one()
-
-
-async def moderator_loeschen(db: AsyncSession, moderator: Moderator) -> None:
-    await db.delete(moderator)
+async def person_passwort_setzen(db: AsyncSession, person: Person, passwort: str) -> Person:
+    person.passwort_hash = hash_secret(passwort)
     await db.commit()
+    await db.refresh(person)
+    return person
+
+
+async def person_de_elevieren(db: AsyncSession, person: Person) -> Person:
+    """Entzieht den erhöhten Zugang: Rolle + Passwort weg und 2FA/Recovery/Trusted-
+    Devices abräumen. Die Person bleibt als normales Mitglied bestehen (PIN/Barcode)."""
+    person.moderator_rolle = None
+    person.passwort_hash = None
+    person.login_fehlversuche = 0
+    person.login_gesperrt_bis = None
+    from app.services import zwei_faktor_service
+
+    await zwei_faktor_service.deaktivieren(db, person)  # committet inkl. der Felder oben
+    await db.refresh(person)
+    return person

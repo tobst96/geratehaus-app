@@ -1054,10 +1054,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `person_id` umhängen. **Gruppenführer werden NICHT migriert** (manuell neu). **Ende-zu-
   Ende auf Scratch-DB verifiziert** (Match-Fall, Neu-Fall, GF-Ausschluss, Rechte-Umhängen)
   + `alembic downgrade` sauber.
-- Offen (nächste Checkpoints): **Verwaltungs-Umbau** (einstellungen → Person-Elevation +
-  Schemas); **31 Test-Dateien** → volle Suite grün; **Frontend** (Personal-Verwaltung,
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 5 (Verwaltungs-Umbau)**):
+  Management von Moderator-Konten → **Person-Elevation**. `moderator_service`: alte
+  Moderator-CRUD entfernt, neu `elevated_liste`/`person_elevieren`/`person_de_elevieren`
+  (räumt 2FA ab)/`person_passwort_setzen`/`anzahl_admins`. Schemas: `ElevatedPersonOut`/
+  `PersonElevieren`/`PersonPasswortSetzen` (Moderator*-Schemas raus). `moderator_einstellungen`:
+  `/moderatoren`-Endpunkte entfernt. **`moderator_stammdaten`**: neue Admin-only-Endpunkte
+  `GET /elevated`, `PUT/DELETE /personen/{id}/elevation`, `PUT /personen/{id}/passwort-setzen`,
+  `POST /personen/{id}/2fa-zuruecksetzen` (letzter-Admin-Schutz). `app.main` importiert sauber.
+- Offen (nächste Checkpoints): **31 Test-Dateien** (Moderator-Fixtures → elevated Person)
+  → **volle Suite grün** (erster e2e-Meilenstein); **Frontend** (Personal-Verwaltung,
   Login „Name", alte Moderator-UI raus); Moderator-Benachrichtigungen entfernen. Danach
-  PR + Folge-`0061` (Drop `moderatoren`).
+  PR + Folge-`0061` (Drop `moderatoren`). Cosmetic-TODO: Gate-Aliase noch `Annotated[Moderator]`
+  (injizieren Person; im Terminologie-Rename mit-umstellen).
 
 ---
 

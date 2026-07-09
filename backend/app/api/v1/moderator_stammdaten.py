@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFil
 
 from typing import Annotated
 
-from app.api.deps import CurrentModerator, DbSession, require_modul_zugriff
+from app.api.deps import CurrentAdmin, CurrentModerator, DbSession, require_modul_zugriff
 from app.models.moderator import Moderator
+from app.schemas.moderator import ElevatedPersonOut, PersonElevieren, PersonPasswortSetzen
 from app.schemas.dienstbuch_feld import (
     DienstbuchFeldDefinitionCreate,
     DienstbuchFeldDefinitionOut,
@@ -40,7 +41,7 @@ from app.schemas.stammdaten import (
     GruppeOut,
     GruppeUpdate,
 )
-from app.services import ampel_service, audit_service, barcode_service, dienstbuch_service, dienststunden_service, divera_personal_service, email_template_service, pdf_service, person_bild_reservierung_service, stammdaten_service
+from app.services import ampel_service, audit_service, barcode_service, dienstbuch_service, dienststunden_service, divera_personal_service, email_template_service, moderator_service, pdf_service, person_bild_reservierung_service, stammdaten_service, zwei_faktor_service
 from app.services.config_service import config_service
 from app.services.notifier.email import EmailNotifier
 
@@ -545,3 +546,71 @@ async def divera_vorschlag_entscheiden(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Vorschlag wurde bereits übernommen."
         )
     return await divera_personal_service.entscheide_vorschlag(db, vorschlag, daten.aktion)
+
+
+# --- Erhöhter Zugang (Admin/Gruppenführer) – Verwaltung über Personal ---
+
+
+@router.get("/elevated", response_model=list[ElevatedPersonOut])
+async def elevated_liste(db: DbSession, _admin: CurrentAdmin) -> list[ElevatedPersonOut]:
+    """Alle Personen mit erhöhtem Zugang (Admin/Gruppenführer)."""
+    return await moderator_service.elevated_liste(db)
+
+
+@router.put("/personen/{person_id}/elevation", response_model=ElevatedPersonOut)
+async def person_elevieren(
+    db: DbSession, admin: CurrentAdmin, person_id: int, daten: PersonElevieren
+) -> ElevatedPersonOut:
+    """Hebt eine Person auf Admin/Gruppenführer (oder ändert die Rolle). Hat die
+    Person noch kein Passwort, muss `passwort` mitgegeben werden."""
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    if not person.passwort_hash and not daten.passwort:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Für den erhöhten Zugang muss ein Passwort gesetzt werden.",
+        )
+    person = await moderator_service.person_elevieren(db, person, daten.rolle, daten.passwort)
+    await audit_service.protokolliere(
+        db, admin.name, "person_eleviert", "person", person_id, f"Rolle {daten.rolle}"
+    )
+    return person
+
+
+@router.delete("/personen/{person_id}/elevation", status_code=status.HTTP_204_NO_CONTENT)
+async def person_de_elevieren(db: DbSession, admin: CurrentAdmin, person_id: int) -> None:
+    """Entzieht den erhöhten Zugang (Person bleibt normales Mitglied). Der letzte
+    verbleibende Admin kann nicht entzogen werden."""
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None or person.moderator_rolle is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kein erhöhter Zugang.")
+    if person.moderator_rolle == "admin" and await moderator_service.anzahl_admins(db) <= 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Der letzte verbleibende Administrator kann nicht entzogen werden.",
+        )
+    await moderator_service.person_de_elevieren(db, person)
+    await audit_service.protokolliere(db, admin.name, "person_de_eleviert", "person", person_id)
+
+
+@router.put("/personen/{person_id}/passwort-setzen", status_code=status.HTTP_204_NO_CONTENT)
+async def person_passwort_setzen(
+    db: DbSession, admin: CurrentAdmin, person_id: int, daten: PersonPasswortSetzen
+) -> None:
+    """Setzt das Login-Passwort einer (elevated) Person neu."""
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None or person.moderator_rolle is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kein erhöhter Zugang.")
+    await moderator_service.person_passwort_setzen(db, person, daten.passwort)
+    await audit_service.protokolliere(db, admin.name, "person_passwort_gesetzt", "person", person_id)
+
+
+@router.post("/personen/{person_id}/2fa-zuruecksetzen", status_code=status.HTTP_204_NO_CONTENT)
+async def person_2fa_zuruecksetzen(db: DbSession, admin: CurrentAdmin, person_id: int) -> None:
+    """Admin-Reset der 2FA einer Person (hebt Aussperren auf)."""
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None or person.moderator_rolle is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kein erhöhter Zugang.")
+    await zwei_faktor_service.deaktivieren(db, person)
+    await audit_service.protokolliere(db, admin.name, "person_2fa_zurueckgesetzt", "person", person_id)
