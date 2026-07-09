@@ -35,32 +35,40 @@ export const fuehreArchivierungAus = () =>
 
 export const sendeTestmail = () => apiPost<void>("/moderator/einstellungen/email-testen");
 
-export interface ModeratorKonto {
+// --- Erhöhte Zugänge (Person = Konto): Admin/Gruppenführer an der Person -----
+// Verwaltet direkt in Personal; die separate „Moderatoren"-Verwaltung entfällt.
+
+export type ElevatedRolle = "admin" | "gruppenfuehrer";
+
+export interface ElevatedPerson {
   id: number;
-  username: string;
-  rolle: string;
+  name: string;
+  moderator_rolle: string | null;
   email: string | null;
   benachrichtigungen_aktiv: boolean;
+  zwei_faktor_aktiv: boolean;
 }
 
-export const holeModeratoren = () =>
-  apiGet<ModeratorKonto[]>("/moderator/einstellungen/moderatoren");
+/** Alle Personen mit erhöhtem Zugang (Admin/Gruppenführer). Nur für Admins. */
+export const holeElevatedPersonen = () =>
+  apiGet<ElevatedPerson[]>("/moderator/stammdaten/elevated");
 
-export const moderatorAnlegen = (
-  username: string,
-  passwort: string,
-  rolle: string,
-  email: string | null = null
-) =>
-  apiPost<ModeratorKonto>("/moderator/einstellungen/moderatoren", { username, passwort, rolle, email });
+/** Person auf Admin/Gruppenführer heben oder Rolle ändern. `passwort` ist
+ * Pflicht, solange die Person noch kein Login-Passwort hat. */
+export const personElevieren = (id: number, rolle: ElevatedRolle, passwort?: string) =>
+  apiPut<ElevatedPerson>(`/moderator/stammdaten/personen/${id}/elevation`, { rolle, passwort });
 
-export const moderatorEmailAendern = (id: number, email: string | null) =>
-  apiPatch<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}`, { email });
-export const moderatorBenachrichtigungenAendern = (id: number, benachrichtigungen_aktiv: boolean) =>
-  apiPatch<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}`, { benachrichtigungen_aktiv });
+/** Erhöhten Zugang entziehen (Person bleibt normales Mitglied). */
+export const personDeElevieren = (id: number) =>
+  apiDelete<void>(`/moderator/stammdaten/personen/${id}/elevation`);
 
-export const moderator2faZuruecksetzen = (id: number) =>
-  apiPost<void>(`/moderator/einstellungen/moderatoren/${id}/2fa-zuruecksetzen`);
+/** Login-Passwort einer elevated Person neu setzen. */
+export const personPasswortSetzen = (id: number, passwort: string) =>
+  apiPut<void>(`/moderator/stammdaten/personen/${id}/passwort-setzen`, { passwort });
+
+/** Admin-Reset der 2FA einer Person (hebt Aussperren auf). */
+export const person2faZuruecksetzen = (id: number) =>
+  apiPost<void>(`/moderator/stammdaten/personen/${id}/2fa-zuruecksetzen`);
 
 // --- Eigenes Konto: Zwei-Faktor (jeder Moderator, auch Gruppenführer) --------
 export interface ZweiFaktorStatus {
@@ -79,12 +87,6 @@ export const zweiFaktorRecoveryNeu = () =>
 
 export const zweiFaktorDeaktivieren = () =>
   apiPost<void>("/moderator/konto/2fa/deaktivieren");
-
-export const moderatorPasswortAendern = (id: number, passwort: string) =>
-  apiPut<ModeratorKonto>(`/moderator/einstellungen/moderatoren/${id}/passwort`, { passwort });
-
-export const moderatorLoeschen = (id: number) =>
-  apiDelete<void>(`/moderator/einstellungen/moderatoren/${id}`);
 
 // --- Dashboard ------------------------------------------------------------
 

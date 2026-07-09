@@ -1071,10 +1071,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `test_g2` auf Resolver-Tests reduziert (pro-Moderator-CRUD entfällt); `test_moderator_email`
   gelöscht (E-Mail ist reines Person-Feld); `test_anti_aussperr_seed` seedet Rechte über
   `person_id`. **Ergebnis: volle Suite 388 passed / 0 failed** – erster e2e-Meilenstein erreicht.
-- Offen (nächste Checkpoints): **Frontend** (Personal-Verwaltung nutzt Elevation-Endpunkte,
-  Login „Name", alte Moderator-UI + Moderator-Benachrichtigungen raus) → `npm run build`; danach
-  PR nach beta (Pflicht-Smoke-Test) + Folge-`0061` (Drop `moderatoren`). Cosmetic-TODO:
-  Gate-Aliase noch `Annotated[Moderator]` (injizieren Person; im Terminologie-Rename mit-umstellen).
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 7 (Frontend)**): `api/moderator.ts`
+  alte Moderator-CRUD durch Elevation-Endpunkte ersetzt (`holeElevatedPersonen`,
+  `personElevieren`/`personDeElevieren`/`personPasswortSetzen`/`person2faZuruecksetzen`).
+  **Personal.tsx**: neuer Admin-only-Tab **„Zugang"** je Person – Rolle Normal/Gruppenführer/
+  Administrator setzen (erstes Mal mit Login-Passwort), Passwort neu setzen, 2FA zurücksetzen,
+  Zugang entziehen (nutzt admin-only `/elevated`-Resolver, kein Rollen-Leak in `PersonOut`).
+  **ModeratorLogin**: Feld „Benutzername" → „Name" (+ Test). **Einstellungen.tsx**: alte
+  `ModeratorenVerwaltung` entfernt (rief entfernte `/moderatoren`-Endpunkte). Validiert:
+  `tsc --noEmit` grün, **Production-Build im Docker-Build-Stage grün**, Login-Unit-Test 2/2.
+- Offen: **PR nach beta** (Pflicht-Smoke-Test durch Nutzer) → nach bestätigtem Betrieb
+  Folge-`0061` (Drop `moderatoren` + `moderator_id`-Spalten). Danach separater Pass:
+  Terminologie **Moderator → Gruppenführer** überall (inkl. Gate-Aliase noch
+  `Annotated[Moderator]`, Routen/Bezeichner/Kommentare/Docs).
 
 ---
 

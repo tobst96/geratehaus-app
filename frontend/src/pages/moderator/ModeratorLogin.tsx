@@ -92,7 +92,7 @@ export function ModeratorLogin() {
       <h1>Anmeldung Gruppenführer / Admin</h1>
       <form onSubmit={absenden} className="karte">
         <div className="formular-feld">
-          <label htmlFor="username">Benutzername</label>
+          <label htmlFor="username">Name</label>
           <input
             id="username"
             value={username}
