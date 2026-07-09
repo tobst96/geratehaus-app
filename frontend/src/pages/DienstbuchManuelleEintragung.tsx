@@ -12,6 +12,7 @@ import { ApiError } from "../api/client";
 import { eintragungGesperrtMinuten, eintragungVermerken } from "../utils/eintragungssperre";
 import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { DienstbuchReservierungInfo, Gruppe, Person } from "../api/types";
+import { texte } from "../i18n/texte";
 
 function initialenAus(name: string): string {
   return name
@@ -24,6 +25,8 @@ function initialenAus(name: string): string {
 }
 
 export function DienstbuchManuelleEintragung() {
+  const t = texte.manuelle_eintragung;
+  const t2 = texte.dienstbuch_eintragung;
   const { token } = useParams<{ token: string }>();
   const [info, setInfo] = useState<DienstbuchReservierungInfo | null>(null);
   const [personen, setPersonen] = useState<Person[]>([]);
@@ -52,7 +55,7 @@ export function DienstbuchManuelleEintragung() {
         setGruppen(gruppenResult);
       })
       .catch((err) =>
-        setLadeFehler(err instanceof ApiError ? String(err.detail) : "Reservierung konnte nicht geladen werden.")
+        setLadeFehler(err instanceof ApiError ? String(err.detail) : t.reservierung_fehler)
       );
   }, [token]);
 
@@ -83,7 +86,7 @@ export function DienstbuchManuelleEintragung() {
       eintragungVermerken();
       setErfolg(true);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Eintragung fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.eintragung_fehler);
     } finally {
       setLaeuft(false);
     }
@@ -93,11 +96,10 @@ export function DienstbuchManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Kurz gewartet</h1>
+          <h1>{t.warten_titel}</h1>
           <p>
-            Du hast dich auf diesem Gerät vor Kurzem bereits eingetragen. Bitte warte noch ca.{" "}
-            {gesperrtMinuten} {gesperrtMinuten === 1 ? "Minute" : "Minuten"}, bevor du es erneut
-            versuchst.
+            {t.warten_prefix}{" "}
+            {gesperrtMinuten} {gesperrtMinuten === 1 ? t.minute : t.minuten}{t.warten_suffix}
           </p>
         </div>
       </div>
@@ -124,10 +126,9 @@ export function DienstbuchManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Eingetragen!</h1>
+          <h1>{t.eingetragen_titel}</h1>
           <p>
-            Du wurdest für das Dienstbuch „{info.dienstbuch_titel}“ eingetragen. Du kannst diese Seite
-            jetzt schließen.
+            {t2.eingetragen_prefix} „{info.dienstbuch_titel}“ {t.eingetragen_suffix}
           </p>
         </div>
       </div>
@@ -138,8 +139,8 @@ export function DienstbuchManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Bereits genutzt</h1>
-          <p>Diese Reservierung wurde bereits verwendet. Bitte am Gerätehaus einen neuen QR-Code erzeugen.</p>
+          <h1>{t.bereits_genutzt_titel}</h1>
+          <p>{t.bereits_genutzt_text}</p>
         </div>
       </div>
     );
@@ -149,8 +150,8 @@ export function DienstbuchManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Abgelaufen</h1>
-          <p>Diese Reservierung ist abgelaufen. Bitte am Gerätehaus einen neuen QR-Code erzeugen.</p>
+          <h1>{t.abgelaufen_titel}</h1>
+          <p>{t.abgelaufen_text}</p>
         </div>
       </div>
     );
@@ -159,12 +160,12 @@ export function DienstbuchManuelleEintragung() {
   return (
     <div className="seite">
       <div className="karte">
-        <h1>Ohne Barcode eintragen</h1>
-        <p className="text-mute">Dienstbuch „{info.dienstbuch_titel}“</p>
+        <h1>{t.titel}</h1>
+        <p className="text-mute">{t2.dienstbuch_label} „{info.dienstbuch_titel}“</p>
 
         <form onSubmit={absenden}>
           <div className="formular-feld">
-          <label htmlFor="dbme-person">Wer bist du?</label>
+          <label htmlFor="dbme-person">{t.wer_bist_du}</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
               <div
@@ -184,7 +185,7 @@ export function DienstbuchManuelleEintragung() {
                 </div>
               <strong>{ausgewaehltePerson.name}</strong>
               <button type="button" className="sekundaer" onClick={() => setAusgewaehltePerson(null)}>
-                Ändern
+                {t.aendern}
               </button>
             </div>
           ) : (
@@ -193,7 +194,7 @@ export function DienstbuchManuelleEintragung() {
                 id="dbme-person"
                 value={suche}
                 onChange={(e) => setSuche(e.target.value)}
-                placeholder="Namen eingeben und auswählen…"
+                placeholder={t.namen_platzhalter}
                 autoFocus
               />
               {trefferliste.length > 0 && (
@@ -213,23 +214,18 @@ export function DienstbuchManuelleEintragung() {
                 </ul>
               )}
               {suche.trim().length > 0 && trefferliste.length === 0 && (
-                <p className="hinweistext">
-                  Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
-                </p>
+                <p className="hinweistext">{t.keine_person}</p>
               )}
             </>
           )}
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <Fehlertext>
-              Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich –
-              bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
-            </Fehlertext>
+            <Fehlertext>{t.kein_pin}</Fehlertext>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
-              <label htmlFor="dbme-pin">Dein PIN</label>
+              <label htmlFor="dbme-pin">{t.dein_pin}</label>
               <input
                 id="dbme-pin"
                 type="password"
@@ -242,13 +238,13 @@ export function DienstbuchManuelleEintragung() {
           )}
 
           <div className="formular-feld">
-            <label htmlFor="dbme-gruppe">Gruppe</label>
+            <label htmlFor="dbme-gruppe">{t2.gruppe}</label>
             <select
               id="dbme-gruppe"
               value={gruppeId ?? ""}
               onChange={(e) => setGruppeId(e.target.value ? Number(e.target.value) : null)}
             >
-              <option value="">– keine –</option>
+              <option value="">{t2.keine_gruppe}</option>
               {gruppen.map((g) => (
                 <option key={g.id} value={g.id}>
                   {g.name}
@@ -263,7 +259,7 @@ export function DienstbuchManuelleEintragung() {
             type="submit"
             disabled={laeuft || !ausgewaehltePerson || !ausgewaehltePerson.pin_gesetzt || !pin}
           >
-            {laeuft ? "Wird gespeichert…" : "Eintragen"}
+            {laeuft ? t.speichern_laeuft : t.eintragen}
           </button>
         </form>
       </div>

@@ -1807,8 +1807,10 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Weiter offen: weitere Seiten schrittweise migrieren (nach demselben Muster) – jetzt
   beliebige Seiten (auch Gruppenführer-Bereich), da #60 gemergt. Bisher migriert:
   LandingPage, PinSetzen, PersonFreigabe, KioskHome, MitgliedLogin, Start, NotFound,
-  PersonBildHochladen, ManuelleEintragung. Rest: die 3 modul-spezifischen ManuelleEintragung-
-  Seiten (Dienstbuch/Dienststunden/Fahrzeugbuchung) + Gruppenführer-Bereich (viele Seiten).
+  PersonBildHochladen, ManuelleEintragung, DienstbuchManuelleEintragung. Letztere nutzt den
+  **geteilten** `texte.manuelle_eintragung`-Namespace (DRY) + kleines `dienstbuch_eintragung`.
+  Rest: Dienststunden-/Fahrzeugbuchung-ManuelleEintragung (analog per Namespace-Reuse) +
+  Gruppenführer-Bereich (viele Seiten).
 
 ### CI bei jedem PR (GitHub Actions)
 

@@ -14,7 +14,8 @@
  *
  * Migrierte Seiten: `pages/LandingPage.tsx`, `pages/PinSetzen.tsx`, `pages/PersonFreigabe.tsx`,
  * `pages/KioskHome.tsx`, `pages/mitglied/MitgliedLogin.tsx`, `pages/Start.tsx`,
- * `pages/NotFound.tsx`, `pages/PersonBildHochladen.tsx`, `pages/ManuelleEintragung.tsx`.
+ * `pages/NotFound.tsx`, `pages/PersonBildHochladen.tsx`, `pages/ManuelleEintragung.tsx`,
+ * `pages/DienstbuchManuelleEintragung.tsx`.
  */
 export const texte = {
   landing: {
@@ -129,6 +130,13 @@ export const texte = {
     bemerkung_platzhalter: "Notizen…",
     speichern_laeuft: "Wird gespeichert…",
     eintragen: "Eintragen",
+  },
+  dienstbuch_eintragung: {
+    // Ergänzt `manuelle_eintragung` um die Dienstbuch-spezifischen Texte.
+    dienstbuch_label: "Dienstbuch", // Kopf: <label> „<titel>"
+    eingetragen_prefix: "Du wurdest für das Dienstbuch", // … „<titel>" <manuelle_eintragung.eingetragen_suffix>
+    gruppe: "Gruppe",
+    keine_gruppe: "– keine –",
   },
   start: {
     frage: "Wähle einen Bereich:",
