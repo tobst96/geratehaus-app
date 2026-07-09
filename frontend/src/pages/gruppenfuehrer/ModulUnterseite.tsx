@@ -18,8 +18,8 @@ import { FormularModul } from "./module/FormularModul";
 
 export function ModulUnterseite() {
   const { key } = useParams<{ key: string }>();
-  const { moderatorRolle, hatModulZugriff, berechtigungenGeladen } = useAuth();
-  const istAdmin = moderatorRolle === "admin";
+  const { gruppenfuehrerRolle, hatModulZugriff, berechtigungenGeladen } = useAuth();
+  const istAdmin = gruppenfuehrerRolle === "admin";
 
   // Zugriff: Admins immer. Sonst braucht eine grantbare Unterseite ihr eigenes
   // Recht; alle übrigen Unterseiten (Backup/MinIO/Modul-Einstellungen …) bleiben

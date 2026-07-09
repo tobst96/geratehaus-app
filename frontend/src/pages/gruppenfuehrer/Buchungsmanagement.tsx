@@ -6,7 +6,7 @@ import {
   holeKonfliktvergleich,
   buchungGenehmigen,
   buchungAblehnen,
-} from "../../api/moderator";
+} from "../../api/gruppenfuehrer";
 import { ApiError } from "../../api/client";
 import type { BuchungOut } from "../../api/types";
 import { Ladeanzeige } from "../../components/Ladeanzeige";

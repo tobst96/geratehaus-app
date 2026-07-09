@@ -4,7 +4,7 @@ import {
   holeBerechtigungen,
   setzeBerechtigung,
   type BerechtigungMatrix,
-  type ModeratorBerechtigung,
+  type GruppenfuehrerBerechtigung,
 } from "../../api/berechtigungen";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
@@ -26,7 +26,7 @@ export function Berechtigungen() {
     laden();
   }, []);
 
-  async function umschalten(mod: ModeratorBerechtigung, modulKey: string, erlaubt: boolean) {
+  async function umschalten(mod: GruppenfuehrerBerechtigung, modulKey: string, erlaubt: boolean) {
     try {
       await setzeBerechtigung(mod.id, modulKey, erlaubt);
       setMatrix((m) => {
@@ -53,11 +53,11 @@ export function Berechtigungen() {
   if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!matrix) return <Ladeanzeige />;
 
-  function hatZugriff(mod: ModeratorBerechtigung, modulKey: string): boolean {
+  function hatZugriff(mod: GruppenfuehrerBerechtigung, modulKey: string): boolean {
     return mod.ist_admin || mod.module.includes(modulKey);
   }
 
-  const sichtbareModeratoren = filterModul
+  const sichtbareGruppenfuehreren = filterModul
     ? matrix.moderatoren.filter((mod) => hatZugriff(mod, filterModul))
     : matrix.moderatoren;
 
@@ -92,7 +92,7 @@ export function Berechtigungen() {
             </tr>
           </thead>
           <tbody>
-            {sichtbareModeratoren.map((mod) => (
+            {sichtbareGruppenfuehreren.map((mod) => (
               <tr key={mod.id}>
                 <td>
                   <strong>{mod.username}</strong>
@@ -114,7 +114,7 @@ export function Berechtigungen() {
                 ))}
               </tr>
             ))}
-            {sichtbareModeratoren.length === 0 && (
+            {sichtbareGruppenfuehreren.length === 0 && (
               <tr>
                 <td colSpan={matrix.module.length + 1} className="text-mute">
                   Keine Moderatoren mit diesem Zugriff.

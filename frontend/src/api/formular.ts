@@ -34,7 +34,7 @@ export interface Formular {
   aktiv: boolean;
   login_erforderlich: boolean;
   email_empfaenger: string | null;
-  moderator_sichtbar: boolean;
+  gruppenfuehrer_sichtbar: boolean;
   start_am: string | null;
   ablauf_am: string | null;
   max_einreichungen: number | null;

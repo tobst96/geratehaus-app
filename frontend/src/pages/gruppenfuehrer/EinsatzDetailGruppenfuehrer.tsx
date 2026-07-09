@@ -14,7 +14,7 @@ import {
 import { holeFahrzeuge } from "../../api/stammdaten";
 import { ApiError } from "../../api/client";
 import type { EinsatzEreignis, EinsatzFeldDefinition, EinsatzOut, Fahrzeug } from "../../api/types";
-import "./EinsatzDetailModerator.css";
+import "./EinsatzDetailGruppenfuehrer.css";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 
 const EREIGNIS_ICON: Record<string, string> = {
@@ -28,7 +28,7 @@ const EREIGNIS_ICON: Record<string, string> = {
   wiedereroeffnet: "🔓",
 };
 
-export function EinsatzDetailModerator() {
+export function EinsatzDetailGruppenfuehrer() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [einsatz, setEinsatz] = useState<EinsatzOut | null>(null);

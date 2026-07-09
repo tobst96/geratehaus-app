@@ -8,7 +8,7 @@ import {
   schreibeEinstellungen,
   setzeKioskStartseiteModule,
   type KioskTokenOut,
-} from "../../api/moderator";
+} from "../../api/gruppenfuehrer";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";

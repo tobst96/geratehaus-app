@@ -1,6 +1,6 @@
 import { Fehlertext } from "../../components/Fehlertext";
 import { useRef, useState } from "react";
-import { fahrzeugAktualisieren } from "../../api/moderator";
+import { fahrzeugAktualisieren } from "../../api/gruppenfuehrer";
 import { ApiError } from "../../api/client";
 import type { Fahrzeug, FunktionEinsatz, Sitzplatz } from "../../api/types";
 

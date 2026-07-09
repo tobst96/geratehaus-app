@@ -5,7 +5,7 @@ import {
   einsatzFeldAnlegen,
   einsatzFeldAktualisieren,
   einsatzFeldLoeschen,
-} from "../../../api/moderator";
+} from "../../../api/gruppenfuehrer";
 import { ApiError } from "../../../api/client";
 import type { EinsatzFeldDefinition } from "../../../api/types";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";

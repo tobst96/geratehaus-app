@@ -66,7 +66,7 @@ const NAV_GRUPPEN: NavGruppe[] = [
 
 // `perm` = Berechtigungs-Key: der Listen-Tab erscheint für Gruppenführer nur mit
 // diesem Modul-Recht (Admins via Bypass). Formulare hat kein perm – die Sichtbarkeit
-// der Einreichungen steuert der Server über `moderator_sichtbar`.
+// der Einreichungen steuert der Server über `gruppenfuehrer_sichtbar`.
 const LISTEN_UNTERPUNKTE: { tab: string; icon: string; modulKey: ModulKey; perm?: string }[] = [
   { tab: "Einsätze", icon: "einsatz", modulKey: "modul_einsatztagebuch_aktiv", perm: "einsatztagebuch" },
   { tab: "Dienstbücher", icon: "dienstbuch", modulKey: "modul_dienstbuch_aktiv", perm: "dienstbuch" },
@@ -91,12 +91,12 @@ const MODUL_ICON: Record<string, string> = {
   minio: "backup",
 };
 
-export function ModeratorLayout() {
-  const { moderatorAbmelden, moderatorRolle, hatModulZugriff } = useAuth();
+export function GruppenfuehrerLayout() {
+  const { gruppenfuehrerAbmelden, gruppenfuehrerRolle, hatModulZugriff } = useAuth();
   const { config, neuLaden } = useConfig();
   const navigate = useNavigate();
   const location = useLocation();
-  const istAdmin = moderatorRolle === "admin";
+  const istAdmin = gruppenfuehrerRolle === "admin";
 
   // Ein Nav-Punkt ist sichtbar, wenn er keinen Berechtigungs-Key hat (dann greift
   // die Gruppen-Rollenregel) oder der Moderator den Modul-Zugriff besitzt.
@@ -138,7 +138,7 @@ export function ModeratorLayout() {
   }, [location.pathname, location.search]);
 
   function abmelden() {
-    moderatorAbmelden();
+    gruppenfuehrerAbmelden();
     navigate("/");
   }
 

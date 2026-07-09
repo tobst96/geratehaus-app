@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/client";
 
-export function ModeratorLogin() {
-  const { moderatorAnmelden, moderator2faAbschliessen } = useAuth();
+export function GruppenfuehrerLogin() {
+  const { gruppenfuehrerAnmelden, moderator2faAbschliessen } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [passwort, setPasswort] = useState("");
@@ -22,7 +22,7 @@ export function ModeratorLogin() {
     setFehler(null);
     setLadevorgang(true);
     try {
-      const { zweiFaktorErforderlich, challenge: ch } = await moderatorAnmelden(username, passwort);
+      const { zweiFaktorErforderlich, challenge: ch } = await gruppenfuehrerAnmelden(username, passwort);
       if (zweiFaktorErforderlich && ch) {
         setChallenge(ch);
       } else {

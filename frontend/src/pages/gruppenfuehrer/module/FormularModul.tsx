@@ -284,8 +284,8 @@ export function FormularModul() {
           <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input
               type="checkbox"
-              checked={ausgewaehlt.moderator_sichtbar}
-              onChange={(e) => formularFeldAendern(ausgewaehlt, { moderator_sichtbar: e.target.checked })}
+              checked={ausgewaehlt.gruppenfuehrer_sichtbar}
+              onChange={(e) => formularFeldAendern(ausgewaehlt, { gruppenfuehrer_sichtbar: e.target.checked })}
             />
             Einreichungen auch für Gruppenführer/Moderatoren sichtbar
           </label>

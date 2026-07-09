@@ -6,7 +6,7 @@ import {
   funktionDienststundenAktualisieren,
   funktionDienststundenLoeschen,
   ladeFunktionStempelPdf,
-} from "../../../api/moderator";
+} from "../../../api/gruppenfuehrer";
 import { ApiError } from "../../../api/client";
 import type { FunktionDienststunden } from "../../../api/types";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";

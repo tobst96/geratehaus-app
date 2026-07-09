@@ -11,7 +11,7 @@ import {
   zweiFaktorRecoveryNeu,
   zweiFaktorDeaktivieren,
   type ZweiFaktorStatus,
-} from "../../api/moderator";
+} from "../../api/gruppenfuehrer";
 import { setupErneutAusfuehren } from "../../api/setup";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";

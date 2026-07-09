@@ -28,7 +28,7 @@ import {
   type PersonCsvImportErgebnis,
   type ElevatedPerson,
   type ElevatedRolle,
-} from "../../api/moderator";
+} from "../../api/gruppenfuehrer";
 import { holePersonBildReservierung } from "../../api/personBildReservierungen";
 import {
   holeBenachrichtigungsUebersicht,
@@ -221,8 +221,8 @@ export function Personal() {
   const [detailTab, setDetailTab] = useState("stammdaten");
 
   // Erhöhte Zugänge (Admin/Gruppenführer) – nur für Admins sichtbar/verwaltbar.
-  const { moderatorRolle } = useAuth();
-  const istAdmin = moderatorRolle === "admin";
+  const { gruppenfuehrerRolle } = useAuth();
+  const istAdmin = gruppenfuehrerRolle === "admin";
   const [elevatedMap, setElevatedMap] = useState<Record<number, ElevatedPerson>>({});
   const [zugangPasswort, setZugangPasswort] = useState("");
   const [zugangFehler, setZugangFehler] = useState<string | null>(null);

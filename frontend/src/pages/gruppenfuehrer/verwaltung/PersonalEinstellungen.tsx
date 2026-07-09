@@ -2,7 +2,7 @@ import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { Gespeichert } from "../../../components/Gespeichert";
 import { GruppenVerwaltung } from "./GruppenVerwaltung";
-import { holeEinstellungen, schreibeEinstellungen } from "../../../api/moderator";
+import { holeEinstellungen, schreibeEinstellungen } from "../../../api/gruppenfuehrer";
 import { ApiError } from "../../../api/client";
 
 /** Sammel-Einstellungen für das Modul Personal: Gruppen + PIN-Erinnerung.

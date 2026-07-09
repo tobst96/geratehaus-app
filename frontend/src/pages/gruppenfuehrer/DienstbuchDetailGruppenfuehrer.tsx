@@ -13,7 +13,7 @@ import { ApiError } from "../../api/client";
 import type { DienstbuchOut } from "../../api/types";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 
-export function DienstbuchDetailModerator() {
+export function DienstbuchDetailGruppenfuehrer() {
   const { id } = useParams<{ id: string }>();
   const [dienstbuch, setDienstbuch] = useState<DienstbuchOut | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);

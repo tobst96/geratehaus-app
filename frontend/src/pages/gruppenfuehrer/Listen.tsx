@@ -12,7 +12,7 @@ import {
   dienststundenUebernahmeEintragen,
   type NamensAbweichungOut,
   type SchwellenwertEintrag,
-} from "../../api/moderator";
+} from "../../api/gruppenfuehrer";
 import {
   holeSichtbareFormulare,
   holeEinreichungen,
@@ -45,7 +45,7 @@ const TAB_MODUL: Record<(typeof TABS_BASIS)[number], string> = {
 
 // Berechtigungs-Key je Tab: Gruppenführer sehen einen Bereichs-Tab nur mit dem
 // Modul-Recht (Admins via Bypass). Formulare hat keins – der Server filtert die
-// Einreichungen über `moderator_sichtbar`.
+// Einreichungen über `gruppenfuehrer_sichtbar`.
 const TAB_PERM: Partial<Record<(typeof TABS_BASIS)[number], string>> = {
   "Einsätze": "einsatztagebuch",
   "Dienstbücher": "dienstbuch",
@@ -54,10 +54,10 @@ const TAB_PERM: Partial<Record<(typeof TABS_BASIS)[number], string>> = {
 };
 
 export function Listen() {
-  const { moderatorRolle, hatModulZugriff } = useAuth();
+  const { gruppenfuehrerRolle, hatModulZugriff } = useAuth();
   const { config } = useConfig();
   const [searchParams] = useSearchParams();
-  const istAdmin = moderatorRolle === "admin";
+  const istAdmin = gruppenfuehrerRolle === "admin";
 
   const configWerte = config as Record<string, unknown> | null;
   const sichtbareBasis = TABS_BASIS.filter(

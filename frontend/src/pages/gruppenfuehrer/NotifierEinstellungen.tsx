@@ -5,7 +5,7 @@ import {
   schreibeEinstellungen,
   sendeTestmail,
   sendeTestdruck,
-} from "../../api/moderator";
+} from "../../api/gruppenfuehrer";
 import { ApiError } from "../../api/client";
 import { Banner } from "../../components/Banner";
 import { Ladeanzeige } from "../../components/Ladeanzeige";

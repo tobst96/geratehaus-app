@@ -1,7 +1,7 @@
 import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { formatiereDatum } from "../../utils/datum";
-import { holeUpdateStatus, updateAusloesen, updateKanalSetzen, type UpdateStatus } from "../../api/moderator";
+import { holeUpdateStatus, updateAusloesen, updateKanalSetzen, type UpdateStatus } from "../../api/gruppenfuehrer";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 

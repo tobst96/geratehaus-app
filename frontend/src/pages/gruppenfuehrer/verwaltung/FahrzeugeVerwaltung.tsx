@@ -6,7 +6,7 @@ import {
   fahrzeugAktualisieren,
   fahrzeugLoeschen,
   holeAlleFunktionenEinsatz,
-} from "../../../api/moderator";
+} from "../../../api/gruppenfuehrer";
 import { ApiError } from "../../../api/client";
 import type { Fahrzeug, FunktionEinsatz } from "../../../api/types";
 import { SitzplatzEditor } from "../SitzplatzEditor";

@@ -1,6 +1,6 @@
 import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
-import { holeAlleGruppen, gruppeAnlegen, gruppeAktualisieren, gruppeLoeschen } from "../../../api/moderator";
+import { holeAlleGruppen, gruppeAnlegen, gruppeAktualisieren, gruppeLoeschen } from "../../../api/gruppenfuehrer";
 import { ApiError } from "../../../api/client";
 import type { Gruppe } from "../../../api/types";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";

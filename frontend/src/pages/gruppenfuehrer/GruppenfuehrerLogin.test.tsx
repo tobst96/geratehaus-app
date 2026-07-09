@@ -5,13 +5,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const navigate = vi.fn();
 vi.mock("react-router-dom", () => ({ useNavigate: () => navigate }));
 
-const moderatorAnmelden = vi.fn();
+const gruppenfuehrerAnmelden = vi.fn();
 const moderator2faAbschliessen = vi.fn();
 vi.mock("../../context/AuthContext", () => ({
-  useAuth: () => ({ moderatorAnmelden, moderator2faAbschliessen }),
+  useAuth: () => ({ gruppenfuehrerAnmelden, moderator2faAbschliessen }),
 }));
 
-import { ModeratorLogin } from "./ModeratorLogin";
+import { GruppenfuehrerLogin } from "./GruppenfuehrerLogin";
 
 async function anmelden() {
   const user = userEvent.setup();
@@ -20,24 +20,24 @@ async function anmelden() {
   await user.click(screen.getByRole("button", { name: "Anmelden" }));
 }
 
-describe("ModeratorLogin", () => {
+describe("GruppenfuehrerLogin", () => {
   beforeEach(() => {
     navigate.mockClear();
-    moderatorAnmelden.mockReset();
+    gruppenfuehrerAnmelden.mockReset();
     moderator2faAbschliessen.mockReset();
   });
 
   it("navigiert nach erfolgreichem Login ohne 2FA", async () => {
-    moderatorAnmelden.mockResolvedValue({ zweiFaktorErforderlich: false, challenge: null });
-    render(<ModeratorLogin />);
+    gruppenfuehrerAnmelden.mockResolvedValue({ zweiFaktorErforderlich: false, challenge: null });
+    render(<GruppenfuehrerLogin />);
     await anmelden();
-    expect(moderatorAnmelden).toHaveBeenCalledWith("admin", "geheim123");
+    expect(gruppenfuehrerAnmelden).toHaveBeenCalledWith("admin", "geheim123");
     expect(navigate).toHaveBeenCalledWith("/gruppenfuehrer");
   });
 
   it("zeigt den Code-Schritt, wenn 2FA erforderlich ist", async () => {
-    moderatorAnmelden.mockResolvedValue({ zweiFaktorErforderlich: true, challenge: "chal-123" });
-    render(<ModeratorLogin />);
+    gruppenfuehrerAnmelden.mockResolvedValue({ zweiFaktorErforderlich: true, challenge: "chal-123" });
+    render(<GruppenfuehrerLogin />);
     await anmelden();
     // Zweiter Schritt: Bestätigungscode-Formular erscheint, noch keine Navigation.
     expect(await screen.findByRole("heading", { name: "Bestätigungscode" })).toBeInTheDocument();

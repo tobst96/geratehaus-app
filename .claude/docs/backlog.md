@@ -1708,11 +1708,15 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `moderator_2fa_*`→`gruppenfuehrer_2fa_*`; Config-Keys `moderator_login_*`→
   `gruppenfuehrer_login_*` (+ **Migration 0062**). Backend-Suite **400 grün**;
   Migrationskette 0060→0061→0062 auf Scratch-DB sauber angewandt.
-- Offene Schichten (jeweils grün + committen): (3) **Frontend-Bezeichner + Komponenten-
-  Dateien**: `ModeratorLogin`/`ModeratorLayout`/`ModeratorRoute`/`EinsatzDetailModerator`/
-  `DienstbuchDetailModerator` (+ `.css`) + `api/moderator.ts`→`api/gruppenfuehrer.ts`,
-  Symbole `moderatorRolle`/`moderatorToken`/`moderatorAngemeldet`/`moderatorAnmelden`/
-  `moderatorAbmelden`/`ModeratorBerechtigung`/`moderator_sichtbar` …; (4) **UI-Texte (mit ü)**
+- Fortschritt (09.07.2026, Schicht 3 – **Frontend-Bezeichner + Komponenten-Dateien**, grün):
+  Symbole umbenannt (`moderatorRolle`/`moderatorToken`/`moderatorAngemeldet`/
+  `moderatorAnmelden`/`moderatorAbmelden`/`ModeratorBerechtigung`/`moderator_sichtbar`/
+  `Moderator*Login/Layout/Route/Token` …); `git mv` `api/moderator.ts`→`api/gruppenfuehrer.ts`,
+  `components/ModeratorRoute`→`GruppenfuehrerRoute`, `pages/gruppenfuehrer/Moderator{Login,Layout}`
+  →`Gruppenfuehrer{Login,Layout}`, `Einsatz-/DienstbuchDetailModerator`→`…Gruppenfuehrer`
+  (+ `.css`). **Frontend-Build grün, Vitest 26 grün.** Bare-Word-Displaytext („Moderator"/
+  „Moderatoren") bewusst noch offen → Schicht 4 (mit ü).
+- Offene Schichten (jeweils grün + committen): (4) **UI-Texte (mit ü)**
   + Kommentare/Docstrings (Backend+Frontend) + `docs/*.md`/README/Datenschutz; (5) **aktive
   2FA-Tabellen** `moderator_recovery_codes`/`moderator_trusted_devices` + Models
   `ModeratorRecoveryCode`/`ModeratorTrustedDevice` (+ Migration) und Legacy-`moderatoren`-

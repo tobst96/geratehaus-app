@@ -2,12 +2,12 @@ import { apiGet, apiPost, ApiError } from "./client";
 
 const BASIS_URL = "/api/v1";
 
-export interface ModeratorToken {
+export interface GruppenfuehrerToken {
   access_token: string;
   token_type: string;
 }
 
-export interface ModeratorLoginErgebnis {
+export interface GruppenfuehrerLoginErgebnis {
   access_token: string | null;
   token_type: string;
   zwei_faktor_erforderlich: boolean;
@@ -106,10 +106,10 @@ export const barcodeVorschau = (token: string) =>
 
 /** Eigener Aufruf statt apiPost: FastAPIs OAuth2PasswordRequestForm erwartet
  * application/x-www-form-urlencoded, nicht JSON. */
-export async function moderatorLogin(
+export async function gruppenfuehrerLogin(
   username: string,
   passwort: string
-): Promise<ModeratorLoginErgebnis> {
+): Promise<GruppenfuehrerLoginErgebnis> {
   const body = new URLSearchParams({ username, password: passwort });
   const response = await fetch(`${BASIS_URL}/auth/gruppenfuehrer/login`, {
     method: "POST",
@@ -130,7 +130,7 @@ export async function moderator2fa(
   challenge: string,
   code: string,
   angemeldetBleiben: boolean
-): Promise<ModeratorLoginErgebnis> {
+): Promise<GruppenfuehrerLoginErgebnis> {
   const response = await fetch(`${BASIS_URL}/auth/gruppenfuehrer/2fa`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

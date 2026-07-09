@@ -8,7 +8,7 @@ import {
   holeDiveraVorschlaege,
   holeEinstellungen,
   schreibeEinstellungen,
-} from "../../../api/moderator";
+} from "../../../api/gruppenfuehrer";
 import { ApiError } from "../../../api/client";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";
 import { DiveraVorschlagModal } from "../../../components/DiveraVorschlagModal";

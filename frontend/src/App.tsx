@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import { ModeratorRoute } from "./components/ModeratorRoute";
+import { GruppenfuehrerRoute } from "./components/GruppenfuehrerRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import { BerechtigungRoute } from "./components/BerechtigungRoute";
 import { SetupGate } from "./components/SetupGate";
@@ -8,14 +8,14 @@ import { KioskGate } from "./components/KioskGate";
 import { LandingPage } from "./pages/LandingPage";
 import { Datenschutz } from "./pages/Datenschutz";
 import { NotFound } from "./pages/NotFound";
-import { ModeratorLogin } from "./pages/gruppenfuehrer/ModeratorLogin";
-import { ModeratorLayout } from "./pages/gruppenfuehrer/ModeratorLayout";
+import { GruppenfuehrerLogin } from "./pages/gruppenfuehrer/GruppenfuehrerLogin";
+import { GruppenfuehrerLayout } from "./pages/gruppenfuehrer/GruppenfuehrerLayout";
 import { Dashboard } from "./pages/gruppenfuehrer/Dashboard";
 import { Listen } from "./pages/gruppenfuehrer/Listen";
 import { Buchungsmanagement } from "./pages/gruppenfuehrer/Buchungsmanagement";
 import { KioskGeraete } from "./pages/gruppenfuehrer/KioskGeraete";
-import { EinsatzDetailModerator } from "./pages/gruppenfuehrer/EinsatzDetailModerator";
-import { DienstbuchDetailModerator } from "./pages/gruppenfuehrer/DienstbuchDetailModerator";
+import { EinsatzDetailGruppenfuehrer } from "./pages/gruppenfuehrer/EinsatzDetailGruppenfuehrer";
+import { DienstbuchDetailGruppenfuehrer } from "./pages/gruppenfuehrer/DienstbuchDetailGruppenfuehrer";
 import { Einstellungen } from "./pages/gruppenfuehrer/Einstellungen";
 import { Update } from "./pages/gruppenfuehrer/Update";
 import { Module } from "./pages/gruppenfuehrer/Module";
@@ -55,13 +55,13 @@ export function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/kiosk/:token" element={<KioskGate />} />
           <Route path="/datenschutz" element={<Datenschutz />} />
-          <Route path="/gruppenfuehrer/login" element={<ModeratorLogin />} />
+          <Route path="/gruppenfuehrer/login" element={<GruppenfuehrerLogin />} />
           <Route path="/mitglied/login" element={<MitgliedLogin />} />
           <Route path="/mitglied" element={<MitgliedHub />} />
           <Route path="/mitglied-anmelden/:token" element={<MitgliedAnmelden />} />
 
-          <Route path="/gruppenfuehrer" element={<ModeratorRoute />}>
-            <Route element={<ModeratorLayout />}>
+          <Route path="/gruppenfuehrer" element={<GruppenfuehrerRoute />}>
+            <Route element={<GruppenfuehrerLayout />}>
               <Route index element={<Navigate to="/gruppenfuehrer/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="listen" element={<Listen />} />
@@ -69,10 +69,10 @@ export function App() {
                   require_modul_zugriff, Admins via Bypass). Die Listen-Seite selbst
                   filtert ihre Tabs pro Recht. */}
               <Route element={<BerechtigungRoute modulKeys={["einsatztagebuch"]} />}>
-                <Route path="einsaetze/:id" element={<EinsatzDetailModerator />} />
+                <Route path="einsaetze/:id" element={<EinsatzDetailGruppenfuehrer />} />
               </Route>
               <Route element={<BerechtigungRoute modulKeys={["dienstbuch"]} />}>
-                <Route path="dienstbuecher/:id" element={<DienstbuchDetailModerator />} />
+                <Route path="dienstbuecher/:id" element={<DienstbuchDetailGruppenfuehrer />} />
               </Route>
               <Route element={<BerechtigungRoute modulKeys={["fahrzeugbuchung"]} />}>
                 <Route path="buchungen" element={<Buchungsmanagement />} />

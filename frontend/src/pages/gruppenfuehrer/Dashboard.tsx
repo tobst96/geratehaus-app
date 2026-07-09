@@ -1,7 +1,7 @@
 import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { holeDashboard, type DashboardOut } from "../../api/moderator";
+import { holeDashboard, type DashboardOut } from "../../api/gruppenfuehrer";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 

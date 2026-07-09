@@ -2,7 +2,7 @@ import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useState } from "react";
 import { Gespeichert } from "../../../components/Gespeichert";
 import { Link } from "react-router-dom";
-import { holeEinstellungen, schreibeEinstellungen } from "../../../api/moderator";
+import { holeEinstellungen, schreibeEinstellungen } from "../../../api/gruppenfuehrer";
 import { ApiError } from "../../../api/client";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";
 import { DienstbuchFelderVerwaltung } from "../verwaltung/DienstbuchFelderVerwaltung";

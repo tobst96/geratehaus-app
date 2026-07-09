@@ -5,7 +5,7 @@ import {
   funktionEinsatzAnlegen,
   funktionEinsatzAktualisieren,
   funktionEinsatzLoeschen,
-} from "../../../api/moderator";
+} from "../../../api/gruppenfuehrer";
 import { ApiError } from "../../../api/client";
 import type { FunktionEinsatz } from "../../../api/types";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";

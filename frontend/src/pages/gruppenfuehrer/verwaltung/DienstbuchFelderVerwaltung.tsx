@@ -5,7 +5,7 @@ import {
   dienstbuchFeldAnlegen,
   dienstbuchFeldAktualisieren,
   dienstbuchFeldLoeschen,
-} from "../../../api/moderator";
+} from "../../../api/gruppenfuehrer";
 import { ApiError } from "../../../api/client";
 import type { DienstbuchFeldDefinition } from "../../../api/types";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";
