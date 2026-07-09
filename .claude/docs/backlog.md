@@ -1700,16 +1700,25 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `/gruppenfuehrer/*` (16 Router-Prefixes, Auth-Login, alle Frontend-Calls + React-Router-
   Pfade + Test-Pfade, 407 Stellen); Frontend-Verzeichnis `pages/moderator` →
   `pages/gruppenfuehrer` (git mv). **Backend-Suite 400 grün, Frontend-Build grün.**
-- Offene Schichten (jeweils grün + committen): (2) **Code-Bezeichner** (`CurrentModerator`→
-  `CurrentGruppenfuehrer`, `moderator_service`, `get_current_moderator`,
-  `ModeratorGesperrtError`, `moderator_2fa_session`, FE `ModeratorLogin`/`moderatorRolle`/
-  `ModeratorLayout`/`ModeratorRoute`/`*DetailModerator`); (3) **Datei-Namen** backend
-  `moderator_*.py`→`gruppenfuehrer_*.py` (+ `main.py`) & FE-Komponentendateien; (4) **Config-
-  Keys** `moderator_login_*`→`gruppenfuehrer_login_*` (+ app_config-Migration); (5) **UI-Texte
-  (mit ü)** + Kommentare/Docstrings + `docs/*.md`/README/Datenschutz; (6) **aktive 2FA-Tabellen**
-  `moderator_recovery_codes`/`moderator_trusted_devices` + Models `ModeratorRecoveryCode`/
-  `ModeratorTrustedDevice` (+ Migration) und die Legacy-`moderatoren`-Tabelle (mit dem
-  aufgeschobenen Drop 0061→jetzt spätere Migration bündeln). Merge-PR erst nach allen Schichten.
+- Fortschritt (09.07.2026, Schicht 2 – **Backend-Bezeichner + Dateien + Config**, grün
+  committet `c86cc6e`): `CurrentModerator`/`get_current_moderator`/`ModeratorGesperrtError`
+  umbenannt; `git mv` aller `api/v1/moderator_*.py`→`gruppenfuehrer_*.py`,
+  `services/moderator_service.py`+`moderator_listen_service.py`,
+  `core/moderator_2fa_session.py` (+ alle Importe); Audit-Aktionsstrings
+  `moderator_2fa_*`→`gruppenfuehrer_2fa_*`; Config-Keys `moderator_login_*`→
+  `gruppenfuehrer_login_*` (+ **Migration 0062**). Backend-Suite **400 grün**;
+  Migrationskette 0060→0061→0062 auf Scratch-DB sauber angewandt.
+- Offene Schichten (jeweils grün + committen): (3) **Frontend-Bezeichner + Komponenten-
+  Dateien**: `ModeratorLogin`/`ModeratorLayout`/`ModeratorRoute`/`EinsatzDetailModerator`/
+  `DienstbuchDetailModerator` (+ `.css`) + `api/moderator.ts`→`api/gruppenfuehrer.ts`,
+  Symbole `moderatorRolle`/`moderatorToken`/`moderatorAngemeldet`/`moderatorAnmelden`/
+  `moderatorAbmelden`/`ModeratorBerechtigung`/`moderator_sichtbar` …; (4) **UI-Texte (mit ü)**
+  + Kommentare/Docstrings (Backend+Frontend) + `docs/*.md`/README/Datenschutz; (5) **aktive
+  2FA-Tabellen** `moderator_recovery_codes`/`moderator_trusted_devices` + Models
+  `ModeratorRecoveryCode`/`ModeratorTrustedDevice` (+ Migration) und Legacy-`moderatoren`-
+  Tabelle (mit dem aufgeschobenen Drop bündeln → spätere Migration). Historische Audit-
+  Zeilen `moderator_angelegt`/`-geloescht`/`-passwort_geaendert` bleiben als Label-Keys
+  (Daten). **Merge-PR erst nach allen Schichten** (Branch bleibt bis dahin vor beta).
 - Priorität: Mittel
 - Kategorie: Wartung / Terminologie / Frontend + Backend
 - Plan: Nein (aber groß/mechanisch – sorgfältig, mit Tests + Build)
