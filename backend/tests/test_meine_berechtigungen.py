@@ -5,12 +5,12 @@ Service `berechtigungs_service.meine_keys` und der Endpunkt
 import pytest
 
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import berechtigungs_service, modul_service
 
 
 async def _moderator(db, username, rolle, passwort="geheim123"):
-    mod = Moderator(username=username, passwort_hash=hash_secret(passwort), rolle=rolle)
+    mod = Person(name=username, passwort_hash=hash_secret(passwort), moderator_rolle=rolle)
     db.add(mod)
     await db.commit()
     await db.refresh(mod)

@@ -6,18 +6,10 @@ import {
   ladeLogoHoch,
   ladeLogoDarkHoch,
   fuehreArchivierungAus,
-  holeModeratoren,
-  moderatorAnlegen,
-  moderatorEmailAendern,
-  moderatorBenachrichtigungenAendern,
-  moderatorPasswortAendern,
-  moderatorLoeschen,
-  moderator2faZuruecksetzen,
   holeZweiFaktorStatus,
   zweiFaktorAktivieren,
   zweiFaktorRecoveryNeu,
   zweiFaktorDeaktivieren,
-  type ModeratorKonto,
   type ZweiFaktorStatus,
 } from "../../api/moderator";
 import { setupErneutAusfuehren } from "../../api/setup";
@@ -25,191 +17,6 @@ import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { Banner } from "../../components/Banner";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
-
-function ModeratorenVerwaltung() {
-  const [liste, setListe] = useState<ModeratorKonto[] | null>(null);
-  const [fehler, setFehler] = useState<string | null>(null);
-  const [neuerUsername, setNeuerUsername] = useState("");
-  const [neuesPasswort, setNeuesPasswort] = useState("");
-  const [neueRolle, setNeueRolle] = useState("gruppenfuehrer");
-  const [neueEmail, setNeueEmail] = useState("");
-
-  async function laden() {
-    try {
-      setListe(await holeModeratoren());
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Moderatoren konnten nicht geladen werden.");
-    }
-  }
-
-  useEffect(() => {
-    laden();
-  }, []);
-
-  async function anlegen(e: FormEvent) {
-    e.preventDefault();
-    setFehler(null);
-    if (!neuerUsername.trim() || neuesPasswort.length < 8) {
-      setFehler("Benutzername erforderlich, Passwort mindestens 8 Zeichen.");
-      return;
-    }
-    try {
-      await moderatorAnlegen(neuerUsername.trim(), neuesPasswort, neueRolle, neueEmail.trim() || null);
-      setNeuerUsername("");
-      setNeuesPasswort("");
-      setNeueEmail("");
-      await laden();
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Anlegen fehlgeschlagen.");
-    }
-  }
-
-  async function passwortAendern(m: ModeratorKonto) {
-    const neues = prompt(`Neues Passwort für ${m.username} (mind. 8 Zeichen):`);
-    if (!neues) return;
-    try {
-      await moderatorPasswortAendern(m.id, neues);
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Passwort konnte nicht geändert werden.");
-    }
-  }
-
-  async function zweiFaktorReset(m: ModeratorKonto) {
-    if (!confirm(`2FA für "${m.username}" zurücksetzen (deaktivieren + Codes/Geräte entfernen)?`)) return;
-    try {
-      await moderator2faZuruecksetzen(m.id);
-      await laden();
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "2FA konnte nicht zurückgesetzt werden.");
-    }
-  }
-
-  async function benachrichtigungenAendern(m: ModeratorKonto, aktiv: boolean) {
-    try {
-      await moderatorBenachrichtigungenAendern(m.id, aktiv);
-      await laden();
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Einstellung konnte nicht geändert werden.");
-    }
-  }
-
-  async function emailAendern(m: ModeratorKonto) {
-    const neue = prompt(`E-Mail für ${m.username} (leer = entfernen):`, m.email ?? "");
-    if (neue === null) return;
-    try {
-      await moderatorEmailAendern(m.id, neue.trim() || null);
-      await laden();
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "E-Mail konnte nicht geändert werden.");
-    }
-  }
-
-  async function loeschen(m: ModeratorKonto) {
-    if (!confirm(`Zugang "${m.username}" wirklich löschen?`)) return;
-    try {
-      await moderatorLoeschen(m.id);
-      await laden();
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Löschen fehlgeschlagen.");
-    }
-  }
-
-  return (
-    <div className="karte">
-      <h2>Admin- &amp; Gruppenführer-Zugänge</h2>
-      <p className="hinweistext">
-        Admins sehen Personal, Stammdaten und alle Einstellungen. Gruppenführer sehen nur
-        Dashboard, Listen (Einsatzberichte/Dienstbucheinträge) und Buchungen (Fahrzeugreservierungen).
-      </p>
-      {fehler && <Fehlertext>{fehler}</Fehlertext>}
-      {!liste && <Ladeanzeige />}
-      {liste && (
-        <div className="tabelle-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Benutzername</th>
-              <th>Rolle</th>
-              <th>E-Mail</th>
-              <th>Benachrichtigungen</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {liste.map((m) => (
-              <tr key={m.id}>
-                <td>{m.username}</td>
-                <td>{m.rolle === "admin" ? "Admin" : "Gruppenführer"}</td>
-                <td style={{ color: m.email ? undefined : "var(--farbe-text-mute)" }}>
-                  {m.email ?? "—"}
-                </td>
-                <td className="text-center">
-                  <label
-                    title={
-                      m.email
-                        ? "Admin-/Betriebs-Mails (Buchungsanfragen, Backup-Status) an diese Adresse"
-                        : "Erst eine E-Mail hinterlegen"
-                    }
-                    style={{ cursor: m.email ? "pointer" : "not-allowed" }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={m.benachrichtigungen_aktiv}
-                      disabled={!m.email}
-                      onChange={(e) => benachrichtigungenAendern(m, e.target.checked)}
-                    />
-                  </label>
-                </td>
-                <td style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <button type="button" className="sekundaer" onClick={() => emailAendern(m)}>
-                    E-Mail
-                  </button>
-                  <button type="button" className="sekundaer" onClick={() => passwortAendern(m)}>
-                    Passwort ändern
-                  </button>
-                  <button type="button" className="sekundaer" onClick={() => zweiFaktorReset(m)}>
-                    2FA zurücksetzen
-                  </button>
-                  <button type="button" className="sekundaer" onClick={() => loeschen(m)}>
-                    Löschen
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        </div>
-      )}
-
-      <form onSubmit={anlegen} style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <input
-          placeholder="Neuer Benutzername"
-          value={neuerUsername}
-          onChange={(e) => setNeuerUsername(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Passwort (mind. 8 Zeichen)"
-          value={neuesPasswort}
-          onChange={(e) => setNeuesPasswort(e.target.value)}
-          autoComplete="off"
-        />
-        <input
-          type="email"
-          placeholder="E-Mail (optional)"
-          value={neueEmail}
-          onChange={(e) => setNeueEmail(e.target.value)}
-          autoComplete="off"
-        />
-        <select value={neueRolle} onChange={(e) => setNeueRolle(e.target.value)}>
-          <option value="gruppenfuehrer">Gruppenführer</option>
-          <option value="admin">Admin</option>
-        </select>
-        <button type="submit">Zugang anlegen</button>
-      </form>
-    </div>
-  );
-}
 
 function ZweiFaktorVerwaltung() {
   const [status, setStatus] = useState<ZweiFaktorStatus | null>(null);
@@ -548,8 +355,6 @@ export function Einstellungen() {
 
         <button type="submit">Speichern</button>
       </form>
-
-      <ModeratorenVerwaltung />
 
       <ZweiFaktorVerwaltung />
 

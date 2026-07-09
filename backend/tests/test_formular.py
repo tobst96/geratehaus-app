@@ -8,7 +8,6 @@ import pytest
 
 from app.core import mitglied_session
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
 from app.models.person import Person
 from app.services import formular_service
 from app.services.config_service import config_service
@@ -17,7 +16,7 @@ from app.schemas.formular import FormularCreate, FormularFeldCreate, FormularUpd
 
 async def _token(client, db, rolle="admin", username=None):
     username = username or rolle
-    db.add(Moderator(username=username, passwort_hash=hash_secret("geheim123"), rolle=rolle))
+    db.add(Person(name=username, passwort_hash=hash_secret("geheim123"), moderator_rolle=rolle))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/moderator/login", data={"username": username, "password": "geheim123"}

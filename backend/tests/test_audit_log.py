@@ -7,14 +7,13 @@ import pytest
 
 from app.core.security import hash_secret
 from app.models.audit_log import AuditLog
-from app.models.moderator import Moderator
 from app.models.person import Person
 from app.services import audit_service, modul_service
 from app.services.config_service import config_service
 
 
 async def _token(client, db, username="admin", rolle="admin"):
-    db.add(Moderator(username=username, passwort_hash=hash_secret("geheim123"), rolle=rolle))
+    db.add(Person(name=username, passwort_hash=hash_secret("geheim123"), moderator_rolle=rolle))
     await db.commit()
     r = await client.post(
         "/api/v1/auth/moderator/login", data={"username": username, "password": "geheim123"}
@@ -44,7 +43,7 @@ async def test_person_loeschen_wird_protokolliert(client, db):
 async def test_berechtigung_setzen_wird_protokolliert(client, db):
     await modul_service.ensure_module(db)
     h = await _token(client, db)
-    gf = Moderator(username="gf", passwort_hash=hash_secret("x"), rolle="gruppenfuehrer")
+    gf = Person(name="gf", passwort_hash=hash_secret("x"), moderator_rolle="gruppenfuehrer")
     db.add(gf)
     await db.commit()
     await db.refresh(gf)
@@ -77,58 +76,62 @@ async def test_audit_endpunkt_nur_admin(client, db):
 
 
 @pytest.mark.asyncio
-async def test_moderator_anlegen_wird_protokolliert(client, db):
+async def test_person_elevieren_wird_protokolliert(client, db):
     h = await _token(client, db)
-    r = await client.post(
-        "/api/v1/moderator/einstellungen/moderatoren",
-        json={"username": "neuer_gf", "passwort": "geheim123", "rolle": "gruppenfuehrer"},
-        headers=h,
-    )
-    assert r.status_code == 201
-
-    eintraege = await audit_service.liste(db, aktion="moderator_angelegt")
-    assert len(eintraege) == 1
-    assert eintraege[0].akteur == "admin"
-    assert "neuer_gf" in eintraege[0].details
-
-
-@pytest.mark.asyncio
-async def test_moderator_passwort_aendern_wird_protokolliert(client, db):
-    h = await _token(client, db)
-    ziel = Moderator(username="ziel", passwort_hash=hash_secret("alt12345"), rolle="gruppenfuehrer")
+    ziel = Person(name="neuer_gf")
     db.add(ziel)
     await db.commit()
     await db.refresh(ziel)
 
     r = await client.put(
-        f"/api/v1/moderator/einstellungen/moderatoren/{ziel.id}/passwort",
-        json={"passwort": "neu12345"},
+        f"/api/v1/moderator/stammdaten/personen/{ziel.id}/elevation",
+        json={"rolle": "gruppenfuehrer", "passwort": "geheim123"},
         headers=h,
     )
     assert r.status_code == 200
 
-    eintraege = await audit_service.liste(db, aktion="moderator_passwort_geaendert")
+    eintraege = await audit_service.liste(db, aktion="person_eleviert")
     assert len(eintraege) == 1
+    assert eintraege[0].akteur == "admin"
     assert eintraege[0].objekt_id == ziel.id
-    assert eintraege[0].details == "ziel"
 
 
 @pytest.mark.asyncio
-async def test_moderator_loeschen_wird_protokolliert(client, db):
+async def test_person_passwort_setzen_wird_protokolliert(client, db):
     h = await _token(client, db)
-    ziel = Moderator(username="wegzu", passwort_hash=hash_secret("x12345678"), rolle="gruppenfuehrer")
+    ziel = Person(name="ziel", passwort_hash=hash_secret("alt12345"), moderator_rolle="gruppenfuehrer")
+    db.add(ziel)
+    await db.commit()
+    await db.refresh(ziel)
+
+    r = await client.put(
+        f"/api/v1/moderator/stammdaten/personen/{ziel.id}/passwort-setzen",
+        json={"passwort": "neu12345"},
+        headers=h,
+    )
+    assert r.status_code == 204
+
+    eintraege = await audit_service.liste(db, aktion="person_passwort_gesetzt")
+    assert len(eintraege) == 1
+    assert eintraege[0].objekt_id == ziel.id
+
+
+@pytest.mark.asyncio
+async def test_person_de_elevieren_wird_protokolliert(client, db):
+    h = await _token(client, db)
+    ziel = Person(name="wegzu", passwort_hash=hash_secret("x12345678"), moderator_rolle="gruppenfuehrer")
     db.add(ziel)
     await db.commit()
     await db.refresh(ziel)
 
     r = await client.delete(
-        f"/api/v1/moderator/einstellungen/moderatoren/{ziel.id}", headers=h
+        f"/api/v1/moderator/stammdaten/personen/{ziel.id}/elevation", headers=h
     )
     assert r.status_code == 204
 
-    eintraege = await audit_service.liste(db, aktion="moderator_geloescht")
+    eintraege = await audit_service.liste(db, aktion="person_de_eleviert")
     assert len(eintraege) == 1
-    assert eintraege[0].details == "wegzu"
+    assert eintraege[0].objekt_id == ziel.id
 
 
 @pytest.mark.asyncio

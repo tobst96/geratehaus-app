@@ -4,12 +4,12 @@ und der Admin-only Statusendpunkt (DB/SMTP/MinIO/Divera/Scheduler)."""
 import pytest
 
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services.config_service import config_service
 
 
 async def _token(client, db, username="admin", rolle="admin"):
-    db.add(Moderator(username=username, passwort_hash=hash_secret("geheim123"), rolle=rolle))
+    db.add(Person(name=username, passwort_hash=hash_secret("geheim123"), moderator_rolle=rolle))
     await db.commit()
     r = await client.post(
         "/api/v1/auth/moderator/login", data={"username": username, "password": "geheim123"}

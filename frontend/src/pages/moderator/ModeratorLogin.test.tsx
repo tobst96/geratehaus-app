@@ -15,7 +15,7 @@ import { ModeratorLogin } from "./ModeratorLogin";
 
 async function anmelden() {
   const user = userEvent.setup();
-  await user.type(screen.getByLabelText("Benutzername"), "admin");
+  await user.type(screen.getByLabelText("Name"), "admin");
   await user.type(screen.getByLabelText("Passwort"), "geheim123");
   await user.click(screen.getByRole("button", { name: "Anmelden" }));
 }

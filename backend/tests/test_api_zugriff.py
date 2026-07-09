@@ -9,7 +9,7 @@ import pytest
 from app.core import mitglied_session
 from app.core.security import hash_secret
 from app.models.kiosk_token import KioskToken
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.schemas.einsatz import EinsatzAnlegen
 from app.services import einsatz_service
 
@@ -29,7 +29,7 @@ async def _kiosk_token(db) -> str:
 
 
 async def _moderator_header(client, db) -> dict:
-    db.add(Moderator(username="gf", passwort_hash=hash_secret("geheim123"), rolle="gruppenfuehrer"))
+    db.add(Person(name="gf", passwort_hash=hash_secret("geheim123"), moderator_rolle="gruppenfuehrer"))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}

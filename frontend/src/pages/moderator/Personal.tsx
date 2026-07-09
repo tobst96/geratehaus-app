@@ -20,7 +20,14 @@ import {
   holeAmpelUebersicht,
   personenCsvImportieren,
   personenCsvVorlageHerunterladen,
+  holeElevatedPersonen,
+  personElevieren,
+  personDeElevieren,
+  personPasswortSetzen,
+  person2faZuruecksetzen,
   type PersonCsvImportErgebnis,
+  type ElevatedPerson,
+  type ElevatedRolle,
 } from "../../api/moderator";
 import { holePersonBildReservierung } from "../../api/personBildReservierungen";
 import {
@@ -31,6 +38,7 @@ import {
 } from "../../api/personKanaele";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
+import { useAuth } from "../../context/AuthContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import type {
   AmpelStatus,
@@ -212,7 +220,12 @@ export function Personal() {
   const [barcode, setBarcode] = useState<{ token: string; ablaufAm: string | null } | null>(null);
   const [detailTab, setDetailTab] = useState("stammdaten");
 
-
+  // Erhöhte Zugänge (Admin/Gruppenführer) – nur für Admins sichtbar/verwaltbar.
+  const { moderatorRolle } = useAuth();
+  const istAdmin = moderatorRolle === "admin";
+  const [elevatedMap, setElevatedMap] = useState<Record<number, ElevatedPerson>>({});
+  const [zugangPasswort, setZugangPasswort] = useState("");
+  const [zugangFehler, setZugangFehler] = useState<string | null>(null);
 
   async function laden() {
     try {
@@ -244,14 +257,83 @@ export function Personal() {
     }
   }
 
+  async function ladeElevated() {
+    if (!istAdmin) return;
+    try {
+      const rows = await holeElevatedPersonen();
+      const map: Record<number, ElevatedPerson> = {};
+      for (const r of rows) map[r.id] = r;
+      setElevatedMap(map);
+    } catch {
+      setElevatedMap({});
+    }
+  }
+
   useEffect(() => {
     laden();
     ladeAboUebersicht();
     ladeAmpel();
+    ladeElevated();
     holeAlleGruppen().then(setGruppen).catch(() => setGruppen([]));
     holeAlleFunktionenDienststunden().then(setFunktionen).catch(() => setFunktionen([]));
     holeEreignisTypen().then(setEreignisTypen).catch(() => setEreignisTypen([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Erhöhten Zugang setzen/ändern. Ohne bestehendes Passwort ist eins Pflicht.
+  async function zugangSetzen(p: Person, rolle: ElevatedRolle) {
+    const bereits = elevatedMap[p.id]?.moderator_rolle;
+    const passwort = bereits ? undefined : zugangPasswort;
+    if (!bereits && (!passwort || passwort.length < 8)) {
+      setZugangFehler("Für den ersten Zugang ein Passwort mit mindestens 8 Zeichen setzen.");
+      return;
+    }
+    setZugangFehler(null);
+    try {
+      await personElevieren(p.id, rolle, passwort || undefined);
+      setZugangPasswort("");
+      await ladeElevated();
+    } catch (err) {
+      setZugangFehler(err instanceof ApiError ? String(err.detail) : "Zugang konnte nicht gesetzt werden.");
+    }
+  }
+
+  async function zugangEntziehen(p: Person) {
+    if (!confirm(`Erhöhten Zugang von „${p.name}" entziehen? Die Person bleibt als Mitglied bestehen.`)) return;
+    setZugangFehler(null);
+    try {
+      await personDeElevieren(p.id);
+      await ladeElevated();
+    } catch (err) {
+      setZugangFehler(err instanceof ApiError ? String(err.detail) : "Zugang konnte nicht entzogen werden.");
+    }
+  }
+
+  async function zugangPasswortNeu(p: Person) {
+    const neu = prompt(`Neues Login-Passwort für ${p.name} (mind. 8 Zeichen):`);
+    if (neu === null) return;
+    if (neu.length < 8) {
+      setZugangFehler("Passwort mindestens 8 Zeichen.");
+      return;
+    }
+    setZugangFehler(null);
+    try {
+      await personPasswortSetzen(p.id, neu);
+    } catch (err) {
+      setZugangFehler(err instanceof ApiError ? String(err.detail) : "Passwort konnte nicht gesetzt werden.");
+    }
+  }
+
+  async function zugang2faReset(p: Person) {
+    if (!confirm(`Zwei-Faktor-Anmeldung von „${p.name}" zurücksetzen?`)) return;
+    setZugangFehler(null);
+    try {
+      await person2faZuruecksetzen(p.id);
+      await ladeElevated();
+    } catch (err) {
+      setZugangFehler(err instanceof ApiError ? String(err.detail) : "2FA konnte nicht zurückgesetzt werden.");
+    }
+  }
 
   async function timelineLaden(personId: number) {
     try {
@@ -1196,6 +1278,83 @@ export function Personal() {
                         );
                       })()
                     ),
+                  },
+                  {
+                    key: "zugang",
+                    label: "Zugang",
+                    sichtbar: istAdmin,
+                    inhalt: (() => {
+                      const eintrag = elevatedMap[person.id];
+                      const rolle = eintrag?.moderator_rolle ?? null;
+                      return (
+                        <>
+                          <p className="text-mute">
+                            Erhöhter Zugang zum Gruppenführer-/Admin-Bereich (Anmeldung mit Name +
+                            Passwort). Der Kiosk-/Mitglied-Zugang per PIN bleibt davon unberührt.
+                          </p>
+                          <div className="person-felder">
+                            <select
+                              value={rolle ?? ""}
+                              onChange={(e) => {
+                                const wert = e.target.value;
+                                if (wert === "") zugangEntziehen(person);
+                                else zugangSetzen(person, wert as ElevatedRolle);
+                              }}
+                            >
+                              <option value="">Normales Mitglied</option>
+                              <option value="gruppenfuehrer">Gruppenführer</option>
+                              <option value="admin">Administrator</option>
+                            </select>
+                          </div>
+                          {!rolle && (
+                            <div className="person-felder" style={{ marginTop: 8 }}>
+                              <input
+                                type="password"
+                                placeholder="Login-Passwort (mind. 8 Zeichen)"
+                                value={zugangPasswort}
+                                autoComplete="new-password"
+                                onChange={(e) => setZugangPasswort(e.target.value)}
+                              />
+                            </div>
+                          )}
+                          {rolle && (
+                            <>
+                              <p className="text-mute" style={{ marginTop: 8 }}>
+                                Aktuelle Rolle: {rolle === "admin" ? "Administrator" : "Gruppenführer"} ·
+                                2FA {eintrag?.zwei_faktor_aktiv ? "aktiv" : "inaktiv"}
+                              </p>
+                              <div className="person-aktionen" style={{ marginTop: 12 }}>
+                                <button
+                                  type="button"
+                                  className="sekundaer"
+                                  onClick={() => zugangPasswortNeu(person)}
+                                >
+                                  Passwort neu setzen
+                                </button>
+                                {eintrag?.zwei_faktor_aktiv && (
+                                  <button
+                                    type="button"
+                                    className="sekundaer"
+                                    onClick={() => zugang2faReset(person)}
+                                  >
+                                    2FA zurücksetzen
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  className="sekundaer"
+                                  style={{ color: "#d64545" }}
+                                  onClick={() => zugangEntziehen(person)}
+                                >
+                                  Zugang entziehen
+                                </button>
+                              </div>
+                            </>
+                          )}
+                          {zugangFehler && <Fehlertext>{zugangFehler}</Fehlertext>}
+                        </>
+                      );
+                    })(),
                   },
                 ];
                 const sichtbareTabs = tabs.filter((t) => t.sichtbar !== false);

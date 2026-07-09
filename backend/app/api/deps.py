@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import mitglied_session
 from app.core.security import decode_access_token
 from app.db.session import get_db
-from app.models.moderator import Moderator
 from app.models.person import Person
 from app.services.config_service import config_service
 
@@ -19,7 +18,11 @@ _oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/moderator/login", a
 
 async def get_current_moderator(
     db: DbSession, token: Annotated[str | None, Depends(_oauth2_scheme)] = None
-) -> Moderator:
+) -> Person:
+    """Der/die im Moderatorbereich angemeldete **Person** (Konto). Das JWT trägt
+    im `sub` den eindeutigen `Person.name`; zusätzlich muss die Person „elevated"
+    sein (`moderator_rolle` gesetzt), sonst 401 – eine normale Person ohne erhöhte
+    Rechte kommt so nicht in den Moderatorbereich."""
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Nicht angemeldet.",
@@ -30,29 +33,29 @@ async def get_current_moderator(
     payload = decode_access_token(token)
     if payload is None or "sub" not in payload:
         raise credentials_error
-    result = await db.execute(select(Moderator).where(Moderator.username == payload["sub"]))
-    moderator = result.scalar_one_or_none()
-    if moderator is None:
+    result = await db.execute(select(Person).where(Person.name == payload["sub"]))
+    person = result.scalar_one_or_none()
+    if person is None or person.moderator_rolle is None:
         raise credentials_error
-    return moderator
+    return person
 
 
-CurrentModerator = Annotated[Moderator, Depends(get_current_moderator)]
+CurrentModerator = Annotated[Person, Depends(get_current_moderator)]
 
 
-async def get_current_admin(moderator: CurrentModerator) -> Moderator:
+async def get_current_admin(person: CurrentModerator) -> Person:
     """Wie CurrentModerator, verlangt zusätzlich die Rolle "admin". Personal,
-    Einstellungen, Punkte und Barcodes sind Admin-only; Gruppenführer sehen
-    nur Einsatzberichte/Dienstbuch/Fahrzeugbuchungen (CurrentModerator)."""
-    if moderator.rolle != "admin":
+    Einstellungen und Verwaltung sind Admin-only; Gruppenführer sehen nur ihre
+    freigegebenen Bereiche (CurrentModerator + granulare Rechte)."""
+    if person.moderator_rolle != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Nur für Admins zugänglich.",
         )
-    return moderator
+    return person
 
 
-CurrentAdmin = Annotated[Moderator, Depends(get_current_admin)]
+CurrentAdmin = Annotated[Person, Depends(get_current_admin)]
 
 
 async def get_current_person(
@@ -133,20 +136,16 @@ def require_modul_aktiv(config_schluessel: str):
 
 
 def require_modul_zugriff(modul_key: str):
-    """Dependency-Factory für das granulare Berechtigungssystem: verlangt, dass der
-    angemeldete Moderator Zugriff auf das Modul `modul_key` hat (Admins immer, via
-    Admin-Bypass in berechtigungs_service). Gibt den Moderator zurück, sonst 403.
+    """Dependency-Factory für das granulare Berechtigungssystem: verlangt, dass die
+    angemeldete (elevated) Person Zugriff auf das Modul `modul_key` hat (Admins
+    immer, via Admin-Bypass in berechtigungs_service). Gibt die Person zurück, sonst 403."""
 
-    Phase 4-Werkzeug: bewusst noch NICHT auf bestehende Endpunkte angewandt – die
-    schrittweise Umstellung (inkl. Datenmigration Rollen→Rechte) erfolgt separat,
-    damit bestehende Zugänge nicht ausgesperrt werden."""
-
-    async def _check(moderator: CurrentModerator, db: DbSession) -> Moderator:
+    async def _check(person: CurrentModerator, db: DbSession) -> Person:
         # lokaler Import vermeidet einen Import-Zyklus (Service nutzt Models/Config)
         from app.services import berechtigungs_service
 
-        if await berechtigungs_service.hat_zugriff(db, moderator, modul_key):
-            return moderator
+        if await berechtigungs_service.hat_zugriff(db, person, modul_key):
+            return person
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Kein Zugriff auf dieses Modul.",

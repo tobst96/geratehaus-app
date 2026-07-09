@@ -8,7 +8,6 @@ from sqlalchemy import select
 
 from app.core.security import hash_secret
 from app.models.einsatz import EinsatzPerson
-from app.models.moderator import Moderator
 from app.models.person import Person
 from app.schemas.einsatz import EinsatzAnlegen
 from app.services import ampel_service, einsatz_service, stammdaten_service
@@ -177,7 +176,7 @@ async def test_benachrichtigung_reset_bei_neuer_aktivitaet(db, monkeypatch):
 @pytest.mark.asyncio
 async def test_ampel_endpunkt(client, db):
     await _schwellen(db)
-    db.add(Moderator(username="gf", passwort_hash=hash_secret("geheim123"), rolle="gruppenfuehrer"))
+    db.add(Person(name="gf", passwort_hash=hash_secret("geheim123"), moderator_rolle="gruppenfuehrer"))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}
@@ -198,7 +197,7 @@ async def test_ampel_endpunkt(client, db):
 
 @pytest.mark.asyncio
 async def test_person_inaktiv_persistiert(client, db):
-    db.add(Moderator(username="admin", passwort_hash=hash_secret("geheim123"), rolle="admin"))
+    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), moderator_rolle="admin"))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}

@@ -1021,6 +1021,83 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
     **Etappe M** (einheitliche Modul-Architektur/Registry) – bei der Umsetzung
     zusammenführen.
 
+### Moderator-Zugänge in Personal integrieren (Person = Konto)
+
+- Status: In Bearbeitung (Feature-Branch `feature/moderator-in-person`; Plan:
+  `.claude/plans/deep-sparking-mist.md`; Phase 1 = DB-Fundament, 09.07.2026)
+- Priorität: Hoch
+- Kategorie: Auth / Datenbank / Feature (breaking)
+- Plan: Ja
+- Beschreibung: Die **Person wird das Konto**. „Administrator"/„Gruppenführer" wird in
+  Personal an der Person vergeben; Login elevated = **Name + Passwort (+2FA)** an der
+  Person (PIN bleibt für Kiosk/Mitglied); Wizard legt erste Person als Admin an; separate
+  Moderator-Benachrichtigungen entfallen. Migration: **nur Admin automatisch**, GF manuell.
+- Fortschritt (09.07.2026, **Phase 1 – additive DB-Basis**): Migration `0060` +
+  Models. `personen` um Moderator-Auth-Felder erweitert (`moderator_rolle`,
+  `passwort_hash`, 2FA-Felder, Login-Sperre); `berechtigungen`/`moderator_recovery_codes`/
+  `moderator_trusted_devices` um nullable `person_id` (FK), `moderator_id` → nullable
+  (Rollback möglich, `moderatoren` bleibt). **Rein additiv** – Code nutzt weiter die
+  Moderator-Tabelle. Verifiziert: `alembic upgrade`→0060 **und** downgrade sauber auf
+  Scratch-DB; volle Suite **393 grün**.
+- Fortschritt (09.07.2026, **Phase 2 – Auth-Engine, WIP-Checkpoint 1**): Strategie mit
+  Nutzer bestätigt = **voller Merge** (über mehrere Durchläufe, Merge erst nach voller
+  grüner Suite + Smoke-Test). `berechtigungs_service` + `api/deps.py` auf **Person**
+  umgestellt (`ist_admin/ist_elevated/hat_zugriff/meine_keys/matrix/set_berechtigung`
+  gegen `Berechtigung.person_id`; `CurrentModerator`/`CurrentAdmin` = elevated `Person`,
+  JWT-`sub` = `Person.name`). Import-Check grün. **Branch bewusst noch nicht test-grün.**
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 2 (Login-Kern)**):
+  `zwei_faktor_service` (OTP/Recovery/Trusted-Device) auf **Person + `person_id`**;
+  `moderator_service.login_pruefen(name, passwort)` → **Person** (nur mit gesetztem
+  Passwort), `admin_benachrichtigungs_empfaenger` → elevated Personen; `auth.py`-Login
+  (`/moderator/login` Name+Passwort, `/moderator/2fa`, `_moderator_token` → `sub=Person.name`,
+  Challenge/2FA über Person via `stammdaten_service.get_person`); `setup`/Wizard legt die
+  **initiale Admin-Person** an (`ist_eingerichtet` am Config-Flag). Import-Check grün.
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 3 (Endpunkte)**): Akteur-Zugriffe
+  in allen Endpunkten auf Person (`moderator/akteur/admin/ich.username`→`.name`,
+  `moderator.rolle`→`.moderator_rolle` inkl. `moderator_formular` Admin-Check);
+  `moderator_berechtigungen`-Matrix auf **elevated Personen** (`set_berechtigung(person_id)`);
+  `moderator_konto`-2FA-Self auf Person. **`app.main` importiert vollständig sauber**
+  (alle Router mit Person-basiertem `deps`). Noch offen in `moderator_einstellungen`:
+  die Konto-**Verwaltung** (anlegen/liste/löschen) hängt bewusst noch an der alten
+  `moderatoren`-Tabelle (dead-ish) – Umbau zu Person-Elevation im Verwaltungs-Checkpoint.
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 4 (Admin-Datenmigration)**):
+  Datenmigration in `0060` ergänzt: pro **Admin**-Moderator die namens-/e-mail-gleiche
+  Person suchen → dort `moderator_rolle='admin'` + Passwort/2FA/Login-Felder übernehmen;
+  ohne Treffer → **neue Admin-Person** anlegen; Rechte/Recovery/Trusted-Devices auf
+  `person_id` umhängen. **Gruppenführer werden NICHT migriert** (manuell neu). **Ende-zu-
+  Ende auf Scratch-DB verifiziert** (Match-Fall, Neu-Fall, GF-Ausschluss, Rechte-Umhängen)
+  + `alembic downgrade` sauber.
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 5 (Verwaltungs-Umbau)**):
+  Management von Moderator-Konten → **Person-Elevation**. `moderator_service`: alte
+  Moderator-CRUD entfernt, neu `elevated_liste`/`person_elevieren`/`person_de_elevieren`
+  (räumt 2FA ab)/`person_passwort_setzen`/`anzahl_admins`. Schemas: `ElevatedPersonOut`/
+  `PersonElevieren`/`PersonPasswortSetzen` (Moderator*-Schemas raus). `moderator_einstellungen`:
+  `/moderatoren`-Endpunkte entfernt. **`moderator_stammdaten`**: neue Admin-only-Endpunkte
+  `GET /elevated`, `PUT/DELETE /personen/{id}/elevation`, `PUT /personen/{id}/passwort-setzen`,
+  `POST /personen/{id}/2fa-zuruecksetzen` (letzter-Admin-Schutz). `app.main` importiert sauber.
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 6 (Tests grün)**): **31 Test-Dateien**
+  von Moderator-Fixtures auf **elevated Person** umgestellt (Konstruktor `Person(name=…,
+  moderator_rolle=…, passwort_hash=…)`, Login per Name). Management-Tests der entfernten
+  `/moderatoren`-Endpunkte umgeschrieben: `test_audit_log` prüft jetzt `person_eleviert`/
+  `person_passwort_gesetzt`/`person_de_eleviert` über die neuen Stammdaten-Endpunkte;
+  `test_moderator_2fa` Admin-Reset auf `/stammdaten/personen/{id}/2fa-zuruecksetzen`;
+  `test_g2` auf Resolver-Tests reduziert (pro-Moderator-CRUD entfällt); `test_moderator_email`
+  gelöscht (E-Mail ist reines Person-Feld); `test_anti_aussperr_seed` seedet Rechte über
+  `person_id`. **Ergebnis: volle Suite 388 passed / 0 failed** – erster e2e-Meilenstein erreicht.
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 7 (Frontend)**): `api/moderator.ts`
+  alte Moderator-CRUD durch Elevation-Endpunkte ersetzt (`holeElevatedPersonen`,
+  `personElevieren`/`personDeElevieren`/`personPasswortSetzen`/`person2faZuruecksetzen`).
+  **Personal.tsx**: neuer Admin-only-Tab **„Zugang"** je Person – Rolle Normal/Gruppenführer/
+  Administrator setzen (erstes Mal mit Login-Passwort), Passwort neu setzen, 2FA zurücksetzen,
+  Zugang entziehen (nutzt admin-only `/elevated`-Resolver, kein Rollen-Leak in `PersonOut`).
+  **ModeratorLogin**: Feld „Benutzername" → „Name" (+ Test). **Einstellungen.tsx**: alte
+  `ModeratorenVerwaltung` entfernt (rief entfernte `/moderatoren`-Endpunkte). Validiert:
+  `tsc --noEmit` grün, **Production-Build im Docker-Build-Stage grün**, Login-Unit-Test 2/2.
+- Offen: **PR nach beta** (Pflicht-Smoke-Test durch Nutzer) → nach bestätigtem Betrieb
+  Folge-`0061` (Drop `moderatoren` + `moderator_id`-Spalten). Danach separater Pass:
+  Terminologie **Moderator → Gruppenführer** überall (inkl. Gate-Aliase noch
+  `Annotated[Moderator]`, Routen/Bezeichner/Kommentare/Docs).
+
 ---
 
 ## Monitoring & Fehler-Analyse (Sentry)

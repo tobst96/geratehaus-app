@@ -2,12 +2,12 @@ import pytest
 from fastapi import HTTPException
 
 from app.api.deps import require_modul_zugriff
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import berechtigungs_service, modul_service
 
 
 async def _moderator(db, username, rolle):
-    mod = Moderator(username=username, passwort_hash="x", rolle=rolle)
+    mod = Person(name=username, passwort_hash="x", moderator_rolle=rolle)
     db.add(mod)
     await db.commit()
     await db.refresh(mod)

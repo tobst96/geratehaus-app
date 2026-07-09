@@ -1,10 +1,10 @@
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import modul_service
 
 
 async def _admin_token(client, db):
-    db.add(Moderator(username="admin", passwort_hash=hash_secret("geheim123"), rolle="admin"))
+    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), moderator_rolle="admin"))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
