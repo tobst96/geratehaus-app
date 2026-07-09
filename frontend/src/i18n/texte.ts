@@ -15,7 +15,8 @@
  * Migrierte Seiten: `pages/LandingPage.tsx`, `pages/PinSetzen.tsx`, `pages/PersonFreigabe.tsx`,
  * `pages/KioskHome.tsx`, `pages/mitglied/MitgliedLogin.tsx`, `pages/Start.tsx`,
  * `pages/NotFound.tsx`, `pages/PersonBildHochladen.tsx`, `pages/ManuelleEintragung.tsx`,
- * `pages/DienstbuchManuelleEintragung.tsx`.
+ * `pages/DienstbuchManuelleEintragung.tsx`, `pages/DienststundenManuelleEintragung.tsx`,
+ * `pages/FahrzeugbuchungManuelleEintragung.tsx`.
  */
 export const texte = {
   landing: {
@@ -137,6 +138,31 @@ export const texte = {
     eingetragen_prefix: "Du wurdest für das Dienstbuch", // … „<titel>" <manuelle_eintragung.eingetragen_suffix>
     gruppe: "Gruppe",
     keine_gruppe: "– keine –",
+  },
+  dienststunden_eintragung: {
+    // Ergänzt `manuelle_eintragung` um die Dienststunden-spezifischen Texte.
+    titel: "Dienststunden ohne Barcode eintragen",
+    erfasst_text: "Deine Dienststunden wurden erfasst. Du kannst diese Seite jetzt schließen.",
+    als: "als", // „<name>: <stunden> als <funktion> am <datum>"
+    am: "am",
+    funktion: "Funktion",
+    stunden: "Stunden",
+    datum: "Datum",
+  },
+  fahrzeugbuchung_eintragung: {
+    // Fahrzeugbuchung „anfragen" (nicht „eintragen") – eigene Buttons/Erfolgstexte.
+    titel: "Fahrzeugbuchung ohne Barcode anfragen",
+    anfrage_fehler: "Anfrage konnte nicht gestellt werden.",
+    angefragt_titel: "Anfrage gestellt!",
+    angefragt_text: "Deine Fahrzeugbuchung wurde angefragt. Du kannst diese Seite jetzt schließen.",
+    kein_pin:
+      "Für dich ist kein PIN hinterlegt. Eine Selbst-Buchung ohne PIN ist nicht möglich – bitte im Gerätehaus einen persönlichen PIN setzen (lassen).",
+    fahrzeug: "Fahrzeug",
+    von: "Von",
+    bis: "Bis",
+    zweck: "Zweck",
+    stellen_laeuft: "Wird gestellt…",
+    anfrage_stellen: "Anfrage stellen",
   },
   start: {
     frage: "Wähle einen Bereich:",
