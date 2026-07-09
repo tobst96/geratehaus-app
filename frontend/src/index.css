@@ -39,12 +39,21 @@ body {
   color: var(--farbe-text);
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* Lange, nicht umbrechbare Strings (E-Mails, URLs, Tokens, Recovery-Codes)
+     dürfen keine Karte über die Viewport-Breite hinaus aufziehen → Ursache des
+     horizontalen Overflows auf schmalen Screens. */
+  overflow-wrap: break-word;
 }
 
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* Defensives Netz gegen horizontalen Overflow einzelner Seiten. `clip` (nicht
+     `hidden`) erzeugt keinen Scroll-Container und lässt `position: sticky`
+     (z. B. die Personal-Suchleiste) unberührt. Breite Tabellen scrollen weiter
+     in ihrem eigenen `.tabelle-scroll`-Wrapper. */
+  overflow-x: clip;
 }
 
 button,

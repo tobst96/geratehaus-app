@@ -73,7 +73,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Layout-Overflow auf Mobile beheben
 
-- Status: Backlog
+- Status: Erledigt (09.07.2026)
 - Priorität: Mittel
 - Kategorie: Bug / Frontend
 - Skills: bugfix, review
@@ -81,7 +81,14 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   (horizontaler Overflow). Ursache prüfen (festes `min-width` bzw. flex/grid ohne
   `overflow`); alle Moderator-Seiten auf horizontalen Scroll prüfen und beheben.
 - Akzeptanzkriterien: Kein horizontaler Scroll/Overflow auf schmalen Screens.
-- Notizen: Hängt mit dem (erledigten) Master-Detail-Einspaltig-Punkt zusammen.
+- Umsetzung (09.07.2026): Layout-Container geprüft – alle defensiv (`.mod-content`/
+  `.personal-detail` `min-width:0`, `.formular-zeile`/`.personal-*` `flex-wrap`,
+  Tabellen in `.tabelle-scroll`, mobile Sidebar `position:fixed` off-canvas). **Ursache:
+  keine `overflow-wrap`/`word-break`-Regel** → lange, nicht umbrechbare Strings (E-Mails,
+  URLs, Barcode-Tokens, Recovery-Codes) zogen Karten über die Viewport-Breite. Fix in
+  `index.css`: `body { overflow-wrap: break-word }` (Ursache) + `#root { overflow-x: clip }`
+  als sticky-sicheres Netz (`clip` statt `hidden` → kein Scroll-Container, `position:sticky`
+  der Personal-Suche unberührt; `.tabelle-scroll` scrollt weiter intern). Build grün.
 
 ### Personal-Liste mobile: Sticky Suche/Button
 
