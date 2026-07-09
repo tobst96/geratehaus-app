@@ -1824,6 +1824,23 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Notizen: Nutzen ⭐⭐⭐. Unblockt die **Dependency-/Secret-Scanning**-Aufgabe aus
   Etappe P (6) (kann als weiterer CI-Job ergänzt werden).
 
+### Sentry-Cron-Monitor: Deploy-Neustarts tolerieren (Rausch-Reduktion)
+
+- Status: Erledigt (09.07.2026, direkt auf beta)
+- Priorität: Niedrig
+- Kategorie: Wartung / Observability
+- Plan: Nein
+- Beschreibung: Jeder `docker compose up --build`-Deploy startet das Backend neu →
+  der APScheduler pausiert kurz → verpasster Sentry-Cron-Check-in → sofort ein
+  „Cron failure: <job>"-Issue (flappt, löst sich selbst wieder). Rein kosmetisches
+  Monitoring-Rauschen, kein echter Job-Fehler.
+- Umsetzung: In `app/jobs/scheduler.py` die Monitor-Config in `_monitor_config()`
+  extrahiert und um Deploy-Toleranz ergänzt: `checkin_margin=5` (Minuten, verspätete
+  Check-ins beim Neustart erlaubt) + `failure_issue_threshold=2` (erst nach 2
+  aufeinanderfolgenden Ausfällen ein Issue → ein einzelner Deploy-Miss löst keins mehr
+  aus, ein echter anhaltender Ausfall aber weiterhin). Test
+  `test_scheduler_monitor_config.py`; volle Suite 401 grün.
+
 ### Frontend-Abhängigkeiten: npm-audit-Advisories beheben (vite 5 → 8)
 
 - Status: Erledigt (Feature-Branch `feature/frontend-audit-vite` → PR nach beta, 06.07.2026)

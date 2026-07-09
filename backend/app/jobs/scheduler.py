@@ -36,18 +36,37 @@ logger = structlog.get_logger(__name__)
 DIVERA_POLL_INTERVALL_SEKUNDEN = 300
 
 
+# Toleranz für den Sentry-Cron-Monitor gegen Deploy-Neustarts/Jitter:
+# - `checkin_margin`: so viele Minuten darf ein Check-in verspätet sein, bevor er
+#   als „verpasst" zählt (deckt den kurzen Scheduler-Ausfall beim Neu-Bauen/Neustart ab).
+# - `failure_issue_threshold`: erst nach so vielen AUFEINANDERFOLGENDEN Ausfällen wird
+#   ein Issue erzeugt → ein einzelner Deploy-Miss löst kein „Cron failure" mehr aus,
+#   ein echter anhaltender Ausfall aber weiterhin.
+CHECKIN_MARGIN_MINUTEN = 5
+FAILURE_ISSUE_THRESHOLD = 2
+
+
+def _monitor_config(schedule: dict) -> dict:
+    """Baut die Sentry-Monitor-Konfiguration für einen Job (inkl. Deploy-Toleranz)."""
+    return {
+        "schedule": schedule,
+        "timezone": zeit.STANDARD_ZEITZONE,
+        "checkin_margin": CHECKIN_MARGIN_MINUTEN,
+        "failure_issue_threshold": FAILURE_ISSUE_THRESHOLD,
+        "recovery_threshold": 1,
+    }
+
+
 def _ueberwacht(slug: str, schedule: dict):
     """Dekorator: meldet jeden Lauf des Scheduler-Jobs als Sentry-Cron-Check-in
     (Sentry „Crons"). So erkennt Sentry ausgefallene/verspätete Läufe und misst
     die Laufzeit. Ist Sentry nicht initialisiert (Fehlerberichte aus), ist der
     Check-in ein No-op – der Job läuft unverändert. Job-interne Fehler werden
-    zusätzlich weiterhin über die LoggingIntegration als Issue gemeldet."""
-    monitor_config = {
-        "schedule": schedule,
-        "timezone": zeit.STANDARD_ZEITZONE,
-        "failure_issue_threshold": 1,
-        "recovery_threshold": 1,
-    }
+    zusätzlich weiterhin über die LoggingIntegration als Issue gemeldet.
+
+    Die Monitor-Config toleriert bewusst kurze Deploy-Neustarts (siehe
+    `_monitor_config`), damit nicht jeder Rebuild ein „Cron failure"-Issue erzeugt."""
+    monitor_config = _monitor_config(schedule)
 
     def deko(func):
         @functools.wraps(func)
