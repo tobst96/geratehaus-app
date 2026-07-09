@@ -1692,8 +1692,24 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Begriff „Moderator" → „Gruppenführer" (durchgängig umbenennen)
 
-- Status: Backlog – **entblockt** (Umbau „Person = Konto" ist am 09.07.2026 in `beta`
-  gemergt; kann jetzt angegangen werden)
+- Status: In Bearbeitung (Feature-Branch `feature/rename-gruppenfuehrer`; Nutzer wählte
+  09.07.2026 „wirklich alles inkl. Routen+DB"). Großer Umbau → in grünen Schichten.
+- Fortschritt (09.07.2026, Schicht 1 – **DB + Routen**, grün committet `09058b7`):
+  DB-Spalte `personen.moderator_rolle` → `gruppenfuehrer_rolle` (Model/Schema/alle Refs +
+  Frontend `ElevatedPerson` + **Migration 0061** + Tests); **API-Routen** `/moderator/*` →
+  `/gruppenfuehrer/*` (16 Router-Prefixes, Auth-Login, alle Frontend-Calls + React-Router-
+  Pfade + Test-Pfade, 407 Stellen); Frontend-Verzeichnis `pages/moderator` →
+  `pages/gruppenfuehrer` (git mv). **Backend-Suite 400 grün, Frontend-Build grün.**
+- Offene Schichten (jeweils grün + committen): (2) **Code-Bezeichner** (`CurrentModerator`→
+  `CurrentGruppenfuehrer`, `moderator_service`, `get_current_moderator`,
+  `ModeratorGesperrtError`, `moderator_2fa_session`, FE `ModeratorLogin`/`moderatorRolle`/
+  `ModeratorLayout`/`ModeratorRoute`/`*DetailModerator`); (3) **Datei-Namen** backend
+  `moderator_*.py`→`gruppenfuehrer_*.py` (+ `main.py`) & FE-Komponentendateien; (4) **Config-
+  Keys** `moderator_login_*`→`gruppenfuehrer_login_*` (+ app_config-Migration); (5) **UI-Texte
+  (mit ü)** + Kommentare/Docstrings + `docs/*.md`/README/Datenschutz; (6) **aktive 2FA-Tabellen**
+  `moderator_recovery_codes`/`moderator_trusted_devices` + Models `ModeratorRecoveryCode`/
+  `ModeratorTrustedDevice` (+ Migration) und die Legacy-`moderatoren`-Tabelle (mit dem
+  aufgeschobenen Drop 0061→jetzt spätere Migration bündeln). Merge-PR erst nach allen Schichten.
 - Priorität: Mittel
 - Kategorie: Wartung / Terminologie / Frontend + Backend
 - Plan: Nein (aber groß/mechanisch – sorgfältig, mit Tests + Build)
