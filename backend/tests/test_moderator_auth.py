@@ -1,9 +1,9 @@
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 
 
 async def _moderator_anlegen(db, username="admin", passwort="geheim123", rolle="admin"):
-    moderator = Moderator(username=username, passwort_hash=hash_secret(passwort), rolle=rolle)
+    moderator = Person(name=username, passwort_hash=hash_secret(passwort), moderator_rolle=rolle)
     db.add(moderator)
     await db.commit()
     await db.refresh(moderator)

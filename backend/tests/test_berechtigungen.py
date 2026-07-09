@@ -1,10 +1,10 @@
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import berechtigungs_service, modul_service
 
 
 async def _moderator(db, username, rolle):
-    mod = Moderator(username=username, passwort_hash=hash_secret("geheim123"), rolle=rolle)
+    mod = Person(name=username, passwort_hash=hash_secret("geheim123"), moderator_rolle=rolle)
     db.add(mod)
     await db.commit()
     await db.refresh(mod)

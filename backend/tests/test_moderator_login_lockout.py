@@ -7,13 +7,13 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import moderator_service
 from app.services.config_service import config_service
 
 
 async def _moderator(db, username="admin", passwort="richtig123"):
-    m = Moderator(username=username, passwort_hash=hash_secret(passwort))
+    m = Person(name=username, passwort_hash=hash_secret(passwort))
     db.add(m)
     await db.commit()
     await db.refresh(m)

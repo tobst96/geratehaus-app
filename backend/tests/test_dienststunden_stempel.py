@@ -4,7 +4,7 @@ QR-Poster + Admin-QR-PDF pro Funktion."""
 import pytest
 
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.schemas.stammdaten import FunktionDienststundenCreate
 from app.services import stammdaten_service
 from app.services.config_service import config_service
@@ -17,7 +17,7 @@ async def _funktion(db, name="Maschinist", aktiv=True):
 
 
 async def _admin_headers(client, db):
-    db.add(Moderator(username="admin", passwort_hash=hash_secret("geheim123"), rolle="admin"))
+    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), moderator_rolle="admin"))
     await db.commit()
     r = await client.post(
         "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}

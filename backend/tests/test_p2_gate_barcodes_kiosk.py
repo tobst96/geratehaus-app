@@ -4,12 +4,12 @@ gesichert. Admins via Bypass (non-breaking), Gruppenführer nur mit erteiltem Re
 import pytest
 
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import berechtigungs_service, modul_service
 
 
 async def _token(client, db, username="admin", rolle="admin"):
-    m = Moderator(username=username, passwort_hash=hash_secret("geheim123"), rolle=rolle)
+    m = Person(name=username, passwort_hash=hash_secret("geheim123"), moderator_rolle=rolle)
     db.add(m)
     await db.commit()
     await db.refresh(m)

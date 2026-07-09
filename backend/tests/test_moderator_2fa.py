@@ -7,13 +7,13 @@ import pytest
 
 from app.core import moderator_2fa_session
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import zwei_faktor_service
 
 
 async def _moderator(db, username="mod", rolle="admin", email="mod@example.org", passwort="geheim123"):
-    m = Moderator(
-        username=username, passwort_hash=hash_secret(passwort), rolle=rolle, email=email
+    m = Person(
+        name=username, passwort_hash=hash_secret(passwort), moderator_rolle=rolle, email=email
     )
     db.add(m)
     await db.commit()
@@ -145,7 +145,7 @@ async def test_admin_reset_2fa(client, db):
     h = await _login_headers(client, "admin")
 
     r = await client.post(
-        f"/api/v1/moderator/einstellungen/moderatoren/{ziel.id}/2fa-zuruecksetzen", headers=h
+        f"/api/v1/moderator/stammdaten/personen/{ziel.id}/2fa-zuruecksetzen", headers=h
     )
     assert r.status_code == 204
     await db.refresh(ziel)

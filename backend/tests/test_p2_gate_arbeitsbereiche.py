@@ -13,7 +13,7 @@ import pytest
 from sqlalchemy import text
 
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import berechtigungs_service, modul_service
 from app.services.config_service import config_service
 
@@ -28,7 +28,7 @@ BEREICHE = [
 
 
 async def _token(client, db, username="admin", rolle="admin"):
-    m = Moderator(username=username, passwort_hash=hash_secret("geheim123"), rolle=rolle)
+    m = Person(name=username, passwort_hash=hash_secret("geheim123"), moderator_rolle=rolle)
     db.add(m)
     await db.commit()
     await db.refresh(m)
@@ -89,8 +89,8 @@ async def test_anti_aussperr_seed(client, db):
     # Bildet die Migration 0059 nach: bestehende Gruppenführer bekommen genau die
     # vier Arbeitsbereichs-Rechte, Admins nichts (die brauchen den Bypass).
     await modul_service.ensure_module(db)
-    gf = Moderator(username="alt-gf", passwort_hash=hash_secret("x"), rolle="gruppenfuehrer")
-    admin = Moderator(username="alt-admin", passwort_hash=hash_secret("x"), rolle="admin")
+    gf = Person(name="alt-gf", passwort_hash=hash_secret("x"), moderator_rolle="gruppenfuehrer")
+    admin = Person(name="alt-admin", passwort_hash=hash_secret("x"), moderator_rolle="admin")
     db.add_all([gf, admin])
     await db.commit()
     await db.refresh(gf)
@@ -99,15 +99,15 @@ async def test_anti_aussperr_seed(client, db):
     await db.execute(
         text(
             """
-            INSERT INTO berechtigungen (moderator_id, modul_id)
-            SELECT m.id, md.id
-            FROM moderatoren m
+            INSERT INTO berechtigungen (person_id, modul_id)
+            SELECT p.id, md.id
+            FROM personen p
             CROSS JOIN module md
-            WHERE m.rolle <> 'admin'
+            WHERE p.moderator_rolle IS NOT NULL AND p.moderator_rolle <> 'admin'
               AND md.key IN ('einsatztagebuch','dienstbuch','dienststunden','fahrzeugbuchung')
               AND NOT EXISTS (
                   SELECT 1 FROM berechtigungen b
-                  WHERE b.moderator_id = m.id AND b.modul_id = md.id
+                  WHERE b.person_id = p.id AND b.modul_id = md.id
               )
             """
         )
@@ -119,7 +119,7 @@ async def test_anti_aussperr_seed(client, db):
     # Kein Seed-Eintrag für Admins (die haben ohnehin alles via Bypass).
     rows = (
         await db.execute(
-            text("SELECT count(*) FROM berechtigungen WHERE moderator_id = :mid"),
+            text("SELECT count(*) FROM berechtigungen WHERE person_id = :mid"),
             {"mid": admin.id},
         )
     ).scalar_one()

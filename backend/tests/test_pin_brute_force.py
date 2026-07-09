@@ -8,7 +8,6 @@ import pytest
 from sqlalchemy import select
 
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
 from app.models.person import Person
 from app.models.person_ereignis import PersonEreignis
 from app.services import stammdaten_service
@@ -106,7 +105,7 @@ async def test_api_sperre_liefert_429_und_moderator_entsperrt(client, db):
     assert r.status_code == 429
 
     # Moderator (Gruppenführer) entsperrt manuell.
-    db.add(Moderator(username="gf", passwort_hash=hash_secret("geheim123"), rolle="gruppenfuehrer"))
+    db.add(Person(name="gf", passwort_hash=hash_secret("geheim123"), moderator_rolle="gruppenfuehrer"))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}

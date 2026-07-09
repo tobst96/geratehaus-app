@@ -1062,11 +1062,19 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   `/moderatoren`-Endpunkte entfernt. **`moderator_stammdaten`**: neue Admin-only-Endpunkte
   `GET /elevated`, `PUT/DELETE /personen/{id}/elevation`, `PUT /personen/{id}/passwort-setzen`,
   `POST /personen/{id}/2fa-zuruecksetzen` (letzter-Admin-Schutz). `app.main` importiert sauber.
-- Offen (nächste Checkpoints): **31 Test-Dateien** (Moderator-Fixtures → elevated Person)
-  → **volle Suite grün** (erster e2e-Meilenstein); **Frontend** (Personal-Verwaltung,
-  Login „Name", alte Moderator-UI raus); Moderator-Benachrichtigungen entfernen. Danach
-  PR + Folge-`0061` (Drop `moderatoren`). Cosmetic-TODO: Gate-Aliase noch `Annotated[Moderator]`
-  (injizieren Person; im Terminologie-Rename mit-umstellen).
+- Fortschritt (09.07.2026, **Phase 2 – WIP-Checkpoint 6 (Tests grün)**): **31 Test-Dateien**
+  von Moderator-Fixtures auf **elevated Person** umgestellt (Konstruktor `Person(name=…,
+  moderator_rolle=…, passwort_hash=…)`, Login per Name). Management-Tests der entfernten
+  `/moderatoren`-Endpunkte umgeschrieben: `test_audit_log` prüft jetzt `person_eleviert`/
+  `person_passwort_gesetzt`/`person_de_eleviert` über die neuen Stammdaten-Endpunkte;
+  `test_moderator_2fa` Admin-Reset auf `/stammdaten/personen/{id}/2fa-zuruecksetzen`;
+  `test_g2` auf Resolver-Tests reduziert (pro-Moderator-CRUD entfällt); `test_moderator_email`
+  gelöscht (E-Mail ist reines Person-Feld); `test_anti_aussperr_seed` seedet Rechte über
+  `person_id`. **Ergebnis: volle Suite 388 passed / 0 failed** – erster e2e-Meilenstein erreicht.
+- Offen (nächste Checkpoints): **Frontend** (Personal-Verwaltung nutzt Elevation-Endpunkte,
+  Login „Name", alte Moderator-UI + Moderator-Benachrichtigungen raus) → `npm run build`; danach
+  PR nach beta (Pflicht-Smoke-Test) + Folge-`0061` (Drop `moderatoren`). Cosmetic-TODO:
+  Gate-Aliase noch `Annotated[Moderator]` (injizieren Person; im Terminologie-Rename mit-umstellen).
 
 ---
 

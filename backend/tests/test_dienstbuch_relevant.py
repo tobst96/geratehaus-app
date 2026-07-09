@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import pytest
 
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.schemas.dienstbuch import DienstbuchAnlegen
 from app.services import berechtigungs_service, dienstbuch_service, modul_service
 
@@ -14,7 +14,7 @@ from app.services import berechtigungs_service, dienstbuch_service, modul_servic
 async def _moderator_token(client, db):
     # Dienstbuch-Moderator-Endpunkte sind granular geschützt (require_modul_zugriff);
     # der Test-Gruppenführer bekommt daher das „dienstbuch"-Recht.
-    gf = Moderator(username="gf", passwort_hash=hash_secret("geheim123"), rolle="gruppenfuehrer")
+    gf = Person(name="gf", passwort_hash=hash_secret("geheim123"), moderator_rolle="gruppenfuehrer")
     db.add(gf)
     await db.commit()
     await db.refresh(gf)
@@ -103,7 +103,6 @@ async def _teilnahme(db, dienstbuch_id: int, person_id: int):
 
 @pytest.mark.asyncio
 async def test_relevante_uebersicht_zaehlt_je_person(client, db):
-    from app.models.person import Person
 
     token = await _moderator_token(client, db)
     h = {"Authorization": f"Bearer {token}"}
@@ -142,7 +141,6 @@ async def test_relevante_uebersicht_ohne_login_abgelehnt(client, db):
 
 @pytest.mark.asyncio
 async def test_anwesenheit_quote(client, db):
-    from app.models.person import Person
 
     token = await _moderator_token(client, db)
     h = {"Authorization": f"Bearer {token}"}

@@ -1,5 +1,5 @@
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services.update_service import _ist_neuer, _passende_release
 
 
@@ -30,7 +30,7 @@ def test_ist_neuer_verhindert_downgrade():
 
 
 async def _admin_token(client, db):
-    moderator = Moderator(username="admin", passwort_hash=hash_secret("geheim123"), rolle="admin")
+    moderator = Person(name="admin", passwort_hash=hash_secret("geheim123"), moderator_rolle="admin")
     db.add(moderator)
     await db.commit()
     login = await client.post(

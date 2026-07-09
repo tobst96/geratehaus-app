@@ -7,12 +7,12 @@ import pytest
 from app.core.security import hash_secret
 from app.models.funktion import FunktionDienststunden
 from app.models.gruppe import Gruppe
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import modul_service
 
 
 async def _admin(client, db):
-    m = Moderator(username="admin", passwort_hash=hash_secret("geheim123"), rolle="admin")
+    m = Person(name="admin", passwort_hash=hash_secret("geheim123"), moderator_rolle="admin")
     db.add(m)
     await db.commit()
     r = await client.post(
@@ -86,7 +86,7 @@ async def test_csv_import_komma_getrennt(client, db):
 @pytest.mark.asyncio
 async def test_csv_import_gf_ohne_personal_403(client, db):
     await modul_service.ensure_module(db)
-    m = Moderator(username="gf", passwort_hash=hash_secret("geheim123"), rolle="gruppenfuehrer")
+    m = Person(name="gf", passwort_hash=hash_secret("geheim123"), moderator_rolle="gruppenfuehrer")
     db.add(m)
     await db.commit()
     r = await client.post(

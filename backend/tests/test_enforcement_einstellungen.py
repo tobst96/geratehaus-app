@@ -1,11 +1,11 @@
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import berechtigungs_service, modul_service
 
 
 async def _gruppenfuehrer(client, db):
     await modul_service.ensure_module(db)
-    gf = Moderator(username="gf", passwort_hash=hash_secret("geheim123"), rolle="gruppenfuehrer")
+    gf = Person(name="gf", passwort_hash=hash_secret("geheim123"), moderator_rolle="gruppenfuehrer")
     db.add(gf)
     await db.commit()
     await db.refresh(gf)
