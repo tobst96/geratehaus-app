@@ -1,6 +1,11 @@
 import { Fehlertext } from "../../components/Fehlertext";
 import { useEffect, useState, type FormEvent } from "react";
-import { holeEinstellungen, schreibeEinstellungen, sendeTestmail } from "../../api/moderator";
+import {
+  holeEinstellungen,
+  schreibeEinstellungen,
+  sendeTestmail,
+  sendeTestdruck,
+} from "../../api/moderator";
 import { ApiError } from "../../api/client";
 import { Banner } from "../../components/Banner";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
@@ -19,6 +24,10 @@ interface NotifierConfig {
   email_recipients: string;
   email_pdf_bei_abschluss: boolean;
   email_pdf_bei_dienstbuch_abschluss: boolean;
+  drucker_aktiv: boolean;
+  drucker_ipp_url: string;
+  drucker_immer_einsatz: boolean;
+  drucker_immer_dienstbuch: boolean;
   webpush_enabled: boolean;
   webpush_vapid_public: string;
   webpush_vapid_private: string;
@@ -47,6 +56,8 @@ export function NotifierEinstellungen() {
   const [loading, setLoading] = useState(false);
   const [testmailLaeuft, setTestmailLaeuft] = useState(false);
   const [testmailErgebnis, setTestmailErgebnis] = useState<string | null>(null);
+  const [testdruckLaeuft, setTestdruckLaeuft] = useState(false);
+  const [testdruckErgebnis, setTestdruckErgebnis] = useState<string | null>(null);
 
   useEffect(() => {
     async function laden() {
@@ -66,6 +77,10 @@ export function NotifierEinstellungen() {
           email_recipients: String(w.notifier_email_recipients ?? ""),
           email_pdf_bei_abschluss: Boolean(w.notifier_email_pdf_bei_abschluss),
           email_pdf_bei_dienstbuch_abschluss: Boolean(w.notifier_email_pdf_bei_dienstbuch_abschluss),
+          drucker_aktiv: Boolean(w.drucker_aktiv),
+          drucker_ipp_url: String(w.drucker_ipp_url ?? ""),
+          drucker_immer_einsatz: Boolean(w.drucker_immer_einsatz),
+          drucker_immer_dienstbuch: Boolean(w.drucker_immer_dienstbuch),
           webpush_enabled: Boolean(w.notifier_webpush_aktiv),
           webpush_vapid_public: String(w.notifier_webpush_vapid_public_key ?? ""),
           webpush_vapid_private: String(w.notifier_webpush_vapid_private_key ?? ""),
@@ -105,6 +120,10 @@ export function NotifierEinstellungen() {
         notifier_email_recipients: config.email_recipients,
         notifier_email_pdf_bei_abschluss: config.email_pdf_bei_abschluss,
         notifier_email_pdf_bei_dienstbuch_abschluss: config.email_pdf_bei_dienstbuch_abschluss,
+        drucker_aktiv: config.drucker_aktiv,
+        drucker_ipp_url: config.drucker_ipp_url,
+        drucker_immer_einsatz: config.drucker_immer_einsatz,
+        drucker_immer_dienstbuch: config.drucker_immer_dienstbuch,
         notifier_webpush_aktiv: config.webpush_enabled,
         notifier_webpush_vapid_public_key: config.webpush_vapid_public,
         notifier_webpush_vapid_private_key: config.webpush_vapid_private,
@@ -151,6 +170,28 @@ export function NotifierEinstellungen() {
       );
     } finally {
       setTestmailLaeuft(false);
+    }
+  }
+
+  async function testdruckSenden() {
+    if (!config) return;
+    setTestdruckLaeuft(true);
+    setTestdruckErgebnis(null);
+    try {
+      // Erst die aktuell im Formular stehende Drucker-Konfiguration sichern,
+      // damit der Testdruck nicht mit einer älteren Adresse läuft.
+      await schreibeEinstellungen({
+        drucker_aktiv: config.drucker_aktiv,
+        drucker_ipp_url: config.drucker_ipp_url,
+      });
+      await sendeTestdruck();
+      setTestdruckErgebnis("Testdruck wurde an den Drucker gesendet.");
+    } catch (err) {
+      setTestdruckErgebnis(
+        err instanceof ApiError ? String(err.detail) : "Testdruck fehlgeschlagen."
+      );
+    } finally {
+      setTestdruckLaeuft(false);
     }
   }
 
@@ -330,6 +371,69 @@ export function NotifierEinstellungen() {
             {testmailLaeuft ? "Sendet …" : "Testmail senden"}
           </button>
           {testmailErgebnis && <p style={{ fontSize: "0.85rem" }}>{testmailErgebnis}</p>}
+        </div>
+
+        {/* Netzwerkdrucker (IPP) – Fallback/Immer-Druck für die Abschluss-PDFs */}
+        <div className="karte">
+          <h2>🖨️ Netzwerkdrucker (IPP)</h2>
+          <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
+            Druckt das Einsatz-/Dienstbuch-PDF an einen Netzwerkdrucker – als Fallback, wenn der
+            E-Mail-Versand scheitert, und optional bei jedem Abschluss.
+          </p>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={config.drucker_aktiv}
+                onChange={(e) => setConfig({ ...config, drucker_aktiv: e.target.checked })}
+              />{" "}
+              Netzwerkdrucker aktivieren
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="drucker-url">IPP-URL des Druckers</label>
+            <input
+              id="drucker-url"
+              value={config.drucker_ipp_url}
+              onChange={(e) => setConfig({ ...config, drucker_ipp_url: e.target.value })}
+              placeholder="ipp://drucker.local:631/ipp/print"
+              disabled={!config.drucker_aktiv}
+              autoComplete="off"
+            />
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={config.drucker_immer_einsatz}
+                onChange={(e) => setConfig({ ...config, drucker_immer_einsatz: e.target.checked })}
+                disabled={!config.drucker_aktiv}
+              />{" "}
+              Einsatzbericht (PDF) bei Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)
+            </label>
+          </div>
+          <div className="formular-feld">
+            <label>
+              <input
+                type="checkbox"
+                checked={config.drucker_immer_dienstbuch}
+                onChange={(e) =>
+                  setConfig({ ...config, drucker_immer_dienstbuch: e.target.checked })
+                }
+                disabled={!config.drucker_aktiv}
+              />{" "}
+              Dienstbuch (PDF) beim Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)
+            </label>
+          </div>
+          <button
+            type="button"
+            className="sekundaer"
+            onClick={testdruckSenden}
+            disabled={testdruckLaeuft || !config.drucker_aktiv}
+          >
+            {testdruckLaeuft ? "Druckt …" : "Testdruck senden"}
+          </button>
+          {testdruckErgebnis && <p style={{ fontSize: "0.85rem" }}>{testdruckErgebnis}</p>}
         </div>
 
         {/* Web Push */}

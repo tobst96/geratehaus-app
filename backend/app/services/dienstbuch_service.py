@@ -14,6 +14,7 @@ from app.schemas.dienstbuch_feld import (
 )
 from app.services import (
     benachrichtigungskanal_service,
+    druck_service,
     notifier_service,
     pdf_service,
 )
@@ -301,26 +302,44 @@ async def anwesenheit_quote(
 
 
 async def _pdf_per_mail_versenden(dienstbuch: Dienstbuch, db: AsyncSession) -> None:
-    if not await config_service.get(db, "notifier_email_aktiv", False):
+    """Verschickt das Dienstbuch-PDF per Mail (wenn aktiv) und druckt es per IPP:
+    als **Fallback** bei Mail-Fehler (und `drucker_aktiv`) sowie **immer**, wenn
+    `drucker_immer_dienstbuch` + `drucker_aktiv` gesetzt sind. Best-Effort."""
+    pdf_mail_aktiv = bool(
+        await config_service.get(db, "notifier_email_aktiv", False)
+    ) and bool(await config_service.get(db, "notifier_email_pdf_bei_dienstbuch_abschluss", False))
+    immer_drucken = bool(
+        await config_service.get(db, "drucker_immer_dienstbuch", False)
+    ) and bool(await config_service.get(db, "drucker_aktiv", False))
+    if not pdf_mail_aktiv and not immer_drucken:
         return
-    if not await config_service.get(db, "notifier_email_pdf_bei_dienstbuch_abschluss", False):
-        return
-    # Nur an Personen, die „neues Dienstbuch" abonniert haben (aktiver Mail-Kanal).
-    empfaenger = await benachrichtigungskanal_service.mail_empfaenger_fuer_ereignis(
-        db, "benachrichtigung_neues_dienstbuch"
-    )
-    if not empfaenger:
-        return
+
     try:
         pdf_inhalt = await pdf_service.dienstbuch_pdf(db, dienstbuch)
-        dateiname = f"dienstbuch-{dienstbuch.id}.pdf"
-        await EmailNotifier().pdf_versenden(
-            db,
-            f"Dienstbuch abgeschlossen: {dienstbuch.titel}",
-            f"Im Anhang das geschlossene Dienstbuch „{dienstbuch.titel}“.",
-            dateiname,
-            pdf_inhalt,
-            empfaenger_liste=empfaenger,
-        )
     except Exception:
-        logger.warning("dienstbuch_pdf_mail_fehlgeschlagen", exc_info=True)
+        logger.warning("dienstbuch_pdf_erzeugung_fehlgeschlagen", exc_info=True)
+        return
+    dateiname = f"dienstbuch-{dienstbuch.id}.pdf"
+
+    mail_ok = True
+    if pdf_mail_aktiv:
+        # Nur an Personen, die „neues Dienstbuch" abonniert haben (aktiver Mail-Kanal).
+        empfaenger = await benachrichtigungskanal_service.mail_empfaenger_fuer_ereignis(
+            db, "benachrichtigung_neues_dienstbuch"
+        )
+        if empfaenger:
+            try:
+                await EmailNotifier().pdf_versenden(
+                    db,
+                    f"Dienstbuch abgeschlossen: {dienstbuch.titel}",
+                    f"Im Anhang das geschlossene Dienstbuch „{dienstbuch.titel}“.",
+                    dateiname,
+                    pdf_inhalt,
+                    empfaenger_liste=empfaenger,
+                )
+            except Exception:
+                mail_ok = False
+                logger.warning("dienstbuch_pdf_mail_fehlgeschlagen", exc_info=True)
+
+    if immer_drucken or (pdf_mail_aktiv and not mail_ok):
+        await druck_service.drucke_pdf_falls_konfiguriert(db, pdf_inhalt)

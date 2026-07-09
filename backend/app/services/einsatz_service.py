@@ -10,6 +10,7 @@ from app.models.einsatz_ereignis import EinsatzEreignis
 from app.schemas.einsatz import EinsatzAnlegen, TeilnahmeAnlegen
 from app.services import (
     benachrichtigungskanal_service,
+    druck_service,
     notifier_service,
     pdf_service,
     stammdaten_service,
@@ -218,8 +219,7 @@ async def einsatz_abschliessen(db: AsyncSession, einsatz: Einsatz) -> Einsatz:
     await notifier_service.benachrichtige(
         db, "benachrichtigung_neuer_einsatz", ausschluss_kanaele=ausschluss, titel=geladen.titel
     )
-    if pdf_mail_aktiv:
-        await _pdf_per_mail_versenden(db, geladen)
+    await _pdf_versenden_und_drucken(db, geladen, pdf_mail_aktiv)
     return geladen
 
 
@@ -270,36 +270,66 @@ async def einsaetze_mit_faelligem_abschluss(db: AsyncSession) -> list[Einsatz]:
     return list(result.scalars().all())
 
 
-async def _pdf_per_mail_versenden(db: AsyncSession, einsatz: Einsatz) -> None:
-    # Nur an Personen, die „neuer Einsatz" abonniert haben (aktiver Mail-Kanal).
-    empfaenger = await benachrichtigungskanal_service.mail_empfaenger_fuer_ereignis(
-        db, "benachrichtigung_neuer_einsatz"
-    )
-    if not empfaenger:
+async def _pdf_versenden_und_drucken(
+    db: AsyncSession, einsatz: Einsatz, pdf_mail_aktiv: bool
+) -> None:
+    """Verschickt das Einsatz-PDF per Mail (wenn aktiv) und druckt es per IPP:
+    als **Fallback**, wenn der Mailversand scheitert (und `drucker_aktiv`), sowie
+    **immer**, wenn `drucker_immer_einsatz` + `drucker_aktiv` gesetzt sind – auch
+    ohne Mailversand. Alles Best-Effort; Fehler werden nur protokolliert."""
+    immer_drucken = bool(
+        await config_service.get(db, "drucker_immer_einsatz", False)
+    ) and bool(await config_service.get(db, "drucker_aktiv", False))
+    if not pdf_mail_aktiv and not immer_drucken:
         return
-    try:
-        ereignisse = await liste_ereignisse(db, einsatz.id)
-        timeline_text = "\n".join(
-            f"{e.zeitpunkt.strftime('%d.%m.%Y %H:%M')} – {e.beschreibung}" for e in ereignisse
-        )
-        nachricht = f"Einsatz abgeschlossen: {einsatz.titel}\n\nVerlauf:\n{timeline_text}"
 
+    try:
         pdf_inhalt = await pdf_service.einsatz_pdf(db, einsatz)
-        dateiname = f"einsatz-{einsatz.id}.pdf"
-        await EmailNotifier().pdf_versenden(
-            db,
-            f"Einsatz abgeschlossen: {einsatz.titel}",
-            nachricht,
-            dateiname,
-            pdf_inhalt,
-            empfaenger_liste=empfaenger,
+    except Exception:
+        logger.warning("einsatz_pdf_erzeugung_fehlgeschlagen", exc_info=True)
+        return
+    dateiname = f"einsatz-{einsatz.id}.pdf"
+
+    mail_ok = True
+    if pdf_mail_aktiv:
+        # Nur an Personen, die „neuer Einsatz" abonniert haben (aktiver Mail-Kanal).
+        empfaenger = await benachrichtigungskanal_service.mail_empfaenger_fuer_ereignis(
+            db, "benachrichtigung_neuer_einsatz"
         )
-        await ereignis_protokollieren(db, einsatz.id, "email", "Einsatzbericht (PDF) per E-Mail versendet")
-    except Exception as exc:
-        logger.warning("einsatz_pdf_mail_fehlgeschlagen", exc_info=True)
-        await ereignis_protokollieren(
-            db, einsatz.id, "email_fehler", f"Versand des Einsatzberichts per E-Mail fehlgeschlagen: {exc}"
-        )
+        if empfaenger:
+            try:
+                ereignisse = await liste_ereignisse(db, einsatz.id)
+                timeline_text = "\n".join(
+                    f"{e.zeitpunkt.strftime('%d.%m.%Y %H:%M')} – {e.beschreibung}"
+                    for e in ereignisse
+                )
+                nachricht = f"Einsatz abgeschlossen: {einsatz.titel}\n\nVerlauf:\n{timeline_text}"
+                await EmailNotifier().pdf_versenden(
+                    db,
+                    f"Einsatz abgeschlossen: {einsatz.titel}",
+                    nachricht,
+                    dateiname,
+                    pdf_inhalt,
+                    empfaenger_liste=empfaenger,
+                )
+                await ereignis_protokollieren(
+                    db, einsatz.id, "email", "Einsatzbericht (PDF) per E-Mail versendet"
+                )
+            except Exception as exc:
+                mail_ok = False
+                logger.warning("einsatz_pdf_mail_fehlgeschlagen", exc_info=True)
+                await ereignis_protokollieren(
+                    db,
+                    einsatz.id,
+                    "email_fehler",
+                    f"Versand des Einsatzberichts per E-Mail fehlgeschlagen: {exc}",
+                )
+
+    if immer_drucken or (pdf_mail_aktiv and not mail_ok):
+        if await druck_service.drucke_pdf_falls_konfiguriert(db, pdf_inhalt):
+            await ereignis_protokollieren(
+                db, einsatz.id, "gedruckt", "Einsatzbericht (PDF) am Netzwerkdrucker gedruckt"
+            )
 
 
 async def offene_einsaetze_inaktiv_seit(db: AsyncSession, inaktivitaet_stunden: int) -> list[Einsatz]:
