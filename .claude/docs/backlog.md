@@ -491,8 +491,8 @@ Netzwerkdrucker mit IPP/CUPS im LAN.
 
 ### Druck-Fallback per IPP (gesamtes Feature)
 
-- Status: Review (Feature-Branch `feature/druck-ipp` → PR; wartet auf Verifikation
-  mit echtem IPP-Drucker vor Merge, 09.07.2026)
+- Status: Erledigt (PR #59 in `beta` gemergt + deployt, 09.07.2026; IPP-Transport in
+  Tests gemockt → **Praxis-Check an echtem IPP-Drucker weiterhin empfohlen**)
 - Priorität: Mittel
 - Kategorie: Feature / Backend / Frontend
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -1035,8 +1035,11 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Moderator-Zugänge in Personal integrieren (Person = Konto)
 
-- Status: In Bearbeitung (Feature-Branch `feature/moderator-in-person`; Plan:
-  `.claude/plans/deep-sparking-mist.md`; Phase 1 = DB-Fundament, 09.07.2026)
+- Status: Erledigt (PR #58 in `beta` gemergt + deployt, 09.07.2026). **Offen als
+  Folge:** (a) Migration `0061` = `moderatoren`-Tabelle + `moderator_id`-Spalten
+  droppen – **erst nach bestätigtem Livebetrieb** (0060 hält sie für Rollback); (b) der
+  Terminologie-Rename „Moderator → Gruppenführer" ist damit **entblockt**. Post-Merge-
+  Fix: `test_druck.py`-Admin-Fixture (Moderator → elevated Person).
 - Priorität: Hoch
 - Kategorie: Auth / Datenbank / Feature (breaking)
 - Plan: Ja
@@ -1689,8 +1692,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Begriff „Moderator" → „Gruppenführer" (durchgängig umbenennen)
 
-- Status: Backlog (**erst nach** dem Umbau „Moderator-Zugänge in Personal integrieren"
-  ausführen – der aktuelle Feature-Branch nutzt noch „Moderator"-Naming)
+- Status: Backlog – **entblockt** (Umbau „Person = Konto" ist am 09.07.2026 in `beta`
+  gemergt; kann jetzt angegangen werden)
 - Priorität: Mittel
 - Kategorie: Wartung / Terminologie / Frontend + Backend
 - Plan: Nein (aber groß/mechanisch – sorgfältig, mit Tests + Build)
