@@ -3,6 +3,9 @@ import { useRef, useState } from "react";
 import { fahrzeugAktualisieren } from "../../api/gruppenfuehrer";
 import { ApiError } from "../../api/client";
 import type { Fahrzeug, FunktionEinsatz, Sitzplatz } from "../../api/types";
+import { texte } from "../../i18n/texte";
+
+const t = texte.sitzplatz_editor;
 
 interface PresetDefinition {
   label: string;
@@ -15,7 +18,7 @@ interface PresetDefinition {
 const PRESETS: Record<string, PresetDefinition> = {
   trupp: {
     // Alle in einer Reihe, Truppmann mittig.
-    label: "Trupp (1+2)",
+    label: t.preset_labels.trupp,
     sitzplaetze: [
       { bezeichnung: "Fahrer", x: 22, y: 50 },
       { bezeichnung: "Truppmann", x: 50, y: 50 },
@@ -23,7 +26,7 @@ const PRESETS: Record<string, PresetDefinition> = {
     ],
   },
   staffel: {
-    label: "Staffel (1+5)",
+    label: t.preset_labels.staffel,
     sitzplaetze: [
       { bezeichnung: "Maschinist", x: 30, y: 15 },
       { bezeichnung: "Gruppenführer", x: 70, y: 15 },
@@ -34,7 +37,7 @@ const PRESETS: Record<string, PresetDefinition> = {
     ],
   },
   gruppe_2pa: {
-    label: "Gruppe (1+8, 2 PA)",
+    label: t.preset_labels.gruppe_2pa,
     // Wie 4 PA, nur Wasser- und Schlauchtrupp in der hinteren Reihe getauscht.
     sitzplaetze: [
       { bezeichnung: "Maschinist", x: 30, y: 12 },
@@ -49,7 +52,7 @@ const PRESETS: Record<string, PresetDefinition> = {
     ],
   },
   gruppe_4pa: {
-    label: "Gruppe (1+8, 4 PA)",
+    label: t.preset_labels.gruppe_4pa,
     sitzplaetze: [
       { bezeichnung: "Maschinist", x: 30, y: 12 },
       { bezeichnung: "Gruppenführer", x: 70, y: 12 },
@@ -85,7 +88,7 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
 
   function preisetAnwenden(key: string) {
     const preset = PRESETS[key];
-    if (sitzplaetze.length > 0 && !window.confirm("Vorhandene Sitzplätze durch Vorlage ersetzen?")) {
+    if (sitzplaetze.length > 0 && !window.confirm(t.vorlage_ersetzen_bestaetigen)) {
       return;
     }
     setSitzplaetze(preset.sitzplaetze.map((s) => ({ ...s, id: neueSitzplatzId(), funktion_id: null })));
@@ -102,7 +105,7 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
   function boxKlick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target !== boxRef.current) return; // Klick kam von einem Sitzplatz, nicht vom freien Bereich
     const { x, y } = boxKoordinaten(e);
-    const bezeichnung = window.prompt("Bezeichnung des neuen Sitzplatzes:", "Sitzplatz");
+    const bezeichnung = window.prompt(t.neuer_sitzplatz_prompt, t.neuer_sitzplatz_default);
     if (!bezeichnung || !bezeichnung.trim()) return;
     const neu: Sitzplatz = { id: neueSitzplatzId(), bezeichnung: bezeichnung.trim(), x, y, funktion_id: null };
     setSitzplaetze((vorher) => [...vorher, neu]);
@@ -130,7 +133,7 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
   function umbenennen(id: string) {
     const aktuell = sitzplaetze.find((s) => s.id === id);
     if (!aktuell) return;
-    const neuerName = window.prompt("Neue Bezeichnung:", aktuell.bezeichnung);
+    const neuerName = window.prompt(t.umbenennen_prompt, aktuell.bezeichnung);
     if (!neuerName || !neuerName.trim()) return;
     setSitzplaetze((vorher) => vorher.map((s) => (s.id === id ? { ...s, bezeichnung: neuerName.trim() } : s)));
   }
@@ -151,7 +154,7 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
       const aktualisiert = await fahrzeugAktualisieren(fahrzeug.id, { sitzplaetze });
       onGespeichert(aktualisiert);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Speichern fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_speichern);
     } finally {
       setSpeichern(false);
     }
@@ -176,11 +179,8 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
         style={{ maxWidth: 720, width: "100%", maxHeight: "90vh", overflowY: "auto" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2>Sitzplätze: {fahrzeug.name}</h2>
-        <p className="hinweistext">
-          Vorlage wählen, dann Sitzplätze per Ziehen positionieren. Klick auf freie Fläche fügt einen
-          neuen Sitzplatz hinzu, Klick auf einen Sitzplatz erlaubt Umbenennen/Löschen.
-        </p>
+        <h2>{t.titel_prefix} {fahrzeug.name}</h2>
+        <p className="hinweistext">{t.hinweis}</p>
 
         <div style={{ display: "flex", gap: 8, marginBottom: "1rem", flexWrap: "wrap" }}>
           {Object.entries(PRESETS).map(([key, preset]) => (
@@ -245,20 +245,20 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
         {ausgewaehlt && (
           <div style={{ marginTop: "1rem", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <button type="button" className="sekundaer" onClick={() => umbenennen(ausgewaehlt)}>
-              Umbenennen
+              {t.umbenennen}
             </button>
             <button type="button" className="sekundaer" onClick={() => entfernen(ausgewaehlt)}>
-              Löschen
+              {t.loeschen}
             </button>
             <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              Funktion (Vorschlag beim Scannen)
+              {t.funktion_label}
               <select
                 value={sitzplaetze.find((s) => s.id === ausgewaehlt)?.funktion_id ?? ""}
                 onChange={(e) =>
                   funktionAendern(ausgewaehlt, e.target.value ? Number(e.target.value) : null)
                 }
               >
-                <option value="">– keine –</option>
+                <option value="">{t.funktion_keine}</option>
                 {funktionen.map((f) => (
                   <option key={f.id} value={f.id}>
                     {f.name}
@@ -273,10 +273,10 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
 
         <div style={{ marginTop: "1.5rem", display: "flex", gap: 8, justifyContent: "flex-end" }}>
           <button type="button" className="sekundaer" onClick={onClose}>
-            Abbrechen
+            {t.abbrechen}
           </button>
           <button type="button" onClick={speichernKlick} disabled={speichern}>
-            {speichern ? "Speichert …" : "Speichern"}
+            {speichern ? t.speichert : t.speichern}
           </button>
         </div>
       </div>

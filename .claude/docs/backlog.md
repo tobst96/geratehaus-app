@@ -1836,8 +1836,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   migriert** (Namespace `texte.barcode_generator`: Titel/Intro, Gültigkeitsdauer,
   Buttons inkl. Lade-Beschriftungen, Massenversand-Ergebnis mit Singular/Plural-Tokens,
   Hinweistext, HTML-Export-Texte „Gültig bis"/alt/Titel, Generieren/Drucken; Personennamen
-  + Datum bleiben dynamisch). Build grün. Rest Gruppenführer: Personal, Einstellungen,
-  EinsatzDetail, SitzplatzEditor.
+  + Datum bleiben dynamisch). Build grün.
+- Fortschritt (10.07.2026, direkt auf beta): **`pages/gruppenfuehrer/SitzplatzEditor.tsx`
+  migriert** (Namespace `texte.sitzplatz_editor`: Preset-Button-Labels, Titel/Hinweis,
+  Prompts/Confirm, Umbenennen/Löschen, Funktion-Auswahl, Abbrechen/Speichern). Die
+  Sitzplatz-**Bezeichnungen** der Presets bleiben bewusst literal, da sie als Daten in
+  `fahrzeug.sitzplaetze` gespeichert werden (keine UI-Chrome). Build grün. Rest
+  Gruppenführer: Personal, Einstellungen, EinsatzDetailGruppenfuehrer.
 
 ### CI bei jedem PR (GitHub Actions)
 

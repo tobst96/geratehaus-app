@@ -25,7 +25,7 @@
  * `pages/gruppenfuehrer/DienstbuchDetailGruppenfuehrer.tsx`,
  * `pages/gruppenfuehrer/GruppenfuehrerLayout.tsx` (Nav; funktionale ?tab-Keys bleiben literal),
  * `pages/gruppenfuehrer/KioskGeraete.tsx`, `pages/gruppenfuehrer/Module.tsx`,
- * `pages/gruppenfuehrer/BarcodeGenerator.tsx`.
+ * `pages/gruppenfuehrer/BarcodeGenerator.tsx`, `pages/gruppenfuehrer/SitzplatzEditor.tsx`.
  */
 export const texte = {
   landing: {
@@ -529,5 +529,31 @@ export const texte = {
     fehler_personen: "Personen konnten nicht geladen werden.",
     fehler_speichern: "Speichern fehlgeschlagen.",
     fehler_massenversand: "Massenversand fehlgeschlagen.",
+  },
+  sitzplatz_editor: {
+    // Preset-Button-Labels (reine UI). Die Sitzplatz-Bezeichnungen selbst bleiben
+    // literal im Component, da sie als Daten in fahrzeug.sitzplaetze gespeichert werden.
+    preset_labels: {
+      trupp: "Trupp (1+2)",
+      staffel: "Staffel (1+5)",
+      gruppe_2pa: "Gruppe (1+8, 2 PA)",
+      gruppe_4pa: "Gruppe (1+8, 4 PA)",
+    },
+    titel_prefix: "Sitzplätze:",
+    hinweis:
+      "Vorlage wählen, dann Sitzplätze per Ziehen positionieren. Klick auf freie Fläche fügt einen " +
+      "neuen Sitzplatz hinzu, Klick auf einen Sitzplatz erlaubt Umbenennen/Löschen.",
+    vorlage_ersetzen_bestaetigen: "Vorhandene Sitzplätze durch Vorlage ersetzen?",
+    neuer_sitzplatz_prompt: "Bezeichnung des neuen Sitzplatzes:",
+    neuer_sitzplatz_default: "Sitzplatz",
+    umbenennen_prompt: "Neue Bezeichnung:",
+    umbenennen: "Umbenennen",
+    loeschen: "Löschen",
+    funktion_label: "Funktion (Vorschlag beim Scannen)",
+    funktion_keine: "– keine –",
+    abbrechen: "Abbrechen",
+    speichert: "Speichert …",
+    speichern: "Speichern",
+    fehler_speichern: "Speichern fehlgeschlagen.",
   },
 } as const;
