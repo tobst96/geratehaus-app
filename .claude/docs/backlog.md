@@ -16,7 +16,8 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Modul „Pressebericht" (konfigurierbarer Einsatz-Pressebericht als PDF-Mail)
 
-- Status: Review (Feature-Branch `feature/modul-pressebericht` → PR nach beta, 10.07.2026)
+- Status: Erledigt (PR #61 in `beta` gemergt + **deployt** 10.07.2026; Migration 0065 live,
+  Modul in FEATURE_MODULE + Config-Defaults registriert, Backend-Suite 412 grün)
 - Priorität: Mittel
 - Kategorie: Neues Modul
 - Skills: planner, new-module, geraetehaus-patterns, tests, review
