@@ -1819,8 +1819,10 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (`texte.systemstatus`: Dienste-/Job-Status inkl. Ampel-Kurztexte), **Update**
   (`texte.update`; Intro-Absatz mit `<code>` bewusst inline gelassen), **Berechtigungen**
   (`texte.berechtigungen`), **PersonKanaele** (`texte.person_kanaele`),
-  **DienstbuchDetailGruppenfuehrer** (`texte.dienstbuch_detail`). Rest: übriger
-  Gruppenführer-Bereich (Listen, Personal, Einstellungen, Module, weitere Detail-Seiten …).
+  **DienstbuchDetailGruppenfuehrer** (`texte.dienstbuch_detail`), **GruppenfuehrerLayout**
+  (`texte.gruppenfuehrer_nav`: Nav-Gruppen/-Einträge, Menü/Abmelden – funktionale `?tab=`-Keys
+  bewusst literal). Rest: übriger Gruppenführer-Bereich (Personal, Einstellungen, Module,
+  KioskGeräte, BarcodeGenerator, EinsatzDetail, SitzplatzEditor …).
 
 ### CI bei jedem PR (GitHub Actions)
 

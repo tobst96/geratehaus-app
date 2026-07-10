@@ -5,6 +5,7 @@ import { useConfig } from "../../context/ConfigContext";
 import { holeFeatureModule, type FeatureModul } from "../../api/featureModule";
 import { navIcon } from "./navIcons";
 import { GRANTBARE_MODUL_UNTERSEITEN } from "./modulRechte";
+import { texte } from "../../i18n/texte";
 
 type ModulKey =
   | "modul_einsatztagebuch_aktiv"
@@ -35,31 +36,31 @@ type NavGruppe = {
 };
 
 const NAV_GRUPPEN: NavGruppe[] = [
-  { id: "start", titel: null, admin: false, items: [{ pfad: "/gruppenfuehrer/dashboard", titel: "Dashboard", icon: "dashboard" }] },
+  { id: "start", titel: null, admin: false, items: [{ pfad: "/gruppenfuehrer/dashboard", titel: texte.gruppenfuehrer_nav.dashboard, icon: "dashboard" }] },
   {
     id: "buchungen",
     titel: null,
     admin: false,
-    items: [{ pfad: "/gruppenfuehrer/buchungen", titel: "Buchungen", icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv", berechtigungKey: "fahrzeugbuchung" }],
+    items: [{ pfad: "/gruppenfuehrer/buchungen", titel: texte.gruppenfuehrer_nav.buchungen, icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv", berechtigungKey: "fahrzeugbuchung" }],
   },
-  { id: "listen", titel: "Listen", admin: false, listen: true, items: [] },
+  { id: "listen", titel: texte.gruppenfuehrer_nav.gruppe_listen, admin: false, listen: true, items: [] },
   {
     id: "module",
-    titel: "Module",
+    titel: texte.gruppenfuehrer_nav.gruppe_module,
     admin: true,
     module: true,
-    items: [{ pfad: "/gruppenfuehrer/module", titel: "Übersicht", icon: "module", berechtigungKey: "einstellungen" }],
+    items: [{ pfad: "/gruppenfuehrer/module", titel: texte.gruppenfuehrer_nav.uebersicht, icon: "module", berechtigungKey: "einstellungen" }],
   },
   {
     id: "verwaltung",
-    titel: "Verwaltung",
+    titel: texte.gruppenfuehrer_nav.gruppe_verwaltung,
     admin: true,
     items: [
-      { pfad: "/gruppenfuehrer/berechtigungen", titel: "Berechtigungen", icon: "berechtigungen", berechtigungKey: "berechtigungen" },
-      { pfad: "/gruppenfuehrer/audit", titel: "Audit-Log", icon: "berechtigungen", nurAdmin: true },
-      { pfad: "/gruppenfuehrer/systemstatus", titel: "Systemstatus", icon: "update", nurAdmin: true },
-      { pfad: "/gruppenfuehrer/update", titel: "Update", icon: "update", berechtigungKey: "einstellungen" },
-      { pfad: "/gruppenfuehrer/einstellungen", titel: "Einstellungen", icon: "einstellungen", berechtigungKey: "einstellungen" },
+      { pfad: "/gruppenfuehrer/berechtigungen", titel: texte.gruppenfuehrer_nav.berechtigungen, icon: "berechtigungen", berechtigungKey: "berechtigungen" },
+      { pfad: "/gruppenfuehrer/audit", titel: texte.gruppenfuehrer_nav.audit_log, icon: "berechtigungen", nurAdmin: true },
+      { pfad: "/gruppenfuehrer/systemstatus", titel: texte.gruppenfuehrer_nav.systemstatus, icon: "update", nurAdmin: true },
+      { pfad: "/gruppenfuehrer/update", titel: texte.gruppenfuehrer_nav.update, icon: "update", berechtigungKey: "einstellungen" },
+      { pfad: "/gruppenfuehrer/einstellungen", titel: texte.gruppenfuehrer_nav.einstellungen, icon: "einstellungen", berechtigungKey: "einstellungen" },
     ],
   },
 ];
@@ -92,6 +93,7 @@ const MODUL_ICON: Record<string, string> = {
 };
 
 export function GruppenfuehrerLayout() {
+  const t = texte.gruppenfuehrer_nav;
   const { gruppenfuehrerAbmelden, gruppenfuehrerRolle, hatModulZugriff } = useAuth();
   const { config, neuLaden } = useConfig();
   const navigate = useNavigate();
@@ -159,19 +161,19 @@ export function GruppenfuehrerLayout() {
         type="button"
         className="mod-mobile-toggle"
         onClick={() => setDrawerOffen((o) => !o)}
-        aria-label="Menü öffnen"
+        aria-label={t.menue_oeffnen}
         aria-expanded={drawerOffen}
       >
         <span className="mod-burger" />
-        Menü
+        {t.menue}
       </button>
 
       {drawerOffen && <div className="mod-overlay" onClick={() => setDrawerOffen(false)} />}
 
       <aside className={`mod-sidebar${drawerOffen ? " offen" : ""}`}>
         <div className="mod-sidebar-kopf">
-          <span>{config?.organisation_name ?? "Gruppenführer"}</span>
-          <button type="button" className="mod-sidebar-close" onClick={() => setDrawerOffen(false)} aria-label="Schließen">
+          <span>{config?.organisation_name ?? t.organisation_fallback}</span>
+          <button type="button" className="mod-sidebar-close" onClick={() => setDrawerOffen(false)} aria-label={t.schliessen}>
             ✕
           </button>
         </div>
@@ -262,7 +264,7 @@ export function GruppenfuehrerLayout() {
         </nav>
 
         <button type="button" className="mod-logout" onClick={abmelden}>
-          Abmelden
+          {t.abmelden}
         </button>
       </aside>
 

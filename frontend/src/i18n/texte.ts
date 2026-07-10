@@ -22,7 +22,8 @@
  * `pages/gruppenfuehrer/AuditLog.tsx`, `pages/gruppenfuehrer/Systemstatus.tsx`,
  * `pages/gruppenfuehrer/Update.tsx` (Intro-Absatz mit <code> bewusst inline),
  * `pages/gruppenfuehrer/Berechtigungen.tsx`, `pages/gruppenfuehrer/PersonKanaele.tsx`,
- * `pages/gruppenfuehrer/DienstbuchDetailGruppenfuehrer.tsx`.
+ * `pages/gruppenfuehrer/DienstbuchDetailGruppenfuehrer.tsx`,
+ * `pages/gruppenfuehrer/GruppenfuehrerLayout.tsx` (Nav; funktionale ?tab-Keys bleiben literal).
  */
 export const texte = {
   landing: {
@@ -347,6 +348,26 @@ export const texte = {
     keine_ueberschreitungen: "Keine Überschreitungen.",
     einsaetze_pro_monat: "Einsätze pro Monat",
     keine_daten: "Keine Daten.",
+  },
+  gruppenfuehrer_nav: {
+    organisation_fallback: "Gruppenführer",
+    menue_oeffnen: "Menü öffnen",
+    menue: "Menü",
+    schliessen: "Schließen",
+    abmelden: "Abmelden",
+    // Gruppen-Überschriften
+    gruppe_listen: "Listen",
+    gruppe_module: "Module",
+    gruppe_verwaltung: "Verwaltung",
+    // Nav-Einträge (der Pfad ist der funktionale Teil, hier nur Anzeige)
+    dashboard: "Dashboard",
+    buchungen: "Buchungen",
+    uebersicht: "Übersicht",
+    berechtigungen: "Berechtigungen",
+    audit_log: "Audit-Log",
+    systemstatus: "Systemstatus",
+    update: "Update",
+    einstellungen: "Einstellungen",
   },
   gruppenfuehrer_login: {
     titel: "Anmeldung Gruppenführer / Admin",
