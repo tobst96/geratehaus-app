@@ -1920,7 +1920,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   IPP/Web-Push-VAPID/Ereignis-Schalter, Test-Buttons + Ergebnistexte, Speichern-/Fehler-/
   Banner-Texte; EREIGNISSE-Labels aus dem Namespace). Technische Format-Beispiele in
   `placeholder`/`<code>` (smtp.gmail.com, ipp://…, VAPID-Befehl) bleiben literal. Build grün.
-  Rest Gruppenführer: **Personal, Listen**.
+- Fortschritt (10.07.2026, direkt auf beta): **`pages/gruppenfuehrer/Listen.tsx` migriert**
+  (Namespace `texte.listen`: alle Tab-Inhalte – Einsätze/Dienstbücher/Dienststunden inkl.
+  Schwellenwert-Übernahme/Buchungen/Formulare/Namensabweichungen: Filter-Buttons/-Optionen,
+  Spaltenköpfe, Status-/Ja-Zellen, Auswertung/Einreichungen, Fehlermeldungen). **Tab-Namen
+  bleiben literal** (funktionale `?tab=`-Keys + `TAB_MODUL`/`TAB_PERM`-Lookups + Vergleiche,
+  inkl. `<h1>{tab}</h1>`). Build grün. **Rest Gruppenführer: nur noch Personal (1392 Z.).**
 
 ### CI bei jedem PR (GitHub Actions)
 

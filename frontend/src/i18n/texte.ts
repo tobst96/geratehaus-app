@@ -27,7 +27,8 @@
  * `pages/gruppenfuehrer/KioskGeraete.tsx`, `pages/gruppenfuehrer/Module.tsx`,
  * `pages/gruppenfuehrer/BarcodeGenerator.tsx`, `pages/gruppenfuehrer/SitzplatzEditor.tsx`,
  * `pages/gruppenfuehrer/EinsatzDetailGruppenfuehrer.tsx`, `pages/gruppenfuehrer/Einstellungen.tsx`,
- * `pages/gruppenfuehrer/NotifierEinstellungen.tsx`.
+ * `pages/gruppenfuehrer/NotifierEinstellungen.tsx`, `pages/gruppenfuehrer/Listen.tsx`
+ * (Tab-Namen bleiben literal – funktionale ?tab=-Keys).
  */
 export const texte = {
   landing: {
@@ -725,5 +726,71 @@ export const texte = {
     speichern: "Konfiguration speichern",
     fehler_laden: "Fehler beim Laden",
     fehler_speichern: "Fehler beim Speichern",
+  },
+  listen: {
+    // Tab-Namen selbst bleiben literal (funktionale ?tab=-Keys). Hier nur der übrige UI-Text.
+    fehler_liste: "Liste konnte nicht geladen werden.",
+    filtern: "Filtern",
+    von: "Von",
+    bis: "Bis",
+    ja: "Ja",
+    nein: "Nein",
+    archiviert_alle: "Alle",
+    archiviert_aktive: "Nur aktive",
+    archiviert_archivierte: "Nur archivierte",
+    // Gemeinsame Spaltenköpfe
+    th_titel: "Titel",
+    th_zeitpunkt: "Zeitpunkt",
+    th_quelle: "Quelle",
+    th_status: "Status",
+    th_teilnehmer: "Teilnehmer",
+    th_archiviert: "Archiviert",
+    th_person: "Person",
+    th_funktion: "Funktion",
+    th_stunden: "Stunden",
+    th_datum: "Datum",
+    // Dienstbücher
+    status_alle: "Alle Status",
+    status_offen: "Nur offene",
+    status_geschlossen: "Nur geschlossene",
+    th_eroeffnet: "Eröffnet am",
+    geschlossen: "Geschlossen",
+    offen: "Offen",
+    // Dienststunden
+    alle_eintraege: "Alle Einträge",
+    // Schwellenwert
+    schwellenwert_titel: "Schwellenwert-Überschreitungen",
+    schwellenwert_hinweis:
+      "Personen, die den Schwellenwert ihrer Funktion auch nach Abzug bereits übernommener Stunden " +
+      "noch überschreiten. Übernommene Stunden werden vom Überschuss abgezogen, ohne die " +
+      "Dienststunden-Einträge selbst zu verändern.",
+    keine_ueberschreitungen: "Aktuell keine Überschreitungen.",
+    th_summe: "Summe",
+    th_schwellenwert: "Schwellenwert",
+    th_uebernommen: "Bereits übernommen",
+    th_ueberschuss: "Überschuss",
+    th_stunden_uebernehmen: "Stunden übernehmen",
+    speichert: "Speichert …",
+    uebernehmen: "Übernehmen",
+    fehler_uebernahme: "Übernahme konnte nicht gespeichert werden.",
+    // Buchungen
+    buchung_status_ausstehend: "Ausstehend",
+    buchung_status_genehmigt: "Genehmigt",
+    buchung_status_abgelehnt: "Abgelehnt",
+    buchung_status_zurueckgezogen: "Zurückgezogen",
+    th_fahrzeug: "Fahrzeug",
+    th_zweck: "Zweck",
+    th_verantwortlich: "Verantwortlich",
+    // Namensabweichungen
+    th_cookie_name: "Bisheriger Name (Cookie)",
+    th_eingetragener_name: "Neu eingetragener Name",
+    th_zeitstempel: "Zeitstempel",
+    // Formulare
+    fehler_formulare: "Formulare konnten nicht geladen werden.",
+    keine_formulare: "Keine für dich freigegebenen Formulare.",
+    auswertung: "Auswertung",
+    einreichungen: "Einreichungen",
+    keine_einreichungen: "Noch keine Einreichungen.",
+    fehler_daten: "Daten konnten nicht geladen werden.",
   },
 } as const;

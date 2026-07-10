@@ -28,6 +28,9 @@ import type { DienststundenEintragOut } from "../../api/dienststunden";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { texte } from "../../i18n/texte";
+
+const t = texte.listen;
 
 const TABS_BASIS = ["Einsätze", "Dienstbücher", "Dienststunden", "Buchungen", "Formulare"] as const;
 const TAB_NAMENSABWEICHUNGEN = "Namensabweichungen" as const;
@@ -113,7 +116,7 @@ function EinsaetzeTab() {
       setDaten(await holeEinsaetzeListe(filter));
       setFehler(null);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Liste konnte nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_liste);
     }
   }
 
@@ -125,10 +128,10 @@ function EinsaetzeTab() {
   return (
     <div>
       <FilterZeile>
-        <DatumFeld label="Von" value={von} onChange={setVon} />
-        <DatumFeld label="Bis" value={bis} onChange={setBis} />
+        <DatumFeld label={t.von} value={von} onChange={setVon} />
+        <DatumFeld label={t.bis} value={bis} onChange={setBis} />
         <ArchiviertFeld value={archiviert} onChange={setArchiviert} />
-        <button onClick={laden}>Filtern</button>
+        <button onClick={laden}>{t.filtern}</button>
       </FilterZeile>
       {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
@@ -136,12 +139,12 @@ function EinsaetzeTab() {
         <table>
           <thead>
             <tr>
-              <th>Titel</th>
-              <th>Zeitpunkt</th>
-              <th>Quelle</th>
-              <th>Status</th>
-              <th>Teilnehmer</th>
-              <th>Archiviert</th>
+              <th>{t.th_titel}</th>
+              <th>{t.th_zeitpunkt}</th>
+              <th>{t.th_quelle}</th>
+              <th>{t.th_status}</th>
+              <th>{t.th_teilnehmer}</th>
+              <th>{t.th_archiviert}</th>
             </tr>
           </thead>
           <tbody>
@@ -154,7 +157,7 @@ function EinsaetzeTab() {
                 <td>{e.quelle}</td>
                 <td>{e.status}</td>
                 <td>{e.teilnahmen.length}</td>
-                <td>{e.archiviert ? "Ja" : ""}</td>
+                <td>{e.archiviert ? t.ja : ""}</td>
               </tr>
             ))}
           </tbody>
@@ -184,7 +187,7 @@ function DienstbuecherTab() {
       setDaten(await holeDienstbuecherListe(filter));
       setFehler(null);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Liste konnte nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_liste);
     }
   }
 
@@ -202,15 +205,15 @@ function DienstbuecherTab() {
   return (
     <div>
       <FilterZeile>
-        <DatumFeld label="Von" value={von} onChange={setVon} />
-        <DatumFeld label="Bis" value={bis} onChange={setBis} />
+        <DatumFeld label={t.von} value={von} onChange={setVon} />
+        <DatumFeld label={t.bis} value={bis} onChange={setBis} />
         <select value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">Alle Status</option>
-          <option value="offen">Nur offene</option>
-          <option value="geschlossen">Nur geschlossene</option>
+          <option value="">{t.status_alle}</option>
+          <option value="offen">{t.status_offen}</option>
+          <option value="geschlossen">{t.status_geschlossen}</option>
         </select>
         <ArchiviertFeld value={archiviert} onChange={setArchiviert} />
-        <button onClick={laden}>Filtern</button>
+        <button onClick={laden}>{t.filtern}</button>
       </FilterZeile>
       {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
@@ -218,11 +221,11 @@ function DienstbuecherTab() {
         <table>
           <thead>
             <tr>
-              <th>Titel</th>
-              <th>Eröffnet am</th>
-              <th>Status</th>
-              <th>Teilnehmer</th>
-              <th>Archiviert</th>
+              <th>{t.th_titel}</th>
+              <th>{t.th_eroeffnet}</th>
+              <th>{t.th_status}</th>
+              <th>{t.th_teilnehmer}</th>
+              <th>{t.th_archiviert}</th>
             </tr>
           </thead>
           <tbody>
@@ -232,9 +235,9 @@ function DienstbuecherTab() {
                   <Link to={`/gruppenfuehrer/dienstbuecher/${d.id}`}>{d.titel}</Link>
                 </td>
                 <td>{formatiereDatumZeit(d.eroeffnet_am)}</td>
-                <td>{d.geschlossen ? "Geschlossen" : "Offen"}</td>
+                <td>{d.geschlossen ? t.geschlossen : t.offen}</td>
                 <td>{d.teilnehmer.length}</td>
-                <td>{d.archiviert ? "Ja" : ""}</td>
+                <td>{d.archiviert ? t.ja : ""}</td>
               </tr>
             ))}
           </tbody>
@@ -258,7 +261,7 @@ function DienststundenTab() {
       setDaten(await holeDienststundenListe(filter));
       setFehler(null);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Liste konnte nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_liste);
     }
   }
 
@@ -271,11 +274,11 @@ function DienststundenTab() {
     <div>
       <SchwellenwertUeberschreitungenTab />
 
-      <h2 style={{ marginTop: "2rem" }}>Alle Einträge</h2>
+      <h2 style={{ marginTop: "2rem" }}>{t.alle_eintraege}</h2>
       <FilterZeile>
-        <DatumFeld label="Von" value={von} onChange={setVon} />
-        <DatumFeld label="Bis" value={bis} onChange={setBis} />
-        <button onClick={laden}>Filtern</button>
+        <DatumFeld label={t.von} value={von} onChange={setVon} />
+        <DatumFeld label={t.bis} value={bis} onChange={setBis} />
+        <button onClick={laden}>{t.filtern}</button>
       </FilterZeile>
       {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
@@ -283,10 +286,10 @@ function DienststundenTab() {
         <table>
           <thead>
             <tr>
-              <th>Person</th>
-              <th>Funktion</th>
-              <th>Stunden</th>
-              <th>Datum</th>
+              <th>{t.th_person}</th>
+              <th>{t.th_funktion}</th>
+              <th>{t.th_stunden}</th>
+              <th>{t.th_datum}</th>
             </tr>
           </thead>
           <tbody>
@@ -317,7 +320,7 @@ function SchwellenwertUeberschreitungenTab() {
       setDaten(await holeDienststundenSchwellenwert());
       setFehler(null);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Liste konnte nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_liste);
     }
   }
 
@@ -338,7 +341,7 @@ function SchwellenwertUeberschreitungenTab() {
       setEingabe((vorher) => ({ ...vorher, [schluessel(e)]: "" }));
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Übernahme konnte nicht gespeichert werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_uebernahme);
     } finally {
       setSpeichertSchluessel(null);
     }
@@ -346,26 +349,22 @@ function SchwellenwertUeberschreitungenTab() {
 
   return (
     <div style={{ marginTop: "2rem" }}>
-      <h2>Schwellenwert-Überschreitungen</h2>
-      <p className="text-mute">
-        Personen, die den Schwellenwert ihrer Funktion auch nach Abzug bereits übernommener Stunden
-        noch überschreiten. Übernommene Stunden werden vom Überschuss abgezogen, ohne die
-        Dienststunden-Einträge selbst zu verändern.
-      </p>
+      <h2>{t.schwellenwert_titel}</h2>
+      <p className="text-mute">{t.schwellenwert_hinweis}</p>
       {fehler && <Fehlertext>{fehler}</Fehlertext>}
-      {daten && daten.length === 0 && <p className="text-mute">Aktuell keine Überschreitungen.</p>}
+      {daten && daten.length === 0 && <p className="text-mute">{t.keine_ueberschreitungen}</p>}
       {daten && daten.length > 0 && (
         <div className="tabelle-scroll">
         <table>
           <thead>
             <tr>
-              <th>Person</th>
-              <th>Funktion</th>
-              <th>Summe</th>
-              <th>Schwellenwert</th>
-              <th>Bereits übernommen</th>
-              <th>Überschuss</th>
-              <th>Stunden übernehmen</th>
+              <th>{t.th_person}</th>
+              <th>{t.th_funktion}</th>
+              <th>{t.th_summe}</th>
+              <th>{t.th_schwellenwert}</th>
+              <th>{t.th_uebernommen}</th>
+              <th>{t.th_ueberschuss}</th>
+              <th>{t.th_stunden_uebernehmen}</th>
             </tr>
           </thead>
           <tbody>
@@ -395,7 +394,7 @@ function SchwellenwertUeberschreitungenTab() {
                     onClick={() => uebernehmen(e)}
                     disabled={speichertSchluessel === schluessel(e)}
                   >
-                    {speichertSchluessel === schluessel(e) ? "Speichert …" : "Übernehmen"}
+                    {speichertSchluessel === schluessel(e) ? t.speichert : t.uebernehmen}
                   </button>
                 </td>
               </tr>
@@ -422,7 +421,7 @@ function BuchungenTab() {
       setDaten(await holeBuchungenListe(filter));
       setFehler(null);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Liste konnte nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_liste);
     }
   }
 
@@ -434,16 +433,16 @@ function BuchungenTab() {
   return (
     <div>
       <FilterZeile>
-        <DatumFeld label="Von" value={von} onChange={setVon} />
-        <DatumFeld label="Bis" value={bis} onChange={setBis} />
+        <DatumFeld label={t.von} value={von} onChange={setVon} />
+        <DatumFeld label={t.bis} value={bis} onChange={setBis} />
         <select value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">Alle Status</option>
-          <option value="ausstehend">Ausstehend</option>
-          <option value="genehmigt">Genehmigt</option>
-          <option value="abgelehnt">Abgelehnt</option>
-          <option value="zurueckgezogen">Zurückgezogen</option>
+          <option value="">{t.status_alle}</option>
+          <option value="ausstehend">{t.buchung_status_ausstehend}</option>
+          <option value="genehmigt">{t.buchung_status_genehmigt}</option>
+          <option value="abgelehnt">{t.buchung_status_abgelehnt}</option>
+          <option value="zurueckgezogen">{t.buchung_status_zurueckgezogen}</option>
         </select>
-        <button onClick={laden}>Filtern</button>
+        <button onClick={laden}>{t.filtern}</button>
       </FilterZeile>
       {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {daten && (
@@ -451,12 +450,12 @@ function BuchungenTab() {
         <table>
           <thead>
             <tr>
-              <th>Fahrzeug</th>
-              <th>Von</th>
-              <th>Bis</th>
-              <th>Zweck</th>
-              <th>Verantwortlich</th>
-              <th>Status</th>
+              <th>{t.th_fahrzeug}</th>
+              <th>{t.von}</th>
+              <th>{t.bis}</th>
+              <th>{t.th_zweck}</th>
+              <th>{t.th_verantwortlich}</th>
+              <th>{t.th_status}</th>
             </tr>
           </thead>
           <tbody>
@@ -485,7 +484,7 @@ function NamensabweichungenTab() {
   useEffect(() => {
     holeNamensabweichungen()
       .then(setDaten)
-      .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : "Liste konnte nicht geladen werden."));
+      .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_liste));
   }, []);
 
   if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
@@ -496,9 +495,9 @@ function NamensabweichungenTab() {
     <table>
       <thead>
         <tr>
-          <th>Bisheriger Name (Cookie)</th>
-          <th>Neu eingetragener Name</th>
-          <th>Zeitstempel</th>
+          <th>{t.th_cookie_name}</th>
+          <th>{t.th_eingetragener_name}</th>
+          <th>{t.th_zeitstempel}</th>
         </tr>
       </thead>
       <tbody>
@@ -535,15 +534,15 @@ function DatumFeld({ label, value, onChange }: { label: string; value: string; o
 function ArchiviertFeld({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}>
-      <option value="">Alle</option>
-      <option value="false">Nur aktive</option>
-      <option value="true">Nur archivierte</option>
+      <option value="">{t.archiviert_alle}</option>
+      <option value="false">{t.archiviert_aktive}</option>
+      <option value="true">{t.archiviert_archivierte}</option>
     </select>
   );
 }
 
 function formularWertText(a: Einreichung["antworten"][number]): string {
-  if (a.typ === "checkbox") return a.wert ? "Ja" : "Nein";
+  if (a.typ === "checkbox") return a.wert ? t.ja : t.nein;
   if (Array.isArray(a.wert)) return a.wert.join(", ");
   if (a.wert === null || a.wert === "") return "–";
   return String(a.wert);
@@ -561,7 +560,7 @@ function FormulareTab() {
     holeSichtbareFormulare()
       .then(setFormulare)
       .catch((err) =>
-        setFehler(err instanceof ApiError ? String(err.detail) : "Formulare konnten nicht geladen werden.")
+        setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_formulare)
       );
   }, []);
 
@@ -574,14 +573,14 @@ function FormulareTab() {
       setZusammenfassung(z);
       setEinreichungen(e);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Daten konnten nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_daten);
     }
   }
 
   if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!formulare) return <Ladeanzeige />;
   if (formulare.length === 0)
-    return <p className="text-mute">Keine für dich freigegebenen Formulare.</p>;
+    return <p className="text-mute">{t.keine_formulare}</p>;
 
   return (
     <div>
@@ -603,13 +602,13 @@ function FormulareTab() {
             className={ansicht === "auswertung" ? "" : "sekundaer"}
             onClick={() => setAnsicht("auswertung")}
           >
-            Auswertung
+            {t.auswertung}
           </button>
           <button
             className={ansicht === "einreichungen" ? "" : "sekundaer"}
             onClick={() => setAnsicht("einreichungen")}
           >
-            Einreichungen
+            {t.einreichungen}
           </button>
         </div>
       )}
@@ -623,7 +622,7 @@ function FormulareTab() {
         (!einreichungen ? (
           <Ladeanzeige />
         ) : einreichungen.length === 0 ? (
-          <p className="text-mute">Noch keine Einreichungen.</p>
+          <p className="text-mute">{t.keine_einreichungen}</p>
         ) : (
           einreichungen.map((e) => (
             <div
