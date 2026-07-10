@@ -16,7 +16,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Modul „Pressebericht" (konfigurierbarer Einsatz-Pressebericht als PDF-Mail)
 
-- Status: In Bearbeitung (Feature-Branch `feature/modul-pressebericht`, seit 10.07.2026)
+- Status: Review (Feature-Branch `feature/modul-pressebericht` → PR nach beta, 10.07.2026)
 - Priorität: Mittel
 - Kategorie: Neues Modul
 - Skills: planner, new-module, geraetehaus-patterns, tests, review
@@ -52,8 +52,11 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   - [x] Hook in `einsatz_abschliessen` (Modus `schliessen`) + Scheduler-Job
         (Modus `stunden`/`uhrzeit`)
   - [x] Backend-Tests
-  - [ ] Frontend: Modul-Unterseite (Einstellungen) + Module-Übersicht-Toggle
-  - [ ] Doku `docs/pressebericht.md` + Index; Datenschutz prüfen
+  - [x] Frontend: Modul-Unterseite `PressberichtModul` (Inhalt/Zusatzfelder einzeln/
+        Versandmodus) + Module-Übersicht-Toggle (automatisch via FEATURE_MODULE) +
+        MinIO-Dateibrowser Deep-Link (`?bucket=&prefix=`)
+  - [x] Doku `docs/pressebericht.md` + Index
+  - [ ] Datenschutz-Seite beim nächsten Release prüfen (Teilnehmer-Namen im PDF/MinIO)
 - Akzeptanzkriterien: Modul an/abschaltbar; Inhalt konfigurierbar; PDF enthält nur
   aktivierte Blöcke; Versand in allen drei Modi; Timeline-Eintrag; PDF im MinIO-
   Ordner; Abonnenten-Mail; `scripts/test-backend.sh` + `npm run build` grün.
