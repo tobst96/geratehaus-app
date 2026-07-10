@@ -83,6 +83,7 @@ const MODUL_ICON: Record<string, string> = {
   fahrzeugbuchung: "fahrzeug",
   formular: "formular",
   divera: "divera",
+  pressebericht: "pressebericht",
   personal: "personal",
   fahrzeuge: "fahrzeug",
   barcode: "barcodes",
