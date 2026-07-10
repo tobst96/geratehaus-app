@@ -1815,8 +1815,9 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Login + 2FA-Schritt; Login-Test 2/2 grün), **Dashboard** (`texte.dashboard`: Kacheln,
   Schwellenwert-Tabelle, Einsätze-pro-Monat), **FormularZusammenfassung** +
   **ModulUnterseite** (kleine Namespaces), **Buchungsmanagement** (`texte.buchungsmanagement`),
-  **AuditLog** (`texte.audit_log` inkl. Aktions-Label-Map). Rest: übriger Gruppenführer-Bereich
-  (Listen, Personal, Einstellungen, Module, Detail-Seiten …).
+  **AuditLog** (`texte.audit_log` inkl. Aktions-Label-Map), **Systemstatus**
+  (`texte.systemstatus`: Dienste-/Job-Status inkl. Ampel-Kurztexte). Rest: übriger
+  Gruppenführer-Bereich (Listen, Personal, Einstellungen, Module, Detail-Seiten …).
 
 ### CI bei jedem PR (GitHub Actions)
 

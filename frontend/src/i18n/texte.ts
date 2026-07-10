@@ -19,7 +19,7 @@
  * `pages/FahrzeugbuchungManuelleEintragung.tsx`, `pages/gruppenfuehrer/GruppenfuehrerLogin.tsx`,
  * `pages/gruppenfuehrer/Dashboard.tsx`, `pages/gruppenfuehrer/FormularZusammenfassung.tsx`,
  * `pages/gruppenfuehrer/ModulUnterseite.tsx`, `pages/gruppenfuehrer/Buchungsmanagement.tsx`,
- * `pages/gruppenfuehrer/AuditLog.tsx`.
+ * `pages/gruppenfuehrer/AuditLog.tsx`, `pages/gruppenfuehrer/Systemstatus.tsx`.
  */
 export const texte = {
   landing: {
@@ -166,6 +166,39 @@ export const texte = {
     zweck: "Zweck",
     stellen_laeuft: "Wird gestellt…",
     anfrage_stellen: "Anfrage stellen",
+  },
+  systemstatus: {
+    titel: "Systemstatus",
+    ladefehler: "Status konnte nicht geladen werden.",
+    aktualisieren: "Aktualisieren",
+    aktualisieren_laeuft: "Aktualisiere …",
+    intro:
+      "Betriebsstatus der Kern-Dienste und geplanten Hintergrund-Jobs. Nur für Admins sichtbar – " +
+      "hilft beim Self-Hosting-Support.",
+    dienste: "Dienste",
+    version: "Version",
+    datenbank: "Datenbank",
+    email_smtp: "E-Mail (SMTP)",
+    objektspeicher: "Objektspeicher (MinIO)",
+    divera: "Divera",
+    hintergrund_jobs: "Hintergrund-Jobs",
+    keine_jobs: "Keine geplanten Jobs.",
+    th_job: "Job",
+    th_naechster_lauf: "Nächster Lauf",
+    // Ampel-/Status-Kurztexte
+    nv: "n/v",
+    ok: "OK",
+    fehler: "Fehler",
+    aktiv: "aktiv",
+    konfiguriert: "konfiguriert",
+    nicht_konfiguriert: "nicht konfiguriert",
+    erreichbar: "erreichbar",
+    nicht_erreichbar: "nicht erreichbar",
+    inaktiv: "inaktiv",
+    laeuft: "läuft",
+    gestoppt: "gestoppt",
+    api_key_gesetzt: "aktiv · API-Key gesetzt",
+    kein_api_key: "aktiv · kein API-Key",
   },
   audit_log: {
     titel: "Audit-Log",
