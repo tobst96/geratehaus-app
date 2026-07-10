@@ -27,6 +27,7 @@ from app.services import (
     einsatz_service,
     formular_service,
     pin_service,
+    pressebericht_service,
     stammdaten_service,
 )
 from app.services.config_service import config_service
@@ -166,6 +167,20 @@ async def _einsatz_geplanter_abschluss_job() -> None:
                 await einsatz_service.einsatz_abschliessen(db, einsatz)
         except Exception:
             logger.warning("einsatz_geplanter_abschluss_fehlgeschlagen", exc_info=True)
+
+
+@_ueberwacht("pressebericht-versand", {"type": "interval", "value": 15, "unit": "minute"})
+async def _pressebericht_versand_job() -> None:
+    """Läuft alle 15 min; versendet zeitgesteuerte Presseberichte (Modus 'stunden'
+    bzw. 'uhrzeit'). Modus 'schliessen' läuft direkt beim Einsatz-Abschluss und wird
+    hier nicht berücksichtigt."""
+    async with AsyncSessionLocal() as db:
+        try:
+            gesendet = await pressebericht_service.faellige_presseberichte_versenden(db)
+            if gesendet:
+                logger.info("presseberichte_versendet", anzahl=gesendet)
+        except Exception:
+            logger.warning("pressebericht_versand_job_fehlgeschlagen", exc_info=True)
 
 
 @_ueberwacht("personen-inaktivitaet", {"type": "crontab", "value": "0 0 * * *"})
@@ -395,6 +410,17 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("personen_inaktivitaet_job_registriert", uhrzeit="00:00")
+
+    # Alle 15 min; ob/was versendet wird, entscheidet der Job anhand von
+    # pressebericht_versand_modus (app_config) – so wirken Änderungen ohne Neustart.
+    scheduler.add_job(
+        _pressebericht_versand_job,
+        "interval",
+        minutes=15,
+        id="pressebericht_versand",
+        replace_existing=True,
+    )
+    logger.info("pressebericht_versand_job_registriert")
 
     scheduler.add_job(
         _barcode_erneuerung_job,

@@ -220,6 +220,16 @@ async def einsatz_abschliessen(db: AsyncSession, einsatz: Einsatz) -> Einsatz:
         db, "benachrichtigung_neuer_einsatz", ausschluss_kanaele=ausschluss, titel=geladen.titel
     )
     await _pdf_versenden_und_drucken(db, geladen, pdf_mail_aktiv)
+
+    # Modul Pressebericht: bei Modus „schliessen" sofort mitversenden (best-effort).
+    from app.services import pressebericht_service
+
+    try:
+        if str(await config_service.get(db, "pressebericht_versand_modus", "schliessen")) == "schliessen":
+            await pressebericht_service.pressebericht_versenden(db, geladen, grund="abschluss")
+    except Exception:
+        logger.warning("pressebericht_bei_abschluss_fehlgeschlagen", einsatz_id=geladen.id, exc_info=True)
+
     return geladen
 
 

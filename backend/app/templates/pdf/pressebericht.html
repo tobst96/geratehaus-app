@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block inhalt %}
+<h1>Pressebericht: {{ einsatz.titel }}</h1>
+<div class="meta">
+    Zeitpunkt: {{ einsatz.zeitpunkt.strftime("%d.%m.%Y %H:%M") }} Uhr
+</div>
+
+{% if grunddaten %}
+<table>
+    <tbody>
+        <tr>
+            <td><strong>Einsatz</strong></td>
+            <td>{{ einsatz.titel }}</td>
+        </tr>
+        <tr>
+            <td><strong>Zeitpunkt</strong></td>
+            <td>{{ einsatz.zeitpunkt.strftime("%d.%m.%Y %H:%M") }} Uhr</td>
+        </tr>
+        {% if einsatz.einsatznummer %}
+        <tr>
+            <td><strong>Einsatznummer</strong></td>
+            <td>{{ einsatz.einsatznummer }}</td>
+        </tr>
+        {% endif %}
+        {% if einsatz.adresse %}
+        <tr>
+            <td><strong>Adresse</strong></td>
+            <td>{{ einsatz.adresse }}</td>
+        </tr>
+        {% endif %}
+        {% if einsatz.meldung %}
+        <tr>
+            <td><strong>Meldung</strong></td>
+            <td>{{ einsatz.meldung }}</td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endif %}
+
+{% if divera %}
+<h2>Divera-Informationen</h2>
+<table>
+    <tbody>
+        {% for zeile in divera %}
+        <tr>
+            <td><strong>{{ zeile.label }}</strong></td>
+            <td>{{ zeile.wert }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% if zusatzfelder_anzeige %}
+<h2>Weitere Angaben</h2>
+<table>
+    <tbody>
+        {% for zf in zusatzfelder_anzeige %}
+        <tr>
+            <td><strong>{{ zf.label }}</strong></td>
+            <td>{{ zf.wert }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% if teilnehmer_anzahl is not none %}
+<p><strong>Beteiligte Personen:</strong> {{ teilnehmer_anzahl }}</p>
+{% endif %}
+
+{% if teilnehmer_namen %}
+<h2>Beteiligte Personen</h2>
+<ul>
+    {% for name in teilnehmer_namen %}
+    <li>{{ name }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if fahrzeuge %}
+<h2>Eingesetzte Fahrzeuge</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Fahrzeug</th>
+            <th>Besatzung</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for fz in fahrzeuge %}
+        <tr>
+            <td>{{ fz.name }}</td>
+            <td>{{ fz.besatzung|join(", ") }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% if minio_link %}
+<p><strong>Einsatz-Ordner (Login erforderlich):</strong><br>
+<a href="{{ minio_link }}">{{ minio_link }}</a></p>
+{% endif %}
+{% endblock %}

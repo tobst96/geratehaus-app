@@ -232,6 +232,37 @@ async def einsatz_dokumente(db: AsyncSession, einsatz: Any, pdf: bytes | None = 
         logger.warning("minio_einsatz_ablage_fehlgeschlagen", einsatz_id=getattr(einsatz, "id", None), exc_info=True)
 
 
+async def einsatz_pressebericht(db: AsyncSession, einsatz: Any, pdf: bytes) -> None:
+    """Legt das Pressebericht-PDF im Einsatz-Ordner ab (eigener, mit Datum+Uhrzeit
+    versehener Dateiname). Best-effort – Fehler brechen den Aufrufer nie ab."""
+    try:
+        if not await aktiv(db):
+            return
+        cfg = await config(db)
+        ordner = f"einsatz-{einsatz.id}"
+        stempel = await _zeitstempel(db)
+        await put_bytes(
+            db, cfg["bucket_einsaetze"], f"{ordner}/{stempel}_Pressebericht.pdf", pdf, "application/pdf"
+        )
+    except Exception:  # noqa: BLE001
+        logger.warning(
+            "minio_pressebericht_ablage_fehlgeschlagen", einsatz_id=getattr(einsatz, "id", None), exc_info=True
+        )
+
+
+async def einsatz_ordner_link(db: AsyncSession, einsatz_id: int) -> str | None:
+    """App-interner Link zum Datei-Browser des Einsatz-Ordners (Login nötig).
+    None, wenn MinIO inaktiv oder keine öffentliche Basis-URL konfiguriert ist."""
+    if not await aktiv(db):
+        return None
+    basis = str(await config_service.get(db, "oeffentliche_basis_url", "")).rstrip("/")
+    if not basis:
+        return None
+    cfg = await config(db)
+    bucket = cfg["bucket_einsaetze"]
+    return f"{basis}/gruppenfuehrer/module/minio?bucket={bucket}&prefix=einsatz-{einsatz_id}/"
+
+
 async def dienstbuch_dokument(db: AsyncSession, dienstbuch_id: int, pdf: bytes) -> None:
     """Legt das Dienstbuch-PDF flach im Dienstbuch-Bucket ab (kein Unterordner)."""
     try:

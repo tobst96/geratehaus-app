@@ -1,7 +1,7 @@
 import { Fehlertext } from "../../../components/Fehlertext";
 import { useEffect, useRef, useState } from "react";
 import { formatiereDatumZeit } from "../../../utils/datum";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   browseMinio,
   holeMinioBuckets,
@@ -44,15 +44,26 @@ export function MinioModul() {
   const [browserFehler, setBrowserFehler] = useState<string | null>(null);
   const uploadInput = useRef<HTMLInputElement>(null);
 
+  const [suchParams] = useSearchParams();
+
   useEffect(() => {
     holeMinioEinstellungen()
       .then(setEinst)
       .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : "Laden fehlgeschlagen."));
     holeMinioBuckets()
-      .then((bs) => setBuckets(bs))
+      .then((bs) => {
+        setBuckets(bs);
+        // Deep-Link (z. B. aus dem Pressebericht): direkt den verlinkten Ordner öffnen.
+        const zielBucket = suchParams.get("bucket");
+        const zielPrefix = suchParams.get("prefix") ?? "";
+        if (zielBucket && bs.includes(zielBucket)) {
+          void oeffne(zielBucket, zielPrefix);
+        }
+      })
       .catch((err) =>
         setBrowserFehler(err instanceof ApiError ? String(err.detail) : "Buckets nicht ladbar."),
       );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function oeffne(b: string, p: string) {

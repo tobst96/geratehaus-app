@@ -47,6 +47,9 @@ FEATURE_MODULE: list[FeatureModulDef] = [
     FeatureModulDef("fahrzeugbuchung", "Fahrzeugbuchung", True),
     FeatureModulDef("formular", "Formular", True),
     FeatureModulDef("divera", "Divera 24/7", False),
+    # Pressebericht: internes Modul (nicht mitgliederseitig). Erzeugt je Einsatz
+    # einen konfigurierbaren Pressebericht als PDF-Mail an die Abonnenten.
+    FeatureModulDef("pressebericht", "Pressebericht", False),
     # Barcode-Identifikation: wenn AUS (Default), identifizieren sich Personen am
     # Kiosk per Namenssuche + PIN statt per Barcode-Scan.
     FeatureModulDef("barcode", "Barcode", False),
