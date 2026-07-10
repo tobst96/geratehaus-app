@@ -19,7 +19,8 @@
  * `pages/FahrzeugbuchungManuelleEintragung.tsx`, `pages/gruppenfuehrer/GruppenfuehrerLogin.tsx`,
  * `pages/gruppenfuehrer/Dashboard.tsx`, `pages/gruppenfuehrer/FormularZusammenfassung.tsx`,
  * `pages/gruppenfuehrer/ModulUnterseite.tsx`, `pages/gruppenfuehrer/Buchungsmanagement.tsx`,
- * `pages/gruppenfuehrer/AuditLog.tsx`, `pages/gruppenfuehrer/Systemstatus.tsx`.
+ * `pages/gruppenfuehrer/AuditLog.tsx`, `pages/gruppenfuehrer/Systemstatus.tsx`,
+ * `pages/gruppenfuehrer/Update.tsx` (Intro-Absatz mit <code> bewusst inline).
  */
 export const texte = {
   landing: {
@@ -166,6 +167,27 @@ export const texte = {
     zweck: "Zweck",
     stellen_laeuft: "Wird gestellt…",
     anfrage_stellen: "Anfrage stellen",
+  },
+  update: {
+    titel: "Update",
+    ladefehler: "Status konnte nicht geladen werden.",
+    ausloesen_fehler: "Update konnte nicht angestoßen werden.",
+    kanal_fehler: "Kanal konnte nicht geändert werden.",
+    installieren_confirm:
+      "Update jetzt installieren? Der Server aktualisiert sich und startet dabei kurz neu.",
+    kanal_titel: "Update-Kanal",
+    stable: "Stable",
+    beta: "Beta",
+    versionsstatus: "Versionsstatus",
+    installierte_version: "Installierte Version",
+    verfuegbare_version: "Verfügbare Version", // gefolgt von (Kanal)
+    veroeffentlicht_am: "Veröffentlicht am",
+    neue_version_verfuegbar: "🆕 Es ist eine neue Version verfügbar.",
+    release_hinweise: "Release-Hinweise ansehen",
+    installieren: "Update installieren",
+    installieren_laeuft: "Update wird angestoßen …",
+    aktuell: "Du bist auf dem neuesten Stand.",
+    erneut_pruefen: "Erneut prüfen",
   },
   systemstatus: {
     titel: "Systemstatus",

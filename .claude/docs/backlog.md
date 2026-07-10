@@ -1816,7 +1816,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Schwellenwert-Tabelle, Einsätze-pro-Monat), **FormularZusammenfassung** +
   **ModulUnterseite** (kleine Namespaces), **Buchungsmanagement** (`texte.buchungsmanagement`),
   **AuditLog** (`texte.audit_log` inkl. Aktions-Label-Map), **Systemstatus**
-  (`texte.systemstatus`: Dienste-/Job-Status inkl. Ampel-Kurztexte). Rest: übriger
+  (`texte.systemstatus`: Dienste-/Job-Status inkl. Ampel-Kurztexte), **Update**
+  (`texte.update`; Intro-Absatz mit `<code>` bewusst inline gelassen). Rest: übriger
   Gruppenführer-Bereich (Listen, Personal, Einstellungen, Module, Detail-Seiten …).
 
 ### CI bei jedem PR (GitHub Actions)
