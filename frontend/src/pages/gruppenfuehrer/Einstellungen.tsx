@@ -18,6 +18,9 @@ import { useConfig } from "../../context/ConfigContext";
 import { useToast } from "../../context/ToastContext";
 import { Banner } from "../../components/Banner";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { texte } from "../../i18n/texte";
+
+const t = texte.einstellungen;
 
 function ZweiFaktorVerwaltung() {
   const [status, setStatus] = useState<ZweiFaktorStatus | null>(null);
@@ -43,19 +46,19 @@ function ZweiFaktorVerwaltung() {
       setCodes(codes);
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "2FA konnte nicht aktiviert werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_2fa_aktivieren);
     }
   }
 
   async function deaktivieren() {
-    if (!confirm("Zwei-Faktor-Authentisierung für deinen Zugang deaktivieren?")) return;
+    if (!confirm(t.zwei_faktor_deaktivieren_bestaetigen)) return;
     setFehler(null);
     try {
       await zweiFaktorDeaktivieren();
       setCodes(null);
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "2FA konnte nicht deaktiviert werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_2fa_deaktivieren);
     }
   }
 
@@ -65,7 +68,7 @@ function ZweiFaktorVerwaltung() {
       const { codes } = await zweiFaktorRecoveryNeu();
       setCodes(codes);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Codes konnten nicht erzeugt werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_codes);
     }
   }
 
@@ -73,15 +76,12 @@ function ZweiFaktorVerwaltung() {
 
   return (
     <div className="karte">
-      <h2>Zwei-Faktor-Anmeldung (dein Zugang)</h2>
-      <p className="hinweistext">
-        Bei Aktivierung wird beim Login von einem neuen Gerät zusätzlich ein per E-Mail
-        gesendeter Code abgefragt. Voraussetzung ist eine hinterlegte E-Mail-Adresse.
-      </p>
+      <h2>{t.zwei_faktor_titel}</h2>
+      <p className="hinweistext">{t.zwei_faktor_hinweis}</p>
       {fehler && <Fehlertext>{fehler}</Fehlertext>}
       {codes && (
         <div style={{ margin: "8px 0", padding: 12, border: "1px solid var(--farbe-rand)", borderRadius: 8 }}>
-          <strong>Recovery-Codes – jetzt sicher notieren (werden nicht erneut angezeigt):</strong>
+          <strong>{t.recovery_codes_hinweis}</strong>
           <div style={{ fontFamily: "monospace", marginTop: 8, columns: 2 }}>
             {codes.map((c) => (
               <div key={c}>{c}</div>
@@ -91,21 +91,19 @@ function ZweiFaktorVerwaltung() {
       )}
       {status.aktiv ? (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ color: "green", fontWeight: 600, alignSelf: "center" }}>✓ Aktiv</span>
+          <span style={{ color: "green", fontWeight: 600, alignSelf: "center" }}>{t.aktiv}</span>
           <button type="button" className="sekundaer" onClick={recoveryNeu}>
-            Neue Recovery-Codes
+            {t.neue_recovery_codes}
           </button>
           <button type="button" className="sekundaer" onClick={deaktivieren}>
-            Deaktivieren
+            {t.deaktivieren}
           </button>
         </div>
       ) : !status.email_gesetzt ? (
-        <Fehlertext>
-          Für 2FA muss zuerst eine E-Mail für deinen Zugang hinterlegt werden (durch einen Admin).
-        </Fehlertext>
+        <Fehlertext>{t.zwei_faktor_email_noetig}</Fehlertext>
       ) : (
         <button type="button" onClick={aktivieren}>
-          Zwei-Faktor-Anmeldung aktivieren
+          {t.zwei_faktor_aktivieren}
         </button>
       )}
     </div>
@@ -145,7 +143,7 @@ export function Einstellungen() {
       setFehlerberichteAktiv(Boolean(w.fehlerberichte_aktiv));
       setGeladen(true);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Einstellungen konnten nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_laden);
     }
   }
 
@@ -171,7 +169,7 @@ export function Einstellungen() {
       setGespeichert(true);
       setTimeout(() => setGespeichert(false), 4000);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Einstellungen konnten nicht gespeichert werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_speichern);
     }
   }
 
@@ -180,7 +178,7 @@ export function Einstellungen() {
       const { logo_url_dark } = await ladeLogoDarkHoch(datei);
       setLogoDarkUrl(logo_url_dark);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Logo-Upload fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_logo);
     }
   }
 
@@ -190,7 +188,7 @@ export function Einstellungen() {
       setLogoUrl(logo_url);
       neuLaden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Logo-Upload fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_logo);
     }
   }
 
@@ -200,17 +198,17 @@ export function Einstellungen() {
       setGespeichert(false);
       setFehler(null);
       toast.erfolg(
-        `Archiviert: ${ergebnis.einsaetze} Einsätze, ${ergebnis.dienstbuecher} Dienstbücher.`
+        `${t.archiviert_prefix} ${ergebnis.einsaetze} ${t.einsaetze}, ${ergebnis.dienstbuecher} ${t.dienstbuecher}.`
       );
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Archivierung fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_archivierung);
     }
   }
 
   async function setupErneut() {
     if (
       !confirm(
-        "Den Setup-Wizard mit den aktuellen Werten erneut ausführen? Admin-Passwort und Grunddaten werden überschrieben."
+        t.setup_erneut_bestaetigen
       )
     ) {
       return;
@@ -220,12 +218,12 @@ export function Einstellungen() {
         organisation_name: organisationName,
         farbe_primaer: farbePrimaer,
         farbe_akzent: farbeAkzent,
-        admin_passwort: prompt("Neues Admin-Passwort (mind. 8 Zeichen):") ?? "",
+        admin_passwort: prompt(t.setup_passwort_prompt) ?? "",
       });
       neuLaden();
-      toast.erfolg("Setup erneut durchgeführt.");
+      toast.erfolg(t.setup_erfolg);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Setup fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_setup);
     }
   }
 
@@ -233,37 +231,33 @@ export function Einstellungen() {
 
   return (
     <div>
-      <h1>Einstellungen</h1>
+      <h1>{t.titel}</h1>
       {fehler && <Fehlertext>{fehler}</Fehlertext>}
-      {gespeichert && <Banner art="erfolg">Einstellungen erfolgreich gespeichert</Banner>}
+      {gespeichert && <Banner art="erfolg">{t.gespeichert_banner}</Banner>}
 
       <form onSubmit={speichern}>
         <div className="karte">
-          <h2>Organisation &amp; Branding</h2>
+          <h2>{t.organisation_branding}</h2>
           <div className="formular-feld">
-            <label htmlFor="e-org">Name der Organisation</label>
+            <label htmlFor="e-org">{t.org_name_label}</label>
             <input id="e-org" value={organisationName} onChange={(e) => setOrganisationName(e.target.value)} />
           </div>
           <div className="formular-feld">
-            <label htmlFor="e-basis-url">Öffentliche Adresse (für QR-Codes)</label>
+            <label htmlFor="e-basis-url">{t.basis_url_label}</label>
             <input
               id="e-basis-url"
               value={oeffentlicheBasisUrl}
               onChange={(e) => setOeffentlicheBasisUrl(e.target.value)}
-              placeholder="https://geraetehausapp.feuerwehr-musterstadt.de"
+              placeholder={t.basis_url_platzhalter}
             />
-            <p className="hinweistext">
-              Wird für alle QR-Code-Links genutzt (Barcode vergessen, Profilbild-Upload usw.), statt der
-              aktuellen Browser-Adresse – wichtig, falls das Gerätehaus-Tablet unter einer anderen Adresse
-              erreichbar ist als das Internet.
-            </p>
+            <p className="hinweistext">{t.basis_url_hinweis}</p>
           </div>
           <div className="formular-feld">
-            <label htmlFor="e-logo">Logo</label>
+            <label htmlFor="e-logo">{t.logo_label}</label>
             {logoUrl && (
               <img
                 src={logoUrl}
-                alt="Logo"
+                alt={t.logo_alt}
                 style={{
                   height: 50,
                   width: "auto",
@@ -282,11 +276,11 @@ export function Einstellungen() {
             />
           </div>
           <div className="formular-feld">
-            <label htmlFor="e-logo-dark">Logo für Dark Mode (optional)</label>
+            <label htmlFor="e-logo-dark">{t.logo_dark_label}</label>
             {logoDarkUrl && (
               <img
                 src={logoDarkUrl}
-                alt="Logo (Dark Mode)"
+                alt={t.logo_dark_alt}
                 style={{
                   height: 50,
                   width: "auto",
@@ -307,16 +301,16 @@ export function Einstellungen() {
               onChange={(e) => e.target.files?.[0] && logoDarkHochladen(e.target.files[0])}
             />
             <p style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)", margin: "4px 0 0" }}>
-              Wird im dunklen Design statt des Standard-Logos angezeigt.
+              {t.logo_dark_hinweis}
             </p>
           </div>
           <div className="formular-zeile">
             <div className="formular-feld">
-              <label htmlFor="e-farbe-primaer">Primärfarbe</label>
+              <label htmlFor="e-farbe-primaer">{t.primaerfarbe}</label>
               <input id="e-farbe-primaer" type="color" value={farbePrimaer} onChange={(e) => setFarbePrimaer(e.target.value)} />
             </div>
             <div className="formular-feld">
-              <label htmlFor="e-farbe-akzent">Akzentfarbe</label>
+              <label htmlFor="e-farbe-akzent">{t.akzentfarbe}</label>
               <input id="e-farbe-akzent" type="color" value={farbeAkzent} onChange={(e) => setFarbeAkzent(e.target.value)} />
             </div>
           </div>
@@ -324,9 +318,9 @@ export function Einstellungen() {
 
 
         <div className="karte">
-          <h2>Archivierung</h2>
+          <h2>{t.archivierung}</h2>
           <div className="formular-feld">
-            <label htmlFor="e-archiv">Archivierungszeitraum (Jahre)</label>
+            <label htmlFor="e-archiv">{t.archivierungszeitraum_label}</label>
             <input
               id="e-archiv"
               type="number"
@@ -339,34 +333,30 @@ export function Einstellungen() {
 
 
         <div className="karte">
-          <h2>Fehlerberichte</h2>
+          <h2>{t.fehlerberichte}</h2>
           <label>
             <input
               type="checkbox"
               checked={fehlerberichteAktiv}
               onChange={(e) => setFehlerberichteAktiv(e.target.checked)}
             />{" "}
-            Technische Fehlerberichte an den Entwickler senden
+            {t.fehlerberichte_label}
           </label>
-          <p className="hinweistext">
-            Hilft, Bugs über alle Installationen von Gerätehaus.app hinweg schneller zu finden und
-            zu beheben. Es werden nur Stacktraces und technische Fehlerdetails übertragen, keine
-            Namen oder sonstigen Inhalte. Wirkt erst nach einem Neustart des Backend-Containers.
-          </p>
+          <p className="hinweistext">{t.fehlerberichte_hinweis}</p>
         </div>
 
-        <button type="submit">Speichern</button>
+        <button type="submit">{t.speichern}</button>
       </form>
 
       <ZweiFaktorVerwaltung />
 
       <div className="karte" style={{ marginTop: 24 }}>
-        <h2>Wartung</h2>
+        <h2>{t.wartung}</h2>
         <button type="button" className="sekundaer" onClick={archivierungJetzt}>
-          Archivierung jetzt ausführen
+          {t.archivierung_jetzt}
         </button>{" "}
         <button type="button" className="sekundaer" onClick={setupErneut}>
-          Setup-Wizard erneut ausführen
+          {t.setup_erneut}
         </button>
       </div>
     </div>

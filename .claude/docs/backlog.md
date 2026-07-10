@@ -1908,7 +1908,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   „Ja"/„Keine Teilnehmer", Timeline-Überschrift/Leertext, Confirm-Dialoge mit dynamischem
   Titel via Prefix/Suffix; Status-Wert, Personen-/Fahrzeugnamen und Timeline-Text bleiben
   dynamisch). `.map`-Param `t`→`teilnahme` umbenannt (Alias-Kollision vermieden). Build grün.
-  Rest Gruppenführer: Personal, Einstellungen (die zwei größten Seiten).
+- Fortschritt (10.07.2026, direkt auf beta): **`pages/gruppenfuehrer/Einstellungen.tsx`
+  migriert** (Namespace `texte.einstellungen`: Organisation/Branding, Logo-Upload,
+  Farben, Archivierung, Fehlerberichte, Wartung + `ZweiFaktorVerwaltung` inkl.
+  Recovery-Codes/Aktivieren/Deaktivieren; Toasts/Confirms/Prompts, Archiviert-Toast mit
+  dynamischen Zahlen). Farb-Defaults (#FFA633/#1A1A1A) bleiben literal. Build grün.
+  **Korrektur:** noch offen sind Gruppenführer-seitig **Personal (1392 Z.), Listen (647 Z.),
+  NotifierEinstellungen (517 Z.)** – zuvor unvollständig als „Personal, Einstellungen" notiert.
 
 ### CI bei jedem PR (GitHub Actions)
 

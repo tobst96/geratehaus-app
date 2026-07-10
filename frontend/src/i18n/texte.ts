@@ -26,7 +26,7 @@
  * `pages/gruppenfuehrer/GruppenfuehrerLayout.tsx` (Nav; funktionale ?tab-Keys bleiben literal),
  * `pages/gruppenfuehrer/KioskGeraete.tsx`, `pages/gruppenfuehrer/Module.tsx`,
  * `pages/gruppenfuehrer/BarcodeGenerator.tsx`, `pages/gruppenfuehrer/SitzplatzEditor.tsx`,
- * `pages/gruppenfuehrer/EinsatzDetailGruppenfuehrer.tsx`.
+ * `pages/gruppenfuehrer/EinsatzDetailGruppenfuehrer.tsx`, `pages/gruppenfuehrer/Einstellungen.tsx`.
  */
 export const texte = {
   landing: {
@@ -595,5 +595,68 @@ export const texte = {
     fehler_abschliessen: "Abschließen fehlgeschlagen.",
     fehler_oeffnen: "Wieder öffnen fehlgeschlagen.",
     fehler_loeschen: "Löschen fehlgeschlagen.",
+  },
+  einstellungen: {
+    // Zwei-Faktor-Verwaltung
+    zwei_faktor_titel: "Zwei-Faktor-Anmeldung (dein Zugang)",
+    zwei_faktor_hinweis:
+      "Bei Aktivierung wird beim Login von einem neuen Gerät zusätzlich ein per E-Mail " +
+      "gesendeter Code abgefragt. Voraussetzung ist eine hinterlegte E-Mail-Adresse.",
+    recovery_codes_hinweis: "Recovery-Codes – jetzt sicher notieren (werden nicht erneut angezeigt):",
+    aktiv: "✓ Aktiv",
+    neue_recovery_codes: "Neue Recovery-Codes",
+    deaktivieren: "Deaktivieren",
+    zwei_faktor_email_noetig:
+      "Für 2FA muss zuerst eine E-Mail für deinen Zugang hinterlegt werden (durch einen Admin).",
+    zwei_faktor_aktivieren: "Zwei-Faktor-Anmeldung aktivieren",
+    zwei_faktor_deaktivieren_bestaetigen:
+      "Zwei-Faktor-Authentisierung für deinen Zugang deaktivieren?",
+    fehler_2fa_aktivieren: "2FA konnte nicht aktiviert werden.",
+    fehler_2fa_deaktivieren: "2FA konnte nicht deaktiviert werden.",
+    fehler_codes: "Codes konnten nicht erzeugt werden.",
+    // Haupt-Einstellungen
+    titel: "Einstellungen",
+    gespeichert_banner: "Einstellungen erfolgreich gespeichert",
+    organisation_branding: "Organisation & Branding",
+    org_name_label: "Name der Organisation",
+    basis_url_label: "Öffentliche Adresse (für QR-Codes)",
+    basis_url_platzhalter: "https://geraetehausapp.feuerwehr-musterstadt.de",
+    basis_url_hinweis:
+      "Wird für alle QR-Code-Links genutzt (Barcode vergessen, Profilbild-Upload usw.), statt der " +
+      "aktuellen Browser-Adresse – wichtig, falls das Gerätehaus-Tablet unter einer anderen Adresse " +
+      "erreichbar ist als das Internet.",
+    logo_label: "Logo",
+    logo_alt: "Logo",
+    logo_dark_label: "Logo für Dark Mode (optional)",
+    logo_dark_alt: "Logo (Dark Mode)",
+    logo_dark_hinweis: "Wird im dunklen Design statt des Standard-Logos angezeigt.",
+    primaerfarbe: "Primärfarbe",
+    akzentfarbe: "Akzentfarbe",
+    archivierung: "Archivierung",
+    archivierungszeitraum_label: "Archivierungszeitraum (Jahre)",
+    fehlerberichte: "Fehlerberichte",
+    fehlerberichte_label: "Technische Fehlerberichte an den Entwickler senden",
+    fehlerberichte_hinweis:
+      "Hilft, Bugs über alle Installationen von Gerätehaus.app hinweg schneller zu finden und " +
+      "zu beheben. Es werden nur Stacktraces und technische Fehlerdetails übertragen, keine " +
+      "Namen oder sonstigen Inhalte. Wirkt erst nach einem Neustart des Backend-Containers.",
+    speichern: "Speichern",
+    wartung: "Wartung",
+    archivierung_jetzt: "Archivierung jetzt ausführen",
+    setup_erneut: "Setup-Wizard erneut ausführen",
+    // Aktionen / Toasts / Prompts
+    archiviert_prefix: "Archiviert:",
+    einsaetze: "Einsätze",
+    dienstbuecher: "Dienstbücher",
+    setup_erneut_bestaetigen:
+      "Den Setup-Wizard mit den aktuellen Werten erneut ausführen? Admin-Passwort und " +
+      "Grunddaten werden überschrieben.",
+    setup_passwort_prompt: "Neues Admin-Passwort (mind. 8 Zeichen):",
+    setup_erfolg: "Setup erneut durchgeführt.",
+    fehler_laden: "Einstellungen konnten nicht geladen werden.",
+    fehler_speichern: "Einstellungen konnten nicht gespeichert werden.",
+    fehler_logo: "Logo-Upload fehlgeschlagen.",
+    fehler_archivierung: "Archivierung fehlgeschlagen.",
+    fehler_setup: "Setup fehlgeschlagen.",
   },
 } as const;
