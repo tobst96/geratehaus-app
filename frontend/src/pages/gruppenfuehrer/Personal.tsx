@@ -51,6 +51,11 @@ import type {
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { PersonKanaele } from "./PersonKanaele";
 import { PersonalEinstellungen } from "./verwaltung/PersonalEinstellungen";
+import { texte } from "../../i18n/texte";
+
+// Alias `txt` statt `t`, weil in dieser Datei mehrere `.map((t) => …)` / `.filter((t) => …)`
+// den Namen `t` als Parameter nutzen.
+const txt = texte.personal;
 
 interface BildQr {
   personId: number;
@@ -67,9 +72,9 @@ function ampelRahmen(status: AmpelStatus | undefined): { border?: string } {
 }
 
 function ampelTitel(status: AmpelStatus | undefined): string | undefined {
-  if (status === "rot") return "Überfällig – lange kein Einsatz/Dienst/Dienststunden";
-  if (status === "gelb") return "Länger kein Einsatz/Dienst/Dienststunden";
-  if (status === "inaktiv") return "Als inaktiv markiert – keine Ampel";
+  if (status === "rot") return txt.ampel_rot_titel;
+  if (status === "gelb") return txt.ampel_gelb_titel;
+  if (status === "inaktiv") return txt.ampel_inaktiv_titel;
   return undefined;
 }
 
@@ -134,12 +139,12 @@ async function tokenKopieren(token: string, knopf: HTMLButtonElement) {
       document.body.removeChild(textarea);
     }
     const beschriftung = knopf.textContent;
-    knopf.textContent = "Kopiert!";
+    knopf.textContent = txt.kopiert;
     setTimeout(() => {
       knopf.textContent = beschriftung;
     }, 1500);
   } catch {
-    window.prompt("Kopieren fehlgeschlagen – Text manuell kopieren:", token);
+    window.prompt(txt.kopieren_fehlgeschlagen, token);
   }
 }
 
@@ -157,15 +162,15 @@ const PERSON_EREIGNIS_ICON: Record<string, string> = {
 
 // Menschliche Labels für den Verlaufs-Filter; unbekannte Typen zeigen den Rohwert.
 const PERSON_EREIGNIS_LABEL: Record<string, string> = {
-  funktion_geaendert: "Funktion geändert",
-  stammdaten_geaendert: "Stammdaten geändert",
-  bild_geaendert: "Profilbild geändert",
-  pin_gesetzt: "PIN gesetzt",
-  pin_gesperrt: "PIN gesperrt",
-  pin_entsperrt: "PIN entsperrt",
-  pin_zugriff_verweigert: "PIN-Zugriff verweigert",
-  inaktivitaets_warnung: "Inaktivitäts-Warnung",
-  dienststunden_erfasst: "Dienststunden erfasst",
+  funktion_geaendert: txt.ereignis_funktion_geaendert,
+  stammdaten_geaendert: txt.ereignis_stammdaten_geaendert,
+  bild_geaendert: txt.ereignis_bild_geaendert,
+  pin_gesetzt: txt.ereignis_pin_gesetzt,
+  pin_gesperrt: txt.ereignis_pin_gesperrt,
+  pin_entsperrt: txt.ereignis_pin_entsperrt,
+  pin_zugriff_verweigert: txt.ereignis_pin_verweigert,
+  inaktivitaets_warnung: txt.ereignis_inaktivitaets_warnung,
+  dienststunden_erfasst: txt.ereignis_dienststunden_erfasst,
 };
 
 function ereignisLabel(typ: string): string {
@@ -233,7 +238,7 @@ export function Personal() {
     try {
       setListe(await holeAllePersonen());
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Personen konnten nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_personen_laden);
     }
   }
 
@@ -287,7 +292,7 @@ export function Personal() {
     const bereits = elevatedMap[p.id]?.gruppenfuehrer_rolle;
     const passwort = bereits ? undefined : zugangPasswort;
     if (!bereits && (!passwort || passwort.length < 8)) {
-      setZugangFehler("Für den ersten Zugang ein Passwort mit mindestens 8 Zeichen setzen.");
+      setZugangFehler(txt.fehler_erster_zugang_pw);
       return;
     }
     setZugangFehler(null);
@@ -296,18 +301,18 @@ export function Personal() {
       setZugangPasswort("");
       await ladeElevated();
     } catch (err) {
-      setZugangFehler(err instanceof ApiError ? String(err.detail) : "Zugang konnte nicht gesetzt werden.");
+      setZugangFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_zugang_setzen);
     }
   }
 
   async function zugangEntziehen(p: Person) {
-    if (!confirm(`Erhöhten Zugang von „${p.name}" entziehen? Die Person bleibt als Mitglied bestehen.`)) return;
+    if (!confirm(`${txt.zugang_entziehen_frage_prefix}${p.name}${txt.zugang_entziehen_frage_suffix}`)) return;
     setZugangFehler(null);
     try {
       await personDeElevieren(p.id);
       await ladeElevated();
     } catch (err) {
-      setZugangFehler(err instanceof ApiError ? String(err.detail) : "Zugang konnte nicht entzogen werden.");
+      setZugangFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_zugang_entziehen);
     }
   }
 
@@ -315,19 +320,19 @@ export function Personal() {
     const neu = prompt(`Neues Login-Passwort für ${p.name} (mind. 8 Zeichen):`);
     if (neu === null) return;
     if (neu.length < 8) {
-      setZugangFehler("Passwort mindestens 8 Zeichen.");
+      setZugangFehler(txt.fehler_pw_min);
       return;
     }
     setZugangFehler(null);
     try {
       await personPasswortSetzen(p.id, neu);
     } catch (err) {
-      setZugangFehler(err instanceof ApiError ? String(err.detail) : "Passwort konnte nicht gesetzt werden.");
+      setZugangFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_pw_setzen);
     }
   }
 
   async function zugang2faReset(p: Person) {
-    if (!confirm(`Zwei-Faktor-Anmeldung von „${p.name}" zurücksetzen?`)) return;
+    if (!confirm(`${txt.zwei_fa_reset_frage_prefix}${p.name}${txt.zwei_fa_reset_frage_suffix}`)) return;
     setZugangFehler(null);
     try {
       await person2faZuruecksetzen(p.id);
@@ -389,7 +394,7 @@ export function Personal() {
       setNeuePerson(person);
       setBildQr(await bildQrErzeugen(person.id));
     } catch (err) {
-      setAnlegenFehler(err instanceof ApiError ? String(err.detail) : "Person konnte nicht angelegt werden.");
+      setAnlegenFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_person_anlegen);
     }
   }
 
@@ -410,7 +415,7 @@ export function Personal() {
       setImportErgebnis(ergebnis);
       if (ergebnis.angelegt > 0) await laden();
     } catch (err) {
-      setImportFehler(err instanceof ApiError ? String(err.detail) : "Import fehlgeschlagen.");
+      setImportFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_import);
     } finally {
       setImportLaeuft(false);
     }
@@ -469,7 +474,7 @@ export function Personal() {
       await laden();
       await timelineLaden(p.id);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Änderung konnte nicht gespeichert werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_aenderung);
     }
   }
 
@@ -479,7 +484,7 @@ export function Personal() {
       await laden();
       await timelineLaden(p.id);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Änderung konnte nicht gespeichert werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_aenderung);
     }
   }
 
@@ -490,21 +495,21 @@ export function Personal() {
       await ladeAmpel();
       await timelineLaden(p.id);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Änderung konnte nicht gespeichert werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_aenderung);
     }
   }
 
   async function pinSetzen(p: Person) {
-    const pin = window.prompt("Neuen PIN für " + p.name + " festlegen (4-6 Ziffern):");
+    const pin = window.prompt(txt.pin_prompt_prefix + p.name + txt.pin_prompt_suffix);
     if (!pin) return;
     if (!/^\d{4,6}$/.test(pin)) {
-      toast.fehler("Der PIN muss aus 4 bis 6 Ziffern bestehen.");
+      toast.fehler(txt.fehler_pin_format);
       return;
     }
-    const wiederholung = window.prompt("PIN zur Bestätigung erneut eingeben:");
+    const wiederholung = window.prompt(txt.pin_wiederholung_prompt);
     if (!wiederholung) return;
     if (wiederholung !== pin) {
-      toast.fehler("Die beiden Eingaben stimmen nicht überein. Bitte erneut versuchen.");
+      toast.fehler(txt.fehler_pin_ungleich);
       return;
     }
     try {
@@ -512,7 +517,7 @@ export function Personal() {
       await laden();
       await timelineLaden(p.id);
     } catch (err) {
-      toast.fehler(err instanceof ApiError ? String(err.detail) : "PIN konnte nicht gespeichert werden.");
+      toast.fehler(err instanceof ApiError ? String(err.detail) : txt.fehler_pin_speichern);
     }
   }
 
@@ -522,7 +527,7 @@ export function Personal() {
       await laden();
       await timelineLaden(p.id);
     } catch (err) {
-      toast.fehler(err instanceof ApiError ? String(err.detail) : "PIN-Sperre konnte nicht aufgehoben werden.");
+      toast.fehler(err instanceof ApiError ? String(err.detail) : txt.fehler_pin_sperre);
     }
   }
 
@@ -532,7 +537,7 @@ export function Personal() {
       await laden();
       await timelineLaden(p.id);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Gruppe konnte nicht gespeichert werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_gruppe);
     }
   }
 
@@ -542,7 +547,7 @@ export function Personal() {
       await laden();
       await timelineLaden(p.id);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Funktion konnte nicht gespeichert werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_funktion);
     }
   }
 
@@ -560,9 +565,9 @@ export function Personal() {
   async function barcodePerMailSenden(p: Person) {
     try {
       await personBarcodePerMailSenden(p.id);
-      toast.erfolg(`Barcode wurde an ${p.email} gesendet.`);
+      toast.erfolg(`${txt.barcode_gesendet_prefix}${p.email}${txt.barcode_gesendet_suffix}`);
     } catch (err) {
-      toast.fehler(err instanceof ApiError ? String(err.detail) : "Barcode konnte nicht per Mail gesendet werden.");
+      toast.fehler(err instanceof ApiError ? String(err.detail) : txt.fehler_barcode_mail);
     }
   }
 
@@ -570,7 +575,7 @@ export function Personal() {
     const person = liste?.find((p) => p.id === id);
     if (
       !confirm(
-        `Person „${person?.name ?? ""}" wirklich unwiderruflich löschen? Alle zugehörigen Eintragungen und Daten werden mit entfernt.`
+        `${txt.loeschen_frage_prefix}${person?.name ?? ""}${txt.loeschen_frage_suffix}`
       )
     )
       return;
@@ -615,22 +620,22 @@ export function Personal() {
     <div>
       <div className={`personal-sticky${ausgewaehltePerson ? " personal-sticky--detail" : ""}`}>
         <div className="personal-kopf">
-          <h1 style={{ margin: 0 }}>Personal</h1>
+          <h1 style={{ margin: 0 }}>{txt.titel}</h1>
           <div className="personal-kopf-buttons">
             <button type="button" className="sekundaer" onClick={() => setZeigeEinstellungen(true)}>
-              Personal-Einstellungen
+              {txt.btn_einstellungen}
             </button>
             <button type="button" className="sekundaer" onClick={importModalOeffnen}>
-              CSV-Import
+              {txt.btn_csv_import}
             </button>
             <button type="button" onClick={anlegenModalOeffnen}>
-              + Person hinzufügen
+              {txt.btn_person_hinzufuegen}
             </button>
           </div>
         </div>
         <input
           className="personal-suche"
-          placeholder="Suche…"
+          placeholder={txt.suche_platzhalter}
           value={suche}
           onChange={(e) => setSuche(e.target.value)}
           autoFocus
@@ -648,7 +653,7 @@ export function Personal() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex-zwischen">
-              <h2 style={{ margin: 0 }}>Personal-Einstellungen</h2>
+              <h2 style={{ margin: 0 }}>{txt.btn_einstellungen}</h2>
               <button type="button" className="sekundaer" onClick={() => setZeigeEinstellungen(false)}>
                 Schließen
               </button>
@@ -669,22 +674,20 @@ export function Personal() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex-zwischen">
-              <h2 style={{ margin: 0 }}>Personen per CSV importieren</h2>
+              <h2 style={{ margin: 0 }}>{txt.import_titel}</h2>
               <button type="button" className="sekundaer" onClick={() => setZeigeImportModal(false)}>
                 Schließen
               </button>
             </div>
             <p style={{ marginTop: 12 }}>
-              CSV mit den Spalten <code>vorname;zwischenname;nachname;email;gruppe;funktion</code>.
-              Gruppe und Funktion werden über den Namen zugeordnet (leer = keine). Fehlerhafte
-              Zeilen werden übersprungen und unten aufgelistet.
+              {txt.import_beschreibung_1}<code>vorname;zwischenname;nachname;email;gruppe;funktion</code>{txt.import_beschreibung_2}
             </p>
             <button
               type="button"
               className="sekundaer"
               onClick={() => void personenCsvVorlageHerunterladen()}
             >
-              Beispiel-CSV herunterladen
+              {txt.import_vorlage}
             </button>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
               <input
@@ -701,23 +704,23 @@ export function Personal() {
                 disabled={!importDatei || importLaeuft}
                 onClick={() => void csvImportieren()}
               >
-                {importLaeuft ? "Importiere…" : "Import starten"}
+                {importLaeuft ? txt.import_startet : txt.import_starten}
               </button>
             </div>
             {importFehler && <Fehlertext>{importFehler}</Fehlertext>}
             {importErgebnis && (
               <div style={{ marginTop: 12 }}>
                 <p style={{ fontWeight: 600 }}>
-                  {importErgebnis.angelegt} Person(en) angelegt
+                  {importErgebnis.angelegt} {txt.import_person_angelegt}
                   {importErgebnis.fehler.length > 0
-                    ? `, ${importErgebnis.fehler.length} Zeile(n) übersprungen`
+                    ? `, ${importErgebnis.fehler.length} ${txt.import_zeilen_uebersprungen}`
                     : "."}
                 </p>
                 {importErgebnis.fehler.length > 0 && (
                   <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
                     {importErgebnis.fehler.map((f) => (
                       <li key={f.zeile} className="fehlertext">
-                        Zeile {f.zeile}: {f.fehler}
+                        {txt.zeile} {f.zeile}: {f.fehler}
                       </li>
                     ))}
                   </ul>
@@ -740,57 +743,57 @@ export function Personal() {
           >
             {!neuePerson ? (
               <>
-                <h2>Person hinzufügen</h2>
+                <h2>{txt.anlegen_titel}</h2>
                 <form onSubmit={anlegen} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   <input
-                    placeholder="Vorname"
+                    placeholder={txt.ph_vorname}
                     value={neuerVorname}
                     onChange={(e) => setNeuerVorname(e.target.value)}
                     autoFocus
                   />
                   <input
-                    placeholder="Zwischenname (optional)"
+                    placeholder={txt.ph_zwischenname_optional}
                     value={neuerZwischenname}
                     onChange={(e) => setNeuerZwischenname(e.target.value)}
                   />
                   <input
-                    placeholder="Nachname"
+                    placeholder={txt.ph_nachname}
                     value={neuerNachname}
                     onChange={(e) => setNeuerNachname(e.target.value)}
                   />
                   {anlegenFehler && <Fehlertext>{anlegenFehler}</Fehlertext>}
                   <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
                     <button type="button" className="sekundaer" onClick={anlegenModalSchliessen}>
-                      Abbrechen
+                      {txt.abbrechen}
                     </button>
-                    <button type="submit">Anlegen</button>
+                    <button type="submit">{txt.anlegen}</button>
                   </div>
                 </form>
               </>
             ) : !bildQr ? (
-              <p>Lege Person an …</p>
+              <p>{txt.lege_an}</p>
             ) : bildHochgeladen ? (
               <>
-                <h2>Foto gespeichert!</h2>
+                <h2>{txt.foto_gespeichert}</h2>
                 <PersonenAvatar person={liste.find((p) => p.id === neuePerson.id) ?? neuePerson} groesse={120} />
-                <p style={{ marginTop: 12 }}>{neuePerson.name} wurde angelegt.</p>
+                <p style={{ marginTop: 12 }}>{neuePerson.name}{txt.wurde_angelegt}</p>
                 <button type="button" onClick={anlegenModalSchliessen}>
-                  Fertig
+                  {txt.fertig}
                 </button>
               </>
             ) : (
               <>
-                <h2>{neuePerson.name} angelegt</h2>
+                <h2>{neuePerson.name}{txt.angelegt_suffix}</h2>
                 <p className="text-mute">
-                  Mit dem Handy scannen, um direkt ein Profilfoto aufzunehmen oder hochzuladen.
+                  {txt.foto_scan_hinweis}
                 </p>
-                <img src={bildQr.bildUrl} alt="QR-Code für Foto-Upload" style={{ width: 220, height: 220 }} />
+                <img src={bildQr.bildUrl} alt={txt.qr_alt} style={{ width: 220, height: 220 }} />
                 <p className="hinweis-klein">
-                  Gültig bis {formatiereZeit(bildQr.ablaufAm)}
+                  {txt.gueltig_bis} {formatiereZeit(bildQr.ablaufAm)}
                 </p>
                 <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
                   <button type="button" className="sekundaer" onClick={anlegenModalSchliessen}>
-                    Überspringen
+                    {txt.ueberspringen}
                   </button>
                 </div>
               </>
@@ -811,26 +814,25 @@ export function Personal() {
           >
             {bildQrStandaloneHochgeladen ? (
               <>
-                <h2>Foto gespeichert!</h2>
+                <h2>{txt.foto_gespeichert}</h2>
                 <PersonenAvatar person={liste.find((p) => p.id === ausgewaehltePerson.id) ?? ausgewaehltePerson} groesse={120} />
                 <p style={{ marginTop: 12 }}>{ausgewaehltePerson.name}</p>
                 <button type="button" onClick={bildQrStandaloneSchliessen}>
-                  Fertig
+                  {txt.fertig}
                 </button>
               </>
             ) : (
               <>
-                <h2>Bild per QR-Code hochladen</h2>
+                <h2>{txt.bild_qr_titel}</h2>
                 <p className="text-mute">
-                  Mit dem Handy scannen, um ein Profilfoto für <strong>{ausgewaehltePerson.name}</strong>{" "}
-                  aufzunehmen oder hochzuladen.
+                  {txt.bild_qr_hinweis_prefix}<strong>{ausgewaehltePerson.name}</strong>{txt.bild_qr_hinweis_suffix}
                 </p>
-                <img src={bildQrStandalone.bildUrl} alt="QR-Code für Foto-Upload" style={{ width: 220, height: 220 }} />
+                <img src={bildQrStandalone.bildUrl} alt={txt.qr_alt} style={{ width: 220, height: 220 }} />
                 <p className="hinweis-klein">
-                  Gültig bis {formatiereZeit(bildQrStandalone.ablaufAm)}
+                  {txt.gueltig_bis} {formatiereZeit(bildQrStandalone.ablaufAm)}
                 </p>
                 <button type="button" className="sekundaer" onClick={bildQrStandaloneSchliessen}>
-                  Schließen
+                  {txt.schliessen}
                 </button>
               </>
             )}
@@ -847,11 +849,11 @@ export function Personal() {
               onClick={() => setFilterPanelOffen((o) => !o)}
               aria-expanded={filterPanelOffen}
             >
-              ⚙ Filter{aktiveFilter > 0 ? ` · ${aktiveFilter}` : ""}
+              {txt.filter_prefix}{aktiveFilter > 0 ? ` · ${aktiveFilter}` : ""}
             </button>
             {aktiveFilter > 0 && (
               <button type="button" className="personal-filter-reset" onClick={filterZuruecksetzen}>
-                Zurücksetzen
+                {txt.zuruecksetzen}
               </button>
             )}
           </div>
@@ -863,7 +865,7 @@ export function Personal() {
                   checked={filterKeineMail}
                   onChange={(e) => setFilterKeineMail(e.target.checked)}
                 />
-                Keine E-Mail hinterlegt
+                {txt.filter_keine_mail}
               </label>
               <label className="personal-filter-check">
                 <input
@@ -871,23 +873,23 @@ export function Personal() {
                   checked={filterKeinBild}
                   onChange={(e) => setFilterKeinBild(e.target.checked)}
                 />
-                Kein Profilbild
+                {txt.filter_kein_bild}
               </label>
               <label className="personal-filter-select">
-                <span>Benachrichtigungen erlaubt</span>
+                <span>{txt.filter_benachrichtigungen}</span>
                 <select
                   value={filterBenachrichtigung}
                   onChange={(e) => setFilterBenachrichtigung(e.target.value as "alle" | "an" | "aus")}
                 >
-                  <option value="alle">alle</option>
-                  <option value="an">erlaubt</option>
-                  <option value="aus">nicht erlaubt</option>
+                  <option value="alle">{txt.filter_alle}</option>
+                  <option value="an">{txt.filter_erlaubt}</option>
+                  <option value="aus">{txt.filter_nicht_erlaubt}</option>
                 </select>
               </label>
               <label className="personal-filter-select">
-                <span>Abonniert Benachrichtigung</span>
+                <span>{txt.filter_abo}</span>
                 <select value={filterAbo} onChange={(e) => setFilterAbo(e.target.value)}>
-                  <option value="">– beliebig –</option>
+                  <option value="">{txt.filter_beliebig}</option>
                   {ereignisTypen.map((e) => (
                     <option key={e.key} value={e.key}>
                       {e.label}
@@ -897,8 +899,7 @@ export function Personal() {
               </label>
               {filterAbo && (
                 <p className="hinweis-klein" style={{ margin: 0 }}>
-                  {aboAnzahl} {aboAnzahl === 1 ? "Person" : "Personen"} abonniert · 📧 = aktiver
-                  Mail-Kanal mit hinterlegter E-Mail
+                  {aboAnzahl} {aboAnzahl === 1 ? txt.abo_person : txt.abo_personen} {txt.abo_hinweis_rest}
                 </p>
               )}
             </div>
@@ -916,10 +917,10 @@ export function Personal() {
               }}
             >
               <span>
-                <span style={{ color: "#e0a500" }}>▉</span> länger inaktiv
+                <span style={{ color: "#e0a500" }}>▉</span> {txt.legend_inaktiv}
               </span>
               <span>
-                <span style={{ color: "#d64545" }}>▉</span> überfällig
+                <span style={{ color: "#d64545" }}>▉</span> {txt.legend_ueberfaellig}
               </span>
             </div>
           )}
@@ -947,7 +948,7 @@ export function Personal() {
                     {p.name}
                   </span>
                   {filterAbo && aboUebersicht[p.id]?.mail_aktiv && (
-                    <span title="Aktiver Mail-Kanal mit hinterlegter E-Mail">📧</span>
+                    <span title={txt.mail_kanal_titel}>📧</span>
                   )}
                 </button>
               </li>
@@ -1014,28 +1015,28 @@ export function Personal() {
                 const tabs: { key: string; label: string; sichtbar?: boolean; inhalt: ReactNode }[] = [
                   {
                     key: "stammdaten",
-                    label: "Stammdaten",
+                    label: txt.tab_stammdaten,
                     inhalt: (
                       <>
                         <div className="person-felder">
                           <input
                             defaultValue={person.vorname ?? ""}
-                            placeholder="Vorname"
+                            placeholder={txt.ph_vorname}
                             onBlur={(e) => feldAendern(person, "vorname", e.target.value)}
                           />
                           <input
                             defaultValue={person.zwischenname ?? ""}
-                            placeholder="Zwischenname"
+                            placeholder={txt.ph_zwischenname}
                             onBlur={(e) => feldAendern(person, "zwischenname", e.target.value)}
                           />
                           <input
                             defaultValue={person.nachname ?? ""}
-                            placeholder="Nachname"
+                            placeholder={txt.ph_nachname}
                             onBlur={(e) => feldAendern(person, "nachname", e.target.value)}
                           />
                           <input
                             defaultValue={person.email ?? ""}
-                            placeholder="E-Mail"
+                            placeholder={txt.ph_email}
                             type="email"
                             onBlur={(e) => feldAendern(person, "email", e.target.value)}
                           />
@@ -1045,7 +1046,7 @@ export function Personal() {
                               gruppeFeldAendern(person, e.target.value ? Number(e.target.value) : null)
                             }
                           >
-                            <option value="">– keine Gruppe –</option>
+                            <option value="">{txt.keine_gruppe}</option>
                             {gruppen.map((g) => (
                               <option key={g.id} value={g.id}>
                                 {g.name}
@@ -1057,9 +1058,9 @@ export function Personal() {
                             onChange={(e) =>
                               funktionFeldAendern(person, e.target.value ? Number(e.target.value) : null)
                             }
-                            title="Default-Funktion für Dienststunden"
+                            title={txt.funktion_titel}
                           >
-                            <option value="">– keine Funktion –</option>
+                            <option value="">{txt.keine_funktion}</option>
                             {funktionen.map((f) => (
                               <option key={f.id} value={f.id}>
                                 {f.name}
@@ -1070,14 +1071,14 @@ export function Personal() {
 
                         <label
                           style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}
-                          title="Inaktive Personen erhalten keine Aktivitäts-Ampel und keine Ampel-Benachrichtigung. Die automatische Inaktivitäts-Löschung bleibt davon unberührt."
+                          title={txt.inaktiv_titel}
                         >
                           <input
                             type="checkbox"
                             checked={person.inaktiv}
                             onChange={(e) => inaktivAendern(person, e.target.checked)}
                           />
-                          Inaktiv (von der Aktivitäts-Ampel ausnehmen)
+                          {txt.inaktiv_label}
                         </label>
 
                         <div className="person-aktionen">
@@ -1093,10 +1094,10 @@ export function Personal() {
                             }}
                           />
                           <button className="sekundaer" onClick={() => bildInputRef.current?.click()}>
-                            Bild hochladen
+                            {txt.bild_hochladen}
                           </button>
                           <button className="sekundaer" onClick={() => bildQrStandaloneOeffnen(person)}>
-                            Bild per QR-Code hochladen
+                            {txt.bild_qr_hochladen}
                           </button>
                         </div>
 
@@ -1106,7 +1107,7 @@ export function Personal() {
                             style={{ color: "#d64545" }}
                             onClick={() => loeschen(person.id)}
                           >
-                            Person löschen
+                            {txt.person_loeschen}
                           </button>
                         </div>
                       </>
@@ -1114,25 +1115,25 @@ export function Personal() {
                   },
                   {
                     key: "zugang",
-                    label: "Zugang",
+                    label: txt.tab_zugang,
                     inhalt: (
                       <>
                         <div className="person-aktionen">
                           <button className="sekundaer" onClick={() => pinSetzen(person)}>
-                            PIN setzen
+                            {txt.pin_setzen}
                           </button>
                           <span className="hinweistext">
-                            {person.pin_gesetzt ? "🔒 PIN gesetzt" : "Kein PIN gesetzt"}
+                            {person.pin_gesetzt ? txt.pin_gesetzt : txt.kein_pin}
                           </span>
                         </div>
 
                         {istPinGesperrt(person) && (
                           <div className="person-aktionen">
                             <button className="sekundaer" onClick={() => pinEntsperren(person)}>
-                              PIN-Sperre aufheben
+                              {txt.pin_sperre_aufheben}
                             </button>
                             <span style={{ fontSize: "0.85rem", color: "var(--farbe-warnung, #b45309)" }}>
-                              ⛔ PIN-Login gesperrt (zu viele Fehlversuche)
+                              {txt.pin_gesperrt_hinweis}
                             </span>
                           </div>
                         )}
@@ -1141,15 +1142,15 @@ export function Personal() {
                           <>
                             <div className="person-aktionen">
                               <button className="sekundaer" onClick={() => barcodeErzeugen(person)}>
-                                Barcode erzeugen
+                                {txt.barcode_erzeugen}
                               </button>
                               <button
                                 className="sekundaer"
                                 disabled={!person.email}
-                                title={!person.email ? "Erst eine E-Mail-Adresse hinterlegen" : undefined}
+                                title={!person.email ? txt.email_noetig_titel : undefined}
                                 onClick={() => barcodePerMailSenden(person)}
                               >
-                                Barcode per Mail senden
+                                {txt.barcode_mail_senden}
                               </button>
                             </div>
                             {barcode && (
@@ -1157,7 +1158,7 @@ export function Personal() {
                                 <div style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: 4 }}>
                                   {person.name}
                                 </div>
-                                <img src={barcodeBildUrl(barcode.token)} alt="Barcode" style={{ height: 50 }} />
+                                <img src={barcodeBildUrl(barcode.token)} alt={txt.barcode_alt} style={{ height: 50 }} />
                                 <div
                                   style={{
                                     display: "flex",
@@ -1179,12 +1180,12 @@ export function Personal() {
                                     style={{ padding: "0.2rem 0.5rem" }}
                                     onClick={(e) => tokenKopieren(barcode.token, e.currentTarget)}
                                   >
-                                    Kopieren
+                                    {txt.kopieren}
                                   </button>
                                 </div>
                                 {barcode.ablaufAm && (
                                   <div style={{ fontSize: "0.7rem", color: "var(--farbe-text-mute)" }}>
-                                    Gültig bis {formatiereDatum(barcode.ablaufAm)}
+                                    {txt.gueltig_bis} {formatiereDatum(barcode.ablaufAm)}
                                   </div>
                                 )}
                               </div>
@@ -1192,7 +1193,7 @@ export function Personal() {
                           </>
                         ) : (
                           <p className="hinweistext">
-                            Das Barcode-Modul ist deaktiviert – die Anmeldung erfolgt über Name + PIN.
+                            {txt.barcode_deaktiviert}
                           </p>
                         )}
                       </>
@@ -1200,14 +1201,14 @@ export function Personal() {
                   },
                   {
                     key: "benachrichtigungen",
-                    label: "Benachrichtigungen",
+                    label: txt.tab_benachrichtigungen,
                     inhalt: (
                       <>
                         <label
                           style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}
                           title={
                             !person.email
-                              ? "Erst eine E-Mail-Adresse hinterlegen, sonst kommen keine Benachrichtigungen an"
+                              ? txt.benachr_email_noetig_titel
                               : undefined
                           }
                         >
@@ -1216,7 +1217,7 @@ export function Personal() {
                             checked={person.benachrichtigungen_aktiv}
                             onChange={(e) => benachrichtigungenAendern(person, e.target.checked)}
                           />
-                          Benachrichtigungen aktiv
+                          {txt.benachrichtigungen_aktiv}
                         </label>
                         <PersonKanaele personId={person.id} personEmail={person.email} />
                       </>
@@ -1224,11 +1225,11 @@ export function Personal() {
                   },
                   {
                     key: "verlauf",
-                    label: "Verlauf",
+                    label: txt.tab_verlauf,
                     inhalt: !timeline ? (
                       <Ladeanzeige />
                     ) : timeline.length === 0 ? (
-                      <p className="text-mute">Noch keine Ereignisse.</p>
+                      <p className="text-mute">{txt.keine_ereignisse}</p>
                     ) : (
                       (() => {
                         const typen = Array.from(new Set(timeline.map((e) => e.typ))).sort();
@@ -1238,13 +1239,13 @@ export function Personal() {
                           <>
                             {typen.length > 1 && (
                               <div className="formular-feld" style={{ maxWidth: 260, marginBottom: 8 }}>
-                                <label htmlFor="verlauf-filter">Nach Ereignistyp filtern</label>
+                                <label htmlFor="verlauf-filter">{txt.verlauf_filter_label}</label>
                                 <select
                                   id="verlauf-filter"
                                   value={aktiverFilter}
                                   onChange={(e) => setVerlaufFilter(e.target.value)}
                                 >
-                                  <option value="">Alle Ereignisse</option>
+                                  <option value="">{txt.alle_ereignisse}</option>
                                   {typen.map((t) => (
                                     <option key={t} value={t}>
                                       {ereignisLabel(t)}
@@ -1254,7 +1255,7 @@ export function Personal() {
                               </div>
                             )}
                             {gefiltert.length === 0 ? (
-                              <p className="text-mute">Keine Ereignisse für diesen Filter.</p>
+                              <p className="text-mute">{txt.keine_ereignisse_filter}</p>
                             ) : (
                               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                                 {gefiltert
@@ -1283,7 +1284,7 @@ export function Personal() {
                   },
                   {
                     key: "erhoehter-zugang",
-                    label: "Erhöhter Zugang",
+                    label: txt.tab_erhoehter_zugang,
                     sichtbar: istAdmin,
                     inhalt: (() => {
                       const eintrag = elevatedMap[person.id];
@@ -1291,8 +1292,7 @@ export function Personal() {
                       return (
                         <>
                           <p className="text-mute">
-                            Erhöhter Zugang zum Gruppenführer-/Admin-Bereich (Anmeldung mit Name +
-                            Passwort). Der Kiosk-/Mitglied-Zugang per PIN bleibt davon unberührt.
+                            {txt.erhoehter_zugang_hinweis}
                           </p>
                           <div className="person-felder">
                             <select
@@ -1303,16 +1303,16 @@ export function Personal() {
                                 else zugangSetzen(person, wert as ElevatedRolle);
                               }}
                             >
-                              <option value="">Normales Mitglied</option>
-                              <option value="gruppenfuehrer">Gruppenführer</option>
-                              <option value="admin">Administrator</option>
+                              <option value="">{txt.normales_mitglied}</option>
+                              <option value="gruppenfuehrer">{txt.gruppenfuehrer}</option>
+                              <option value="admin">{txt.administrator}</option>
                             </select>
                           </div>
                           {!rolle && (
                             <div className="person-felder" style={{ marginTop: 8 }}>
                               <input
                                 type="password"
-                                placeholder="Login-Passwort (mind. 8 Zeichen)"
+                                placeholder={txt.ph_login_passwort}
                                 value={zugangPasswort}
                                 autoComplete="new-password"
                                 onChange={(e) => setZugangPasswort(e.target.value)}
@@ -1322,8 +1322,8 @@ export function Personal() {
                           {rolle && (
                             <>
                               <p className="text-mute" style={{ marginTop: 8 }}>
-                                Aktuelle Rolle: {rolle === "admin" ? "Administrator" : "Gruppenführer"} ·
-                                2FA {eintrag?.zwei_faktor_aktiv ? "aktiv" : "inaktiv"}
+                                {txt.aktuelle_rolle} {rolle === "admin" ? txt.administrator : txt.gruppenfuehrer} ·
+                                {txt.rolle_2fa} {eintrag?.zwei_faktor_aktiv ? txt.aktiv : txt.inaktiv}
                               </p>
                               <div className="person-aktionen" style={{ marginTop: 12 }}>
                                 <button
@@ -1331,7 +1331,7 @@ export function Personal() {
                                   className="sekundaer"
                                   onClick={() => zugangPasswortNeu(person)}
                                 >
-                                  Passwort neu setzen
+                                  {txt.passwort_neu}
                                 </button>
                                 {eintrag?.zwei_faktor_aktiv && (
                                   <button
@@ -1339,7 +1339,7 @@ export function Personal() {
                                     className="sekundaer"
                                     onClick={() => zugang2faReset(person)}
                                   >
-                                    2FA zurücksetzen
+                                    {txt.zwei_fa_reset}
                                   </button>
                                 )}
                                 <button
@@ -1348,7 +1348,7 @@ export function Personal() {
                                   style={{ color: "#d64545" }}
                                   onClick={() => zugangEntziehen(person)}
                                 >
-                                  Zugang entziehen
+                                  {txt.zugang_entziehen}
                                 </button>
                               </div>
                             </>

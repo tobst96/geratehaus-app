@@ -1834,7 +1834,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Mehrsprachigkeit vorbereiten (i18n)
 
-- Status: Backlog
+- Status: Erledigt (11.07.2026 – alle öffentlichen Seiten **und** der gesamte
+  Gruppenführer-Bereich in `texte.ts` migriert; letzte Seite `Personal.tsx`)
 - Priorität: Niedrig
 - Kategorie: Frontend / Wartung
 - Skills: planner, geraetehaus-patterns, review
@@ -1926,6 +1927,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Spaltenköpfe, Status-/Ja-Zellen, Auswertung/Einreichungen, Fehlermeldungen). **Tab-Namen
   bleiben literal** (funktionale `?tab=`-Keys + `TAB_MODUL`/`TAB_PERM`-Lookups + Vergleiche,
   inkl. `<h1>{tab}</h1>`). Build grün. **Rest Gruppenführer: nur noch Personal (1392 Z.).**
+- Fortschritt/Abschluss (11.07.2026, direkt auf beta): **`pages/gruppenfuehrer/Personal.tsx`
+  migriert** (Namespace `texte.personal`, ~95 Keys: Ampel-Titel, Ereignis-Labels,
+  Fehler/Toasts/Prompts/Confirms mit dynamischem Namen via Prefix/Suffix, Kopf/Toolbar,
+  CSV-Import, Person-anlegen- & Foto-QR-Dialoge, Filter-Panel, alle 5 Detail-Tabs
+  Stammdaten/Zugang/Benachrichtigungen/Verlauf/Erhöhter Zugang). Alias **`txt`** wegen
+  mehrfacher `.map((t)=>)`/`.filter((t)=>)`. Build grün. **→ i18n-Task damit vollständig
+  abgeschlossen (gesamter Gruppenführer-Bereich + alle öffentlichen Seiten).**
 
 ### CI bei jedem PR (GitHub Actions)
 
