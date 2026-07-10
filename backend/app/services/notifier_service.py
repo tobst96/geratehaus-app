@@ -27,6 +27,7 @@ EREIGNIS_BETREFF = {
     "benachrichtigung_person_inaktiv": "Person inaktiv – wird bald gelöscht",
     "benachrichtigung_person_ampel_gelb": "Person überfällig (Ampel gelb)",
     "benachrichtigung_person_ampel_rot": "Person überfällig (Ampel rot)",
+    "benachrichtigung_pressebericht": "Pressebericht",
 }
 
 EREIGNIS_VORLAGE = {
@@ -38,6 +39,7 @@ EREIGNIS_VORLAGE = {
     "benachrichtigung_person_inaktiv": "benachrichtigung_text_person_inaktiv",
     "benachrichtigung_person_ampel_gelb": "benachrichtigung_text_person_ampel_gelb",
     "benachrichtigung_person_ampel_rot": "benachrichtigung_text_person_ampel_rot",
+    "benachrichtigung_pressebericht": "benachrichtigung_text_pressebericht",
 }
 
 # Kanal-Typ (Benachrichtigungskanal.typ) → Notifier-Kanalname (für ausschluss_kanaele,

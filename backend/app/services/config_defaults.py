@@ -53,6 +53,50 @@ DEFAULTS: list[ConfigDefault] = [
     # Einmal-Marker: übernimmt bestehende Divera-Instanzen (divera_aktiv=true) ins
     # neue Divera-Modul (modul_divera_aktiv=true), siehe Lifespan in app/main.py.
     ConfigDefault("modul_divera_migration_done", "false", ConfigTyp.BOOL, "Divera-Modul-Migration erfolgt"),
+    ConfigDefault("modul_pressebericht_aktiv", "false", ConfigTyp.BOOL, "Pressebericht-Modul aktiv"),
+    # Pressebericht: Inhaltsauswahl (welche Blöcke der Bericht enthält).
+    ConfigDefault(
+        "pressebericht_felder_grunddaten", "true", ConfigTyp.BOOL,
+        "Pressebericht: Einsatz-Grunddaten (Titel/Zeitpunkt/Adresse/Meldung/Nummer) aufnehmen",
+    ),
+    ConfigDefault(
+        "pressebericht_zusatzfelder", "[]", ConfigTyp.JSON,
+        "Pressebericht: Liste der Einsatz-Zusatzfeld-Schlüssel, die aufgenommen werden",
+    ),
+    ConfigDefault(
+        "pressebericht_felder_divera", "false", ConfigTyp.BOOL,
+        "Pressebericht: Divera-Informationen (Einsatznummer/Adresse/Meldung) aufnehmen",
+    ),
+    ConfigDefault(
+        "pressebericht_teilnehmer_anzahl", "true", ConfigTyp.BOOL,
+        "Pressebericht: Gesamtzahl der beteiligten Personen aufnehmen",
+    ),
+    ConfigDefault(
+        "pressebericht_teilnehmer_namen", "false", ConfigTyp.BOOL,
+        "Pressebericht: Namensliste der beteiligten Personen aufnehmen",
+    ),
+    ConfigDefault(
+        "pressebericht_fahrzeuge", "true", ConfigTyp.BOOL,
+        "Pressebericht: Auflistung der Fahrzeuge mit Besatzung aufnehmen",
+    ),
+    ConfigDefault(
+        "pressebericht_minio_link", "false", ConfigTyp.BOOL,
+        "Pressebericht: App-internen Link zum MinIO-Ordner des Einsatzes aufnehmen",
+    ),
+    # Pressebericht: Versandzeitpunkt.
+    ConfigDefault(
+        "pressebericht_versand_modus", "schliessen", ConfigTyp.STR,
+        "Pressebericht-Versand: 'schliessen' (bei Abschluss), 'stunden' (X h nach "
+        "Abschluss) oder 'uhrzeit' (täglich, nur abgeschlossene Einsätze)",
+    ),
+    ConfigDefault(
+        "pressebericht_versand_stunden", "24", ConfigTyp.INT,
+        "Pressebericht-Versand: Stunden nach Abschluss (Modus 'stunden')",
+    ),
+    ConfigDefault(
+        "pressebericht_versand_uhrzeit", "08:00", ConfigTyp.STR,
+        "Pressebericht-Versand: Uhrzeit HH:MM (Modus 'uhrzeit')",
+    ),
     # Barcode-Modul: wenn AUS (Default), Login per Namenssuche + PIN statt Barcode-Scan.
     # Nicht mitgliederseitig – daher keine _startseite/_aussenzugriff-Keys.
     ConfigDefault("modul_barcode_aktiv", "false", ConfigTyp.BOOL, "Barcode-Modul aktiv"),
@@ -285,6 +329,12 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.BOOL,
         "Benachrichtigung, wenn eine Person die rote Aktivitäts-Ampel erreicht",
     ),
+    ConfigDefault(
+        "benachrichtigung_pressebericht",
+        "true",
+        ConfigTyp.BOOL,
+        "Benachrichtigung mit dem Pressebericht (PDF) eines Einsatzes",
+    ),
     # Benachrichtigungskanäle (Zugangsdaten, ersetzt frühere .env-Werte)
     ConfigDefault("notifier_telegram_aktiv", "false", ConfigTyp.BOOL, "Telegram-Versand aktiv"),
     ConfigDefault("notifier_telegram_bot_token", "", ConfigTyp.STR, "Telegram Bot-Token"),
@@ -363,6 +413,13 @@ DEFAULTS: list[ConfigDefault] = [
         "Neues Dienstbuch eröffnet: {titel}",
         ConfigTyp.STR,
         "Text bei neuem Dienstbuch. Platzhalter: {titel}",
+    ),
+    ConfigDefault(
+        "benachrichtigung_text_pressebericht",
+        "Pressebericht zum Einsatz: {titel}\n\nDer vollständige Bericht befindet sich im "
+        "PDF-Anhang.",
+        ConfigTyp.STR,
+        "Text der Pressebericht-Mail (PDF im Anhang). Platzhalter: {titel}",
     ),
     ConfigDefault(
         "benachrichtigung_text_buchungsanfrage",

@@ -12,6 +12,57 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe P – Neues Modul „Pressebericht"
+
+### Modul „Pressebericht" (konfigurierbarer Einsatz-Pressebericht als PDF-Mail)
+
+- Status: In Bearbeitung (Feature-Branch `feature/modul-pressebericht`, seit 10.07.2026)
+- Priorität: Mittel
+- Kategorie: Neues Modul
+- Skills: planner, new-module, geraetehaus-patterns, tests, review
+- Beschreibung: Neues (nicht mitgliederseitiges) Feature-Modul. Für einen Einsatz
+  wird ein **Pressebericht** als PDF erzeugt, per Mail an die Abonnenten des
+  Ereignisses `benachrichtigung_pressebericht` versendet, im MinIO-Einsatzordner
+  abgelegt und der Versand in der Einsatz-Timeline protokolliert. Der Inhalt ist in
+  den Modul-Einstellungen (Admin-Unterseite) konfigurierbar.
+- Konfigurierbarer Inhalt (Modul-Einstellungen, alles in `app_config`):
+  - `pressebericht_felder_grunddaten` (bool): Titel/Zeitpunkt/Adresse/Meldung/Nr.
+  - `pressebericht_zusatzfelder` (JSON-Liste von Feld-Schlüsseln): **einzeln**
+    wählbare Einsatz-Zusatzfelder (Nutzerwunsch: granular + Blöcke).
+  - `pressebericht_felder_divera` (bool): Divera-Infos.
+  - `pressebericht_teilnehmer_anzahl` (bool) **und/oder**
+    `pressebericht_teilnehmer_namen` (bool): getrennt schaltbar.
+  - `pressebericht_fahrzeuge` (bool): Auflistung der Fahrzeuge mit Besatzung.
+  - `pressebericht_minio_link` (bool): App-interner Link zum MinIO-Dateibrowser des
+    Einsatz-Ordners (Login nötig – bewusst kein öffentlicher Presigned-Link).
+- Versandzeitpunkt (`pressebericht_versand_modus`):
+  - `schliessen`: sofort beim Abschließen des Einsatzes.
+  - `stunden`: `pressebericht_versand_stunden` Stunden **nach Abschluss**.
+  - `uhrzeit`: täglich um `pressebericht_versand_uhrzeit`, nur für **abgeschlossene**
+    Einsätze, die noch keinen Pressebericht haben.
+  - Idempotenz über neue Spalte `einsaetze.pressebericht_gesendet_am`.
+- Umsetzung (Checkliste neues Modul):
+  - [x] Migration 0065 (`einsaetze.pressebericht_gesendet_am`)
+  - [x] Model-Feld, config_defaults (`modul_pressebericht_aktiv` + Inhalt/Versand)
+  - [x] FEATURE_MODULE-Eintrag (`mitgliederseitig=False`)
+  - [x] Ereignis `benachrichtigung_pressebericht` (EREIGNIS_TYPEN + MODUL_LABEL +
+        notifier BETREFF/VORLAGE + Vorlagen-Config-Default)
+  - [x] `pressebericht_service` (Daten sammeln, PDF, Versand+MinIO+Timeline)
+  - [x] PDF-Template `pressebericht.html`
+  - [x] Hook in `einsatz_abschliessen` (Modus `schliessen`) + Scheduler-Job
+        (Modus `stunden`/`uhrzeit`)
+  - [x] Backend-Tests
+  - [ ] Frontend: Modul-Unterseite (Einstellungen) + Module-Übersicht-Toggle
+  - [ ] Doku `docs/pressebericht.md` + Index; Datenschutz prüfen
+- Akzeptanzkriterien: Modul an/abschaltbar; Inhalt konfigurierbar; PDF enthält nur
+  aktivierte Blöcke; Versand in allen drei Modi; Timeline-Eintrag; PDF im MinIO-
+  Ordner; Abonnenten-Mail; `scripts/test-backend.sh` + `npm run build` grün.
+- Notizen: Neues Modul = Feature-Branch → PR nach beta (nicht direkt), NICHT main.
+  Geklärt mit Nutzer (10.07.2026): interner MinIO-Ordner-Link, Zusatzfelder einzeln
+  wählbar, Teilnehmer Anzahl und/oder Namen getrennt schaltbar.
+
+---
+
 ## Etappe C – Dienststunden-Erfassung touch-freundlich
 
 ### Dienstbuch-Felder analog Einsatz-Felder (+ Typ „Auswahl")

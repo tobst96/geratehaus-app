@@ -32,6 +32,12 @@ class Einsatz(Base, TimestampMixin):
     geplanter_abschluss_am: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Modul Pressebericht: Zeitpunkt, zu dem für diesen Einsatz ein Pressebericht
+    # versendet wurde (None = noch keiner). Verhindert Doppelversand in den
+    # zeitgesteuerten Modi (nach X Stunden / um Uhrzeit).
+    pressebericht_gesendet_am: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     # Werte der frei konfigurierbaren Zusatzfelder, keyed by EinsatzFeldDefinition.schluessel.
     zusatzfelder: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
 

@@ -49,6 +49,7 @@ MODUL_LABEL: dict[str | None, str] = {
     "dienstbuch": "Dienstbuch",
     "dienststunden": "Dienststunden",
     "fahrzeugbuchung": "Fahrzeugbuchung",
+    "pressebericht": "Pressebericht",
     None: "Allgemein",
 }
 
@@ -68,6 +69,7 @@ EREIGNIS_TYPEN: list[EreignisTyp] = [
     EreignisTyp("benachrichtigung_person_inaktiv", "Person inaktiv / wird gelöscht", None),
     EreignisTyp("benachrichtigung_person_ampel_gelb", "Person überfällig (Ampel gelb)", None),
     EreignisTyp("benachrichtigung_person_ampel_rot", "Person überfällig (Ampel rot)", None),
+    EreignisTyp("benachrichtigung_pressebericht", "Pressebericht (PDF)", "pressebericht"),
 ]
 
 _ERLAUBTE_EREIGNISSE = {e.key for e in EREIGNIS_TYPEN}
