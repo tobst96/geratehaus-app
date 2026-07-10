@@ -16,7 +16,8 @@
  * `pages/KioskHome.tsx`, `pages/mitglied/MitgliedLogin.tsx`, `pages/Start.tsx`,
  * `pages/NotFound.tsx`, `pages/PersonBildHochladen.tsx`, `pages/ManuelleEintragung.tsx`,
  * `pages/DienstbuchManuelleEintragung.tsx`, `pages/DienststundenManuelleEintragung.tsx`,
- * `pages/FahrzeugbuchungManuelleEintragung.tsx`, `pages/gruppenfuehrer/GruppenfuehrerLogin.tsx`.
+ * `pages/FahrzeugbuchungManuelleEintragung.tsx`, `pages/gruppenfuehrer/GruppenfuehrerLogin.tsx`,
+ * `pages/gruppenfuehrer/Dashboard.tsx`.
  */
 export const texte = {
   landing: {
@@ -163,6 +164,21 @@ export const texte = {
     zweck: "Zweck",
     stellen_laeuft: "Wird gestellt…",
     anfrage_stellen: "Anfrage stellen",
+  },
+  dashboard: {
+    titel: "Dashboard",
+    ladefehler: "Dashboard konnte nicht geladen werden.",
+    zu_buchungen: "Zu den Buchungen",
+    offene_buchungen: "Offene Buchungen",
+    zu_dienststunden: "Zu Listen → Dienststunden",
+    schwellenwert_ueberschreitungen: "Schwellenwert-Überschreitungen",
+    th_name: "Name",
+    th_funktion: "Funktion",
+    th_stunden: "Stunden",
+    th_schwellenwert: "Schwellenwert",
+    keine_ueberschreitungen: "Keine Überschreitungen.",
+    einsaetze_pro_monat: "Einsätze pro Monat",
+    keine_daten: "Keine Daten.",
   },
   gruppenfuehrer_login: {
     titel: "Anmeldung Gruppenführer / Admin",

@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { holeDashboard, type DashboardOut } from "../../api/gruppenfuehrer";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { texte } from "../../i18n/texte";
 
 export function Dashboard() {
+  const t = texte.dashboard;
   const navigate = useNavigate();
   const [daten, setDaten] = useState<DashboardOut | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -13,7 +15,7 @@ export function Dashboard() {
   useEffect(() => {
     holeDashboard()
       .then(setDaten)
-      .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : "Dashboard konnte nicht geladen werden."));
+      .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : t.ladefehler));
 
     const timer = setInterval(() => {
       holeDashboard()
@@ -30,51 +32,51 @@ export function Dashboard() {
 
   return (
     <div>
-      <h1>Dashboard</h1>
+      <h1>{t.titel}</h1>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
         <div
           className="karte"
           onClick={() => navigate("/gruppenfuehrer/buchungen")}
           style={{ cursor: "pointer" }}
-          title="Zu den Buchungen"
+          title={t.zu_buchungen}
         >
           <div style={{ fontSize: "2rem", fontWeight: 700 }}>{daten.offene_buchungen_anzahl}</div>
-          <div>Offene Buchungen</div>
+          <div>{t.offene_buchungen}</div>
         </div>
         <div
           className="karte"
           onClick={() => navigate("/gruppenfuehrer/listen?tab=Dienststunden")}
           style={{ cursor: "pointer" }}
-          title="Zu Listen → Dienststunden"
+          title={t.zu_dienststunden}
         >
           <div style={{ fontSize: "2rem", fontWeight: 700 }}>
             {daten.schwellenwert_ueberschreitungen.length}
           </div>
-          <div>Schwellenwert-Überschreitungen</div>
+          <div>{t.schwellenwert_ueberschreitungen}</div>
         </div>
       </div>
 
       <h2
         onClick={() => navigate("/gruppenfuehrer/listen?tab=Dienststunden")}
         style={{ cursor: "pointer" }}
-        title="Zu Listen → Dienststunden"
+        title={t.zu_dienststunden}
       >
-        Schwellenwert-Überschreitungen
+        {t.schwellenwert_ueberschreitungen}
       </h2>
       <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Funktion</th>
-            <th>Stunden</th>
-            <th>Schwellenwert</th>
+            <th>{t.th_name}</th>
+            <th>{t.th_funktion}</th>
+            <th>{t.th_stunden}</th>
+            <th>{t.th_schwellenwert}</th>
           </tr>
         </thead>
         <tbody>
           {daten.schwellenwert_ueberschreitungen.length === 0 ? (
-            <tr><td colSpan={4} className="text-mute">Keine Überschreitungen.</td></tr>
+            <tr><td colSpan={4} className="text-mute">{t.keine_ueberschreitungen}</td></tr>
           ) : (
             daten.schwellenwert_ueberschreitungen.map((s, i) => (
               <tr key={i}>
@@ -89,9 +91,9 @@ export function Dashboard() {
       </table>
       </div>
 
-      <h2>Einsätze pro Monat</h2>
+      <h2>{t.einsaetze_pro_monat}</h2>
       <div className="karte">
-        {daten.einsaetze_pro_monat.length === 0 && <p>Keine Daten.</p>}
+        {daten.einsaetze_pro_monat.length === 0 && <p>{t.keine_daten}</p>}
         {daten.einsaetze_pro_monat.map((m) => (
           <div key={m.monat} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <span style={{ width: 64, fontSize: "0.85rem" }}>{m.monat}</span>

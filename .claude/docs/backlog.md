@@ -1812,7 +1812,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Eintragung-Seiten teilen den `texte.manuelle_eintragung`-Namespace (DRY) + je ein kleines
   modul-spezifisches Namespace. **Alle öffentlichen Seiten sind damit migriert.**
   Gruppenführer-Bereich begonnen: **GruppenfuehrerLogin** (`texte.gruppenfuehrer_login`,
-  Login + 2FA-Schritt; Login-Test 2/2 grün). Rest: übriger Gruppenführer-Bereich.
+  Login + 2FA-Schritt; Login-Test 2/2 grün), **Dashboard** (`texte.dashboard`: Kacheln,
+  Schwellenwert-Tabelle, Einsätze-pro-Monat). Rest: übriger Gruppenführer-Bereich.
 
 ### CI bei jedem PR (GitHub Actions)
 
