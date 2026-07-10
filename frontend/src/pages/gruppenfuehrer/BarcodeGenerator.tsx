@@ -14,6 +14,9 @@ import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import type { Person } from "../../api/types";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { texte } from "../../i18n/texte";
+
+const t = texte.barcode_generator;
 
 interface BarcodeInfo {
   token: string;
@@ -33,7 +36,7 @@ export function BarcodeGenerator() {
   useEffect(() => {
     holeAllePersonen()
       .then(setPersonen)
-      .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : "Personen konnten nicht geladen werden."));
+      .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_personen));
     holeEinstellungen()
       .then((w) => setGueltigkeitTage(Number(w.barcode_gueltigkeit_tage ?? 730)))
       .catch(() => {});
@@ -44,7 +47,7 @@ export function BarcodeGenerator() {
     try {
       await schreibeEinstellungen({ barcode_gueltigkeit_tage: gueltigkeitTage });
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Speichern fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_speichern);
     } finally {
       setSpeichertGueltigkeit(false);
     }
@@ -57,7 +60,7 @@ export function BarcodeGenerator() {
       const ergebnis = await alleBarcodesErneuernUndSenden();
       setAlleVersandErgebnis(ergebnis);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Massenversand fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_massenversand);
     } finally {
       setSendetAlle(false);
     }
@@ -87,7 +90,7 @@ export function BarcodeGenerator() {
     let html = `
       <html>
       <head>
-        <title>Barcodes</title>
+        <title>${t.download_titel}</title>
         <style>
           body { margin: 0; padding: 10px; font-family: Arial; }
           .card {
@@ -114,8 +117,8 @@ export function BarcodeGenerator() {
       html += `
         <div class="card">
           <div class="name">${person.name}</div>
-          <img src="${oeffentlicheBasisUrl(config)}${barcodeBildUrl(info.token)}" alt="Barcode" />
-          ${info.ablaufAm ? `<div class="ablauf">Gültig bis ${formatiereDatum(info.ablaufAm)}</div>` : ""}
+          <img src="${oeffentlicheBasisUrl(config)}${barcodeBildUrl(info.token)}" alt="${t.barcode_alt}" />
+          ${info.ablaufAm ? `<div class="ablauf">${t.gueltig_bis} ${formatiereDatum(info.ablaufAm)}</div>` : ""}
         </div>
       `;
     }
@@ -136,14 +139,11 @@ export function BarcodeGenerator() {
 
   return (
     <div>
-      <h1>Barcode-Generierung</h1>
-      <p>
-        Erzeugt für jede Person einen echten Strichcode (Code128), der ein eindeutiges Geheimnis
-        codiert und 2 Jahre gültig ist. Personen werden unter Stammdaten → Personen verwaltet.
-      </p>
+      <h1>{t.titel}</h1>
+      <p>{t.intro}</p>
 
       <div className="karte" style={{ marginBottom: "2rem", maxWidth: "100%" }}>
-        <label htmlFor="barcode-gueltigkeit">Gültigkeitsdauer neuer Barcodes (Tage)</label>
+        <label htmlFor="barcode-gueltigkeit">{t.gueltigkeit_label}</label>
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 16 }}>
           <input
             id="barcode-gueltigkeit"
@@ -154,34 +154,35 @@ export function BarcodeGenerator() {
             style={{ width: 100 }}
           />
           <button onClick={gueltigkeitSpeichern} disabled={speichertGueltigkeit}>
-            {speichertGueltigkeit ? "Speichert …" : "Speichern"}
+            {speichertGueltigkeit ? t.speichert : t.speichern}
           </button>
           <button
             onClick={alleBarcodesVersenden}
             disabled={sendetAlle}
             className="nowrap"
           >
-            {sendetAlle ? "Wird gesendet …" : "Alle neu generieren & senden"}
+            {sendetAlle ? t.sendet : t.alle_senden}
           </button>
         </div>
         {alleVersandErgebnis && (
           <p style={{ fontSize: "0.85rem", color: "var(--farbe-erfolg, green)", marginTop: 8, marginBottom: 0 }}>
-            {alleVersandErgebnis.gesendet} Mail{alleVersandErgebnis.gesendet !== 1 ? "s" : ""} versendet
-            {alleVersandErgebnis.fehler > 0 ? `, ${alleVersandErgebnis.fehler} fehlgeschlagen` : ""}.
+            {`${alleVersandErgebnis.gesendet} ${
+              alleVersandErgebnis.gesendet !== 1 ? t.mail_mehr : t.mail_ein
+            } ${t.versendet}${
+              alleVersandErgebnis.fehler > 0 ? `, ${alleVersandErgebnis.fehler} ${t.fehlgeschlagen_suffix}` : ""
+            }.`}
           </p>
         )}
         <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)", marginBottom: 0, marginTop: alleVersandErgebnis ? 4 : 8 }}>
-          Gilt nur für neu erzeugte Barcodes. Bereits ausgegebene Barcodes behalten ihr
-          ursprüngliches Ablaufdatum. „Alle neu generieren & senden" erneuert alle Barcodes und
-          schickt sie per Mail an Personen mit aktivierten Benachrichtigungen.
+          {t.gueltigkeit_hinweis}
         </p>
       </div>
 
       <div style={{ marginBottom: "2rem" }}>
-        <button onClick={downloadAllAsHTML}>📥 Alle Barcodes als HTML herunterladen</button>
+        <button onClick={downloadAllAsHTML}>{t.download_html}</button>
       </div>
 
-      {personen.length === 0 && <p>Keine Personen angelegt. Siehe Stammdaten → Personen.</p>}
+      {personen.length === 0 && <p>{t.keine_personen}</p>}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1rem" }}>
         {personen.map((person) => {
@@ -202,21 +203,21 @@ export function BarcodeGenerator() {
                   }}
                 >
                   <div style={{ fontWeight: 700, marginBottom: 8 }}>{person.name}</div>
-                  <img src={barcodeBildUrl(info.token)} alt="Barcode" style={{ maxWidth: "100%" }} />
+                  <img src={barcodeBildUrl(info.token)} alt={t.barcode_alt} style={{ maxWidth: "100%" }} />
                   {info.ablaufAm && (
                     <div style={{ fontSize: "0.75rem", color: "var(--farbe-text-mute)", marginTop: 4 }}>
-                      Gültig bis {formatiereDatum(info.ablaufAm)}
+                      {t.gueltig_bis} {formatiereDatum(info.ablaufAm)}
                     </div>
                   )}
                 </div>
               )}
 
               <button onClick={() => generateBarcode(person.id)} style={{ marginRight: "0.5rem" }}>
-                Generieren
+                {t.generieren}
               </button>
               {info && (
                 <button className="sekundaer" onClick={() => printBarcode(person)}>
-                  🖨️ Drucken
+                  {t.drucken}
                 </button>
               )}
             </div>

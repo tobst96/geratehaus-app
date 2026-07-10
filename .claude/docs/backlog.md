@@ -1831,7 +1831,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   (Namespace `texte.module_uebersicht`: Titel/Intro, Suche, Gruppen-Titel/-Hinweise,
   Sortier-Buttons, Doku-/Einstellungen-Titel, Badges „intern"/„immer aktiv",
   Aktiv/Kiosk/Außenzugriff-Labels; Modulnamen `m.name` bleiben dynamisch aus der API).
-  Build grün. Rest Gruppenführer: Personal, Einstellungen, BarcodeGenerator,
+  Build grün.
+- Fortschritt (10.07.2026, direkt auf beta): **`pages/gruppenfuehrer/BarcodeGenerator.tsx`
+  migriert** (Namespace `texte.barcode_generator`: Titel/Intro, Gültigkeitsdauer,
+  Buttons inkl. Lade-Beschriftungen, Massenversand-Ergebnis mit Singular/Plural-Tokens,
+  Hinweistext, HTML-Export-Texte „Gültig bis"/alt/Titel, Generieren/Drucken; Personennamen
+  + Datum bleiben dynamisch). Build grün. Rest Gruppenführer: Personal, Einstellungen,
   EinsatzDetail, SitzplatzEditor.
 
 ### CI bei jedem PR (GitHub Actions)

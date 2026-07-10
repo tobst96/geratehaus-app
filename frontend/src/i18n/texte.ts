@@ -24,7 +24,8 @@
  * `pages/gruppenfuehrer/Berechtigungen.tsx`, `pages/gruppenfuehrer/PersonKanaele.tsx`,
  * `pages/gruppenfuehrer/DienstbuchDetailGruppenfuehrer.tsx`,
  * `pages/gruppenfuehrer/GruppenfuehrerLayout.tsx` (Nav; funktionale ?tab-Keys bleiben literal),
- * `pages/gruppenfuehrer/KioskGeraete.tsx`, `pages/gruppenfuehrer/Module.tsx`.
+ * `pages/gruppenfuehrer/KioskGeraete.tsx`, `pages/gruppenfuehrer/Module.tsx`,
+ * `pages/gruppenfuehrer/BarcodeGenerator.tsx`.
  */
 export const texte = {
   landing: {
@@ -499,5 +500,34 @@ export const texte = {
     fehler_laden: "Module konnten nicht geladen werden.",
     fehler_aendern: "Modul konnte nicht geändert werden.",
     fehler_reihenfolge: "Reihenfolge konnte nicht gespeichert werden.",
+  },
+  barcode_generator: {
+    titel: "Barcode-Generierung",
+    intro:
+      "Erzeugt für jede Person einen echten Strichcode (Code128), der ein eindeutiges Geheimnis " +
+      "codiert und 2 Jahre gültig ist. Personen werden unter Stammdaten → Personen verwaltet.",
+    gueltigkeit_label: "Gültigkeitsdauer neuer Barcodes (Tage)",
+    speichert: "Speichert …",
+    speichern: "Speichern",
+    sendet: "Wird gesendet …",
+    alle_senden: "Alle neu generieren & senden",
+    mail_ein: "Mail",
+    mail_mehr: "Mails",
+    versendet: "versendet",
+    fehlgeschlagen_suffix: "fehlgeschlagen",
+    gueltigkeit_hinweis:
+      "Gilt nur für neu erzeugte Barcodes. Bereits ausgegebene Barcodes behalten ihr " +
+      "ursprüngliches Ablaufdatum. „Alle neu generieren & senden“ erneuert alle Barcodes und " +
+      "schickt sie per Mail an Personen mit aktivierten Benachrichtigungen.",
+    download_html: "📥 Alle Barcodes als HTML herunterladen",
+    keine_personen: "Keine Personen angelegt. Siehe Stammdaten → Personen.",
+    gueltig_bis: "Gültig bis",
+    barcode_alt: "Barcode",
+    download_titel: "Barcodes",
+    generieren: "Generieren",
+    drucken: "🖨️ Drucken",
+    fehler_personen: "Personen konnten nicht geladen werden.",
+    fehler_speichern: "Speichern fehlgeschlagen.",
+    fehler_massenversand: "Massenversand fehlgeschlagen.",
   },
 } as const;
