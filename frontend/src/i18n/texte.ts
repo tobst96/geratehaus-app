@@ -16,7 +16,7 @@
  * `pages/KioskHome.tsx`, `pages/mitglied/MitgliedLogin.tsx`, `pages/Start.tsx`,
  * `pages/NotFound.tsx`, `pages/PersonBildHochladen.tsx`, `pages/ManuelleEintragung.tsx`,
  * `pages/DienstbuchManuelleEintragung.tsx`, `pages/DienststundenManuelleEintragung.tsx`,
- * `pages/FahrzeugbuchungManuelleEintragung.tsx`.
+ * `pages/FahrzeugbuchungManuelleEintragung.tsx`, `pages/gruppenfuehrer/GruppenfuehrerLogin.tsx`.
  */
 export const texte = {
   landing: {
@@ -163,6 +163,23 @@ export const texte = {
     zweck: "Zweck",
     stellen_laeuft: "Wird gestellt…",
     anfrage_stellen: "Anfrage stellen",
+  },
+  gruppenfuehrer_login: {
+    titel: "Anmeldung Gruppenführer / Admin",
+    name: "Name",
+    passwort: "Passwort",
+    anmelden: "Anmelden",
+    anmelden_laeuft: "Anmelden …",
+    anmeldung_fehler: "Anmeldung fehlgeschlagen.",
+    // 2FA-Schritt
+    code_titel: "Bestätigungscode",
+    code_hinweis:
+      "Wir haben dir einen Anmelde-Code per E-Mail geschickt. Gib ihn hier ein (oder verwende einen deiner Recovery-Codes).",
+    code_label: "Code",
+    geraet_vertrauen: "Diesem Gerät 30 Tage vertrauen (kein Code mehr nötig)",
+    pruefe: "Prüfe …",
+    bestaetigen: "Bestätigen",
+    code_ungueltig: "Code ungültig.",
   },
   start: {
     frage: "Wähle einen Bereich:",

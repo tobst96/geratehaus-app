@@ -3,8 +3,10 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/client";
+import { texte } from "../../i18n/texte";
 
 export function GruppenfuehrerLogin() {
+  const t = texte.gruppenfuehrer_login;
   const { gruppenfuehrerAnmelden, gruppenfuehrer2faAbschliessen } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -29,7 +31,7 @@ export function GruppenfuehrerLogin() {
         navigate("/gruppenfuehrer");
       }
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Anmeldung fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.anmeldung_fehler);
     } finally {
       setLadevorgang(false);
     }
@@ -44,7 +46,7 @@ export function GruppenfuehrerLogin() {
       await gruppenfuehrer2faAbschliessen(challenge, code, angemeldetBleiben);
       navigate("/gruppenfuehrer");
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Code ungültig.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.code_ungueltig);
     } finally {
       setLadevorgang(false);
     }
@@ -53,14 +55,13 @@ export function GruppenfuehrerLogin() {
   if (challenge) {
     return (
       <div>
-        <h1>Bestätigungscode</h1>
+        <h1>{t.code_titel}</h1>
         <form onSubmit={codeAbsenden} className="karte">
           <p className="text-mute">
-            Wir haben dir einen Anmelde-Code per E-Mail geschickt. Gib ihn hier ein (oder verwende
-            einen deiner Recovery-Codes).
+{t.code_hinweis}
           </p>
           <div className="formular-feld">
-            <label htmlFor="code">Code</label>
+            <label htmlFor="code">{t.code_label}</label>
             <input
               id="code"
               value={code}
@@ -76,11 +77,11 @@ export function GruppenfuehrerLogin() {
               checked={angemeldetBleiben}
               onChange={(e) => setAngemeldetBleiben(e.target.checked)}
             />
-            Diesem Gerät 30 Tage vertrauen (kein Code mehr nötig)
+            {t.geraet_vertrauen}
           </label>
           {fehler && <Fehlertext>{fehler}</Fehlertext>}
           <button type="submit" disabled={ladevorgang}>
-            {ladevorgang ? "Prüfe …" : "Bestätigen"}
+            {ladevorgang ? t.pruefe : t.bestaetigen}
           </button>
         </form>
       </div>
@@ -89,10 +90,10 @@ export function GruppenfuehrerLogin() {
 
   return (
     <div>
-      <h1>Anmeldung Gruppenführer / Admin</h1>
+      <h1>{t.titel}</h1>
       <form onSubmit={absenden} className="karte">
         <div className="formular-feld">
-          <label htmlFor="username">Name</label>
+          <label htmlFor="username">{t.name}</label>
           <input
             id="username"
             value={username}
@@ -102,7 +103,7 @@ export function GruppenfuehrerLogin() {
           />
         </div>
         <div className="formular-feld">
-          <label htmlFor="passwort">Passwort</label>
+          <label htmlFor="passwort">{t.passwort}</label>
           <input
             id="passwort"
             type="password"
@@ -114,7 +115,7 @@ export function GruppenfuehrerLogin() {
         </div>
         {fehler && <Fehlertext>{fehler}</Fehlertext>}
         <button type="submit" disabled={ladevorgang}>
-          {ladevorgang ? "Anmelden …" : "Anmelden"}
+          {ladevorgang ? t.anmelden_laeuft : t.anmelden}
         </button>
       </form>
     </div>
