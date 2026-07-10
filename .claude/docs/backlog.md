@@ -62,7 +62,9 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
         Versandmodus) + Module-Übersicht-Toggle (automatisch via FEATURE_MODULE) +
         MinIO-Dateibrowser Deep-Link (`?bucket=&prefix=`)
   - [x] Doku `docs/pressebericht.md` + Index
-  - [ ] Datenschutz-Seite beim nächsten Release prüfen (Teilnehmer-Namen im PDF/MinIO)
+  - [x] Datenschutz-Seite ergänzt (11.07.2026): eigener „Pressebericht (optional)"-Abschnitt
+        in `Datenschutz.tsx` (PDF mit Teilnehmer-Namen/Fahrzeugen, Versand per Mail an
+        Abonnenten, Ablage im Objektspeicher, Versandzeitpunkt). Build grün.
 - Akzeptanzkriterien: Modul an/abschaltbar; Inhalt konfigurierbar; PDF enthält nur
   aktivierte Blöcke; Versand in allen drei Modi; Timeline-Eintrag; PDF im MinIO-
   Ordner; Abonnenten-Mail; `scripts/test-backend.sh` + `npm run build` grün.

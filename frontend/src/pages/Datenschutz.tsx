@@ -134,6 +134,22 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
+        <h2>Pressebericht (optional)</h2>
+        <p>
+          Ist das optionale Pressebericht-Modul aktiv, wird zu einem Einsatz automatisch ein
+          Pressebericht als PDF erzeugt und per E-Mail an die Personen versendet, die dieses Ereignis
+          in ihren Benachrichtigungskanälen abonniert haben. Welche Angaben der Bericht enthält, legt
+          die Organisation fest – je nach Einstellung u.&nbsp;a. Einsatz-Grunddaten, die Zahl der
+          beteiligten Personen und/oder deren <strong>Namen</strong> sowie die eingesetzten Fahrzeuge
+          mit Besatzung. Der Bericht kann damit personenbezogene Daten enthalten. Sofern das
+          Objektspeicher-Modul aktiv ist, wird er zusätzlich im Einsatz-Ordner abgelegt (siehe
+          „Objektspeicher für Dokumente"). Der Versand erfolgt – je nach Einstellung – sofort beim
+          Abschluss des Einsatzes, eine bestimmte Anzahl Stunden danach oder täglich zu einer festen
+          Uhrzeit.
+        </p>
+      </div>
+
+      <div className="karte">
         <h2>Aufbewahrung &amp; Archivierung</h2>
         <p>
           Einsätze und Dienstbücher werden nach einem von der Organisation festgelegten Zeitraum
