@@ -24,7 +24,7 @@
  * `pages/gruppenfuehrer/Berechtigungen.tsx`, `pages/gruppenfuehrer/PersonKanaele.tsx`,
  * `pages/gruppenfuehrer/DienstbuchDetailGruppenfuehrer.tsx`,
  * `pages/gruppenfuehrer/GruppenfuehrerLayout.tsx` (Nav; funktionale ?tab-Keys bleiben literal),
- * `pages/gruppenfuehrer/KioskGeraete.tsx`.
+ * `pages/gruppenfuehrer/KioskGeraete.tsx`, `pages/gruppenfuehrer/Module.tsx`.
  */
 export const texte = {
   landing: {
@@ -472,5 +472,32 @@ export const texte = {
     fehler_speichern: "Speichern fehlgeschlagen.",
     fehler_anlegen: "Anlegen fehlgeschlagen.",
     fehler_loeschen: "Löschen fehlgeschlagen.",
+  },
+  module_uebersicht: {
+    titel: "Module",
+    intro_1: "Module ein-/ausschalten und sortieren.",
+    intro_klick: "Auf den Modulnamen klicken",
+    intro_2:
+      ", um die Einstellungen des Moduls (Unterseite) zu öffnen. Die Reihenfolge gilt für die " +
+      "Kiosk-Kacheln und die Navigation. Deaktivierte Module verschwinden aus der Navigation.",
+    suche_platzhalter: "Modul suchen…",
+    keine_treffer: "Keine Module gefunden.",
+    gruppe_intern_titel: "Interne Module",
+    gruppe_intern_hinweis: "Verwaltung & Technik – nicht für Mitglieder sichtbar.",
+    gruppe_mitglieder_titel: "Mitglieder-Module",
+    gruppe_mitglieder_hinweis: "Erscheinen als Kacheln am Kiosk / im Mitglieder-Login.",
+    nach_oben: "Nach oben",
+    nach_unten: "Nach unten",
+    einstellungen_oeffnen: "Einstellungen dieses Moduls öffnen",
+    doku_titel: "Dokumentation dieses Moduls auf GitHub öffnen (passend zur installierten Version)",
+    doku_link: "📖 Doku ↗",
+    intern_badge: "intern",
+    immer_aktiv: "immer aktiv",
+    aktiv: "Aktiv",
+    auf_kiosk_anzeigen: "Auf Kiosk anzeigen",
+    aussenzugriff_erlauben: "Außenzugriff erlauben",
+    fehler_laden: "Module konnten nicht geladen werden.",
+    fehler_aendern: "Modul konnte nicht geändert werden.",
+    fehler_reihenfolge: "Reihenfolge konnte nicht gespeichert werden.",
   },
 } as const;

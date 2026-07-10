@@ -1826,8 +1826,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Fortschritt (10.07.2026, direkt auf beta): **`pages/gruppenfuehrer/KioskGeraete.tsx` migriert**
   (Namespace `texte.kiosk_geraete`: Auto-Sperre, Anlegen-Formular, Geräte-Aktionen,
   „Auf Kiosk anzeigen individuell"; Startseiten-Modul-Labels als `module_labels`-Map;
-  Kiosk-Link/Token bleiben dynamisch). Build grün. Rest Gruppenführer: Personal,
-  Einstellungen, Module, BarcodeGenerator, EinsatzDetail, SitzplatzEditor.
+  Kiosk-Link/Token bleiben dynamisch). Build grün.
+- Fortschritt (10.07.2026, direkt auf beta): **`pages/gruppenfuehrer/Module.tsx` migriert**
+  (Namespace `texte.module_uebersicht`: Titel/Intro, Suche, Gruppen-Titel/-Hinweise,
+  Sortier-Buttons, Doku-/Einstellungen-Titel, Badges „intern"/„immer aktiv",
+  Aktiv/Kiosk/Außenzugriff-Labels; Modulnamen `m.name` bleiben dynamisch aus der API).
+  Build grün. Rest Gruppenführer: Personal, Einstellungen, BarcodeGenerator,
+  EinsatzDetail, SitzplatzEditor.
 
 ### CI bei jedem PR (GitHub Actions)
 

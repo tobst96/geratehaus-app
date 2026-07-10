@@ -10,6 +10,9 @@ import {
 import { ApiError } from "../../api/client";
 import { holeMeta } from "../../api/meta";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { texte } from "../../i18n/texte";
+
+const t = texte.module_uebersicht;
 
 export function Module() {
   const [module, setModule] = useState<FeatureModul[] | null>(null);
@@ -22,7 +25,7 @@ export function Module() {
     try {
       setModule(await holeFeatureModule());
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Module konnten nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_laden);
     }
   }
 
@@ -45,7 +48,7 @@ export function Module() {
         liste ? liste.map((x) => (x.key === aktualisiert.key ? aktualisiert : x)) : liste
       );
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Modul konnte nicht geändert werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_aendern);
     }
   }
 
@@ -66,7 +69,7 @@ export function Module() {
     try {
       setModule(await setFeatureModulReihenfolge(neu.map((x) => x.key)));
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Reihenfolge konnte nicht gespeichert werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_reihenfolge);
     } finally {
       setBusy(false);
     }
@@ -77,17 +80,16 @@ export function Module() {
 
   return (
     <div>
-      <h1>Module</h1>
+      <h1>{t.titel}</h1>
       <p className="text-mute">
-        Module ein-/ausschalten und sortieren. <strong>Auf den Modulnamen klicken</strong>, um die
-        Einstellungen des Moduls (Unterseite) zu öffnen. Die Reihenfolge gilt für die Kiosk-Kacheln
-        und die Navigation. Deaktivierte Module verschwinden aus der Navigation.
+        {t.intro_1} <strong>{t.intro_klick}</strong>
+        {t.intro_2}
       </p>
       {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
       <input
         type="text"
-        placeholder="Modul suchen…"
+        placeholder={t.suche_platzhalter}
         value={suche}
         onChange={(e) => setSuche(e.target.value)}
         autoFocus
@@ -99,12 +101,12 @@ export function Module() {
         const passt = (m: FeatureModul) =>
           begriff === "" || m.name.toLowerCase().includes(begriff) || m.key.toLowerCase().includes(begriff);
         const gruppen = [
-          { titel: "Interne Module", hinweis: "Verwaltung & Technik – nicht für Mitglieder sichtbar.", liste: module!.filter((m) => !m.mitgliederseitig) },
-          { titel: "Mitglieder-Module", hinweis: "Erscheinen als Kacheln am Kiosk / im Mitglieder-Login.", liste: module!.filter((m) => m.mitgliederseitig) },
+          { titel: t.gruppe_intern_titel, hinweis: t.gruppe_intern_hinweis, liste: module!.filter((m) => !m.mitgliederseitig) },
+          { titel: t.gruppe_mitglieder_titel, hinweis: t.gruppe_mitglieder_hinweis, liste: module!.filter((m) => m.mitgliederseitig) },
         ];
         const gesamtTreffer = gruppen.reduce((n, g) => n + g.liste.filter(passt).length, 0);
         if (begriff !== "" && gesamtTreffer === 0) {
-          return <p className="text-mute">Keine Module gefunden.</p>;
+          return <p className="text-mute">{t.keine_treffer}</p>;
         }
         return gruppen.map((gruppe) => {
           const treffer = gruppe.liste.filter(passt);
@@ -126,7 +128,7 @@ export function Module() {
               <button
                 type="button"
                 className="sekundaer"
-                aria-label="Nach oben"
+                aria-label={t.nach_oben}
                 disabled={busy || begriff !== "" || gi === 0}
                 onClick={() => verschiebeInGruppe(m, gruppe.liste, -1)}
                 style={{ padding: "2px 8px", lineHeight: 1 }}
@@ -136,7 +138,7 @@ export function Module() {
               <button
                 type="button"
                 className="sekundaer"
-                aria-label="Nach unten"
+                aria-label={t.nach_unten}
                 disabled={busy || begriff !== "" || gi === gruppe.liste.length - 1}
                 onClick={() => verschiebeInGruppe(m, gruppe.liste, 1)}
                 style={{ padding: "2px 8px", lineHeight: 1 }}
@@ -154,7 +156,7 @@ export function Module() {
                     color: "var(--farbe-primaer)",
                     textDecoration: "none",
                   }}
-                  title="Einstellungen dieses Moduls öffnen"
+                  title={t.einstellungen_oeffnen}
                 >
                   {m.name} →
                 </Link>
@@ -164,9 +166,9 @@ export function Module() {
                     target="_blank"
                     rel="noreferrer"
                     className="hinweistext"
-                    title="Dokumentation dieses Moduls auf GitHub öffnen (passend zur installierten Version)"
+                    title={t.doku_titel}
                   >
-                    📖 Doku ↗
+                    {t.doku_link}
                   </a>
                 )}
                 {!m.mitgliederseitig && (
@@ -179,7 +181,7 @@ export function Module() {
                       padding: "1px 6px",
                     }}
                   >
-                    intern
+                    {t.intern_badge}
                   </span>
                 )}
               </div>
@@ -187,7 +189,7 @@ export function Module() {
               <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 8 }}>
                 {m.immer_aktiv ? (
                   <span className="hinweistext">
-                    immer aktiv
+                    {t.immer_aktiv}
                   </span>
                 ) : (
                   <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -196,7 +198,7 @@ export function Module() {
                       checked={m.aktiv}
                       onChange={(e) => flagSetzen(m, "aktiv", e.target.checked)}
                     />
-                    Aktiv
+                    {t.aktiv}
                   </label>
                 )}
                 {m.mitgliederseitig && (
@@ -215,7 +217,7 @@ export function Module() {
                         disabled={!m.aktiv}
                         onChange={(e) => flagSetzen(m, "startseite", e.target.checked)}
                       />
-                      Auf Kiosk anzeigen
+                      {t.auf_kiosk_anzeigen}
                     </label>
                     <label
                       style={{
@@ -231,7 +233,7 @@ export function Module() {
                         disabled={!m.aktiv}
                         onChange={(e) => flagSetzen(m, "aussenzugriff", e.target.checked)}
                       />
-                      Außenzugriff erlauben
+                      {t.aussenzugriff_erlauben}
                     </label>
                   </>
                 )}
