@@ -20,7 +20,8 @@
  * `pages/gruppenfuehrer/Dashboard.tsx`, `pages/gruppenfuehrer/FormularZusammenfassung.tsx`,
  * `pages/gruppenfuehrer/ModulUnterseite.tsx`, `pages/gruppenfuehrer/Buchungsmanagement.tsx`,
  * `pages/gruppenfuehrer/AuditLog.tsx`, `pages/gruppenfuehrer/Systemstatus.tsx`,
- * `pages/gruppenfuehrer/Update.tsx` (Intro-Absatz mit <code> bewusst inline).
+ * `pages/gruppenfuehrer/Update.tsx` (Intro-Absatz mit <code> bewusst inline),
+ * `pages/gruppenfuehrer/Berechtigungen.tsx`.
  */
 export const texte = {
   landing: {
@@ -221,6 +222,20 @@ export const texte = {
     gestoppt: "gestoppt",
     api_key_gesetzt: "aktiv · API-Key gesetzt",
     kein_api_key: "aktiv · kein API-Key",
+  },
+  berechtigungen: {
+    titel: "Berechtigungen",
+    ladefehler: "Berechtigungen konnten nicht geladen werden.",
+    setzen_fehler: "Berechtigung konnte nicht gesetzt werden.",
+    intro:
+      "Zugriff je Gruppenführer und Modul. Admins haben immer Vollzugriff. Hinweis: Die " +
+      "Berechtigungen werden bereits gepflegt, greifen aber noch nicht (Aktivierung folgt in " +
+      "einem späteren Schritt).",
+    filter_label: "Nach Zugriff auf Modul filtern",
+    alle_anzeigen: "– alle anzeigen –",
+    th_gruppenfuehrer: "Gruppenführer",
+    admin_vollzugriff: "(Admin – Vollzugriff)",
+    keine_treffer: "Keine Gruppenführer mit diesem Zugriff.",
   },
   audit_log: {
     titel: "Audit-Log",

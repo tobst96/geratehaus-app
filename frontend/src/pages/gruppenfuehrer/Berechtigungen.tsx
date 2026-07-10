@@ -8,8 +8,10 @@ import {
 } from "../../api/berechtigungen";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { texte } from "../../i18n/texte";
 
 export function Berechtigungen() {
+  const t = texte.berechtigungen;
   const [matrix, setMatrix] = useState<BerechtigungMatrix | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [filterModul, setFilterModul] = useState("");
@@ -18,7 +20,7 @@ export function Berechtigungen() {
     try {
       setMatrix(await holeBerechtigungen());
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Berechtigungen konnten nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.ladefehler);
     }
   }
 
@@ -46,7 +48,7 @@ export function Berechtigungen() {
         };
       });
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Berechtigung konnte nicht gesetzt werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.setzen_fehler);
     }
   }
 
@@ -63,16 +65,15 @@ export function Berechtigungen() {
 
   return (
     <div>
-      <h1>Berechtigungen</h1>
+      <h1>{t.titel}</h1>
       <p className="text-mute">
-        Zugriff je Gruppenführer und Modul. Admins haben immer Vollzugriff. Hinweis: Die Berechtigungen
-        werden bereits gepflegt, greifen aber noch nicht (Aktivierung folgt in einem späteren Schritt).
+{t.intro}
       </p>
 
       <div className="formular-feld" style={{ maxWidth: 320, marginBottom: 12 }}>
-        <label htmlFor="filter-modul">Nach Zugriff auf Modul filtern</label>
+        <label htmlFor="filter-modul">{t.filter_label}</label>
         <select id="filter-modul" value={filterModul} onChange={(e) => setFilterModul(e.target.value)}>
-          <option value="">– alle anzeigen –</option>
+          <option value="">{t.alle_anzeigen}</option>
           {matrix.module.map((m) => (
             <option key={m.key} value={m.key}>
               {m.name}
@@ -85,7 +86,7 @@ export function Berechtigungen() {
         <table>
           <thead>
             <tr>
-              <th>Gruppenführer</th>
+              <th>{t.th_gruppenfuehrer}</th>
               {matrix.module.map((m) => (
                 <th key={m.key}>{m.name}</th>
               ))}
@@ -98,7 +99,7 @@ export function Berechtigungen() {
                   <strong>{mod.username}</strong>
                   {mod.ist_admin && (
                     <span style={{ marginLeft: 6, fontSize: "0.75rem", color: "var(--farbe-text-mute)" }}>
-                      (Admin – Vollzugriff)
+                      {t.admin_vollzugriff}
                     </span>
                   )}
                 </td>
@@ -117,7 +118,7 @@ export function Berechtigungen() {
             {sichtbareGruppenfuehreren.length === 0 && (
               <tr>
                 <td colSpan={matrix.module.length + 1} className="text-mute">
-                  Keine Gruppenführer mit diesem Zugriff.
+                  {t.keine_treffer}
                 </td>
               </tr>
             )}
