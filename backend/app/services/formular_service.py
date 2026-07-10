@@ -761,13 +761,25 @@ async def einreichungen_aufbewahrung_bereinigen(db: AsyncSession) -> int:
     )
     geloescht = 0
     for formular in formulare:
+        # Pro Formular committen und Fehler abfangen: so lässt ein Problem bei
+        # einem Formular (das die Transaktion invalidiert) nicht den ganzen Job
+        # scheitern – analog zum Ablauf-Job (vgl. JAVASCRIPT-39).
+        formular_id = formular.id
         grenze = jetzt - timedelta(days=formular.aufbewahrung_tage)
-        res = await db.execute(
-            delete(FormularEinreichung).where(
-                FormularEinreichung.formular_id == formular.id,
-                FormularEinreichung.erstellt_am < grenze,
+        try:
+            res = await db.execute(
+                delete(FormularEinreichung).where(
+                    FormularEinreichung.formular_id == formular_id,
+                    FormularEinreichung.erstellt_am < grenze,
+                )
             )
-        )
-        geloescht += res.rowcount or 0
-    await db.commit()
+            await db.commit()
+            geloescht += res.rowcount or 0
+        except Exception:  # noqa: BLE001
+            await db.rollback()
+            logger.warning(
+                "formular_aufbewahrung_bereinigung_fehlgeschlagen",
+                formular_id=formular_id,
+                exc_info=True,
+            )
     return geloescht

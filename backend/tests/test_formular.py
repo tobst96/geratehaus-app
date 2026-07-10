@@ -418,3 +418,21 @@ async def test_ablauf_job_persistiert_marker_trotz_transaktionsfehler(db, monkey
     await formular_service.ablauf_zusammenfassungen_versenden(db)
     # … und der Marker ist persistiert → ein zweiter Lauf findet nichts mehr.
     assert await formular_service.ablauf_zusammenfassungen_versenden(db) == 0
+
+@pytest.mark.asyncio
+async def test_aufbewahrung_ueberlebt_fehler_pro_formular(db, monkeypatch):
+    """Regression (analog JAVASCRIPT-39/-3B): ein die Transaktion invalidierender
+    Fehler bei EINEM Formular darf den Aufbewahrungs-Job nicht komplett scheitern
+    lassen (früher: ein einzelnes commit() am Schleifenende → ganzer Job kaputt)."""
+    from sqlalchemy import text
+
+    await _formular(db, aufbewahrung_tage=1)
+
+    def _kaputtes_delete(*_a, **_k):
+        # Statt der echten DELETE-Anweisung eine, die die Transaktion invalidiert.
+        return text("DELETE FROM tabelle_die_es_nicht_gibt")
+
+    monkeypatch.setattr(formular_service, "delete", _kaputtes_delete)
+
+    # Der Job darf NICHT werfen und zählt keine Löschungen.
+    assert await formular_service.einreichungen_aufbewahrung_bereinigen(db) == 0
