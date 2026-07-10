@@ -1282,8 +1282,8 @@ export function Personal() {
                     ),
                   },
                   {
-                    key: "zugang",
-                    label: "Zugang",
+                    key: "erhoehter-zugang",
+                    label: "Erhöhter Zugang",
                     sichtbar: istAdmin,
                     inhalt: (() => {
                       const eintrag = elevatedMap[person.id];
