@@ -1,12 +1,14 @@
 import type { Zusammenfassung } from "../../api/formular";
+import { texte } from "../../i18n/texte";
 
 /** Aggregierter Zwischenstand eines Formulars (Ø Sterne, Verteilung je Option,
  * Freitext-Antworten). Wird im Admin-Modul und im Gruppenführer-Listen-Tab genutzt. */
 export function FormularZusammenfassung({ daten }: { daten: Zusammenfassung }) {
+  const t = texte.formular_zusammenfassung;
   return (
     <div>
       <p className="text-mute">
-        {daten.anzahl_einreichungen} Einreichung{daten.anzahl_einreichungen === 1 ? "" : "en"}
+        {daten.anzahl_einreichungen} {daten.anzahl_einreichungen === 1 ? t.einreichung_singular : t.einreichung_plural}
       </p>
       {daten.felder.map((f) => (
         <div
@@ -16,7 +18,7 @@ export function FormularZusammenfassung({ daten }: { daten: Zusammenfassung }) {
           <strong>{f.label}</strong>
           {f.durchschnitt !== null && (
             <div style={{ marginTop: 4 }}>
-              Durchschnitt: <strong>{f.durchschnitt}</strong>
+              {t.durchschnitt} <strong>{f.durchschnitt}</strong>
               {f.typ === "sterne" ? " ★" : ""}
             </div>
           )}
@@ -43,7 +45,7 @@ export function FormularZusammenfassung({ daten }: { daten: Zusammenfassung }) {
             <ul style={{ margin: "4px 0 0", paddingLeft: 18 }}>
               {f.texte.length === 0 ? (
                 <li style={{ color: "var(--farbe-text-mute)", listStyle: "none", marginLeft: -18 }}>
-                  Keine Antworten.
+                  {t.keine_antworten}
                 </li>
               ) : (
                 f.texte.map((t, i) => <li key={i}>{t}</li>)

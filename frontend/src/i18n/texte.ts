@@ -17,7 +17,8 @@
  * `pages/NotFound.tsx`, `pages/PersonBildHochladen.tsx`, `pages/ManuelleEintragung.tsx`,
  * `pages/DienstbuchManuelleEintragung.tsx`, `pages/DienststundenManuelleEintragung.tsx`,
  * `pages/FahrzeugbuchungManuelleEintragung.tsx`, `pages/gruppenfuehrer/GruppenfuehrerLogin.tsx`,
- * `pages/gruppenfuehrer/Dashboard.tsx`.
+ * `pages/gruppenfuehrer/Dashboard.tsx`, `pages/gruppenfuehrer/FormularZusammenfassung.tsx`,
+ * `pages/gruppenfuehrer/ModulUnterseite.tsx`.
  */
 export const texte = {
   landing: {
@@ -164,6 +165,16 @@ export const texte = {
     zweck: "Zweck",
     stellen_laeuft: "Wird gestellt…",
     anfrage_stellen: "Anfrage stellen",
+  },
+  formular_zusammenfassung: {
+    einreichung_singular: "Einreichung",
+    einreichung_plural: "Einreichungen",
+    durchschnitt: "Durchschnitt:",
+    keine_antworten: "Keine Antworten.",
+  },
+  modul_unterseite: {
+    zurueck: "← Zurück zu den Modulen",
+    unbekannt: "Unbekanntes Modul.",
   },
   dashboard: {
     titel: "Dashboard",

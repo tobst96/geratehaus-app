@@ -15,9 +15,11 @@ import { KioskModul } from "./module/KioskModul";
 import { BackupModul } from "./module/BackupModul";
 import { MinioModul } from "./module/MinioModul";
 import { FormularModul } from "./module/FormularModul";
+import { texte } from "../../i18n/texte";
 
 export function ModulUnterseite() {
   const { key } = useParams<{ key: string }>();
+  const t = texte.modul_unterseite;
   const { gruppenfuehrerRolle, hatModulZugriff, berechtigungenGeladen } = useAuth();
   const istAdmin = gruppenfuehrerRolle === "admin";
 
@@ -62,9 +64,9 @@ export function ModulUnterseite() {
       return (
         <div>
           <p>
-            <Link to="/gruppenfuehrer/module">← Zurück zu den Modulen</Link>
+            <Link to="/gruppenfuehrer/module">{t.zurueck}</Link>
           </p>
-          <Fehlertext>Unbekanntes Modul.</Fehlertext>
+          <Fehlertext>{t.unbekannt}</Fehlertext>
         </div>
       );
   }
