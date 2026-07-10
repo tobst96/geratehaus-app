@@ -18,7 +18,8 @@
  * `pages/DienstbuchManuelleEintragung.tsx`, `pages/DienststundenManuelleEintragung.tsx`,
  * `pages/FahrzeugbuchungManuelleEintragung.tsx`, `pages/gruppenfuehrer/GruppenfuehrerLogin.tsx`,
  * `pages/gruppenfuehrer/Dashboard.tsx`, `pages/gruppenfuehrer/FormularZusammenfassung.tsx`,
- * `pages/gruppenfuehrer/ModulUnterseite.tsx`, `pages/gruppenfuehrer/Buchungsmanagement.tsx`.
+ * `pages/gruppenfuehrer/ModulUnterseite.tsx`, `pages/gruppenfuehrer/Buchungsmanagement.tsx`,
+ * `pages/gruppenfuehrer/AuditLog.tsx`.
  */
 export const texte = {
   landing: {
@@ -165,6 +166,37 @@ export const texte = {
     zweck: "Zweck",
     stellen_laeuft: "Wird gestellt…",
     anfrage_stellen: "Anfrage stellen",
+  },
+  audit_log: {
+    titel: "Audit-Log",
+    ladefehler: "Audit-Log konnte nicht geladen werden.",
+    intro:
+      "Sicherheitsrelevante Aktionen (Löschungen, Freigaben, Rechte- und Zugangsänderungen), " +
+      "neueste zuerst. Nur für Admins sichtbar. Einträge älter als die konfigurierte " +
+      "Aufbewahrungsfrist werden automatisch gelöscht.",
+    filter_label: "Nach Aktion filtern",
+    alle_anzeigen: "– alle anzeigen –",
+    neu_laden: "Neu laden",
+    export_csv: "Export CSV",
+    export_json: "Export JSON",
+    th_zeitpunkt: "Zeitpunkt",
+    th_akteur: "Akteur",
+    th_aktion: "Aktion",
+    th_objekt: "Objekt",
+    th_details: "Details",
+    keine_eintraege: "Keine Einträge.",
+    // Menschlesbare Labels für die maschinellen Aktions-Schlüssel (auch historische).
+    aktionen: {
+      person_geloescht: "Person gelöscht",
+      einsatz_geloescht: "Einsatz gelöscht",
+      buchung_genehmigt: "Buchung genehmigt",
+      buchung_abgelehnt: "Buchung abgelehnt",
+      berechtigung_geaendert: "Berechtigung geändert",
+      moderator_angelegt: "Gruppenführer angelegt",
+      moderator_passwort_geaendert: "Gruppenführer-Passwort geändert",
+      moderator_geloescht: "Gruppenführer gelöscht",
+      modul_flag_geaendert: "Modul-Einstellung geändert",
+    } as Record<string, string>,
   },
   buchungsmanagement: {
     titel: "Buchungsmanagement",
