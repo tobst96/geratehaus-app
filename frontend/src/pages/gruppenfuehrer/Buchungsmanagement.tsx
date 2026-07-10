@@ -10,8 +10,10 @@ import {
 import { ApiError } from "../../api/client";
 import type { BuchungOut } from "../../api/types";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { texte } from "../../i18n/texte";
 
 export function Buchungsmanagement() {
+  const t = texte.buchungsmanagement;
   const [buchungen, setBuchungen] = useState<BuchungOut[] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [konflikte, setKonflikte] = useState<Record<number, BuchungOut[]>>({});
@@ -29,7 +31,7 @@ export function Buchungsmanagement() {
       });
       setKonflikte(neueKonflikte);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Buchungen konnten nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.ladefehler);
     }
   }
 
@@ -42,7 +44,7 @@ export function Buchungsmanagement() {
       await buchungGenehmigen(id);
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Genehmigen fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.genehmigen_fehler);
     }
   }
 
@@ -51,7 +53,7 @@ export function Buchungsmanagement() {
       await buchungAblehnen(id, ablehnungsgrund[id] || null);
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Ablehnen fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.ablehnen_fehler);
     }
   }
 
@@ -60,20 +62,20 @@ export function Buchungsmanagement() {
 
   return (
     <div>
-      <h1>Buchungsmanagement</h1>
-      <p>Ausstehende Anfragen ({buchungen.length})</p>
+      <h1>{t.titel}</h1>
+      <p>{t.ausstehende} ({buchungen.length})</p>
 
-      {buchungen.length === 0 && <p>Keine ausstehenden Anfragen.</p>}
+      {buchungen.length === 0 && <p>{t.keine_ausstehenden}</p>}
       {buchungen.map((b) => (
         <div key={b.id} className="karte">
           <strong>{b.fahrzeug_name}</strong> · {formatiereDatumZeit(b.von)} –{" "}
           {formatiereDatumZeit(b.bis)}
-          <div>Zweck: {b.zweck}</div>
-          <div>Verantwortlich: {b.verantwortliche_person_name}</div>
+          <div>{t.zweck} {b.zweck}</div>
+          <div>{t.verantwortlich} {b.verantwortliche_person_name}</div>
 
           {konflikte[b.id]?.length > 0 && (
             <div className="fehlertext" style={{ marginTop: 8 }}>
-              Konflikt mit:
+              {t.konflikt_mit}
               <ul>
                 {konflikte[b.id].map((k) => (
                   <li key={k.id}>
@@ -86,15 +88,15 @@ export function Buchungsmanagement() {
           )}
 
           <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <button onClick={() => genehmigen(b.id)}>Genehmigen</button>
+            <button onClick={() => genehmigen(b.id)}>{t.genehmigen}</button>
             <input
-              placeholder="Ablehnungsgrund (optional)"
+              placeholder={t.ablehnungsgrund_platzhalter}
               value={ablehnungsgrund[b.id] ?? ""}
               onChange={(e) => setAblehnungsgrund({ ...ablehnungsgrund, [b.id]: e.target.value })}
               style={{ flex: 1, minWidth: 200 }}
             />
             <button className="sekundaer" onClick={() => ablehnen(b.id)}>
-              Ablehnen
+              {t.ablehnen}
             </button>
           </div>
         </div>

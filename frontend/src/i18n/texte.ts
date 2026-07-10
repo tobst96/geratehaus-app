@@ -18,7 +18,7 @@
  * `pages/DienstbuchManuelleEintragung.tsx`, `pages/DienststundenManuelleEintragung.tsx`,
  * `pages/FahrzeugbuchungManuelleEintragung.tsx`, `pages/gruppenfuehrer/GruppenfuehrerLogin.tsx`,
  * `pages/gruppenfuehrer/Dashboard.tsx`, `pages/gruppenfuehrer/FormularZusammenfassung.tsx`,
- * `pages/gruppenfuehrer/ModulUnterseite.tsx`.
+ * `pages/gruppenfuehrer/ModulUnterseite.tsx`, `pages/gruppenfuehrer/Buchungsmanagement.tsx`.
  */
 export const texte = {
   landing: {
@@ -165,6 +165,20 @@ export const texte = {
     zweck: "Zweck",
     stellen_laeuft: "Wird gestellt…",
     anfrage_stellen: "Anfrage stellen",
+  },
+  buchungsmanagement: {
+    titel: "Buchungsmanagement",
+    ausstehende: "Ausstehende Anfragen", // gefolgt von (Anzahl)
+    keine_ausstehenden: "Keine ausstehenden Anfragen.",
+    zweck: "Zweck:",
+    verantwortlich: "Verantwortlich:",
+    konflikt_mit: "Konflikt mit:",
+    genehmigen: "Genehmigen",
+    ablehnen: "Ablehnen",
+    ablehnungsgrund_platzhalter: "Ablehnungsgrund (optional)",
+    ladefehler: "Buchungen konnten nicht geladen werden.",
+    genehmigen_fehler: "Genehmigen fehlgeschlagen.",
+    ablehnen_fehler: "Ablehnen fehlgeschlagen.",
   },
   formular_zusammenfassung: {
     einreichung_singular: "Einreichung",
