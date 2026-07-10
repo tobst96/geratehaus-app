@@ -1836,6 +1836,25 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Notizen: Nutzen ⭐⭐⭐. Unblockt die **Dependency-/Secret-Scanning**-Aufgabe aus
   Etappe P (6) (kann als weiterer CI-Job ergänzt werden).
 
+### Scheduler-Jobs: „loop + einzelnes commit()"-Fragilität aushärten
+
+- Status: Erledigt (10.07.2026, direkt auf beta)
+- Priorität: Mittel (Stabilität/Observability)
+- Kategorie: Wartung / Backend
+- Plan: Nein
+- Beschreibung: In Sentry tauchten zwei Scheduler-Job-Fehler auf (JAVASCRIPT-39
+  formular-ablauf, JAVASCRIPT-3B formular-aufbewahrung) mit demselben Muster: ein
+  Fehler bei EINEM Element invalidiert die async-Transaktion, das einzelne
+  `db.commit()` am Schleifenende schlägt fehl → ganzer Job scheitert (bei -39 sogar
+  Endlosschleife, weil der „gesendet"-Marker nie persistiert wurde).
+- Umsetzung: Beide Jobs auf **commit-pro-Element + rollback bei Fehler** umgestellt
+  (mit Regressionstests). Danach **alle übrigen Scheduler-Jobs auditiert**:
+  Archivierung/Audit-Retention = atomare Bulk-Ops (unkritisch); Ampel/PIN-Erinnerung
+  = defensive Inner-Ops (Mail-Fehler invalidieren die DB-Transaktion nicht);
+  **`personen_inaktivitaet_pruefen`** vorbeugend gehärtet (pro Person try/except +
+  rollback → ein Fehler bricht den nächtlichen Lauf nicht mehr ab), Regressionstest
+  `test_inaktivitaet_ein_fehler_bricht_lauf_nicht_ab`. Backend-Suite 405 grün.
+
 ### Sentry-Cron-Monitor: Deploy-Neustarts tolerieren (Rausch-Reduktion)
 
 - Status: Erledigt (09.07.2026, direkt auf beta)

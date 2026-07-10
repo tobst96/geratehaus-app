@@ -233,3 +233,36 @@ async def test_auto_loeschung_unabhaengig_von_inaktiv(db):
     verbleibend = {p.name for p in (await db.execute(select(Person))).scalars().all()}
     assert "Ohne Markierung" not in verbleibend
     assert "Inaktiv markiert" not in verbleibend
+
+
+@pytest.mark.asyncio
+async def test_inaktivitaet_ein_fehler_bricht_lauf_nicht_ab(db, monkeypatch):
+    """Robustheit (analog JAVASCRIPT-39/-3B): schlägt die Verarbeitung EINER Person
+    fehl (Fehler invalidiert die Transaktion), läuft der nächtliche Job trotzdem
+    für die übrigen Personen weiter."""
+    from sqlalchemy import text
+
+    await config_service.set(db, "personen_inaktivitaet_tage", 1)
+    alt = datetime.now(timezone.utc) - timedelta(days=100)
+    kaputt = await _person(db, "Kaputt")
+    kaputt.erstellt_am = alt
+    gut = await _person(db, "Gut")
+    gut.erstellt_am = alt
+    await db.commit()
+
+    async def _flaky(_db, person):
+        if person.name == "Kaputt":
+            # Echter DB-Fehler → asyncpg-Transaktion invalidiert.
+            await _db.execute(text("SELECT 1 FROM tabelle_die_es_nicht_gibt"))
+        return datetime(2020, 1, 1, tzinfo=timezone.utc)
+
+    monkeypatch.setattr(stammdaten_service, "_letzte_aktivitaet", _flaky)
+
+    # Job darf NICHT werfen …
+    await stammdaten_service.personen_inaktivitaet_pruefen(db)
+
+    verbleibend = {p.name for p in (await db.execute(select(Person))).scalars().all()}
+    # … „Gut" wurde trotz Fehler bei „Kaputt" verarbeitet (gelöscht) …
+    assert "Gut" not in verbleibend
+    # … und „Kaputt" blieb bestehen (fehlgeschlagen, aber sauber übersprungen).
+    assert "Kaputt" in verbleibend

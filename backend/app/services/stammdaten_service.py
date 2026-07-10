@@ -3,6 +3,7 @@ from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 
+import structlog
 from fastapi import HTTPException, UploadFile, status
 from PIL import Image, UnidentifiedImageError
 from sqlalchemy import func, select
@@ -730,6 +731,8 @@ async def pin_login_erzwingen(db: AsyncSession, person: Person, pin: str | None,
 # (kein Spam bei jedem Lauf, solange seit der Warnung keine neue Aktivität
 # stattgefunden hat).
 
+logger = structlog.get_logger(__name__)
+
 WARNUNG_VORLAUF_TAGE = 7
 
 
@@ -775,28 +778,38 @@ async def personen_inaktivitaet_pruefen(db: AsyncSession) -> tuple[int, int]:
     anzahl_warnungen = 0
     anzahl_loeschungen = 0
     for person in personen:
-        letzte_aktivitaet = await _letzte_aktivitaet(db, person)
-        if letzte_aktivitaet.tzinfo is None:
-            letzte_aktivitaet = letzte_aktivitaet.replace(tzinfo=timezone.utc)
-        tage_inaktiv = (jetzt - letzte_aktivitaet).days
+        # Pro Person absichern: ein Fehler (Query/Löschung invalidiert sonst die
+        # Transaktion) darf nicht den ganzen nächtlichen Lauf abbrechen. Bereits
+        # committete Löschungen/Warnungen bleiben erhalten.
+        person_id = person.id
+        try:
+            letzte_aktivitaet = await _letzte_aktivitaet(db, person)
+            if letzte_aktivitaet.tzinfo is None:
+                letzte_aktivitaet = letzte_aktivitaet.replace(tzinfo=timezone.utc)
+            tage_inaktiv = (jetzt - letzte_aktivitaet).days
 
-        if tage_inaktiv >= schwelle_tage:
-            await person_loeschen(db, person)
-            anzahl_loeschungen += 1
-        elif tage_inaktiv >= warnschwelle_tage and not await _bereits_gewarnt_seit(
-            db, person, letzte_aktivitaet
-        ):
-            await person_ereignis_protokollieren(
-                db,
-                person.id,
-                "inaktivitaets_warnung",
-                f"{tage_inaktiv} Tage ohne Aktivität – wird in 7 Tagen automatisch gelöscht, "
-                "falls keine neue Aktivität erfolgt",
+            if tage_inaktiv >= schwelle_tage:
+                await person_loeschen(db, person)
+                anzahl_loeschungen += 1
+            elif tage_inaktiv >= warnschwelle_tage and not await _bereits_gewarnt_seit(
+                db, person, letzte_aktivitaet
+            ):
+                await person_ereignis_protokollieren(
+                    db,
+                    person.id,
+                    "inaktivitaets_warnung",
+                    f"{tage_inaktiv} Tage ohne Aktivität – wird in 7 Tagen automatisch gelöscht, "
+                    "falls keine neue Aktivität erfolgt",
+                )
+                await db.commit()
+                await notifier_service.benachrichtige(
+                    db, "benachrichtigung_person_inaktiv", person=person.name, tage_inaktiv=tage_inaktiv
+                )
+                anzahl_warnungen += 1
+        except Exception:  # noqa: BLE001
+            await db.rollback()
+            logger.warning(
+                "personen_inaktivitaet_person_fehlgeschlagen", person_id=person_id, exc_info=True
             )
-            await db.commit()
-            await notifier_service.benachrichtige(
-                db, "benachrichtigung_person_inaktiv", person=person.name, tage_inaktiv=tage_inaktiv
-            )
-            anzahl_warnungen += 1
 
     return (anzahl_warnungen, anzahl_loeschungen)
