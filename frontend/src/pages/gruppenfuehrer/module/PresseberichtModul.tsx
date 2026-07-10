@@ -50,7 +50,7 @@ function ausConfig(config: Record<string, unknown>): Einstellungen {
   };
 }
 
-export function PressberichtModul() {
+export function PresseberichtModul() {
   const [einst, setEinst] = useState<Einstellungen | null>(null);
   const [felder, setFelder] = useState<EinsatzFeldDefinition[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);

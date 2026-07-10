@@ -58,7 +58,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   - [x] Hook in `einsatz_abschliessen` (Modus `schliessen`) + Scheduler-Job
         (Modus `stunden`/`uhrzeit`)
   - [x] Backend-Tests
-  - [x] Frontend: Modul-Unterseite `PressberichtModul` (Inhalt/Zusatzfelder einzeln/
+  - [x] Frontend: Modul-Unterseite `PresseberichtModul` (Inhalt/Zusatzfelder einzeln/
         Versandmodus) + Module-Übersicht-Toggle (automatisch via FEATURE_MODULE) +
         MinIO-Dateibrowser Deep-Link (`?bucket=&prefix=`)
   - [x] Doku `docs/pressebericht.md` + Index

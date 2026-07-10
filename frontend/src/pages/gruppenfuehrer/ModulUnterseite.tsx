@@ -15,7 +15,7 @@ import { KioskModul } from "./module/KioskModul";
 import { BackupModul } from "./module/BackupModul";
 import { MinioModul } from "./module/MinioModul";
 import { FormularModul } from "./module/FormularModul";
-import { PressberichtModul } from "./module/PressberichtModul";
+import { PresseberichtModul } from "./module/PresseberichtModul";
 import { texte } from "../../i18n/texte";
 
 export function ModulUnterseite() {
@@ -62,7 +62,7 @@ export function ModulUnterseite() {
     case "formular":
       return <FormularModul />;
     case "pressebericht":
-      return <PressberichtModul />;
+      return <PresseberichtModul />;
     default:
       return (
         <div>
