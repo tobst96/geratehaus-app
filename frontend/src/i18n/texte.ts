@@ -21,7 +21,7 @@
  * `pages/gruppenfuehrer/ModulUnterseite.tsx`, `pages/gruppenfuehrer/Buchungsmanagement.tsx`,
  * `pages/gruppenfuehrer/AuditLog.tsx`, `pages/gruppenfuehrer/Systemstatus.tsx`,
  * `pages/gruppenfuehrer/Update.tsx` (Intro-Absatz mit <code> bewusst inline),
- * `pages/gruppenfuehrer/Berechtigungen.tsx`.
+ * `pages/gruppenfuehrer/Berechtigungen.tsx`, `pages/gruppenfuehrer/PersonKanaele.tsx`.
  */
 export const texte = {
   landing: {
@@ -222,6 +222,19 @@ export const texte = {
     gestoppt: "gestoppt",
     api_key_gesetzt: "aktiv · API-Key gesetzt",
     kein_api_key: "aktiv · kein API-Key",
+  },
+  person_kanaele: {
+    kanaele_titel: "Benachrichtigungskanäle",
+    keine_email: "Keine E-Mail bei der Person hinterlegt",
+    aktiv: "aktiv",
+    speichern: "Speichern",
+    gespeichert: "Gespeichert.",
+    speichern_fehler: "Speichern fehlgeschlagen.",
+    abo_fehler: "Abo konnte nicht gesetzt werden.",
+    welche_titel: "Welche Benachrichtigungen?",
+    welche_intro:
+      "Nur abonnierte Ereignisse werden über die aktiven Kanäle oben zugestellt. " +
+      "Angeboten werden nur Ereignisse aktivierter Module.",
   },
   berechtigungen: {
     titel: "Berechtigungen",

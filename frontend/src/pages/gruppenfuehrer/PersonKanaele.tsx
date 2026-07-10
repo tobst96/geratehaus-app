@@ -10,6 +10,7 @@ import {
   type EreignisTyp,
 } from "../../api/personKanaele";
 import { ApiError } from "../../api/client";
+import { texte } from "../../i18n/texte";
 
 interface Wert {
   zielwert: string;
@@ -31,6 +32,7 @@ function gruppiereNachModul(typen: EreignisTyp[]): [string, EreignisTyp[]][] {
 /** Benachrichtigungskanäle einer Person (Admin-Menü, in der Personal-Detailseite).
  * Selbstständige Komponente – lädt Registry + gespeicherte Kanäle für personId. */
 export function PersonKanaele({ personId, personEmail }: { personId: number; personEmail?: string | null }) {
+  const txt = texte.person_kanaele;
   const [typen, setTypen] = useState<KanalTyp[]>([]);
   const [werte, setWerte] = useState<Record<string, Wert>>({});
   const [ereignisTypen, setEreignisTypen] = useState<EreignisTyp[]>([]);
@@ -71,7 +73,7 @@ export function PersonKanaele({ personId, personEmail }: { personId: number; per
     try {
       await setzePersonAbo(personId, ereignis, aktiv);
     } catch (err) {
-      setHinweis(err instanceof ApiError ? String(err.detail) : "Abo konnte nicht gesetzt werden.");
+      setHinweis(err instanceof ApiError ? String(err.detail) : txt.abo_fehler);
     }
   }
 
@@ -79,16 +81,16 @@ export function PersonKanaele({ personId, personEmail }: { personId: number; per
     const w = werte[typ] ?? { zielwert: "", aktiv: false };
     try {
       await setzePersonKanal(personId, typ, w.zielwert, w.aktiv);
-      setHinweis("Gespeichert.");
+      setHinweis(txt.gespeichert);
       setTimeout(() => setHinweis(null), 1500);
     } catch (err) {
-      setHinweis(err instanceof ApiError ? String(err.detail) : "Speichern fehlgeschlagen.");
+      setHinweis(err instanceof ApiError ? String(err.detail) : txt.speichern_fehler);
     }
   }
 
   return (
     <div>
-      <h3>Benachrichtigungskanäle</h3>
+      <h3>{txt.kanaele_titel}</h3>
       {typen.map((t) => {
         const w = werte[t.key] ?? { zielwert: "", aktiv: false };
         return (
@@ -101,7 +103,7 @@ export function PersonKanaele({ personId, personEmail }: { personId: number; per
               // Der Mail-Kanal nutzt die E-Mail-Adresse der Person – keine zweite
               // Adresse mehr pflegen.
               <span style={{ width: 200, color: "var(--farbe-text-mute)" }}>
-                {personEmail?.trim() ? personEmail : "Keine E-Mail bei der Person hinterlegt"}
+                {personEmail?.trim() ? personEmail : txt.keine_email}
               </span>
             ) : (
               <input
@@ -121,18 +123,17 @@ export function PersonKanaele({ personId, personEmail }: { personId: number; per
                   setWerte((m) => ({ ...m, [t.key]: { ...w, aktiv: e.target.checked } }))
                 }
               />
-              aktiv
+              {txt.aktiv}
             </label>
             <button type="button" className="sekundaer" onClick={() => speichern(t.key)}>
-              Speichern
+              {txt.speichern}
             </button>
           </div>
         );
       })}
-      <h3>Welche Benachrichtigungen?</h3>
+      <h3>{txt.welche_titel}</h3>
       <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem", marginTop: 0 }}>
-        Nur abonnierte Ereignisse werden über die aktiven Kanäle oben zugestellt.
-        Angeboten werden nur Ereignisse aktivierter Module.
+{txt.welche_intro}
       </p>
       {gruppiereNachModul(ereignisTypen).map(([modulLabel, typen]) => (
         <div key={modulLabel} style={{ marginBottom: 10 }}>
