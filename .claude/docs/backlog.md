@@ -1915,6 +1915,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   dynamischen Zahlen). Farb-Defaults (#FFA633/#1A1A1A) bleiben literal. Build grün.
   **Korrektur:** noch offen sind Gruppenführer-seitig **Personal (1392 Z.), Listen (647 Z.),
   NotifierEinstellungen (517 Z.)** – zuvor unvollständig als „Personal, Einstellungen" notiert.
+- Fortschritt (10.07.2026, direkt auf beta): **`pages/gruppenfuehrer/NotifierEinstellungen.tsx`
+  migriert** (Namespace `texte.notifier_einstellungen`: Telegram/Email-SMTP/Netzwerkdrucker-
+  IPP/Web-Push-VAPID/Ereignis-Schalter, Test-Buttons + Ergebnistexte, Speichern-/Fehler-/
+  Banner-Texte; EREIGNISSE-Labels aus dem Namespace). Technische Format-Beispiele in
+  `placeholder`/`<code>` (smtp.gmail.com, ipp://…, VAPID-Befehl) bleiben literal. Build grün.
+  Rest Gruppenführer: **Personal, Listen**.
 
 ### CI bei jedem PR (GitHub Actions)
 

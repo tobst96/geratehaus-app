@@ -9,6 +9,9 @@ import {
 import { ApiError } from "../../api/client";
 import { Banner } from "../../components/Banner";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { texte } from "../../i18n/texte";
+
+const t = texte.notifier_einstellungen;
 
 interface NotifierConfig {
   telegram_enabled: boolean;
@@ -41,12 +44,12 @@ interface NotifierConfig {
 }
 
 const EREIGNISSE: { feld: keyof NotifierConfig; label: string }[] = [
-  { feld: "ereignis_neuer_einsatz", label: "Einsatz abgeschlossen" },
-  { feld: "ereignis_divera_alarm", label: "Neuer Einsatz via Divera angelegt" },
-  { feld: "ereignis_neues_dienstbuch", label: "Neues Dienstbuch" },
-  { feld: "ereignis_buchungsanfrage", label: "Neue Buchungsanfrage" },
-  { feld: "ereignis_schwellenwert", label: "Schwellenwert-Überschreitung" },
-  { feld: "ereignis_person_inaktiv", label: "Person inaktiv (wird bald gelöscht)" },
+  { feld: "ereignis_neuer_einsatz", label: t.ereignis_neuer_einsatz },
+  { feld: "ereignis_divera_alarm", label: t.ereignis_divera_alarm },
+  { feld: "ereignis_neues_dienstbuch", label: t.ereignis_neues_dienstbuch },
+  { feld: "ereignis_buchungsanfrage", label: t.ereignis_buchungsanfrage },
+  { feld: "ereignis_schwellenwert", label: t.ereignis_schwellenwert },
+  { feld: "ereignis_person_inaktiv", label: t.ereignis_person_inaktiv },
 ];
 
 export function NotifierEinstellungen() {
@@ -93,7 +96,7 @@ export function NotifierEinstellungen() {
           ereignis_person_inaktiv: Boolean(w.benachrichtigung_person_inaktiv),
         });
       } catch (err) {
-        setFehler(err instanceof ApiError ? String(err.detail) : "Fehler beim Laden");
+        setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_laden);
       }
     }
     laden();
@@ -138,7 +141,7 @@ export function NotifierEinstellungen() {
       setGespeichert(true);
       setTimeout(() => setGespeichert(false), 4000);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Fehler beim Speichern");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_speichern);
     } finally {
       setLoading(false);
     }
@@ -163,10 +166,10 @@ export function NotifierEinstellungen() {
         notifier_email_pdf_bei_abschluss: config.email_pdf_bei_abschluss,
       });
       await sendeTestmail();
-      setTestmailErgebnis("Testmail wurde gesendet.");
+      setTestmailErgebnis(t.testmail_erfolg);
     } catch (err) {
       setTestmailErgebnis(
-        err instanceof ApiError ? String(err.detail) : "Testmail konnte nicht gesendet werden."
+        err instanceof ApiError ? String(err.detail) : t.testmail_fehler
       );
     } finally {
       setTestmailLaeuft(false);
@@ -185,10 +188,10 @@ export function NotifierEinstellungen() {
         drucker_ipp_url: config.drucker_ipp_url,
       });
       await sendeTestdruck();
-      setTestdruckErgebnis("Testdruck wurde an den Drucker gesendet.");
+      setTestdruckErgebnis(t.testdruck_erfolg);
     } catch (err) {
       setTestdruckErgebnis(
-        err instanceof ApiError ? String(err.detail) : "Testdruck fehlgeschlagen."
+        err instanceof ApiError ? String(err.detail) : t.testdruck_fehler
       );
     } finally {
       setTestdruckLaeuft(false);
@@ -199,16 +202,16 @@ export function NotifierEinstellungen() {
 
   return (
     <div>
-      <h1>Benachrichtigungen konfigurieren</h1>
-      <p>Stelle hier Telegram, Email und Web Push ein – ganz ohne .env!</p>
+      <h1>{t.titel}</h1>
+      <p>{t.intro}</p>
 
       {fehler && <Fehlertext>{fehler}</Fehlertext>}
-      {gespeichert && <Banner art="erfolg">Konfiguration gespeichert</Banner>}
+      {gespeichert && <Banner art="erfolg">{t.gespeichert_banner}</Banner>}
 
       <form onSubmit={speichern}>
         {/* Telegram */}
         <div className="karte">
-          <h2>🤖 Telegram</h2>
+          <h2>{t.telegram_titel}</h2>
           <div className="formular-feld">
             <label>
               <input
@@ -216,11 +219,11 @@ export function NotifierEinstellungen() {
                 checked={config.telegram_enabled}
                 onChange={(e) => setConfig({ ...config, telegram_enabled: e.target.checked })}
               />{" "}
-              Telegram aktivieren
+              {t.telegram_aktivieren}
             </label>
           </div>
           <div className="formular-feld">
-            <label htmlFor="tg-token">Bot Token</label>
+            <label htmlFor="tg-token">{t.bot_token}</label>
             <input
               id="tg-token"
               type="password"
@@ -232,7 +235,7 @@ export function NotifierEinstellungen() {
             />
           </div>
           <div className="formular-feld">
-            <label htmlFor="tg-chat">Chat-IDs (kommagetrennt)</label>
+            <label htmlFor="tg-chat">{t.chat_ids}</label>
             <input
               id="tg-chat"
               type="text"
@@ -246,7 +249,7 @@ export function NotifierEinstellungen() {
 
         {/* Email */}
         <div className="karte">
-          <h2>📧 Email (SMTP)</h2>
+          <h2>{t.email_titel}</h2>
           <div className="formular-feld">
             <label>
               <input
@@ -254,11 +257,11 @@ export function NotifierEinstellungen() {
                 checked={config.email_enabled}
                 onChange={(e) => setConfig({ ...config, email_enabled: e.target.checked })}
               />{" "}
-              Email aktivieren
+              {t.email_aktivieren}
             </label>
           </div>
           <div className="formular-feld">
-            <label htmlFor="email-server">SMTP Server</label>
+            <label htmlFor="email-server">{t.smtp_server}</label>
             <input
               id="email-server"
               type="text"
@@ -269,7 +272,7 @@ export function NotifierEinstellungen() {
             />
           </div>
           <div className="formular-feld">
-            <label htmlFor="email-port">SMTP Port</label>
+            <label htmlFor="email-port">{t.smtp_port}</label>
             <input
               id="email-port"
               type="number"
@@ -286,11 +289,11 @@ export function NotifierEinstellungen() {
                 onChange={(e) => setConfig({ ...config, email_smtp_use_tls: e.target.checked })}
                 disabled={!config.email_enabled}
               />{" "}
-              STARTTLS verwenden
+              {t.starttls}
             </label>
           </div>
           <div className="formular-feld">
-            <label htmlFor="email-from">Von Email-Adresse</label>
+            <label htmlFor="email-from">{t.email_von}</label>
             <input
               id="email-from"
               type="email"
@@ -301,7 +304,7 @@ export function NotifierEinstellungen() {
             />
           </div>
           <div className="formular-feld">
-            <label htmlFor="email-recipients">Empfänger für Testmail (kommagetrennt)</label>
+            <label htmlFor="email-recipients">{t.email_empfaenger}</label>
             <input
               id="email-recipients"
               type="text"
@@ -310,13 +313,10 @@ export function NotifierEinstellungen() {
               placeholder="moderator@example.com"
               disabled={!config.email_enabled}
             />
-            <p className="hinweistext">
-              Nur für die Testmail unten. Echte Benachrichtigungen gehen an die Personen, die das
-              in ihren Stammdaten (Personal) individuell aktiviert haben.
-            </p>
+            <p className="hinweistext">{t.email_empfaenger_hinweis}</p>
           </div>
           <div className="formular-feld">
-            <label htmlFor="email-user">Benutzername</label>
+            <label htmlFor="email-user">{t.benutzername}</label>
             <input
               id="email-user"
               type="text"
@@ -327,7 +327,7 @@ export function NotifierEinstellungen() {
             />
           </div>
           <div className="formular-feld">
-            <label htmlFor="email-pass">Passwort</label>
+            <label htmlFor="email-pass">{t.passwort}</label>
             <input
               id="email-pass"
               type="password"
@@ -346,7 +346,7 @@ export function NotifierEinstellungen() {
                 onChange={(e) => setConfig({ ...config, email_pdf_bei_abschluss: e.target.checked })}
                 disabled={!config.email_enabled}
               />{" "}
-              Einsatzbericht (PDF) bei Abschluss automatisch per E-Mail versenden
+              {t.email_pdf_einsatz}
             </label>
           </div>
           <div className="formular-feld">
@@ -359,7 +359,7 @@ export function NotifierEinstellungen() {
                 }
                 disabled={!config.email_enabled}
               />{" "}
-              Dienstbuch (PDF) beim automatischen nächtlichen Abschluss per E-Mail versenden
+              {t.email_pdf_dienstbuch}
             </label>
           </div>
           <button
@@ -368,17 +368,16 @@ export function NotifierEinstellungen() {
             onClick={testmailSenden}
             disabled={testmailLaeuft || !config.email_enabled}
           >
-            {testmailLaeuft ? "Sendet …" : "Testmail senden"}
+            {testmailLaeuft ? t.testmail_sendet : t.testmail_senden}
           </button>
           {testmailErgebnis && <p style={{ fontSize: "0.85rem" }}>{testmailErgebnis}</p>}
         </div>
 
         {/* Netzwerkdrucker (IPP) – Fallback/Immer-Druck für die Abschluss-PDFs */}
         <div className="karte">
-          <h2>🖨️ Netzwerkdrucker (IPP)</h2>
+          <h2>{t.drucker_titel}</h2>
           <p style={{ fontSize: "0.85rem", color: "var(--farbe-text-mute)" }}>
-            Druckt das Einsatz-/Dienstbuch-PDF an einen Netzwerkdrucker – als Fallback, wenn der
-            E-Mail-Versand scheitert, und optional bei jedem Abschluss.
+            {t.drucker_hinweis}
           </p>
           <div className="formular-feld">
             <label>
@@ -387,11 +386,11 @@ export function NotifierEinstellungen() {
                 checked={config.drucker_aktiv}
                 onChange={(e) => setConfig({ ...config, drucker_aktiv: e.target.checked })}
               />{" "}
-              Netzwerkdrucker aktivieren
+              {t.drucker_aktivieren}
             </label>
           </div>
           <div className="formular-feld">
-            <label htmlFor="drucker-url">IPP-URL des Druckers</label>
+            <label htmlFor="drucker-url">{t.drucker_url}</label>
             <input
               id="drucker-url"
               value={config.drucker_ipp_url}
@@ -409,7 +408,7 @@ export function NotifierEinstellungen() {
                 onChange={(e) => setConfig({ ...config, drucker_immer_einsatz: e.target.checked })}
                 disabled={!config.drucker_aktiv}
               />{" "}
-              Einsatzbericht (PDF) bei Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)
+              {t.drucker_immer_einsatz}
             </label>
           </div>
           <div className="formular-feld">
@@ -422,7 +421,7 @@ export function NotifierEinstellungen() {
                 }
                 disabled={!config.drucker_aktiv}
               />{" "}
-              Dienstbuch (PDF) beim Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)
+              {t.drucker_immer_dienstbuch}
             </label>
           </div>
           <button
@@ -431,14 +430,14 @@ export function NotifierEinstellungen() {
             onClick={testdruckSenden}
             disabled={testdruckLaeuft || !config.drucker_aktiv}
           >
-            {testdruckLaeuft ? "Druckt …" : "Testdruck senden"}
+            {testdruckLaeuft ? t.testdruck_druckt : t.testdruck_senden}
           </button>
           {testdruckErgebnis && <p style={{ fontSize: "0.85rem" }}>{testdruckErgebnis}</p>}
         </div>
 
         {/* Web Push */}
         <div className="karte">
-          <h2>🔔 Web Push (VAPID)</h2>
+          <h2>{t.webpush_titel}</h2>
           <div className="formular-feld">
             <label>
               <input
@@ -446,11 +445,11 @@ export function NotifierEinstellungen() {
                 checked={config.webpush_enabled}
                 onChange={(e) => setConfig({ ...config, webpush_enabled: e.target.checked })}
               />{" "}
-              Web Push aktivieren
+              {t.webpush_aktivieren}
             </label>
           </div>
           <div className="formular-feld">
-            <label htmlFor="wp-public">VAPID Public Key</label>
+            <label htmlFor="wp-public">{t.vapid_public}</label>
             <input
               id="wp-public"
               type="password"
@@ -462,7 +461,7 @@ export function NotifierEinstellungen() {
             />
           </div>
           <div className="formular-feld">
-            <label htmlFor="wp-private">VAPID Private Key</label>
+            <label htmlFor="wp-private">{t.vapid_private}</label>
             <input
               id="wp-private"
               type="password"
@@ -474,7 +473,7 @@ export function NotifierEinstellungen() {
             />
           </div>
           <div className="formular-feld">
-            <label htmlFor="wp-subject">VAPID Subject (mailto:-Adresse)</label>
+            <label htmlFor="wp-subject">{t.vapid_subject}</label>
             <input
               id="wp-subject"
               type="text"
@@ -484,15 +483,15 @@ export function NotifierEinstellungen() {
               disabled={!config.webpush_enabled}
             />
             <p className="hinweistext">
-              Generiere Keys mit: <code>webpush generate-vapid-keys</code>
+              {t.vapid_keys_hinweis} <code>webpush generate-vapid-keys</code>
             </p>
           </div>
         </div>
 
         <div className="karte">
-          <h2>🔔 Welche Ereignisse benachrichtigen?</h2>
+          <h2>{t.ereignisse_titel}</h2>
           <p className="text-mute">
-            Legt fest, bei welchen Ereignissen überhaupt eine Benachrichtigung verschickt wird.
+            {t.ereignisse_hinweis}
           </p>
           {EREIGNISSE.map((e) => (
             <div className="formular-feld" key={e.feld}>
@@ -509,7 +508,7 @@ export function NotifierEinstellungen() {
         </div>
 
         <button type="submit" disabled={loading}>
-          {loading ? "Wird gespeichert…" : "Konfiguration speichern"}
+          {loading ? t.speichert : t.speichern}
         </button>
       </form>
     </div>

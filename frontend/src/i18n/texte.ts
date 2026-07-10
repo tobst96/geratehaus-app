@@ -26,7 +26,8 @@
  * `pages/gruppenfuehrer/GruppenfuehrerLayout.tsx` (Nav; funktionale ?tab-Keys bleiben literal),
  * `pages/gruppenfuehrer/KioskGeraete.tsx`, `pages/gruppenfuehrer/Module.tsx`,
  * `pages/gruppenfuehrer/BarcodeGenerator.tsx`, `pages/gruppenfuehrer/SitzplatzEditor.tsx`,
- * `pages/gruppenfuehrer/EinsatzDetailGruppenfuehrer.tsx`, `pages/gruppenfuehrer/Einstellungen.tsx`.
+ * `pages/gruppenfuehrer/EinsatzDetailGruppenfuehrer.tsx`, `pages/gruppenfuehrer/Einstellungen.tsx`,
+ * `pages/gruppenfuehrer/NotifierEinstellungen.tsx`.
  */
 export const texte = {
   landing: {
@@ -658,5 +659,71 @@ export const texte = {
     fehler_logo: "Logo-Upload fehlgeschlagen.",
     fehler_archivierung: "Archivierung fehlgeschlagen.",
     fehler_setup: "Setup fehlgeschlagen.",
+  },
+  notifier_einstellungen: {
+    titel: "Benachrichtigungen konfigurieren",
+    intro: "Stelle hier Telegram, Email und Web Push ein – ganz ohne .env!",
+    gespeichert_banner: "Konfiguration gespeichert",
+    // Telegram
+    telegram_titel: "🤖 Telegram",
+    telegram_aktivieren: "Telegram aktivieren",
+    bot_token: "Bot Token",
+    chat_ids: "Chat-IDs (kommagetrennt)",
+    // Email
+    email_titel: "📧 Email (SMTP)",
+    email_aktivieren: "Email aktivieren",
+    smtp_server: "SMTP Server",
+    smtp_port: "SMTP Port",
+    starttls: "STARTTLS verwenden",
+    email_von: "Von Email-Adresse",
+    email_empfaenger: "Empfänger für Testmail (kommagetrennt)",
+    email_empfaenger_hinweis:
+      "Nur für die Testmail unten. Echte Benachrichtigungen gehen an die Personen, die das " +
+      "in ihren Stammdaten (Personal) individuell aktiviert haben.",
+    benutzername: "Benutzername",
+    passwort: "Passwort",
+    email_pdf_einsatz: "Einsatzbericht (PDF) bei Abschluss automatisch per E-Mail versenden",
+    email_pdf_dienstbuch:
+      "Dienstbuch (PDF) beim automatischen nächtlichen Abschluss per E-Mail versenden",
+    testmail_sendet: "Sendet …",
+    testmail_senden: "Testmail senden",
+    testmail_erfolg: "Testmail wurde gesendet.",
+    testmail_fehler: "Testmail konnte nicht gesendet werden.",
+    // Drucker
+    drucker_titel: "🖨️ Netzwerkdrucker (IPP)",
+    drucker_hinweis:
+      "Druckt das Einsatz-/Dienstbuch-PDF an einen Netzwerkdrucker – als Fallback, wenn der " +
+      "E-Mail-Versand scheitert, und optional bei jedem Abschluss.",
+    drucker_aktivieren: "Netzwerkdrucker aktivieren",
+    drucker_url: "IPP-URL des Druckers",
+    drucker_immer_einsatz:
+      "Einsatzbericht (PDF) bei Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)",
+    drucker_immer_dienstbuch:
+      "Dienstbuch (PDF) beim Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)",
+    testdruck_druckt: "Druckt …",
+    testdruck_senden: "Testdruck senden",
+    testdruck_erfolg: "Testdruck wurde an den Drucker gesendet.",
+    testdruck_fehler: "Testdruck fehlgeschlagen.",
+    // Web Push
+    webpush_titel: "🔔 Web Push (VAPID)",
+    webpush_aktivieren: "Web Push aktivieren",
+    vapid_public: "VAPID Public Key",
+    vapid_private: "VAPID Private Key",
+    vapid_subject: "VAPID Subject (mailto:-Adresse)",
+    vapid_keys_hinweis: "Generiere Keys mit:",
+    // Ereignisse
+    ereignisse_titel: "🔔 Welche Ereignisse benachrichtigen?",
+    ereignisse_hinweis:
+      "Legt fest, bei welchen Ereignissen überhaupt eine Benachrichtigung verschickt wird.",
+    ereignis_neuer_einsatz: "Einsatz abgeschlossen",
+    ereignis_divera_alarm: "Neuer Einsatz via Divera angelegt",
+    ereignis_neues_dienstbuch: "Neues Dienstbuch",
+    ereignis_buchungsanfrage: "Neue Buchungsanfrage",
+    ereignis_schwellenwert: "Schwellenwert-Überschreitung",
+    ereignis_person_inaktiv: "Person inaktiv (wird bald gelöscht)",
+    speichert: "Wird gespeichert…",
+    speichern: "Konfiguration speichern",
+    fehler_laden: "Fehler beim Laden",
+    fehler_speichern: "Fehler beim Speichern",
   },
 } as const;
