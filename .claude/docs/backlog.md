@@ -1841,8 +1841,14 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   migriert** (Namespace `texte.sitzplatz_editor`: Preset-Button-Labels, Titel/Hinweis,
   Prompts/Confirm, Umbenennen/Löschen, Funktion-Auswahl, Abbrechen/Speichern). Die
   Sitzplatz-**Bezeichnungen** der Presets bleiben bewusst literal, da sie als Daten in
-  `fahrzeug.sitzplaetze` gespeichert werden (keine UI-Chrome). Build grün. Rest
-  Gruppenführer: Personal, Einstellungen, EinsatzDetailGruppenfuehrer.
+  `fahrzeug.sitzplaetze` gespeichert werden (keine UI-Chrome). Build grün.
+- Fortschritt (10.07.2026, direkt auf beta): **`pages/gruppenfuehrer/EinsatzDetailGruppenfuehrer.tsx`
+  migriert** (Namespace `texte.einsatz_detail`: Zurück-Link, Grunddaten-Labels, Aktions-
+  Buttons inkl. Lade-Beschriftungen, Einsatzdetails-Tabelle, Teilnehmer-Tabellenköpfe +
+  „Ja"/„Keine Teilnehmer", Timeline-Überschrift/Leertext, Confirm-Dialoge mit dynamischem
+  Titel via Prefix/Suffix; Status-Wert, Personen-/Fahrzeugnamen und Timeline-Text bleiben
+  dynamisch). `.map`-Param `t`→`teilnahme` umbenannt (Alias-Kollision vermieden). Build grün.
+  Rest Gruppenführer: Personal, Einstellungen (die zwei größten Seiten).
 
 ### CI bei jedem PR (GitHub Actions)
 

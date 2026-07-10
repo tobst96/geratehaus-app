@@ -25,7 +25,8 @@
  * `pages/gruppenfuehrer/DienstbuchDetailGruppenfuehrer.tsx`,
  * `pages/gruppenfuehrer/GruppenfuehrerLayout.tsx` (Nav; funktionale ?tab-Keys bleiben literal),
  * `pages/gruppenfuehrer/KioskGeraete.tsx`, `pages/gruppenfuehrer/Module.tsx`,
- * `pages/gruppenfuehrer/BarcodeGenerator.tsx`, `pages/gruppenfuehrer/SitzplatzEditor.tsx`.
+ * `pages/gruppenfuehrer/BarcodeGenerator.tsx`, `pages/gruppenfuehrer/SitzplatzEditor.tsx`,
+ * `pages/gruppenfuehrer/EinsatzDetailGruppenfuehrer.tsx`.
  */
 export const texte = {
   landing: {
@@ -555,5 +556,44 @@ export const texte = {
     speichert: "Speichert …",
     speichern: "Speichern",
     fehler_speichern: "Speichern fehlgeschlagen.",
+  },
+  einsatz_detail: {
+    zurueck: "← Zurück zu den Listen",
+    badge_archiviert: "archiviert",
+    einsatznummer: "Einsatznummer:",
+    adresse: "Adresse:",
+    meldung: "Meldung:",
+    pdf_export: "Als PDF exportieren",
+    schliesst_ab: "Schließt ab …",
+    abschliessen: "Einsatz abschließen",
+    oeffnet: "Öffnet …",
+    wieder_oeffnen: "Einsatz wieder öffnen",
+    loeschen: "Einsatz löschen",
+    einsatzdetails: "Einsatzdetails",
+    ja: "Ja",
+    teilnehmer: "Teilnehmer",
+    keine_teilnehmer: "Keine Teilnehmer eingetragen.",
+    timeline: "Timeline",
+    keine_ereignisse: "Noch keine Ereignisse protokolliert.",
+    th_name: "Name",
+    th_fahrzeug: "Fahrzeug",
+    th_sitzplatz: "Sitzplatz",
+    th_funktion: "Funktion",
+    th_vab: "VAB",
+    th_atemschutz: "Atemschutz (min)",
+    th_nur_geraetehaus: "Nur Gerätehaus",
+    th_auf_anfahrt: "Auf Anfahrt",
+    th_ohne_barcode: "Ohne Barcode",
+    th_ip_browser: "IP / Browser",
+    th_bemerkung: "Bemerkung",
+    // Bestätigungsdialoge: Einsatztitel wird dynamisch zwischen Prefix/Suffix gesetzt.
+    frage_prefix: "Einsatz „",
+    wieder_oeffnen_frage_suffix: "“ wieder öffnen?",
+    loeschen_frage_suffix:
+      "“ wirklich unwiderruflich löschen? Alle Teilnahmen und Timeline-Einträge werden mit entfernt.",
+    fehler_laden: "Einsatz konnte nicht geladen werden.",
+    fehler_abschliessen: "Abschließen fehlgeschlagen.",
+    fehler_oeffnen: "Wieder öffnen fehlgeschlagen.",
+    fehler_loeschen: "Löschen fehlgeschlagen.",
   },
 } as const;

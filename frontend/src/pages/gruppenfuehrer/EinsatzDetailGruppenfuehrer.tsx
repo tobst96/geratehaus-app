@@ -16,6 +16,9 @@ import { ApiError } from "../../api/client";
 import type { EinsatzEreignis, EinsatzFeldDefinition, EinsatzOut, Fahrzeug } from "../../api/types";
 import "./EinsatzDetailGruppenfuehrer.css";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { texte } from "../../i18n/texte";
+
+const t = texte.einsatz_detail;
 
 const EREIGNIS_ICON: Record<string, string> = {
   angelegt: "🚨",
@@ -53,7 +56,7 @@ export function EinsatzDetailGruppenfuehrer() {
       setTimeline(tl);
       setFehler(null);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Einsatz konnte nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_laden);
     }
   }
 
@@ -69,7 +72,7 @@ export function EinsatzDetailGruppenfuehrer() {
       await einsatzAbschliessen(einsatz.id);
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Abschließen fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_abschliessen);
     } finally {
       setSchliesstAb(false);
     }
@@ -77,13 +80,13 @@ export function EinsatzDetailGruppenfuehrer() {
 
   async function wiederOeffnen() {
     if (!einsatz) return;
-    if (!confirm(`Einsatz "${einsatz.titel}" wieder öffnen?`)) return;
+    if (!confirm(`${t.frage_prefix}${einsatz.titel}${t.wieder_oeffnen_frage_suffix}`)) return;
     setSchliesstAb(true);
     try {
       await einsatzWiederOeffnen(einsatz.id);
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Wieder öffnen fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_oeffnen);
     } finally {
       setSchliesstAb(false);
     }
@@ -92,9 +95,7 @@ export function EinsatzDetailGruppenfuehrer() {
   async function loeschen() {
     if (!einsatz) return;
     if (
-      !confirm(
-        `Einsatz "${einsatz.titel}" wirklich unwiderruflich löschen? Alle Teilnahmen und Timeline-Einträge werden mit entfernt.`
-      )
+      !confirm(`${t.frage_prefix}${einsatz.titel}${t.loeschen_frage_suffix}`)
     )
       return;
     setSchliesstAb(true);
@@ -102,7 +103,7 @@ export function EinsatzDetailGruppenfuehrer() {
       await einsatzLoeschen(einsatz.id);
       navigate("/gruppenfuehrer/listen?tab=Eins%C3%A4tze");
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Löschen fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_loeschen);
       setSchliesstAb(false);
     }
   }
@@ -120,7 +121,7 @@ export function EinsatzDetailGruppenfuehrer() {
   return (
     <div>
       <p>
-        <Link to="/gruppenfuehrer/listen">← Zurück zu den Listen</Link>
+        <Link to="/gruppenfuehrer/listen">{t.zurueck}</Link>
       </p>
       <h1>{einsatz.titel}</h1>
       <div className="einsatz-status-zeile">
@@ -132,24 +133,24 @@ export function EinsatzDetailGruppenfuehrer() {
         >
           {einsatz.status}
         </span>
-        {einsatz.archiviert && <span className="einsatz-status-badge">archiviert</span>}
+        {einsatz.archiviert && <span className="einsatz-status-badge">{t.badge_archiviert}</span>}
       </div>
 
       {(einsatz.adresse || einsatz.meldung || einsatz.einsatznummer) && (
         <div className="karte" style={{ marginTop: "1rem" }}>
           {einsatz.einsatznummer && (
             <p style={{ margin: "0 0 0.25rem" }}>
-              <strong>Einsatznummer:</strong> {einsatz.einsatznummer}
+              <strong>{t.einsatznummer}</strong> {einsatz.einsatznummer}
             </p>
           )}
           {einsatz.adresse && (
             <p style={{ margin: "0 0 0.25rem" }}>
-              <strong>Adresse:</strong> {einsatz.adresse}
+              <strong>{t.adresse}</strong> {einsatz.adresse}
             </p>
           )}
           {einsatz.meldung && (
             <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>
-              <strong>Meldung:</strong> {einsatz.meldung}
+              <strong>{t.meldung}</strong> {einsatz.meldung}
             </p>
           )}
         </div>
@@ -162,16 +163,16 @@ export function EinsatzDetailGruppenfuehrer() {
           target="_blank"
           rel="noreferrer"
         >
-          Als PDF exportieren
+          {t.pdf_export}
         </a>
         {einsatz.status === "offen" && (
           <button className="einsatz-aktion sekundaer" onClick={abschliessen} disabled={schliesstAb}>
-            {schliesstAb ? "Schließt ab …" : "Einsatz abschließen"}
+            {schliesstAb ? t.schliesst_ab : t.abschliessen}
           </button>
         )}
         {einsatz.status === "abgeschlossen" && (
           <button className="einsatz-aktion sekundaer" onClick={wiederOeffnen} disabled={schliesstAb}>
-            {schliesstAb ? "Öffnet …" : "Einsatz wieder öffnen"}
+            {schliesstAb ? t.oeffnet : t.wieder_oeffnen}
           </button>
         )}
         <button
@@ -179,13 +180,13 @@ export function EinsatzDetailGruppenfuehrer() {
           onClick={loeschen}
           disabled={schliesstAb}
         >
-          Einsatz löschen
+          {t.loeschen}
         </button>
       </div>
 
       {felder.length > 0 && (
         <div className="karte">
-          <h2>Einsatzdetails</h2>
+          <h2>{t.einsatzdetails}</h2>
           <div className="tabelle-scroll">
           <table>
             <tbody>
@@ -206,7 +207,7 @@ export function EinsatzDetailGruppenfuehrer() {
                     <td>
                       <strong>{f.label}</strong>
                     </td>
-                    <td>{f.typ === "checkbox" ? "Ja" : String(wert)}</td>
+                    <td>{f.typ === "checkbox" ? t.ja : String(wert)}</td>
                   </tr>
                 );
               })}
@@ -216,55 +217,55 @@ export function EinsatzDetailGruppenfuehrer() {
         </div>
       )}
 
-      <h2>Teilnehmer ({einsatz.teilnahmen.length})</h2>
+      <h2>{t.teilnehmer} ({einsatz.teilnahmen.length})</h2>
       <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Fahrzeug</th>
-            <th>Sitzplatz</th>
-            <th>Funktion</th>
-            <th>VAB</th>
-            <th>Atemschutz (min)</th>
-            <th>Nur Gerätehaus</th>
-            <th>Auf Anfahrt</th>
-            <th>Ohne Barcode</th>
-            <th>IP / Browser</th>
-            <th>Bemerkung</th>
+            <th>{t.th_name}</th>
+            <th>{t.th_fahrzeug}</th>
+            <th>{t.th_sitzplatz}</th>
+            <th>{t.th_funktion}</th>
+            <th>{t.th_vab}</th>
+            <th>{t.th_atemschutz}</th>
+            <th>{t.th_nur_geraetehaus}</th>
+            <th>{t.th_auf_anfahrt}</th>
+            <th>{t.th_ohne_barcode}</th>
+            <th>{t.th_ip_browser}</th>
+            <th>{t.th_bemerkung}</th>
           </tr>
         </thead>
         <tbody>
           {einsatz.teilnahmen.length === 0 && (
             <tr>
               <td colSpan={11} className="text-mute">
-                Keine Teilnehmer eingetragen.
+                {t.keine_teilnehmer}
               </td>
             </tr>
           )}
-          {einsatz.teilnahmen.map((t) => (
-            <tr key={t.id}>
-              <td>{t.person_name}</td>
-              <td>{t.fahrzeug_name ?? ""}</td>
-              <td>{sitzplatzBezeichnung(t.fahrzeug_id, t.sitzplatz_id)}</td>
-              <td>{t.funktion_name ?? ""}</td>
-              <td>{t.vab ? "Ja" : ""}</td>
-              <td>{t.atemschutzminuten || ""}</td>
-              <td>{t.nur_geraetehaus ? "Ja" : ""}</td>
-              <td>{t.auf_anfahrt ? "Ja" : ""}</td>
-              <td>{t.ohne_barcode ? "Ja" : ""}</td>
-              <td title={t.eintragung_user_agent ?? ""} className="hinweis-klein">
-                {t.eintragung_ip ?? ""}
+          {einsatz.teilnahmen.map((teilnahme) => (
+            <tr key={teilnahme.id}>
+              <td>{teilnahme.person_name}</td>
+              <td>{teilnahme.fahrzeug_name ?? ""}</td>
+              <td>{sitzplatzBezeichnung(teilnahme.fahrzeug_id, teilnahme.sitzplatz_id)}</td>
+              <td>{teilnahme.funktion_name ?? ""}</td>
+              <td>{teilnahme.vab ? t.ja : ""}</td>
+              <td>{teilnahme.atemschutzminuten || ""}</td>
+              <td>{teilnahme.nur_geraetehaus ? t.ja : ""}</td>
+              <td>{teilnahme.auf_anfahrt ? t.ja : ""}</td>
+              <td>{teilnahme.ohne_barcode ? t.ja : ""}</td>
+              <td title={teilnahme.eintragung_user_agent ?? ""} className="hinweis-klein">
+                {teilnahme.eintragung_ip ?? ""}
               </td>
-              <td>{t.bemerkung ?? ""}</td>
+              <td>{teilnahme.bemerkung ?? ""}</td>
             </tr>
           ))}
         </tbody>
       </table>
       </div>
 
-      <h2>Timeline</h2>
-      {timeline.length === 0 && <p className="text-mute">Noch keine Ereignisse protokolliert.</p>}
+      <h2>{t.timeline}</h2>
+      {timeline.length === 0 && <p className="text-mute">{t.keine_ereignisse}</p>}
       {timeline.length > 0 && (
         <div className="timeline">
           {timeline.map((ereignis) => (
