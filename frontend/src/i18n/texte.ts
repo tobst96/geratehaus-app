@@ -23,7 +23,8 @@
  * `pages/gruppenfuehrer/Update.tsx` (Intro-Absatz mit <code> bewusst inline),
  * `pages/gruppenfuehrer/Berechtigungen.tsx`, `pages/gruppenfuehrer/PersonKanaele.tsx`,
  * `pages/gruppenfuehrer/DienstbuchDetailGruppenfuehrer.tsx`,
- * `pages/gruppenfuehrer/GruppenfuehrerLayout.tsx` (Nav; funktionale ?tab-Keys bleiben literal).
+ * `pages/gruppenfuehrer/GruppenfuehrerLayout.tsx` (Nav; funktionale ?tab-Keys bleiben literal),
+ * `pages/gruppenfuehrer/KioskGeraete.tsx`.
  */
 export const texte = {
   landing: {
@@ -436,5 +437,40 @@ export const texte = {
     anmelden_laeuft: "Wird angemeldet…",
     barcode_vergessen: "Barcode vergessen",
     qr_erzeugen_laeuft: "Erzeuge QR-Code …",
+  },
+  kiosk_geraete: {
+    titel: "Kiosk-Geräte",
+    intro:
+      "Jedes Tablet im Gerätehaus braucht einen eigenen Link. Diesen Link einmalig als " +
+      "Lesezeichen / Startbildschirm-Symbol auf dem jeweiligen Tablet hinterlegen.",
+    autolock_titel: "Auto-Sperre",
+    autolock_hinweis:
+      "Nach dieser Zeit ohne Bedienung springt das Kiosk-Tablet automatisch zurück zur " +
+      "Startseite (verhindert hängende Sitzungen mit gewählter Person). 0 = aus.",
+    autolock_label: "Sekunden bis Rücksprung",
+    speichern: "Speichern",
+    gespeichert: "✓ gespeichert",
+    bezeichnung_platzhalter: "Bezeichnung (z. B. Tablet Garage)",
+    anlegen: "Anlegen",
+    keine_geraete: "Noch keine Kiosk-Geräte angelegt.",
+    kopieren: "Kopieren",
+    pdf: "PDF",
+    loeschen: "Löschen",
+    individuell_label: "Auf Kiosk anzeigen individuell festlegen",
+    individuell_hinweis_an: "Nur die angehakten Module erscheinen auf diesem Kiosk.",
+    individuell_hinweis_aus: "Nutzt die globale Startseiten-Einstellung der Module.",
+    module_labels: {
+      einsatztagebuch: "Einsatzbericht",
+      dienstbuch: "Dienstbuch",
+      dienststunden: "Dienststunden",
+      fahrzeugbuchung: "Fahrzeugbuchung",
+    },
+    loeschen_bestaetigen:
+      "Diesen Kiosk-Link wirklich löschen? Das Tablet kann sich danach nicht mehr aufrufen.",
+    link_manuell_kopieren: "Link manuell kopieren:",
+    fehler_laden: "Kiosk-Geräte konnten nicht geladen werden.",
+    fehler_speichern: "Speichern fehlgeschlagen.",
+    fehler_anlegen: "Anlegen fehlgeschlagen.",
+    fehler_loeschen: "Löschen fehlgeschlagen.",
   },
 } as const;

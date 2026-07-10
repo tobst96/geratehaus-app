@@ -13,13 +13,16 @@ import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { texte } from "../../i18n/texte";
+
+const t = texte.kiosk_geraete;
 
 // Module, die als Kachel auf der Kiosk-Startseite erscheinen können.
 const STARTSEITE_MODULE: { key: string; label: string }[] = [
-  { key: "einsatztagebuch", label: "Einsatzbericht" },
-  { key: "dienstbuch", label: "Dienstbuch" },
-  { key: "dienststunden", label: "Dienststunden" },
-  { key: "fahrzeugbuchung", label: "Fahrzeugbuchung" },
+  { key: "einsatztagebuch", label: t.module_labels.einsatztagebuch },
+  { key: "dienstbuch", label: t.module_labels.dienstbuch },
+  { key: "dienststunden", label: t.module_labels.dienststunden },
+  { key: "fahrzeugbuchung", label: t.module_labels.fahrzeugbuchung },
 ];
 
 export function KioskGeraete() {
@@ -37,7 +40,7 @@ export function KioskGeraete() {
       setAutolockGespeichert(true);
       setTimeout(() => setAutolockGespeichert(false), 2000);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Speichern fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_speichern);
     }
   }
 
@@ -45,7 +48,7 @@ export function KioskGeraete() {
     try {
       setGeraete(await holeKioskTokens());
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Kiosk-Geräte konnten nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_laden);
     }
   }
 
@@ -61,17 +64,17 @@ export function KioskGeraete() {
       setBezeichnung("");
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Anlegen fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_anlegen);
     }
   }
 
   async function loeschen(id: number) {
-    if (!confirm("Diesen Kiosk-Link wirklich löschen? Das Tablet kann sich danach nicht mehr aufrufen.")) return;
+    if (!confirm(t.loeschen_bestaetigen)) return;
     try {
       await kioskTokenLoeschen(id);
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Löschen fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_loeschen);
     }
   }
 
@@ -83,7 +86,7 @@ export function KioskGeraete() {
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      window.prompt("Link manuell kopieren:", text);
+      window.prompt(t.link_manuell_kopieren, text);
     }
   }
 
@@ -99,7 +102,7 @@ export function KioskGeraete() {
       await setzeKioskStartseiteModule(id, keys);
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Speichern fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_speichern);
     }
   }
 
@@ -114,20 +117,14 @@ export function KioskGeraete() {
 
   return (
     <div>
-      <h1>Kiosk-Geräte</h1>
-      <p className="text-mute">
-        Jedes Tablet im Gerätehaus braucht einen eigenen Link. Diesen Link einmalig als Lesezeichen /
-        Startbildschirm-Symbol auf dem jeweiligen Tablet hinterlegen.
-      </p>
+      <h1>{t.titel}</h1>
+      <p className="text-mute">{t.intro}</p>
 
       <div className="karte">
-        <h2 style={{ marginTop: 0 }}>Auto-Sperre</h2>
-        <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.9rem" }}>
-          Nach dieser Zeit ohne Bedienung springt das Kiosk-Tablet automatisch zurück zur
-          Startseite (verhindert hängende Sitzungen mit gewählter Person). 0 = aus.
-        </p>
+        <h2 style={{ marginTop: 0 }}>{t.autolock_titel}</h2>
+        <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.9rem" }}>{t.autolock_hinweis}</p>
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          <label htmlFor="kiosk-autolock">Sekunden bis Rücksprung</label>
+          <label htmlFor="kiosk-autolock">{t.autolock_label}</label>
           <input
             id="kiosk-autolock"
             type="number"
@@ -137,23 +134,23 @@ export function KioskGeraete() {
             style={{ width: 120 }}
           />
           <button type="button" onClick={autolockSpeichern}>
-            Speichern
+            {t.speichern}
           </button>
-          {autolockGespeichert && <span style={{ color: "green" }}>✓ gespeichert</span>}
+          {autolockGespeichert && <span style={{ color: "green" }}>{t.gespeichert}</span>}
         </div>
       </div>
 
       <form onSubmit={anlegen} className="karte" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <input
-          placeholder="Bezeichnung (z. B. Tablet Garage)"
+          placeholder={t.bezeichnung_platzhalter}
           value={bezeichnung}
           onChange={(e) => setBezeichnung(e.target.value)}
           style={{ flex: 1, minWidth: 200 }}
         />
-        <button type="submit">Anlegen</button>
+        <button type="submit">{t.anlegen}</button>
       </form>
 
-      {geraete.length === 0 && <p>Noch keine Kiosk-Geräte angelegt.</p>}
+      {geraete.length === 0 && <p>{t.keine_geraete}</p>}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {geraete.map((g) => {
@@ -165,13 +162,13 @@ export function KioskGeraete() {
                 <strong style={{ flex: 1 }}>{g.bezeichnung}</strong>
                 <input readOnly value={linkFuer(g.token)} style={{ width: 360, fontSize: "0.8rem" }} />
                 <button type="button" className="sekundaer" onClick={() => kopieren(linkFuer(g.token))}>
-                  Kopieren
+                  {t.kopieren}
                 </button>
                 <button type="button" className="sekundaer" onClick={() => ladeKioskPdf(g.id, g.bezeichnung)}>
-                  PDF
+                  {t.pdf}
                 </button>
                 <button type="button" className="sekundaer" onClick={() => loeschen(g.id)}>
-                  Löschen
+                  {t.loeschen}
                 </button>
               </div>
 
@@ -182,12 +179,10 @@ export function KioskGeraete() {
                     checked={individuell}
                     onChange={(e) => moduleSetzen(g.id, e.target.checked ? globalDefaults() : null)}
                   />
-                  Auf Kiosk anzeigen individuell festlegen
+                  {t.individuell_label}
                 </label>
                 <p style={{ color: "var(--farbe-text-mute)", fontSize: "0.85rem", margin: "4px 0 8px" }}>
-                  {individuell
-                    ? "Nur die angehakten Module erscheinen auf diesem Kiosk."
-                    : "Nutzt die globale Startseiten-Einstellung der Module."}
+                  {individuell ? t.individuell_hinweis_an : t.individuell_hinweis_aus}
                 </p>
                 {individuell && (
                   <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
