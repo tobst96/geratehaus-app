@@ -231,20 +231,29 @@ export function PressberichtModul() {
             onChange={(e) => feld("modus", e.target.value as Modus)}
           >
             <option value="schliessen">Sofort beim Abschließen des Einsatzes</option>
-            <option value="stunden">Eine bestimmte Zeit nach Abschluss</option>
-            <option value="uhrzeit">Täglich zu fester Uhrzeit (nur abgeschlossene Einsätze)</option>
+            <option value="stunden">Eine bestimmte Anzahl Stunden nach Abschluss</option>
+            <option value="uhrzeit">Täglich zu einer festen Uhrzeit (nur abgeschlossene Einsätze)</option>
           </select>
         </div>
         {einst.modus === "stunden" && (
           <div className="formular-feld">
             <label htmlFor="pb-stunden">Stunden nach Abschluss</label>
-            <input
-              id="pb-stunden"
-              type="number"
-              min={0}
-              value={einst.stunden}
-              onChange={(e) => feld("stunden", Number(e.target.value))}
-            />
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                id="pb-stunden"
+                type="number"
+                min={0}
+                value={einst.stunden}
+                onChange={(e) => feld("stunden", Number(e.target.value))}
+                style={{ width: 100 }}
+              />
+              <span>Stunden</span>
+            </div>
+            <p className="hinweistext">
+              Zeitspanne <strong>nach dem Abschluss</strong> des Einsatzes (keine Uhrzeit). Beispiel:
+              24 = der Bericht geht rund 24 Stunden nach dem Abschließen raus. Ein Hintergrund-Job
+              prüft dafür alle 15 Minuten.
+            </p>
           </div>
         )}
         {einst.modus === "uhrzeit" && (
@@ -256,6 +265,10 @@ export function PressberichtModul() {
               value={einst.uhrzeit}
               onChange={(e) => feld("uhrzeit", e.target.value)}
             />
+            <p className="hinweistext">
+              Einmal täglich zu dieser Uhrzeit für alle bereits abgeschlossenen Einsätze, die noch
+              keinen Pressebericht haben.
+            </p>
           </div>
         )}
       </div>

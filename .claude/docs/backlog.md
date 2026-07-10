@@ -18,6 +18,11 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 - Status: Erledigt (PR #61 in `beta` gemergt + **deployt** 10.07.2026; Migration 0065 live,
   Modul in FEATURE_MODULE + Config-Defaults registriert, Backend-Suite 412 grün)
+- Nachtrag (10.07.2026, direkt auf beta): **Modul-Icon** (Zeitungs-Line-Icon) in
+  `navIcons`/`MODUL_ICON` ergänzt (vorher kein Icon in der Modul-Nav). **Versand-UX
+  präzisiert** (Nutzer-Rückfrage): Dropdown-Option „Eine bestimmte **Anzahl Stunden** nach
+  Abschluss" (statt „Zeit"), Stunden-Feld mit Einheit + Hilfetext (Dauer nach Abschluss,
+  keine Uhrzeit; Job prüft alle 15 min), Uhrzeit-Modus mit Hilfetext. Build grün.
 - Priorität: Mittel
 - Kategorie: Neues Modul
 - Skills: planner, new-module, geraetehaus-patterns, tests, review
