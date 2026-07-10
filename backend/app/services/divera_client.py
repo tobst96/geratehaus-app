@@ -60,9 +60,10 @@ async def hole_alarme(api_key: str, last_ts: int | None = None) -> tuple[list[di
     return alarme, neuer_ts
 
 
-async def hole_alarme_historie(api_key: str, tage: int) -> list[dict]:
+async def hole_alarme_historie(api_key: str, tage: int = 0, minuten: int = 0) -> list[dict]:
     """Holt die Alarm-HISTORIE über /api/v2/alarms (nicht /pull/all, das nur
-    aktuell aktive Alarme liefert) und filtert auf die letzten `tage` Tage.
+    aktuell aktive Alarme liefert) und filtert auf das Zeitfenster der letzten
+    `tage` Tage und/oder `minuten` Minuten (die Werte addieren sich).
 
     Gibt eine Liste roher Alarm-Dicts zurück (Feld `date` = Unix-Zeit), die
     divera_service._alarm_normalisieren() versteht. Anders als /pull/all
@@ -84,7 +85,7 @@ async def hole_alarme_historie(api_key: str, tage: int) -> list[dict]:
         items = list(items.values())
     items = items or []
 
-    grenze = time.time() - tage * 86400
+    grenze = time.time() - (tage * 86400 + minuten * 60)
     gefiltert = [
         a
         for a in items
@@ -95,6 +96,7 @@ async def hole_alarme_historie(api_key: str, tage: int) -> list[dict]:
         anzahl_gesamt=len(items),
         anzahl_im_zeitraum=len(gefiltert),
         tage=tage,
+        minuten=minuten,
     )
     return gefiltert
 

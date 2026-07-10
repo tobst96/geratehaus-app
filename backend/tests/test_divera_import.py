@@ -168,12 +168,36 @@ async def test_synchronisiere_importiert_nur_neue(db: AsyncSession):
     with patch(
         "app.services.divera_client.hole_alarme",
         new=AsyncMock(return_value=(alarme, 5000)),
+    ), patch(
+        "app.services.divera_client.hole_alarme_historie",
+        new=AsyncMock(return_value=[]),
     ):
         anzahl_erster = await divera_service.synchronisiere(db)
         anzahl_zweiter = await divera_service.synchronisiere(db)
 
     assert anzahl_erster == 2
     assert anzahl_zweiter == 0
+
+
+@pytest.mark.asyncio
+async def test_synchronisiere_holt_geschlossene_aus_historie(db: AsyncSession):
+    """Der Poll importiert zusätzlich zu /pull/all die Historie der letzten 30 min –
+    so werden auch bereits geschlossene Alarme (Timing-Lücke) nachgeholt."""
+    await _divera_aktivieren(db)
+    # /pull/all liefert nichts (kein aktiver Alarm), Historie enthält einen
+    # bereits geschlossenen Alarm.
+    geschlossen = [{"id": 42, "title": "H1", "date": 1719440000}]
+    with patch(
+        "app.services.divera_client.hole_alarme", new=AsyncMock(return_value=([], None))
+    ), patch(
+        "app.services.divera_client.hole_alarme_historie",
+        new=AsyncMock(return_value=geschlossen),
+    ) as mock_hist:
+        anzahl = await divera_service.synchronisiere(db)
+
+    assert anzahl == 1
+    mock_hist.assert_awaited_once()
+    assert mock_hist.await_args.kwargs.get("minuten") == 30
 
 
 @pytest.mark.asyncio
