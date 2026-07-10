@@ -12,8 +12,10 @@ import {
 import { ApiError } from "../../api/client";
 import type { DienstbuchOut } from "../../api/types";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
+import { texte } from "../../i18n/texte";
 
 export function DienstbuchDetailGruppenfuehrer() {
+  const txt = texte.dienstbuch_detail;
   const { id } = useParams<{ id: string }>();
   const [dienstbuch, setDienstbuch] = useState<DienstbuchOut | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -25,7 +27,7 @@ export function DienstbuchDetailGruppenfuehrer() {
       setDienstbuch(await holeDienstbuch(Number(id)));
       setFehler(null);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Dienstbuch konnte nicht geladen werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : txt.ladefehler);
     }
   }
 
@@ -41,7 +43,7 @@ export function DienstbuchDetailGruppenfuehrer() {
       await dienstbuchSchliessen(dienstbuch.id);
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Schließen fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : txt.schliessen_fehler);
     } finally {
       setAendertStatus(false);
     }
@@ -49,13 +51,13 @@ export function DienstbuchDetailGruppenfuehrer() {
 
   async function wiederOeffnen() {
     if (!dienstbuch) return;
-    if (!confirm(`Dienstbuch "${dienstbuch.titel}" wieder öffnen?`)) return;
+    if (!confirm(`${txt.wieder_oeffnen_confirm_prefix} „${dienstbuch.titel}" ${txt.wieder_oeffnen_confirm_suffix}`)) return;
     setAendertStatus(true);
     try {
       await dienstbuchWiederOeffnen(dienstbuch.id);
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Wieder öffnen fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : txt.oeffnen_fehler);
     } finally {
       setAendertStatus(false);
     }
@@ -68,7 +70,7 @@ export function DienstbuchDetailGruppenfuehrer() {
       await dienstbuchRelevantSetzen(dienstbuch.id, !dienstbuch.relevant);
       await laden();
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Markierung fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : txt.markierung_fehler);
     } finally {
       setAendertStatus(false);
     }
@@ -80,59 +82,59 @@ export function DienstbuchDetailGruppenfuehrer() {
   return (
     <div>
       <p>
-        <Link to="/gruppenfuehrer/listen">← Zurück zu den Listen</Link>
+        <Link to="/gruppenfuehrer/listen">{txt.zurueck}</Link>
       </p>
       <h1>{dienstbuch.titel}</h1>
       <div className="einsatz-status-zeile">
         <p style={{ color: "var(--farbe-text-mute)", margin: 0 }}>
           {formatiereDatumZeit(dienstbuch.eroeffnet_am)}
         </p>
-        <span className="einsatz-status-badge">{dienstbuch.geschlossen ? "geschlossen" : "offen"}</span>
-        {dienstbuch.archiviert && <span className="einsatz-status-badge">archiviert</span>}
-        {dienstbuch.relevant && <span className="einsatz-status-badge">★ relevant</span>}
+        <span className="einsatz-status-badge">{dienstbuch.geschlossen ? txt.geschlossen : txt.offen}</span>
+        {dienstbuch.archiviert && <span className="einsatz-status-badge">{txt.archiviert}</span>}
+        {dienstbuch.relevant && <span className="einsatz-status-badge">{txt.relevant_badge}</span>}
       </div>
 
       <p style={{ marginTop: "1rem", display: "flex", gap: 12, alignItems: "center" }}>
         <a href={dienstbuchPdfUrl(dienstbuch.id)} target="_blank" rel="noreferrer">
-          Als PDF exportieren
+          {txt.als_pdf}
         </a>
         {!dienstbuch.geschlossen && (
           <button className="sekundaer" onClick={schliessen} disabled={aendertStatus}>
-            {aendertStatus ? "Schließt ab …" : "Dienstbuch schließen"}
+            {aendertStatus ? txt.schliesst_ab : txt.schliessen}
           </button>
         )}
         {dienstbuch.geschlossen && (
           <button className="sekundaer" onClick={wiederOeffnen} disabled={aendertStatus}>
-            {aendertStatus ? "Öffnet …" : "Dienstbuch wieder öffnen"}
+            {aendertStatus ? txt.oeffnet : txt.wieder_oeffnen}
           </button>
         )}
         <button className="sekundaer" onClick={relevantUmschalten} disabled={aendertStatus}>
-          {dienstbuch.relevant ? "Relevant-Markierung entfernen" : "Als relevant markieren"}
+          {dienstbuch.relevant ? txt.relevant_entfernen : txt.relevant_markieren}
         </button>
       </p>
 
       {dienstbuch.notizen && (
         <div className="karte">
-          <h2>Notizen</h2>
+          <h2>{txt.notizen}</h2>
           <p>{dienstbuch.notizen}</p>
         </div>
       )}
 
-      <h2>Teilnehmer ({dienstbuch.teilnehmer.length})</h2>
+      <h2>{txt.teilnehmer} ({dienstbuch.teilnehmer.length})</h2>
       <div className="tabelle-scroll">
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Gruppe</th>
-            <th>Atemschutz (min)</th>
+            <th>{txt.th_name}</th>
+            <th>{txt.th_gruppe}</th>
+            <th>{txt.th_atemschutz}</th>
           </tr>
         </thead>
         <tbody>
           {dienstbuch.teilnehmer.length === 0 && (
             <tr>
               <td colSpan={3} className="text-mute">
-                Keine Teilnehmer eingetragen.
+                {txt.keine_teilnehmer}
               </td>
             </tr>
           )}

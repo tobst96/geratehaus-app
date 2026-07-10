@@ -21,7 +21,8 @@
  * `pages/gruppenfuehrer/ModulUnterseite.tsx`, `pages/gruppenfuehrer/Buchungsmanagement.tsx`,
  * `pages/gruppenfuehrer/AuditLog.tsx`, `pages/gruppenfuehrer/Systemstatus.tsx`,
  * `pages/gruppenfuehrer/Update.tsx` (Intro-Absatz mit <code> bewusst inline),
- * `pages/gruppenfuehrer/Berechtigungen.tsx`, `pages/gruppenfuehrer/PersonKanaele.tsx`.
+ * `pages/gruppenfuehrer/Berechtigungen.tsx`, `pages/gruppenfuehrer/PersonKanaele.tsx`,
+ * `pages/gruppenfuehrer/DienstbuchDetailGruppenfuehrer.tsx`.
  */
 export const texte = {
   landing: {
@@ -235,6 +236,33 @@ export const texte = {
     welche_intro:
       "Nur abonnierte Ereignisse werden über die aktiven Kanäle oben zugestellt. " +
       "Angeboten werden nur Ereignisse aktivierter Module.",
+  },
+  dienstbuch_detail: {
+    zurueck: "← Zurück zu den Listen",
+    ladefehler: "Dienstbuch konnte nicht geladen werden.",
+    schliessen_fehler: "Schließen fehlgeschlagen.",
+    oeffnen_fehler: "Wieder öffnen fehlgeschlagen.",
+    markierung_fehler: "Markierung fehlgeschlagen.",
+    // Confirm: „Dienstbuch „<titel>" wieder öffnen?"
+    wieder_oeffnen_confirm_prefix: "Dienstbuch",
+    wieder_oeffnen_confirm_suffix: "wieder öffnen?",
+    geschlossen: "geschlossen",
+    offen: "offen",
+    archiviert: "archiviert",
+    relevant_badge: "★ relevant",
+    als_pdf: "Als PDF exportieren",
+    schliesst_ab: "Schließt ab …",
+    schliessen: "Dienstbuch schließen",
+    oeffnet: "Öffnet …",
+    wieder_oeffnen: "Dienstbuch wieder öffnen",
+    relevant_entfernen: "Relevant-Markierung entfernen",
+    relevant_markieren: "Als relevant markieren",
+    notizen: "Notizen",
+    teilnehmer: "Teilnehmer", // gefolgt von (Anzahl)
+    th_name: "Name",
+    th_gruppe: "Gruppe",
+    th_atemschutz: "Atemschutz (min)",
+    keine_teilnehmer: "Keine Teilnehmer eingetragen.",
   },
   berechtigungen: {
     titel: "Berechtigungen",
