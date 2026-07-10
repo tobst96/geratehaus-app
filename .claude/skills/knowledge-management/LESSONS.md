@@ -166,3 +166,30 @@ zurückbleiben – Identität gilt nur für die eine Aktion.
 
 - Alle vier Modul-Eintragungen (Einsatz, Dienstbuch, Dienststunden, Fahrzeugbuchung)
 - Jede künftige Kiosk-Aktion mit Personenbezug
+
+## `docker compose run backend <cmd>` startet die KOMPLETTE App (Scheduler-Duplikat!)
+
+### Problem
+
+Ein einmaliger Befehl wie `docker compose run backend '<pip-audit-Einzeiler>'`
+startet **nicht** nur den Befehl – der `ENTRYPOINT ./docker-entrypoint.sh` fährt
+zuerst die volle App hoch (Migrationen + `uvicorn` + **APScheduler**). Der Container
+bleibt dann als `geratehaus-app-backend-run-<hash>` **dauerhaft laufen** (hier 2 Tage),
+mit einem **zweiten Scheduler gegen dieselbe Produktions-DB**.
+
+### Symptom
+
+Ein bereits im Code behobener und als *resolved* markierter Scheduler-Fehler
+(z. B. Sentry `formular_ablauf_job_fehlgeschlagen`, JAVASCRIPT-39) **feuert
+weiter alle 15 min**, obwohl der reguläre `backend-1` den Job sauber ausführt –
+weil das alte Streuner-Image den Job mit veraltetem Code/Query ausführt. Erkennen:
+`docker ps -a | grep -- -run-`.
+
+### Lösung / Prävention
+
+- Streuner entfernen: `docker rm -f geratehaus-app-backend-run-<hash>`.
+- Einmalige Befehle **immer** wie `scripts/test-backend.sh` starten:
+  `docker compose run --rm -T --no-deps --entrypoint sh backend -c '<cmd>'`
+  (überschreibt den App-Entrypoint, räumt via `--rm` auf, keine Deps).
+- Bei „resolved, feuert aber weiter": zuerst auf **verwaiste `-run-`-Container** prüfen,
+  bevor man erneut im Code sucht.
