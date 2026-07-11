@@ -2124,6 +2124,9 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Pressebericht-Admin-Einstellungen: lädt Config, bedingte Versand-UI (Modus „Stunden" blendet
   das Stunden-Feld ein), Speichern ruft `schreibeEinstellungen` mit dem gewählten Modus + zeigt
   „✓ gespeichert". Gesamt **36 Vitest-Tests grün** (`scripts/test-frontend.sh`).
+- Fortschritt (11.07.2026, direkt auf beta): **`Module.test.tsx`** (2) für die Modul-Übersicht:
+  „Aktiv"-Checkbox schaltet ein Modul um (ruft `setFeatureModulFlag(key, {aktiv})`); die Suche
+  filtert die Modul-Liste. Gesamt **38 Vitest-Tests grün**.
 - Priorität: Mittel
 - Kategorie: Tests / Frontend
 - Skills: tests, review
