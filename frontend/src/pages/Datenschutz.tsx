@@ -150,6 +150,19 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
+        <h2>ELW-Upload (optional)</h2>
+        <p>
+          Ist das optionale ELW-Modul aktiv, wird bei jeder Einsatz-Anlage eine E-Mail mit einem
+          Login-losen Upload-Link an eine fest hinterlegte Adresse (Einsatzleitwagen) gesendet. Über
+          diesen Link können – ohne Anmeldung, aber nur solange der Einsatz offen ist – Dateien
+          (Bilder/PDF) zum Einsatz hochgeladen werden. Diese Dateien werden im Einsatz-Ordner des
+          Objektspeichers abgelegt und können personenbezogene Daten enthalten; jeder Upload wird in
+          der Einsatz-Timeline protokolliert. Der Link ist über ein signiertes Token abgesichert und
+          verliert seine Gültigkeit mit dem Abschluss des Einsatzes.
+        </p>
+      </div>
+
+      <div className="karte">
         <h2>Aufbewahrung &amp; Archivierung</h2>
         <p>
           Einsätze und Dienstbücher werden nach einem von der Organisation festgelegten Zeitraum

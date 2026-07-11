@@ -43,6 +43,7 @@ import { DienststundenManuelleEintragung } from "./pages/DienststundenManuelleEi
 import { DienststundenStempel } from "./pages/DienststundenStempel";
 import { FahrzeugbuchungManuelleEintragung } from "./pages/FahrzeugbuchungManuelleEintragung";
 import { PersonBildHochladen } from "./pages/PersonBildHochladen";
+import { ElwUpload } from "./pages/ElwUpload";
 import { PinSetzen } from "./pages/PinSetzen";
 import { PersonFreigabe } from "./pages/PersonFreigabe";
 
@@ -123,6 +124,7 @@ export function App() {
             element={<DienststundenManuelleEintragung />}
           />
           <Route path="/person-bild/:token" element={<PersonBildHochladen />} />
+          <Route path="/elw-upload/:token" element={<ElwUpload />} />
           <Route path="/pin-setzen/:token" element={<PinSetzen />} />
           <Route path="/person-freigabe/:token" element={<PersonFreigabe />} />
           <Route

@@ -16,6 +16,7 @@ import { BackupModul } from "./module/BackupModul";
 import { MinioModul } from "./module/MinioModul";
 import { FormularModul } from "./module/FormularModul";
 import { PresseberichtModul } from "./module/PresseberichtModul";
+import { ElwModul } from "./module/ElwModul";
 import { texte } from "../../i18n/texte";
 
 export function ModulUnterseite() {
@@ -63,6 +64,8 @@ export function ModulUnterseite() {
       return <FormularModul />;
     case "pressebericht":
       return <PresseberichtModul />;
+    case "elw":
+      return <ElwModul />;
     default:
       return (
         <div>

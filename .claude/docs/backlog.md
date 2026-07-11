@@ -50,10 +50,11 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
         410 bei geschlossen, 403 bei ungültig) — **kein** `require_zugriff`, Token IST die Berechtigung
   - [x] Hook bei Einsatz-Anlage (`einsatz_anlegen` + `importiere_alarm`, nur offene)
   - [x] Backend-Tests `test_elw.py` (10) + feature_modul-Listen; volle Suite 427 grün
-  - [ ] Frontend: öffentliche Seite `/elw-upload/:token` (Info + Upload, 410-Handling)
-        + Admin-Modul-Unterseite (`elw_email` setzen) + Module-Übersicht-Toggle + Icon
-  - [ ] Doku `docs/elw.md` + Index; Datenschutz (Upload durch Dritte) prüfen
-  - [ ] PR nach beta (nach Frontend)
+  - [x] Frontend: öffentliche Seite `/elw-upload/:token` (`ElwUpload`, Info + Upload,
+        410/403-Handling) + Admin-Unterseite `ElwModul` (`elw_email`) + Module-Toggle
+        (automatisch via FEATURE_MODULE) + Icon (`elw`→Fahrzeug) + i18n `texte.elw`
+  - [x] Doku `docs/elw.md` + Index; Datenschutz-Abschnitt „ELW-Upload" ergänzt
+  - [ ] PR nach beta (Review) — Backend-Suite 427 grün, Frontend-Build grün
 - Notizen: Neues Modul + öffentlicher Upload = Feature-Branch → PR nach beta (nicht direkt).
 
 ---
