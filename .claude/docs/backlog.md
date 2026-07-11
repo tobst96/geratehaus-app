@@ -2120,6 +2120,10 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   verifiziert (29 grün nach i18n-/Modul-Umbauten). **Coverage ergänzt:** `ElwUpload.test.tsx`
   (4) für die neue öffentliche ELW-Upload-Seite (gültig/410 geschlossen/403 ungültig/Upload).
   Gesamt **33 Vitest-Tests grün**.
+- Fortschritt (11.07.2026, direkt auf beta): **`PresseberichtModul.test.tsx`** (3) für die
+  Pressebericht-Admin-Einstellungen: lädt Config, bedingte Versand-UI (Modus „Stunden" blendet
+  das Stunden-Feld ein), Speichern ruft `schreibeEinstellungen` mit dem gewählten Modus + zeigt
+  „✓ gespeichert". Gesamt **36 Vitest-Tests grün** (`scripts/test-frontend.sh`).
 - Priorität: Mittel
 - Kategorie: Tests / Frontend
 - Skills: tests, review
