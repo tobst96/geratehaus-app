@@ -113,6 +113,10 @@ async def einsatz_anlegen(db: AsyncSession, daten: EinsatzAnlegen, quelle: str =
     from app.services import minio_service
 
     await minio_service.einsatz_dokumente(db, geladen)
+    # ELW-Modul: Login-losen Upload-Link an die feste ELW-Adresse senden (best-effort).
+    from app.services import elw_service
+
+    await elw_service.anlage_mail_senden(db, geladen)
     return geladen
 
 

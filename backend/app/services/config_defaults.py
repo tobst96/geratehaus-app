@@ -54,6 +54,11 @@ DEFAULTS: list[ConfigDefault] = [
     # neue Divera-Modul (modul_divera_aktiv=true), siehe Lifespan in app/main.py.
     ConfigDefault("modul_divera_migration_done", "false", ConfigTyp.BOOL, "Divera-Modul-Migration erfolgt"),
     ConfigDefault("modul_pressebericht_aktiv", "false", ConfigTyp.BOOL, "Pressebericht-Modul aktiv"),
+    ConfigDefault("modul_elw_aktiv", "false", ConfigTyp.BOOL, "ELW-Modul aktiv"),
+    ConfigDefault(
+        "elw_email", "", ConfigTyp.STR,
+        "ELW-Modul: feste E-Mail-Adresse, die bei Einsatz-Anlage den Upload-Link erhält",
+    ),
     # Pressebericht: Inhaltsauswahl (welche Blöcke der Bericht enthält).
     ConfigDefault(
         "pressebericht_felder_grunddaten", "true", ConfigTyp.BOOL,

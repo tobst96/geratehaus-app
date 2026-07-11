@@ -18,6 +18,7 @@ from app.api.v1 import (
     dienststunden_stempel,
     divera,
     einsaetze,
+    elw,
     fahrzeugbuchung_reservierungen,
     formulare,
     manifest,
@@ -151,6 +152,7 @@ app.include_router(gruppenfuehrer_person_kanaele.router, prefix="/api/v1")
 app.include_router(gruppenfuehrer_buchungen.router, prefix="/api/v1")
 app.include_router(push.router, prefix="/api/v1")
 app.include_router(divera.router, prefix="/api/v1")
+app.include_router(elw.router, prefix="/api/v1")
 app.include_router(oeffentlich.router, prefix="/api/v1")
 app.include_router(csp_report.router, prefix="/api/v1")
 app.include_router(pin.router, prefix="/api/v1")

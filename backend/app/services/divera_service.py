@@ -144,6 +144,12 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
 
     if geladen is not None:
         await minio_service.einsatz_dokumente(db, geladen)
+        # ELW-Modul: Upload-Link nur für neu angelegte, OFFENE Einsätze senden
+        # (nicht für nachgeholte, bereits geschlossene Alarme).
+        if not geschlossen:
+            from app.services import elw_service
+
+            await elw_service.anlage_mail_senden(db, geladen)
     return geladen
 
 
