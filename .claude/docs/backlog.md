@@ -2111,6 +2111,15 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   gesetzten PIN werden blockiert. `npm run test` (11 Tests) + `npm run build` grün.
 - **Alle drei Zielflows (Login/2FA, Formular-Ausfüllen, Kiosk-Eintragung) abgedeckt** →
   Akzeptanzkriterien erfüllt.
+- Follow-up (11.07.2026, direkt auf beta): **Frontend-Test-Runner für die Docker-Umgebung.**
+  Bisher ließ sich Vitest hier lokal gar nicht ausführen (Host-`node_modules` ist
+  root-owned aus dem Container-Build → vite/vitest EACCES beim `.vite-temp`-Schreiben).
+  Neues `scripts/test-frontend.sh` (analog `test-backend.sh`): baut den `build`-Stage des
+  Frontend-Images (node:20 + Deps + Working Tree) und lässt vitest per `docker run --rm`
+  darin laufen (kein `docker compose run`-Zombie, siehe LESSON). Bestehende Suite damit
+  verifiziert (29 grün nach i18n-/Modul-Umbauten). **Coverage ergänzt:** `ElwUpload.test.tsx`
+  (4) für die neue öffentliche ELW-Upload-Seite (gültig/410 geschlossen/403 ungültig/Upload).
+  Gesamt **33 Vitest-Tests grün**.
 - Priorität: Mittel
 - Kategorie: Tests / Frontend
 - Skills: tests, review
