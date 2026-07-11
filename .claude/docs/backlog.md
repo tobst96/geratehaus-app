@@ -2131,6 +2131,12 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Kiosk-Anzeige: „individuell festlegen" übernimmt die globalen Startseiten-Defaults; eine
   Modul-Checkbox schaltet ein einzelnes Modul um (ruft `setzeKioskStartseiteModule`). Gesamt
   **40 Vitest-Tests grün**.
+- Fortschritt (11.07.2026, direkt auf beta): **`ElwModul.test.tsx`** (2) für die ELW-Admin-
+  Einstellungen (lädt `elw_email`, speichert getrimmt). Zusätzlich **kritischer Code-Review
+  der neuen Module** (Pressebericht/ELW): ELW-Upload robust — nginx `client_max_body_size 10m`
+  + nicht-veröffentlichter Backend-Port deckeln den Body (kein OOM), plus HMAC-Token/
+  „Einsatz offen?"/Magic-Bytes+EXIF/Rate-Limit/pfad-sicherer Dateiname; kein Bug gefunden.
+  Gesamt **42 Vitest-Tests grün**. Damit sind alle neuen Modul-Seiten frontendseitig getestet.
 - Priorität: Mittel
 - Kategorie: Tests / Frontend
 - Skills: tests, review
