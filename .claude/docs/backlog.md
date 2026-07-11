@@ -16,8 +16,8 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Modul „ELW": bei Einsatz-Anlage Login-losen MinIO-Upload-Link per Mail
 
-- Status: Review (Feature-Branch `feature/modul-elw` → **PR #62** nach beta, 11.07.2026;
-  Backend + Frontend + Doku + Datenschutz vollständig, Backend-Suite 427 + Frontend-Build grün)
+- Status: Erledigt (PR #62 in `beta` gemergt + **deployt** 11.07.2026; Backend + Frontend +
+  Doku + Datenschutz vollständig; stateless (keine Migration); Modul standardmäßig aus)
 - Priorität: Mittel
 - Kategorie: Neues Modul
 - Plan: Ja
