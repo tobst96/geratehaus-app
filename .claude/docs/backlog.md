@@ -2127,6 +2127,10 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - Fortschritt (11.07.2026, direkt auf beta): **`Module.test.tsx`** (2) für die Modul-Übersicht:
   „Aktiv"-Checkbox schaltet ein Modul um (ruft `setFeatureModulFlag(key, {aktiv})`); die Suche
   filtert die Modul-Liste. Gesamt **38 Vitest-Tests grün**.
+- Fortschritt (11.07.2026, direkt auf beta): **`KioskGeraete.test.tsx`** (2) für die pro-Gerät-
+  Kiosk-Anzeige: „individuell festlegen" übernimmt die globalen Startseiten-Defaults; eine
+  Modul-Checkbox schaltet ein einzelnes Modul um (ruft `setzeKioskStartseiteModule`). Gesamt
+  **40 Vitest-Tests grün**.
 - Priorität: Mittel
 - Kategorie: Tests / Frontend
 - Skills: tests, review
