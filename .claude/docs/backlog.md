@@ -12,6 +12,52 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe S – Neues Modul „ELW" (Einsatzleitwagen-Upload)
+
+### Modul „ELW": bei Einsatz-Anlage Login-losen MinIO-Upload-Link per Mail
+
+- Status: In Bearbeitung (Feature-Branch `feature/modul-elw`, seit 11.07.2026)
+- Priorität: Mittel
+- Kategorie: Neues Modul
+- Plan: Ja
+- Skills: planner, new-module, geraetehaus-patterns, tests, review
+- Beschreibung: Neues (nicht mitgliederseitiges) Feature-Modul. **Sobald ein Einsatz
+  angelegt wird** (manuell **und** via Divera-Import, nur offene), geht eine Mail an
+  **eine im Modul konfigurierte feste Adresse** (`elw_email`) mit einem **Login-losen
+  Upload-Link** zum Einsatz-Ordner. Der ELW kann darüber Einsatzberichte etc. **hochladen**;
+  die Dateien landen im MinIO-Einsatz-Ordner. **Gültig, solange der Einsatz offen ist.**
+- Mit Nutzer geklärt (11.07.2026): Presigned-artiger Upload-Link **ohne Login**, der bei
+  Abschluss **technisch ungültig** wird, an **eine feste Adresse**.
+- **Technische Auflösung des Presigned-Widerspruchs:** Ein echter S3-Presigned-Link ist
+  nicht vorzeitig widerrufbar. Stattdessen **token-gestützte Upload-Seite in der App**:
+  Der Link enthält ein **HMAC-signiertes Token** (mit `cookie_secret_key`, kodiert
+  `einsatz_id`) statt eines Logins. Die App verifiziert das Token, prüft bei jedem
+  Aufruf **`Einsatz offen?`** (sonst 410) und lädt die Datei mit den **eigenen
+  MinIO-Credentials** in den Einsatz-Ordner. → kein Login, echte Sperre bei Abschluss,
+  MinIO-Zugangsdaten bleiben serverseitig. **Stateless (kein DB-Token) → keine Migration.**
+- Sicherheits-Anforderungen (öffentlicher Upload!): Token unfälschbar (HMAC + `compare_digest`);
+  nur bei offenem Einsatz; **Rate-Limit pro IP**; **Datei-Bereinigung** (Magic-Bytes,
+  EXIF-Strip via `formular_service._datei_bereinigen`; erlaubt PDF+Bilder), Größenlimit;
+  Dateinamen sanitisieren (kein Traversal). Upload als Einsatz-Timeline-Ereignis
+  protokollieren („Datei per ELW-Link hochgeladen: <name>").
+- Umsetzung (Checkliste neues Modul):
+  - [ ] config_defaults: `modul_elw_aktiv` (false) + `elw_email` (leer)
+  - [ ] FEATURE_MODULE-Eintrag (`mitgliederseitig=False`) + Modul-Icon
+  - [ ] `elw_service`: Token erzeugen/verifizieren (HMAC), Anlage-Mail senden
+        (fest `elw_email`, best-effort), Upload verarbeiten (Bereinigung + MinIO + Timeline)
+  - [ ] `minio_service`: Upload-Ablage im Einsatz-Ordner (`einsatz-<id>/uploads/…`)
+  - [ ] Öffentl. Router `/api/v1/elw/<token>` (Info) + `/upload` (POST, Rate-Limit,
+        410 bei geschlossen) — **kein** `require_zugriff`, Token IST die Berechtigung
+  - [ ] Hook bei Einsatz-Anlage (`einsatz_anlegen` + `importiere_alarm`, nur offene)
+  - [ ] Frontend: öffentliche Seite `/elw-upload/:token` (Info + Upload, 410-Handling)
+        + Admin-Modul-Unterseite (`elw_email` setzen) + Module-Übersicht-Toggle
+  - [ ] Doku `docs/elw.md` + Index; Datenschutz (Upload durch Dritte) prüfen
+  - [ ] Tests: gültiges Token→Info; geschlossen→410; gefälschtes Token→403; Upload
+        speichert+Timeline; Modul aus→keine Mail
+- Notizen: Neues Modul + öffentlicher Upload = Feature-Branch → PR nach beta (nicht direkt).
+
+---
+
 ## Etappe P – Neues Modul „Pressebericht"
 
 ### Modul „Pressebericht" (konfigurierbarer Einsatz-Pressebericht als PDF-Mail)
