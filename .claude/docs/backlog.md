@@ -1612,7 +1612,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Kiosk-Autolock / Inaktivitäts-Reset
 
-- Status: Review (Feature-Branch `feature/kiosk-autolock` → PR nach beta, 06.07.2026)
+- Status: Erledigt (PR #45 in `beta` gemergt + deployt, 06.07.2026; Status 11.07.2026
+  nachgezogen – Feature live: `kiosk_autolock_sekunden` in config_defaults + KioskGeraete)
 - Umsetzung (06.07.2026): Config-Key `kiosk_autolock_sekunden` (Default 0 = aus) in
   `config_defaults` + über `/oeffentliche-konfiguration` ans Frontend geliefert. Neuer
   Hook `useKioskAutolock` (in `Layout` gemountet): aktiv nur auf dem Kiosk
@@ -2340,7 +2341,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Kiosk-Link als schönes QR-PDF (pro Gerät)
 
-- Status: Review (Feature-Branch `feature/kiosk-qr-pdf` → PR nach beta, 06.07.2026)
+- Status: Erledigt (PR #35 in `beta` gemergt + deployt, 06.07.2026; Status 11.07.2026
+  nachgezogen – Feature live: `pdf_service.kiosk_link_pdf` + Route in gruppenfuehrer_barcodes)
 - Umsetzung (06.07.2026): Server-seitiges PDF über WeasyPrint (`pdf_service.kiosk_link_pdf`
   + Template `templates/pdf/kiosk_link.html`, erbt `base.html` → Logo/Org-Name im Kopf).
   QR serverseitig aus dem Kiosk-Link (`{oeffentliche_basis_url}/kiosk/<token>`) über neue
@@ -2367,7 +2369,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 
 ### Dienststunden-Funktions-QR-PDF (Stempel-Poster)
 
-- Status: Review (Feature-Branch `feature/dienststunden-stempel` → PR nach beta, 06.07.2026)
+- Status: Erledigt (PR #36 in `beta` gemergt + deployt, 06.07.2026; Status 11.07.2026
+  nachgezogen – Feature live: `dienststunden_stempel_pdf` + Route `/dienststunden-stempel/<id>`)
 - Umsetzung (06.07.2026): Öffentlicher, dauerhafter Link `/dienststunden-stempel/<funktion_id>`.
   Backend: öffentliches Info-Endpoint `GET /dienststunden-stempel/{id}` (rate-limitiert,
   Funktionsname + `aktiv`=Funktion&Modul aktiv); QR-PDF `pdf_service.dienststunden_stempel_pdf`
