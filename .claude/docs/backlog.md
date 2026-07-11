@@ -1268,6 +1268,10 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 > deployt** (08.07.2026); `--ignore-vuln` in `security.yml` entfernt. Live verifiziert
 > (Login-Pfad lädt, 401 bei Fehl-Login).
 > Damit sind Frontend **und** Backend advisory-frei.
+>
+> **Re-Audit (11.07.2026):** `npm audit --audit-level=high` (Frontend) = **0** Schwachstellen;
+> `pip-audit` (Backend) = **„No known vulnerabilities found"** (nur die App selbst
+> `geratehaus-app 0.6.0b1` mangels PyPI-Eintrag übersprungen). Weiterhin advisory-frei.
 
 ### (0) Öffentliche Daten-API absichern – Phase 2
 
