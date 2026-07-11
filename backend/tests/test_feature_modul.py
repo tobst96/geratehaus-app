@@ -31,6 +31,7 @@ _ALLE = [
     "formular",
     "divera",
     "pressebericht",
+    "elw",
     "barcode",
 ]
 
@@ -71,7 +72,7 @@ async def test_set_flag_und_schalter_regeln(db):
 
 @pytest.mark.asyncio
 async def test_reihenfolge_setzen_und_validierung(db):
-    neu = ["divera", "pressebericht", "barcode", "personal", "fahrzeuge", "benachrichtigungen", "kiosk", "backup", "minio", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung", "formular"]
+    neu = ["divera", "pressebericht", "elw", "barcode", "personal", "fahrzeuge", "benachrichtigungen", "kiosk", "backup", "minio", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung", "formular"]
     assert await feature_modul_service.set_reihenfolge(db, neu) is True
     assert [m["key"] for m in await feature_modul_service.liste(db)] == neu
     # unvollständig / unbekannt -> abgelehnt
@@ -112,7 +113,7 @@ async def test_endpoints_auth_und_flow(client, db):
     assert r.status_code == 400
 
     # Reihenfolge setzen
-    neu = ["divera", "pressebericht", "barcode", "personal", "fahrzeuge", "benachrichtigungen", "kiosk", "backup", "minio", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung", "formular"]
+    neu = ["divera", "pressebericht", "elw", "barcode", "personal", "fahrzeuge", "benachrichtigungen", "kiosk", "backup", "minio", "einsatztagebuch", "dienstbuch", "dienststunden", "fahrzeugbuchung", "formular"]
     r = await client.put("/api/v1/gruppenfuehrer/feature-module/reihenfolge", json={"keys": neu}, headers=h)
     assert r.status_code == 200 and [m["key"] for m in r.json()] == neu
 

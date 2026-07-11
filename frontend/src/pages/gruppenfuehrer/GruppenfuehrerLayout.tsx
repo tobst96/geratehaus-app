@@ -84,6 +84,7 @@ const MODUL_ICON: Record<string, string> = {
   formular: "formular",
   divera: "divera",
   pressebericht: "pressebericht",
+  elw: "fahrzeug",
   personal: "personal",
   fahrzeuge: "fahrzeug",
   barcode: "barcodes",

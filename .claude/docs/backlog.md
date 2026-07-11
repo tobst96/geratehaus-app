@@ -42,19 +42,20 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   Dateinamen sanitisieren (kein Traversal). Upload als Einsatz-Timeline-Ereignis
   protokollieren („Datei per ELW-Link hochgeladen: <name>").
 - Umsetzung (Checkliste neues Modul):
-  - [ ] config_defaults: `modul_elw_aktiv` (false) + `elw_email` (leer)
-  - [ ] FEATURE_MODULE-Eintrag (`mitgliederseitig=False`) + Modul-Icon
-  - [ ] `elw_service`: Token erzeugen/verifizieren (HMAC), Anlage-Mail senden
+  - [x] config_defaults: `modul_elw_aktiv` (false) + `elw_email` (leer)
+  - [x] FEATURE_MODULE-Eintrag (`mitgliederseitig=False`) — Modul-Icon: Frontend
+  - [x] `elw_service`: Token erzeugen/verifizieren (HMAC via itsdangerous), Anlage-Mail
         (fest `elw_email`, best-effort), Upload verarbeiten (Bereinigung + MinIO + Timeline)
-  - [ ] `minio_service`: Upload-Ablage im Einsatz-Ordner (`einsatz-<id>/uploads/…`)
-  - [ ] Öffentl. Router `/api/v1/elw/<token>` (Info) + `/upload` (POST, Rate-Limit,
-        410 bei geschlossen) — **kein** `require_zugriff`, Token IST die Berechtigung
-  - [ ] Hook bei Einsatz-Anlage (`einsatz_anlegen` + `importiere_alarm`, nur offene)
-  - [ ] Frontend: öffentliche Seite `/elw-upload/:token` (Info + Upload, 410-Handling)
-        + Admin-Modul-Unterseite (`elw_email` setzen) + Module-Übersicht-Toggle
-  - [ ] Doku `docs/elw.md` + Index; Datenschutz (Upload durch Dritte) prüfen
-  - [ ] Tests: gültiges Token→Info; geschlossen→410; gefälschtes Token→403; Upload
-        speichert+Timeline; Modul aus→keine Mail
+  - [x] `minio_service`: Upload-Ablage im Einsatz-Ordner (`einsatz-<id>/uploads/…`)
+  - [x] Öffentl. Router `/api/v1/elw/<token>` (Info) + `/upload` (POST, Rate-Limit 60/30,
+        410 bei geschlossen, 403 bei ungültig) — **kein** `require_zugriff`, Token IST die Berechtigung
+  - [x] Hook bei Einsatz-Anlage (`einsatz_anlegen` + `importiere_alarm`, nur offene)
+  - [x] Backend-Tests `test_elw.py` (10) + feature_modul-Listen; volle Suite 427 grün
+  - [x] Frontend: öffentliche Seite `/elw-upload/:token` (`ElwUpload`, Info + Upload,
+        410/403-Handling) + Admin-Unterseite `ElwModul` (`elw_email`) + Module-Toggle
+        (automatisch via FEATURE_MODULE) + Icon (`elw`→Fahrzeug) + i18n `texte.elw`
+  - [x] Doku `docs/elw.md` + Index; Datenschutz-Abschnitt „ELW-Upload" ergänzt
+  - [ ] PR nach beta (Review) — Backend-Suite 427 grün, Frontend-Build grün
 - Notizen: Neues Modul + öffentlicher Upload = Feature-Branch → PR nach beta (nicht direkt).
 
 ---

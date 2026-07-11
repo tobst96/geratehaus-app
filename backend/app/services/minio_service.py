@@ -250,6 +250,23 @@ async def einsatz_pressebericht(db: AsyncSession, einsatz: Any, pdf: bytes) -> N
         )
 
 
+async def einsatz_upload_ablegen(
+    db: AsyncSession, einsatz_id: int, dateiname: str, inhalt: bytes, content_type: str
+) -> None:
+    """Legt eine (bereits bereinigte) Upload-Datei im Unterordner `uploads/` des
+    Einsatz-Ordners ab (z. B. ELW-Upload). Best-effort – Fehler brechen den Aufrufer
+    nie ab."""
+    try:
+        if not await aktiv(db):
+            return
+        cfg = await config(db)
+        stempel = await _zeitstempel(db)
+        key = f"einsatz-{einsatz_id}/uploads/{stempel}_{dateiname}"
+        await put_bytes(db, cfg["bucket_einsaetze"], key, inhalt, content_type)
+    except Exception:  # noqa: BLE001
+        logger.warning("minio_einsatz_upload_fehlgeschlagen", einsatz_id=einsatz_id, exc_info=True)
+
+
 async def einsatz_ordner_link(db: AsyncSession, einsatz_id: int) -> str | None:
     """App-interner Link zum Datei-Browser des Einsatz-Ordners (Login nötig).
     None, wenn MinIO inaktiv oder keine öffentliche Basis-URL konfiguriert ist."""

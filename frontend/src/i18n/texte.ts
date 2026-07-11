@@ -947,4 +947,36 @@ export const texte = {
     zwei_fa_reset: "2FA zurücksetzen",
     zugang_entziehen: "Zugang entziehen",
   },
+  elw: {
+    // Öffentliche Upload-Seite
+    titel: "ELW-Upload",
+    laedt: "Lädt …",
+    einsatz_prefix: "Einsatz:",
+    hinweis:
+      "Hier kannst du Dateien (Einsatzberichte, Fotos usw.) zu diesem Einsatz hochladen. " +
+      "Der Link ist gültig, solange der Einsatz offen ist.",
+    datei_waehlen: "Datei auswählen (Bild oder PDF, max. 10 MB)",
+    hochladen: "Hochladen",
+    laedt_hoch: "Wird hochgeladen …",
+    erfolg_prefix: "Hochgeladen:",
+    weitere_hochladen: "Weitere Datei hochladen",
+    fehler_upload: "Upload fehlgeschlagen.",
+    // Fehlzustände beim Laden
+    geschlossen_titel: "Einsatz abgeschlossen",
+    geschlossen_text: "Der Einsatz ist abgeschlossen – der Upload-Link ist nicht mehr gültig.",
+    ungueltig_titel: "Link ungültig",
+    ungueltig_text: "Dieser Upload-Link ist ungültig oder abgelaufen.",
+    // Admin-Modul-Unterseite
+    admin_titel: "ELW",
+    admin_intro:
+      "Wenn dieses Modul aktiv ist, geht bei jeder Einsatz-Anlage automatisch eine E-Mail an " +
+      "die unten hinterlegte Adresse – mit einem Login-losen Link, über den der Einsatzleitwagen " +
+      "Dateien in den Einsatz-Ordner (Objektspeicher) hochladen kann. Der Link ist gültig, solange " +
+      "der Einsatz offen ist. Voraussetzung: aktives Objektspeicher-Modul (MinIO) und E-Mail-Versand.",
+    email_label: "E-Mail-Adresse des ELW",
+    email_platzhalter: "elw@feuerwehr.example",
+    speichern: "Speichern",
+    fehler_laden: "Einstellungen konnten nicht geladen werden.",
+    fehler_speichern: "Speichern fehlgeschlagen.",
+  },
 } as const;
