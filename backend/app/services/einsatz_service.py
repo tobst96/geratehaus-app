@@ -314,6 +314,13 @@ async def _pdf_versenden_und_drucken(
                     for e in ereignisse
                 )
                 nachricht = f"Einsatz abgeschlossen: {einsatz.titel}\n\nVerlauf:\n{timeline_text}"
+                # MinIO-Modul: App-internen Link zum Einsatz-Ordner mitsenden, damit man
+                # aus der Mail direkt zu den Einsatz-Dokumenten springen kann.
+                from app.services import minio_service
+
+                ordner_link = await minio_service.einsatz_ordner_link(db, einsatz.id)
+                if ordner_link:
+                    nachricht += f"\n\nEinsatz-Ordner (Login nötig): {ordner_link}"
                 await EmailNotifier().pdf_versenden(
                     db,
                     f"Einsatz abgeschlossen: {einsatz.titel}",
