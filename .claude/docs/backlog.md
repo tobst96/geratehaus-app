@@ -2145,6 +2145,10 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   die kritischen Datenänderungs-Flows: Einsatz abschließen ruft `einsatzAbschliessen`; Löschen
   ruft `einsatzLoeschen` **nur nach Bestätigung** (Confirm=true), bei Ablehnung NICHT. Gesamt
   **45 Vitest-Tests grün**.
+- Fortschritt (11.07.2026, direkt auf beta): **`Berechtigungen.test.tsx`** (2) für die
+  security-relevante Rechte-Matrix: eine Checkbox erteilt ein Modul-Recht (ruft
+  `setzeBerechtigung(id, key, true)`); Admin-Zeilen sind deaktiviert (Vollzugriff, nicht
+  änderbar). Gesamt **47 Vitest-Tests grün**.
 - Priorität: Mittel
 - Kategorie: Tests / Frontend
 - Skills: tests, review
