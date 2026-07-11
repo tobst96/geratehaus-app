@@ -115,6 +115,8 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
 | **Dienstbuch** | Schnelles Eintragen in zuletzt eröffnete Dienste; frei konfigurierbare **Zusatzfelder** (Text/Mehrzeilig/Checkbox/**Auswahl**) analog zum Einsatz |
 | **Dienststunden** | Erfassung pro Person/Funktion, kumulierte Übersicht mit konfigurierbaren Schwellenwerten |
 | **Fahrzeugbuchung** | Kalenderansicht mit Konflikterkennung und Gruppenführer-Freigabe; Anfrage-Mails mit **Annehmen/Ablehnen-Buttons** ohne Login; optional **externe iCal-Kalender** (z. B. Divera) als nicht buchbare Fremdtermine überlagern |
+| **Pressebericht** | Konfigurierbarer Einsatz-Pressebericht als PDF (wählbare Inhalte: Grunddaten, einzelne Zusatzfelder, Divera-Infos, Teilnehmer-Zahl und/oder -Namen, Fahrzeuge, MinIO-Ordner-Link); Versand per Mail an die Abonnenten – sofort beim Abschließen, eine bestimmte Anzahl Stunden danach oder täglich zu fester Uhrzeit; zusätzlich Ablage im Objektspeicher und Eintrag in der Einsatz-Timeline |
+| **ELW (Einsatzleitwagen)** | Bei jeder Einsatz-Anlage geht ein **Login-loser Upload-Link** (signiertes Token) an eine fest konfigurierte Adresse; darüber lädt der ELW Dateien (Berichte/Fotos) in den Einsatz-Ordner im Objektspeicher – **gültig, solange der Einsatz offen ist** |
 | **Barcode** | Optionale Identifikation per Code128-Strichcode statt Namensauswahl + PIN; eigene Modul-Unterseite zum Erzeugen/Erneuern und Versenden der Barcodes |
 
 Jedes Modul ist einzeln **aktivierbar**, unabhängig davon auf der Kiosk-Startseite **ein-/ausblendbar**
