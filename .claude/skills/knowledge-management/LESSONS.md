@@ -193,3 +193,39 @@ weil das alte Streuner-Image den Job mit veraltetem Code/Query ausführt. Erkenn
   (überschreibt den App-Entrypoint, räumt via `--rm` auf, keine Deps).
 - Bei „resolved, feuert aber weiter": zuerst auf **verwaiste `-run-`-Container** prüfen,
   bevor man erneut im Code sucht.
+
+## Verwaiste Sentry-Cron-Monitor-Umgebung → dauerhaftes „missed check-in"
+
+### Problem
+
+Ein Sentry-Cron-Monitor („Crons") wird **pro `environment` getrennt** ausgewertet.
+Ändert sich das von der App gemeldete `environment`, bleibt die alte Umgebung als
+**verwaiste Dimension** am Monitor zurück: Dort kommen KEINE Check-ins mehr an, also
+meldet Sentry für sie **jede geplante Ausführung als „missed check-in"** – dauerhaft.
+Am aggressivsten beim **1-Minuten-Job** (`einsatz-geplanter-abschluss`).
+
+### Konkreter Fall (11.07.2026, JAVASCRIPT-2Z)
+
+Vor dem Version-Fix (`installierte_version()` aus `pyproject.toml`, Commit 073a40f)
+meldete sich die beta-Instanz fälschlich als `environment=production` (dist-info
+0.4.0). Dadurch entstand am Monitor eine `production`-Umgebung. Nach dem Fix checkt der
+Container korrekt als `beta` ein → `production` verwaist und feuert endlos „missed".
+`get_monitor_details` zeigt es klar: `beta` = Status ok (jede Minute), `production` =
+Status error, letzter Check-in am Deploy-Zeitpunkt des Version-Fixes.
+
+**Wichtig:** `failure_issue_threshold` (Deploy-Toleranz) hilft hier NICHT – es kommen
+gar keine Check-ins an, nicht nur zu wenige.
+
+### Diagnose & Lösung
+
+- Diagnose: `get_monitor_details(monitorSlug=…)` → Abschnitt „Environments" auf verwaiste
+  Umgebungen (Status error, alter „Last check-in") prüfen; „Recent Check-Ins" zeigt, aus
+  welcher Umgebung tatsächlich eingecheckt wird.
+- **Permanenter Fix nur in der Sentry-UI**: Crons → Monitor → die verwaiste Umgebung
+  (bzw. den Monitor) löschen. Er wird beim nächsten Check-in sauber unter der aktuellen
+  Umgebung neu angelegt. Der Sentry-MCP hat **kein** Monitor-Lösch-Tool (nur
+  `find_monitors`/`get_monitor_details`).
+- Übergangsweise: Issue auf „ignored (untilEscalating)" – echte neue Ausfälle der
+  aktuellen Umgebung tauchen dann wieder auf.
+- Gilt für **alle** Cron-Monitore, die den Umgebungswechsel miterlebt haben
+  (divera-polling, formular-ablauf, backup, divera-personal-sync, einsatz-geplanter-abschluss).
