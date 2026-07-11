@@ -1993,6 +1993,25 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   aus, ein echter anhaltender Ausfall aber weiterhin). Test
   `test_scheduler_monitor_config.py`; volle Suite 401 grün.
 
+### Sentry-Release/-Environment: robuste Versionsermittlung (aus pyproject)
+
+- Status: Erledigt (11.07.2026, direkt auf beta)
+- Priorität: Mittel (Observability)
+- Kategorie: Wartung / Observability
+- Plan: Nein
+- Beschreibung: `installierte_version()` las die Version aus `importlib.metadata`
+  (dist-info). Bei gecachtem `pip install .`-Build-Layer friert diese auf einer alten
+  Nummer ein → die **beta-Instanz meldete sich in Sentry fälschlich als
+  `environment=production` / `release 0.4.0`**. Genau das verursachte im Sentry-Triage
+  Fehlinterpretationen (JAVASCRIPT-39 wirkte wie ein Prod-Fehler, war aber ein
+  verwaister Alt-Container). Siehe auch LESSON „docker compose run … startet die App".
+- Umsetzung: `installierte_version()` liest jetzt **primär aus `pyproject.toml`**
+  (`_version_aus_pyproject()`, per `tomllib`; im Image immer aktuell durch `COPY`),
+  Metadaten nur noch als Fallback. Damit folgt `release`/`environment` immer dem
+  tatsächlich deployten Code. Regressionstest `test_installierte_version.py` (3, zuerst
+  fehlschlagend: mit veralteter Metadata liefert der alte Code „0.4.0"/„production").
+  Volle Backend-Suite 415 grün.
+
 ### Frontend-Abhängigkeiten: npm-audit-Advisories beheben (vite 5 → 8)
 
 - Status: Erledigt (Feature-Branch `feature/frontend-audit-vite` → PR nach beta, 06.07.2026)

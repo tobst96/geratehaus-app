@@ -7,6 +7,7 @@ das eigentliche Update aus (git pull + docker compose up -d --build)."""
 
 import re
 import time
+import tomllib
 from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -32,7 +33,33 @@ UPDATE_MARKER_NAME = "update-requested"
 _cache: dict[str, tuple[float, list[dict]]] = {}
 
 
+# pyproject.toml liegt im Image auf /app/pyproject.toml (dieses Modul unter
+# /app/app/services/update_service.py → parents[2] == /app).
+_PYPROJECT_PFAD = Path(__file__).resolve().parents[2] / "pyproject.toml"
+
+
+def _version_aus_pyproject() -> str | None:
+    """Liest die Version direkt aus `pyproject.toml`. Das ist die verlässlichste
+    Quelle für die TATSÄCHLICH deployte Version, weil die Datei per `COPY` ins
+    Image gelangt und damit immer zum laufenden Code passt – anders als die
+    dist-info-Metadaten, die bei einem gecachten `pip install .`-Build-Layer auf
+    einer alten Versionsnummer einfrieren können."""
+    try:
+        with _PYPROJECT_PFAD.open("rb") as f:
+            daten = tomllib.load(f)
+        wert = daten.get("project", {}).get("version")
+        return str(wert) if wert else None
+    except (OSError, tomllib.TOMLDecodeError):
+        return None
+
+
 def installierte_version() -> str:
+    # Primär aus pyproject.toml (immer synchron zum deployten Code); erst als
+    # Fallback die installierten Paket-Metadaten (können bei gecachtem Build-Layer
+    # veralten und die beta-Instanz fälschlich als 'production'/Altversion taggen).
+    aus_pyproject = _version_aus_pyproject()
+    if aus_pyproject:
+        return aus_pyproject
     try:
         return version("geratehaus-app")
     except PackageNotFoundError:
