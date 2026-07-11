@@ -19,3 +19,21 @@ def test_monitor_config_toleriert_deploy_neustarts():
     # Schedule/Timezone werden unverändert durchgereicht.
     assert cfg["schedule"] == schedule
     assert cfg["timezone"] == scheduler.zeit.STANDARD_ZEITZONE
+
+
+def test_ein_minuten_job_toleriert_mehrminuetigen_deploy():
+    """Der 1-Minuten-Job verpasst bei einem Container-Neustart mehrere
+    AUFEINANDERFOLGENDE Minuten-Check-ins. Die Schwelle muss daher hoch genug sein,
+    dass ein ~6-minütiger Deploy kein „Cron failure"-Issue erzeugt (Regression zu
+    JAVASCRIPT-2Z)."""
+    cfg = scheduler._monitor_config({"type": "interval", "value": 1, "unit": "minute"})
+    assert cfg["failure_issue_threshold"] >= 6
+
+
+def test_langsame_jobs_behalten_strenge_schwelle():
+    """Tägliche/stündliche Jobs sollen NICHT gelockert werden – ein einzelner
+    verpasster Tageslauf ist bereits ein echtes Problem."""
+    taeglich = scheduler._monitor_config({"type": "crontab", "value": "0 3 * * *"})
+    assert taeglich["failure_issue_threshold"] == scheduler.FAILURE_ISSUE_THRESHOLD
+    viertelstunde = scheduler._monitor_config({"type": "interval", "value": 15, "unit": "minute"})
+    assert viertelstunde["failure_issue_threshold"] == scheduler.FAILURE_ISSUE_THRESHOLD

@@ -45,6 +45,26 @@ DIVERA_POLL_INTERVALL_SEKUNDEN = 300
 #   ein echter anhaltender Ausfall aber weiterhin.
 CHECKIN_MARGIN_MINUTEN = 5
 FAILURE_ISSUE_THRESHOLD = 2
+# Deploy-Fenster (Minuten), das ein Container-Neustart typischerweise braucht und das
+# ein eng getakteter Minuten-Job komplett überbrücken können soll, ohne ein
+# „Cron failure"-Issue zu erzeugen.
+DEPLOY_FENSTER_MINUTEN = 6
+
+
+def _failure_threshold(schedule: dict) -> int:
+    """Für sehr kurz getaktete Intervall-Jobs (Minutentakt) verpasst EIN
+    Deploy-Neustart mehrere AUFEINANDERFOLGENDE Ticks. Damit das kein Issue erzeugt,
+    wird die Schwelle so gewählt, dass ein ~`DEPLOY_FENSTER_MINUTEN`-langer Neustart
+    überbrückt wird (Anzahl verpasster Ticks + 1 Puffer). Langsamere Jobs (crontab,
+    ≥ mehrminütige Intervalle) behalten die strenge Standard-Schwelle – dort ist ein
+    verpasster Lauf bereits ein echtes Signal. Regression: JAVASCRIPT-2Z (der
+    1-Minuten-Job `einsatz-geplanter-abschluss` flappte bei jedem Deploy)."""
+    if schedule.get("type") == "interval" and schedule.get("unit") == "minute":
+        wert = int(schedule.get("value", 1) or 1)
+        if 0 < wert <= 5:
+            verpasste_ticks = -(-DEPLOY_FENSTER_MINUTEN // wert)  # ceil-Division
+            return max(FAILURE_ISSUE_THRESHOLD, verpasste_ticks + 1)
+    return FAILURE_ISSUE_THRESHOLD
 
 
 def _monitor_config(schedule: dict) -> dict:
@@ -53,7 +73,7 @@ def _monitor_config(schedule: dict) -> dict:
         "schedule": schedule,
         "timezone": zeit.STANDARD_ZEITZONE,
         "checkin_margin": CHECKIN_MARGIN_MINUTEN,
-        "failure_issue_threshold": FAILURE_ISSUE_THRESHOLD,
+        "failure_issue_threshold": _failure_threshold(schedule),
         "recovery_threshold": 1,
     }
 

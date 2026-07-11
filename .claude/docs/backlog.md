@@ -2038,6 +2038,13 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   aufeinanderfolgenden Ausfällen ein Issue → ein einzelner Deploy-Miss löst keins mehr
   aus, ein echter anhaltender Ausfall aber weiterhin). Test
   `test_scheduler_monitor_config.py`; volle Suite 401 grün.
+- Follow-up (11.07.2026, direkt auf beta): **taktabhängige Schwelle** für sehr enge
+  Intervall-Jobs. Der **1-Minuten-Job** `einsatz-geplanter-abschluss` reißt bei den
+  häufigen Deploys als einziger die feste Schwelle 2 (ein Neustart verpasst mehrere
+  aufeinanderfolgende Minuten-Ticks) → Sentry `JAVASCRIPT-2Z` („missed check-in").
+  Fix: `_failure_threshold(schedule)` skaliert die Schwelle bei Minuten-Intervallen
+  ≤5 so, dass ein ~6-min-Deploy überbrückt wird (1-Min-Job → 7, 5-Min → 3), langsame
+  Jobs (crontab/≥mehrminütig) bleiben bei 2. Regressionstests ergänzt.
 
 ### Sentry-Release/-Environment: robuste Versionsermittlung (aus pyproject)
 
