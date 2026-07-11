@@ -2149,6 +2149,10 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   security-relevante Rechte-Matrix: eine Checkbox erteilt ein Modul-Recht (ruft
   `setzeBerechtigung(id, key, true)`); Admin-Zeilen sind deaktiviert (Vollzugriff, nicht
   änderbar). Gesamt **47 Vitest-Tests grün**.
+- Fortschritt (11.07.2026, direkt auf beta): **`Buchungsmanagement.test.tsx`** (2) für den
+  Genehmigen/Ablehnen-Workflow ausstehender Fahrzeugbuchungen: „Genehmigen" ruft
+  `buchungGenehmigen(id)`, „Ablehnen" ruft `buchungAblehnen(id, grund)` mit der eingegebenen
+  Begründung. Gesamt **49 Vitest-Tests grün**.
 - Priorität: Mittel
 - Kategorie: Tests / Frontend
 - Skills: tests, review
