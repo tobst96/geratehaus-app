@@ -2137,6 +2137,10 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   + nicht-veröffentlichter Backend-Port deckeln den Body (kein OOM), plus HMAC-Token/
   „Einsatz offen?"/Magic-Bytes+EXIF/Rate-Limit/pfad-sicherer Dateiname; kein Bug gefunden.
   Gesamt **42 Vitest-Tests grün**. Damit sind alle neuen Modul-Seiten frontendseitig getestet.
+- Fortschritt (11.07.2026, direkt auf beta): **`EinsatzDetailGruppenfuehrer.test.tsx`** (3) für
+  die kritischen Datenänderungs-Flows: Einsatz abschließen ruft `einsatzAbschliessen`; Löschen
+  ruft `einsatzLoeschen` **nur nach Bestätigung** (Confirm=true), bei Ablehnung NICHT. Gesamt
+  **45 Vitest-Tests grün**.
 - Priorität: Mittel
 - Kategorie: Tests / Frontend
 - Skills: tests, review
