@@ -392,6 +392,18 @@ export const texte = {
     pruefe: "Prüfe …",
     bestaetigen: "Bestätigen",
     code_ungueltig: "Code ungültig.",
+    // Pflicht-2FA: erzwungene Einrichtung im Login
+    einrichtung_titel: "Zwei-Faktor-Authentisierung einrichten",
+    einrichtung_hinweis:
+      "Für dieses Konto ist Zwei-Faktor-Authentisierung verpflichtend. Richte sie jetzt einmalig ein: Wir schicken dir Anmelde-Codes künftig per E-Mail.",
+    einrichtung_email_label: "E-Mail-Adresse für Codes",
+    einrichtung_button: "2FA einrichten",
+    einrichtung_laeuft: "Richte ein …",
+    einrichtung_fehler: "Einrichtung fehlgeschlagen.",
+    recovery_titel: "Recovery-Codes sichern",
+    recovery_hinweis:
+      "Bewahre diese Codes sicher auf – jeder funktioniert einmalig, falls du keinen E-Mail-Code erhältst. Sie werden nur jetzt angezeigt.",
+    recovery_weiter: "Weiter zur Code-Eingabe",
   },
   start: {
     frage: "Wähle einen Bereich:",
@@ -638,6 +650,11 @@ export const texte = {
     akzentfarbe: "Akzentfarbe",
     archivierung: "Archivierung",
     archivierungszeitraum_label: "Archivierungszeitraum (Jahre)",
+    zwei_faktor_pflicht_titel: "Zwei-Faktor-Pflicht",
+    zwei_faktor_pflicht_label: "2FA für alle erhöhten Konten (Admin/Gruppenführer) verpflichtend",
+    zwei_faktor_pflicht_hinweis:
+      "Ist die Pflicht aktiv, müssen Admins und Gruppenführer ohne aktives 2FA es beim nächsten " +
+      "Login einmalig einrichten (E-Mail hinterlegen + Recovery-Codes sichern), bevor sie hineinkommen.",
     fehlerberichte: "Fehlerberichte",
     fehlerberichte_label: "Technische Fehlerberichte an den Entwickler senden",
     fehlerberichte_hinweis:

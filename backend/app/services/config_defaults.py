@@ -127,6 +127,10 @@ DEFAULTS: list[ConfigDefault] = [
     # angegebene Dauer gesperrt (0 = Sperre aus; Sperre läuft automatisch ab).
     ConfigDefault("gruppenfuehrer_login_max_fehlversuche", "5", ConfigTyp.INT, "Gruppenführer-Login: Fehlversuche bis zur Sperre (0 = aus)"),
     ConfigDefault("gruppenfuehrer_login_sperre_minuten", "15", ConfigTyp.INT, "Gruppenführer-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
+    # Ist die Pflicht aktiv, müssen erhöhte Konten (Admin/Gruppenführer) ohne
+    # aktives 2FA es beim nächsten Login erzwungen einrichten (E-Mail +
+    # Recovery-Codes), bevor ein Token ausgestellt wird. Abschaltbar durch Admins.
+    ConfigDefault("zwei_faktor_pflicht", "true", ConfigTyp.BOOL, "2FA für erhöhte Konten (Admin/Gruppenführer) verpflichtend"),
     # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
     # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
     # anhand der Registry ergänzt bzw. ignoriert.

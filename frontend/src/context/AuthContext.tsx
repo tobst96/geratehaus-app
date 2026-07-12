@@ -4,8 +4,10 @@ import {
   barcodeEinscannen as barcodeEinscannenApi,
   mitgliedAbmelden as mitgliedAbmeldenApi,
   gruppenfuehrer2fa,
+  gruppenfuehrer2faEinrichten as gruppenfuehrer2faEinrichtenApi,
   gruppenfuehrerLogin,
   namePinLogin,
+  type Gruppenfuehrer2FAEinrichtenErgebnis,
 } from "../api/auth";
 import { holeMeineBerechtigungen } from "../api/meta";
 
@@ -43,7 +45,18 @@ interface AuthContextValue {
   gruppenfuehrerAnmelden: (
     username: string,
     passwort: string
-  ) => Promise<{ zweiFaktorErforderlich: boolean; challenge: string | null }>;
+  ) => Promise<{
+    zweiFaktorErforderlich: boolean;
+    einrichtungErforderlich: boolean;
+    emailGesetzt: boolean;
+    challenge: string | null;
+  }>;
+  /** Pflicht-2FA: aktiviert 2FA im Login-Fluss und liefert Recovery-Codes +
+   * neuen Challenge für den anschließenden Code-Schritt. */
+  gruppenfuehrer2faEinrichten: (
+    challenge: string,
+    email?: string
+  ) => Promise<Gruppenfuehrer2FAEinrichtenErgebnis>;
   gruppenfuehrer2faAbschliessen: (
     challenge: string,
     code: string,
@@ -142,13 +155,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function gruppenfuehrerAnmelden(
     username: string,
     passwort: string
-  ): Promise<{ zweiFaktorErforderlich: boolean; challenge: string | null }> {
+  ): Promise<{
+    zweiFaktorErforderlich: boolean;
+    einrichtungErforderlich: boolean;
+    emailGesetzt: boolean;
+    challenge: string | null;
+  }> {
     const ergebnis = await gruppenfuehrerLogin(username, passwort);
     if (ergebnis.access_token) {
       sitzungSetzen(ergebnis.access_token);
-      return { zweiFaktorErforderlich: false, challenge: null };
+      return { zweiFaktorErforderlich: false, einrichtungErforderlich: false, emailGesetzt: false, challenge: null };
     }
-    return { zweiFaktorErforderlich: ergebnis.zwei_faktor_erforderlich, challenge: ergebnis.challenge };
+    return {
+      zweiFaktorErforderlich: ergebnis.zwei_faktor_erforderlich,
+      einrichtungErforderlich: ergebnis.einrichtung_erforderlich,
+      emailGesetzt: ergebnis.email_gesetzt,
+      challenge: ergebnis.challenge,
+    };
+  }
+
+  async function gruppenfuehrer2faEinrichten(
+    challenge: string,
+    email?: string
+  ): Promise<Gruppenfuehrer2FAEinrichtenErgebnis> {
+    return gruppenfuehrer2faEinrichtenApi(challenge, email);
   }
 
   async function gruppenfuehrer2faAbschliessen(
@@ -190,6 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         berechtigungenGeladen: modulRechte !== null || gruppenfuehrerRolle === "admin",
         hatModulZugriff,
         gruppenfuehrerAnmelden,
+        gruppenfuehrer2faEinrichten,
         gruppenfuehrer2faAbschliessen,
         gruppenfuehrerAbmelden,
         mitgliedAbmelden,

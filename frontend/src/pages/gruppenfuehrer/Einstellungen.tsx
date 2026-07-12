@@ -129,6 +129,8 @@ export function Einstellungen() {
 
   const [fehlerberichteAktiv, setFehlerberichteAktiv] = useState(false);
 
+  const [zweiFaktorPflicht, setZweiFaktorPflicht] = useState(true);
+
 
   async function laden() {
     try {
@@ -141,6 +143,7 @@ export function Einstellungen() {
       setFarbeAkzent(String(w.farbe_akzent ?? "#1A1A1A"));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
       setFehlerberichteAktiv(Boolean(w.fehlerberichte_aktiv));
+      setZweiFaktorPflicht(Boolean(w.zwei_faktor_pflicht ?? true));
       setGeladen(true);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_laden);
@@ -164,6 +167,7 @@ export function Einstellungen() {
         farbe_akzent: farbeAkzent,
         archivierungszeitraum_jahre: archivierungszeitraum,
         fehlerberichte_aktiv: fehlerberichteAktiv,
+        zwei_faktor_pflicht: zweiFaktorPflicht,
       });
       neuLaden();
       setGespeichert(true);
@@ -331,6 +335,19 @@ export function Einstellungen() {
           </div>
         </div>
 
+
+        <div className="karte">
+          <h2>{t.zwei_faktor_pflicht_titel}</h2>
+          <label>
+            <input
+              type="checkbox"
+              checked={zweiFaktorPflicht}
+              onChange={(e) => setZweiFaktorPflicht(e.target.checked)}
+            />{" "}
+            {t.zwei_faktor_pflicht_label}
+          </label>
+          <p className="hinweistext">{t.zwei_faktor_pflicht_hinweis}</p>
+        </div>
 
         <div className="karte">
           <h2>{t.fehlerberichte}</h2>

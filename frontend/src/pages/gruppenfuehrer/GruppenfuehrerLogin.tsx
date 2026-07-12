@@ -7,7 +7,7 @@ import { texte } from "../../i18n/texte";
 
 export function GruppenfuehrerLogin() {
   const t = texte.gruppenfuehrer_login;
-  const { gruppenfuehrerAnmelden, gruppenfuehrer2faAbschliessen } = useAuth();
+  const { gruppenfuehrerAnmelden, gruppenfuehrer2faEinrichten, gruppenfuehrer2faAbschliessen } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [passwort, setPasswort] = useState("");
@@ -19,19 +19,47 @@ export function GruppenfuehrerLogin() {
   const [code, setCode] = useState("");
   const [angemeldetBleiben, setAngemeldetBleiben] = useState(false);
 
+  // Pflicht-2FA: erzwungene Einrichtung
+  const [einrichtung, setEinrichtung] = useState(false);
+  const [emailGesetzt, setEmailGesetzt] = useState(false);
+  const [email, setEmail] = useState("");
+  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
+
   async function absenden(e: FormEvent) {
     e.preventDefault();
     setFehler(null);
     setLadevorgang(true);
     try {
-      const { zweiFaktorErforderlich, challenge: ch } = await gruppenfuehrerAnmelden(username, passwort);
-      if (zweiFaktorErforderlich && ch) {
+      const { zweiFaktorErforderlich, einrichtungErforderlich, emailGesetzt: mailDa, challenge: ch } =
+        await gruppenfuehrerAnmelden(username, passwort);
+      if (einrichtungErforderlich && ch) {
+        setChallenge(ch);
+        setEmailGesetzt(mailDa);
+        setEinrichtung(true);
+      } else if (zweiFaktorErforderlich && ch) {
         setChallenge(ch);
       } else {
         navigate("/gruppenfuehrer");
       }
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : t.anmeldung_fehler);
+    } finally {
+      setLadevorgang(false);
+    }
+  }
+
+  async function einrichtenAbsenden(e: FormEvent) {
+    e.preventDefault();
+    if (!challenge) return;
+    setFehler(null);
+    setLadevorgang(true);
+    try {
+      const ergebnis = await gruppenfuehrer2faEinrichten(challenge, emailGesetzt ? undefined : email);
+      setRecoveryCodes(ergebnis.recovery_codes);
+      setChallenge(ergebnis.challenge);
+      setEinrichtung(false);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : t.einrichtung_fehler);
     } finally {
       setLadevorgang(false);
     }
@@ -50,6 +78,56 @@ export function GruppenfuehrerLogin() {
     } finally {
       setLadevorgang(false);
     }
+  }
+
+  // Recovery-Codes anzeigen (einmalig), bevor es zur Code-Eingabe geht.
+  if (recoveryCodes) {
+    return (
+      <div>
+        <h1>{t.recovery_titel}</h1>
+        <div className="karte">
+          <p className="text-mute">{t.recovery_hinweis}</p>
+          <ul style={{ fontFamily: "monospace", fontSize: "1.1rem", lineHeight: 1.8, listStyle: "none", padding: 0 }}>
+            {recoveryCodes.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
+          </ul>
+          <button type="button" onClick={() => setRecoveryCodes(null)}>
+            {t.recovery_weiter}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Pflicht-2FA: erzwungene Einrichtung (E-Mail hinterlegen + aktivieren).
+  if (einrichtung) {
+    return (
+      <div>
+        <h1>{t.einrichtung_titel}</h1>
+        <form onSubmit={einrichtenAbsenden} className="karte">
+          <p className="text-mute">{t.einrichtung_hinweis}</p>
+          {!emailGesetzt && (
+            <div className="formular-feld">
+              <label htmlFor="einricht-email">{t.einrichtung_email_label}</label>
+              <input
+                id="einricht-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                autoFocus
+                required
+              />
+            </div>
+          )}
+          {fehler && <Fehlertext>{fehler}</Fehlertext>}
+          <button type="submit" disabled={ladevorgang}>
+            {ladevorgang ? t.einrichtung_laeuft : t.einrichtung_button}
+          </button>
+        </form>
+      </div>
+    );
   }
 
   if (challenge) {
