@@ -125,7 +125,11 @@ export function MitgliedLogin() {
         }
         if (info.bestaetigt && !info.eingeloest) {
           abgeschlossen = true;
-          await mitgliedLoginEinloesen(token);
+          // Identität lokal merken (wie beim Barcode-/Name-Login), damit u. a.
+          // das Logo verlässlich zur Mitglied-Startseite statt zur öffentlichen
+          // Landing-Seite führt.
+          const { name } = await mitgliedLoginEinloesen(token);
+          identitaetSpeichern(name);
           navigate("/mitglied");
         }
       } catch {
