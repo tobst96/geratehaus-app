@@ -265,6 +265,10 @@
 .sitzplatz-scan-karte {
   max-width: 760px;
   width: 100%;
+  /* Bei viel Inhalt (z. B. Einsatzdetails im Popup) innerhalb der Karte scrollen,
+     statt über den Viewport hinauszuwachsen (Overlay ist fixed, zentriert). */
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
 }
 
 .sitzplatz-scan-layout {
