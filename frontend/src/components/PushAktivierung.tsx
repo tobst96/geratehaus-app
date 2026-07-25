@@ -51,20 +51,34 @@ export function PushAktivierung() {
         return;
       }
       const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.subscribe({
+      const optionen: PushSubscriptionOptionsInit = {
         userVisibleOnly: true,
         // Cast: der Laufzeitwert ist eine gültige BufferSource; die lib.dom-Typen
         // verlangen seit TS 5.7 ArrayBuffer-basierte Views (nicht ArrayBufferLike).
         applicationServerKey: urlBase64ToUint8Array(vapidKey!) as BufferSource,
-      });
+      };
+      let sub: PushSubscription;
+      try {
+        sub = await reg.pushManager.subscribe(optionen);
+      } catch (err) {
+        // Existiert bereits ein Abo mit anderem VAPID-Schlüssel (z. B. nach einem
+        // Schlüsselwechsel), wirft subscribe() einen InvalidStateError. Dann das
+        // alte Abo abmelden und einmal neu abonnieren.
+        const alt = await reg.pushManager.getSubscription();
+        if (!alt) throw err;
+        await alt.unsubscribe();
+        sub = await reg.pushManager.subscribe(optionen);
+      }
       const json = sub.toJSON();
       await pushSubscribe({
         endpoint: json.endpoint!,
         keys: { p256dh: json.keys!.p256dh, auth: json.keys!.auth },
       });
       setAbonniert(true);
-    } catch {
-      setFehler("Aktivieren fehlgeschlagen.");
+    } catch (err) {
+      // Konkrete Ursache anzeigen statt nur „fehlgeschlagen" – sonst ist der
+      // Fehler für Nutzer und Support nicht nachvollziehbar.
+      setFehler(err instanceof Error ? `Aktivieren fehlgeschlagen: ${err.message}` : "Aktivieren fehlgeschlagen.");
     } finally {
       setLaedt(false);
     }
