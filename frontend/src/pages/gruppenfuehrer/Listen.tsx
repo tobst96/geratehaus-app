@@ -7,10 +7,8 @@ import {
   holeDienstbuecherListe,
   holeDienststundenListe,
   holeBuchungenListe,
-  holeNamensabweichungen,
   holeDienststundenSchwellenwert,
   dienststundenUebernahmeEintragen,
-  type NamensAbweichungOut,
   type SchwellenwertEintrag,
 } from "../../api/gruppenfuehrer";
 import {
@@ -33,8 +31,7 @@ import { texte } from "../../i18n/texte";
 const t = texte.listen;
 
 const TABS_BASIS = ["Einsätze", "Dienstbücher", "Dienststunden", "Buchungen", "Formulare"] as const;
-const TAB_NAMENSABWEICHUNGEN = "Namensabweichungen" as const;
-type Tab = (typeof TABS_BASIS)[number] | typeof TAB_NAMENSABWEICHUNGEN;
+type Tab = (typeof TABS_BASIS)[number];
 
 // Zuordnung Listen-Tab -> Modul-Config-Key. Ist das Modul deaktiviert, wird der
 // Tab (und Nav-Unterpunkt) ausgeblendet.
@@ -57,10 +54,9 @@ const TAB_PERM: Partial<Record<(typeof TABS_BASIS)[number], string>> = {
 };
 
 export function Listen() {
-  const { gruppenfuehrerRolle, hatModulZugriff } = useAuth();
+  const { hatModulZugriff } = useAuth();
   const { config } = useConfig();
   const [searchParams] = useSearchParams();
-  const istAdmin = gruppenfuehrerRolle === "admin";
 
   const configWerte = config as Record<string, unknown> | null;
   const sichtbareBasis = TABS_BASIS.filter(
@@ -68,7 +64,7 @@ export function Listen() {
       configWerte?.[TAB_MODUL[t]] !== false &&
       (!TAB_PERM[t] || hatModulZugriff(TAB_PERM[t] as string))
   );
-  const TABS: Tab[] = istAdmin ? [...sichtbareBasis, TAB_NAMENSABWEICHUNGEN] : [...sichtbareBasis];
+  const TABS: Tab[] = [...sichtbareBasis];
 
   const [tab, setTab] = useState<Tab>(TABS[0] ?? "Einsätze");
 
@@ -93,7 +89,6 @@ export function Listen() {
       {tab === "Dienststunden" && <DienststundenTab />}
       {tab === "Buchungen" && <BuchungenTab />}
       {tab === "Formulare" && <FormulareTab />}
-      {tab === "Namensabweichungen" && istAdmin && <NamensabweichungenTab />}
     </div>
   );
 }
@@ -473,43 +468,6 @@ function BuchungenTab() {
         </table>
         </div>
       )}
-    </div>
-  );
-}
-
-function NamensabweichungenTab() {
-  const [daten, setDaten] = useState<NamensAbweichungOut[] | null>(null);
-  const [fehler, setFehler] = useState<string | null>(null);
-
-  useEffect(() => {
-    holeNamensabweichungen()
-      .then(setDaten)
-      .catch((err) => setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_liste));
-  }, []);
-
-  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
-  if (!daten) return <Ladeanzeige />;
-
-  return (
-    <div className="tabelle-scroll">
-    <table>
-      <thead>
-        <tr>
-          <th>{t.th_cookie_name}</th>
-          <th>{t.th_eingetragener_name}</th>
-          <th>{t.th_zeitstempel}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {daten.map((d) => (
-          <tr key={d.id}>
-            <td>{d.cookie_name}</td>
-            <td>{d.eingetragener_name}</td>
-            <td>{formatiereDatumZeit(d.zeitstempel)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
     </div>
   );
 }
