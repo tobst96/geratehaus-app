@@ -16,6 +16,9 @@ export default defineConfig({
       registerType: "autoUpdate",
       workbox: {
         navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
+        // Eigener Push-/notificationclick-Handler (der generierte Workbox-SW
+        // bringt keinen mit) – liegt in public/ und wird zur Laufzeit importiert.
+        importScripts: ["/push-sw.js"],
         // Ohne skipWaiting/clientsClaim übernimmt ein neuer Service Worker
         // erst die Kontrolle, nachdem alle offenen Tabs geschlossen wurden –
         // bis dahin liefert der alte SW über navigateFallback weiterhin das

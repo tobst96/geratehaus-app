@@ -5,6 +5,7 @@ import { useConfig } from "../../context/ConfigContext";
 import { holeMeinProfil } from "../../api/auth";
 import { KACHEL_ICONS, type KachelModulKey } from "../kachelIcons";
 import { PushAktivierung } from "../../components/PushAktivierung";
+import { InstallPrompt } from "../../components/InstallPrompt";
 
 const MODULE: { key: KachelModulKey; aktivKey: string; aussenKey: string; route: string; label: string }[] = [
   { key: "einsatzbericht", aktivKey: "modul_einsatztagebuch_aktiv", aussenKey: "modul_einsatztagebuch_aussenzugriff", route: "/einsatztagebuch", label: "Einsatzbericht" },
@@ -68,6 +69,13 @@ export function MitgliedHub() {
         </div>
       )}
 
+      {angezeigterName && (
+        <>
+          <InstallPrompt />
+          <PushAktivierung />
+        </>
+      )}
+
       <h2 className="mitglied-frage">Was möchtest du machen?</h2>
 
       {sichtbar.length === 0 ? (
@@ -89,8 +97,6 @@ export function MitgliedHub() {
           ))}
         </div>
       )}
-
-      <PushAktivierung />
     </div>
   );
 }
