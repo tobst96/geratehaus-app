@@ -146,6 +146,7 @@ export function GruppenfuehrerLogin() {
               onChange={(e) => setCode(e.target.value)}
               autoFocus
               autoComplete="one-time-code"
+              inputMode="numeric"
               required
             />
           </div>

@@ -189,7 +189,9 @@ class EmailNotifier(Notifier):
         message["Subject"] = betreff
         # Optionaler Code (z. B. 2FA-OTP): im Plaintext-Fallback vorangestellt, im
         # HTML als großer hervorgehobener Block (nicht im Fließtext) dargestellt.
-        plaintext = f"{code}\n\n{nachricht}" if code else nachricht
+        # Schlüsselwort-nahe Code-Zeile hilft der iOS-Tastatur (QuickType), den
+        # Code direkt zum Einfügen anzubieten (Feld nutzt autocomplete=one-time-code).
+        plaintext = f"Code: {code}\n\n{nachricht}" if code else nachricht
         message.set_content(plaintext)
         # HTML-Alternative im Design der eingestellten Website (Logo, Farben) –
         # Plaintext-Teil bleibt als Fallback erhalten (manche Clients/Spamfilter
