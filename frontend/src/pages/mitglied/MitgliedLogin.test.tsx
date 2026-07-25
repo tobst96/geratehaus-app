@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // --- API-Mocks (QR-Reservierungs-Login) ---------------------------------
@@ -37,6 +38,13 @@ vi.mock("../../hooks/useBarcodeSound", () => ({
 vi.mock("../../components/BarcodeEingabe", () => ({ BarcodeEingabe: () => <input aria-label="barcode" /> }));
 vi.mock("../../components/PersonIdentifikation", () => ({ PersonIdentifikation: () => null }));
 
+const mitgliedPasswortLogin = vi.fn();
+vi.mock("../../api/auth", () => ({
+  barcodeVorschau: vi.fn(),
+  mitgliedPasswortLogin: (...a: unknown[]) => mitgliedPasswortLogin(...a),
+  passwortAnfordern: vi.fn().mockResolvedValue({ status: "ok" }),
+}));
+
 import { MitgliedLogin } from "./MitgliedLogin";
 
 describe("MitgliedLogin – QR-Reservierungs-Login", () => {
@@ -62,6 +70,28 @@ describe("MitgliedLogin – QR-Reservierungs-Login", () => {
     await waitFor(() => expect(mitgliedLoginEinloesen).toHaveBeenCalledWith("tok"), { timeout: 4000 });
     // Kern der Regression: die Identität muss lokal gespeichert werden.
     expect(identitaetSpeichern).toHaveBeenCalledWith("Max Muster");
+    expect(navigate).toHaveBeenCalledWith("/mitglied");
+  });
+});
+
+describe("MitgliedLogin – Passwort-Login", () => {
+  beforeEach(() => {
+    identitaetSpeichern.mockReset();
+    navigate.mockReset();
+    mitgliedPasswortLogin.mockReset().mockResolvedValue({ name: "Max Muster" });
+  });
+
+  it("meldet per Name + Passwort an, merkt die Identität und navigiert zum Hub", async () => {
+    const user = userEvent.setup();
+    render(<MitgliedLogin />);
+
+    await user.type(screen.getByLabelText("Name"), "Max Muster");
+    await user.type(screen.getByLabelText("Passwort"), "geheim123");
+    // Der Passwort-Login-Button ist die erste „Anmelden"-Schaltfläche (Karte oben).
+    await user.click(screen.getAllByRole("button", { name: "Anmelden" })[0]);
+
+    expect(mitgliedPasswortLogin).toHaveBeenCalledWith("Max Muster", "geheim123");
+    await waitFor(() => expect(identitaetSpeichern).toHaveBeenCalledWith("Max Muster"));
     expect(navigate).toHaveBeenCalledWith("/mitglied");
   });
 });

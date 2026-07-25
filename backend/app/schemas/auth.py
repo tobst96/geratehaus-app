@@ -56,6 +56,19 @@ class PinTokenInfo(BaseModel):
     gueltig: bool
 
 
+class MitgliedPasswortLogin(BaseModel):
+    name: str
+    passwort: str
+
+
+class PasswortAnfordern(BaseModel):
+    name: str
+
+
+class PasswortSetzen(BaseModel):
+    passwort: str = Field(min_length=8, max_length=128)
+
+
 class FreigabeTokenInfo(BaseModel):
     name: str
     offen: bool

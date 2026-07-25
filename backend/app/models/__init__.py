@@ -32,7 +32,7 @@ from app.models.person import Person
 from app.models.person_bild_reservierung import PersonBildReservierung
 from app.models.person_ereignis import PersonEreignis
 from app.models.person_ereignis_abo import PersonEreignisAbo
-from app.models.pin_token import PersonFreigabeToken, PinSetzenToken
+from app.models.pin_token import PasswortSetzenToken, PersonFreigabeToken, PinSetzenToken
 from app.models.push_subscription import PushSubscription
 from app.models.reservierung import SitzplatzReservierung
 
@@ -76,6 +76,7 @@ __all__ = [
     "PersonEreignisAbo",
     "PersonFreigabeToken",
     "PinSetzenToken",
+    "PasswortSetzenToken",
     "PushSubscription",
     "SitzplatzReservierung",
 ]

@@ -45,6 +45,7 @@ import { FahrzeugbuchungManuelleEintragung } from "./pages/FahrzeugbuchungManuel
 import { PersonBildHochladen } from "./pages/PersonBildHochladen";
 import { ElwUpload } from "./pages/ElwUpload";
 import { PinSetzen } from "./pages/PinSetzen";
+import { PasswortSetzen } from "./pages/PasswortSetzen";
 import { PersonFreigabe } from "./pages/PersonFreigabe";
 
 export function App() {
@@ -126,6 +127,7 @@ export function App() {
           <Route path="/person-bild/:token" element={<PersonBildHochladen />} />
           <Route path="/elw-upload/:token" element={<ElwUpload />} />
           <Route path="/pin-setzen/:token" element={<PinSetzen />} />
+          <Route path="/passwort-setzen/:token" element={<PasswortSetzen />} />
           <Route path="/person-freigabe/:token" element={<PersonFreigabe />} />
           <Route
             path="/eintragen-fahrzeugbuchung/:token"

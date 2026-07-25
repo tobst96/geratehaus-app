@@ -21,8 +21,10 @@ from app.schemas.auth import (
     Gruppenfuehrer2FAEinrichtenErgebnis,
     GruppenfuehrerLoginErgebnis,
     GruppenfuehrerToken,
+    MitgliedPasswortLogin,
     NamePinLogin,
     NamePinVorschau,
+    PasswortAnfordern,
     PersonAuswahl,
     PinAnfordern,
 )
@@ -33,6 +35,7 @@ from app.services import (
     feature_modul_service,
     mitglied_login_reservierung_service,
     gruppenfuehrer_service,
+    passwort_service,
     pin_service,
     stammdaten_service,
     zwei_faktor_service,
@@ -278,6 +281,42 @@ async def pin_anfordern(db: DbSession, daten: PinAnfordern) -> dict[str, str]:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
     weg = await pin_service.pin_anfordern(db, person)
     return {"weg": weg}
+
+
+@router.post(
+    "/mitglied-login", response_model=BarcodeIdentitaet, dependencies=[Depends(rate_limit(10, 60))]
+)
+async def mitglied_passwort_login(
+    db: DbSession, response: Response, daten: MitgliedPasswortLogin
+) -> BarcodeIdentitaet:
+    """Persönlicher Mitglieder-Login per Name + Passwort (Handy/App). Nutzt die
+    generische Passwortprüfung mit Brute-Force-Schutz und setzt bei Erfolg das
+    Mitglieder-Identitäts-Cookie (wie der Barcode-/Name+PIN-Login). Der Kiosk nutzt
+    weiterhin Barcode/PIN."""
+    try:
+        person = await gruppenfuehrer_service.login_pruefen(db, daten.name, daten.passwort)
+    except gruppenfuehrer_service.GruppenfuehrerGesperrtError as sperre:
+        minuten = max(1, round(sperre.verbleibend_sekunden / 60))
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Zu viele Fehlversuche. Login für {minuten} Minute(n) gesperrt.",
+        )
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Name oder Passwort falsch.")
+    _setze_namens_cookie(response, person.name)
+    return BarcodeIdentitaet(name=person.name)
+
+
+@router.post(
+    "/mitglied-passwort-anfordern",
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[Depends(rate_limit(10, 60))],
+)
+async def mitglied_passwort_anfordern(db: DbSession, daten: PasswortAnfordern) -> dict[str, str]:
+    """Schickt – falls möglich – einen „Passwort setzen"-Link an die zur Person
+    hinterlegte E-Mail. Antwortet bewusst immer gleich (kein Enumeration-Leak)."""
+    await passwort_service.anfordern_per_name(db, daten.name)
+    return {"status": "ok"}
 
 
 def _gruppenfuehrer_token(person) -> str:
