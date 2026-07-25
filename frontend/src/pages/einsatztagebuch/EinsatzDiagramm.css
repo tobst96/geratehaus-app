@@ -271,6 +271,21 @@
   overflow-y: auto;
 }
 
+/* Einsatzdetails-Popup: auf iOS klippt das vertikal zentrierte, an 100vh
+   begrenzte Layout oben/unten (100vh = großer Viewport unter den Safari-Leisten).
+   Stattdessen das Overlay selbst scrollen lassen und den Inhalt oben ausrichten –
+   so ist der komplette Inhalt (Schließen oben, Speichern unten) erreichbar. */
+.einsatz-detail-overlay {
+  align-items: flex-start;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.einsatz-detail-karte {
+  max-height: none;
+  overflow: visible;
+}
+
 .sitzplatz-scan-layout {
   display: flex;
   gap: 1.5rem;

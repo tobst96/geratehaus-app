@@ -773,8 +773,8 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
       )}
 
       {detailsOffen && (
-        <div className="sitzplatz-scan-overlay" onClick={() => setDetailsOffen(false)}>
-          <div className="karte sitzplatz-scan-karte" onClick={(e) => e.stopPropagation()}>
+        <div className="sitzplatz-scan-overlay einsatz-detail-overlay" onClick={() => setDetailsOffen(false)}>
+          <div className="karte sitzplatz-scan-karte einsatz-detail-karte" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.5rem" }}>
               <button type="button" className="sekundaer" onClick={() => setDetailsOffen(false)}>
                 Schließen
