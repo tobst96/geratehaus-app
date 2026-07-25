@@ -28,7 +28,6 @@ from app.models.kiosk_token import KioskToken
 from app.models.mitglied_login_reservierung import MitgliedLoginReservierung
 from app.models.gruppenfuehrer import GruppenfuehrerRecoveryCode, GruppenfuehrerTrustedDevice
 from app.models.modul import Modul
-from app.models.namens_abweichung import NamensAbweichung
 from app.models.person import Person
 from app.models.person_bild_reservierung import PersonBildReservierung
 from app.models.person_ereignis import PersonEreignis
@@ -70,7 +69,6 @@ __all__ = [
     "GruppenfuehrerRecoveryCode",
     "GruppenfuehrerTrustedDevice",
     "Modul",
-    "NamensAbweichung",
     "Person",
     "PersonBildReservierung",
     "AuditLog",

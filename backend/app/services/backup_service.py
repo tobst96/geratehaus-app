@@ -50,7 +50,7 @@ KATEGORIEN: list[tuple[str, str, list[str]]] = [
         "personal",
         "Personal & Stammdaten",
         ["personen", "gruppen", "funktionen_dienststunden", "funktionen_einsatz",
-         "namens_abweichungen", "person_bild_reservierungen"],
+         "person_bild_reservierungen"],
     ),
     ("fahrzeuge", "Fahrzeuge & Sitzplätze", ["fahrzeuge"]),
     ("zugaenge", "Zugänge & Berechtigungen", ["berechtigungen", "module"]),

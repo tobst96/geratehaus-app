@@ -800,10 +800,6 @@ export const texte = {
     th_fahrzeug: "Fahrzeug",
     th_zweck: "Zweck",
     th_verantwortlich: "Verantwortlich",
-    // Namensabweichungen
-    th_cookie_name: "Bisheriger Name (Cookie)",
-    th_eingetragener_name: "Neu eingetragener Name",
-    th_zeitstempel: "Zeitstempel",
     // Formulare
     fehler_formulare: "Formulare konnten nicht geladen werden.",
     keine_formulare: "Keine für dich freigegebenen Formulare.",

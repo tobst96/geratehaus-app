@@ -19,7 +19,7 @@ Migrationen in `backend/alembic/versions/`. Übergeordnet: `.claude/architecture
 | Bereich | Modelle (Tabellen) |
 | --- | --- |
 | Konfiguration | `AppConfig` (`app_config`) |
-| Personen | `Person`, `PersonEreignis` (Timeline), `PersonBildReservierung`, `NamensAbweichung` |
+| Personen | `Person`, `PersonEreignis` (Timeline), `PersonBildReservierung` |
 | Moderator | `Moderator` (Feld `rolle`: `admin` / Gruppenführer) |
 | Einsätze | `Einsatz`, `EinsatzPerson`, `EinsatzEreignis` (Timeline), `EinsatzFeldDefinition` |
 | Dienstbuch | `Dienstbuch`, `DienstbuchPerson`, `DienstbuchReservierung` |

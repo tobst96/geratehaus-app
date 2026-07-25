@@ -183,15 +183,6 @@ export const holeBuchungenListe = (filter: BuchungListenFilter) =>
 export const buchungenListePdfUrl = (filter: BuchungListenFilter) =>
   buildePdfUrl("/gruppenfuehrer/listen/buchungen/pdf", filter);
 
-export interface NamensAbweichungOut {
-  id: number;
-  cookie_name: string;
-  eingetragener_name: string;
-  zeitstempel: string;
-}
-export const holeNamensabweichungen = () =>
-  apiGet<NamensAbweichungOut[]>("/gruppenfuehrer/listen/namensabweichungen");
-
 function buildePdfUrl(pfad: string, filter: Record<string, unknown>): string {
   const params = new URLSearchParams();
   for (const [schluessel, wert] of Object.entries(filter)) {

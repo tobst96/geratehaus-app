@@ -28,12 +28,10 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
-        <h2>Name &amp; Namensabweichungen</h2>
+        <h2>Name</h2>
         <p>
           Dein Name wird in einem Cookie auf deinem Gerät gespeichert, damit er bei jedem Besuch
-          vorausgefüllt ist. Weicht der eingetragene Name vom zuvor gespeicherten Namen ab, wird
-          diese Abweichung serverseitig protokolliert, damit Gruppenführer Unstimmigkeiten in den
-          Aufzeichnungen nachvollziehen können.
+          vorausgefüllt ist.
         </p>
       </div>
 

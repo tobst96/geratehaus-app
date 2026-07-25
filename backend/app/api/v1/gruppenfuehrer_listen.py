@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Response
 
-from app.api.deps import CurrentAdmin, DbSession, require_modul_zugriff
+from app.api.deps import DbSession, require_modul_zugriff
 from app.models.person import Person
 from app.schemas.buchung import BuchungOut
 from app.schemas.dienstbuch import DienstbuchOut
@@ -14,8 +14,7 @@ from app.schemas.dienststunden import (
     UebernahmeAnlegen,
 )
 from app.schemas.einsatz import EinsatzOut
-from app.schemas.namens_abweichung import NamensAbweichungOut
-from app.services import auth_service, dienststunden_service, gruppenfuehrer_listen_service, pdf_service
+from app.services import dienststunden_service, gruppenfuehrer_listen_service, pdf_service
 
 router = APIRouter(prefix="/gruppenfuehrer/listen", tags=["gruppenfuehrer:listen"])
 
@@ -95,13 +94,6 @@ async def buchungen(
     return await gruppenfuehrer_listen_service.buchungen_liste(
         db, von, bis, fahrzeug_id, person_id, status
     )
-
-
-@router.get("/namensabweichungen", response_model=list[NamensAbweichungOut])
-async def namensabweichungen(
-    db: DbSession, _admin: CurrentAdmin
-) -> list[NamensAbweichungOut]:
-    return await auth_service.liste_namensabweichungen(db)
 
 
 def _pdf_response(pdf_bytes: bytes, dateiname: str) -> Response:

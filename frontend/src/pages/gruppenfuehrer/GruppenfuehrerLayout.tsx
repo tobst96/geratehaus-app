@@ -234,15 +234,6 @@ export function GruppenfuehrerLayout() {
                       <span>{u.tab}</span>
                     </NavLink>
                   ))}
-                  {istAdmin && (
-                    <NavLink
-                      to="/gruppenfuehrer/listen?tab=Namensabweichungen"
-                      className={`mod-nav-link mod-nav-link--sub${listenTab === "Namensabweichungen" ? " aktiv" : ""}`}
-                    >
-                      {navIcon("warnung")}
-                      <span>Namensabweichungen</span>
-                    </NavLink>
-                  )}
                 </>
               )}
 
