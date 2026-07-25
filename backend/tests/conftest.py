@@ -56,6 +56,20 @@ async def _tabellen_leeren():
     yield
 
 
+@pytest_asyncio.fixture(autouse=True)
+async def _zwei_faktor_pflicht_aus(_tabellen_leeren):
+    """2FA-Pflicht ist in Produktion per Default an – für die Testsuite wird sie
+    neutralisiert, damit die vielen Endpunkt-Logins weiterhin direkt ein Token
+    erhalten (statt einer erzwungenen Einrichtung). Dedizierte Pflicht-Tests
+    setzen `zwei_faktor_pflicht` im Test selbst wieder auf True.
+    Hängt an `_tabellen_leeren`, läuft also nach dem Leeren der app_config."""
+    from app.services.config_service import config_service
+
+    async with AsyncSessionLocal() as session:
+        await config_service.set(session, "zwei_faktor_pflicht", False)
+    yield
+
+
 @pytest_asyncio.fixture
 async def db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:

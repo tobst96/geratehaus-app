@@ -80,6 +80,10 @@ class GruppenfuehrerLoginErgebnis(BaseModel):
     access_token: str | None = None
     token_type: str = "bearer"
     zwei_faktor_erforderlich: bool = False
+    # Pflicht-2FA: der Zugang hat noch kein aktives 2FA und muss es jetzt erzwungen
+    # einrichten (E-Mail hinterlegen + Recovery-Codes sichern), bevor ein Token folgt.
+    einrichtung_erforderlich: bool = False
+    email_gesetzt: bool = False
     challenge: str | None = None
 
 
@@ -87,6 +91,20 @@ class Gruppenfuehrer2FA(BaseModel):
     challenge: str
     code: str
     angemeldet_bleiben: bool = False
+
+
+class Gruppenfuehrer2FAEinrichten(BaseModel):
+    """Erzwungene 2FA-Einrichtung im Login-Fluss: authentisiert über den
+    `challenge` aus dem Passwortschritt. `email` nur nötig, wenn am Konto noch
+    keine hinterlegt ist."""
+
+    challenge: str
+    email: str | None = None
+
+
+class Gruppenfuehrer2FAEinrichtenErgebnis(BaseModel):
+    recovery_codes: list[str]
+    challenge: str
 
 
 class MeinProfil(BaseModel):

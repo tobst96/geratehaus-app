@@ -62,9 +62,9 @@ async def otp_erzeugen_und_senden(db: AsyncSession, person: Person) -> None:
         db,
         person.email,
         "Dein Login-Code für Gerätehaus.app",
-        f"Dein Anmelde-Code lautet: {code}\n\n"
-        f"Er ist {OTP_GUELTIGKEIT_MINUTEN} Minuten gültig. Wenn du dich nicht anmelden "
-        f"wolltest, ignoriere diese E-Mail.",
+        f"Dein Anmelde-Code ist {OTP_GUELTIGKEIT_MINUTEN} Minuten gültig. Wenn du dich "
+        f"nicht anmelden wolltest, ignoriere diese E-Mail.",
+        code=code,
     )
 
 

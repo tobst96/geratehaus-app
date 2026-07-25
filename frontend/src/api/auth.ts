@@ -11,7 +11,15 @@ export interface GruppenfuehrerLoginErgebnis {
   access_token: string | null;
   token_type: string;
   zwei_faktor_erforderlich: boolean;
+  /** Pflicht-2FA: Zugang muss 2FA jetzt erzwungen einrichten (kein Token). */
+  einrichtung_erforderlich: boolean;
+  email_gesetzt: boolean;
   challenge: string | null;
+}
+
+export interface Gruppenfuehrer2FAEinrichtenErgebnis {
+  recovery_codes: string[];
+  challenge: string;
 }
 
 export interface BarcodeIdentitaet {
@@ -121,6 +129,27 @@ export async function gruppenfuehrerLogin(
   if (!response.ok) {
     const daten = await response.json().catch(() => ({}));
     throw new ApiError(response.status, daten.detail ?? "Anmeldung fehlgeschlagen.");
+  }
+  return response.json();
+}
+
+/** Erzwungene 2FA-Einrichtung (Pflicht) im Login-Fluss: aktiviert 2FA für den per
+ * `challenge` ausgewiesenen Zugang und liefert Recovery-Codes + einen neuen
+ * Challenge für den anschließenden Code-Schritt. `email` nur nötig, wenn am Konto
+ * noch keine hinterlegt ist. */
+export async function gruppenfuehrer2faEinrichten(
+  challenge: string,
+  email?: string
+): Promise<Gruppenfuehrer2FAEinrichtenErgebnis> {
+  const response = await fetch(`${BASIS_URL}/auth/gruppenfuehrer/2fa/einrichten`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ challenge, email: email ?? null }),
+  });
+  if (!response.ok) {
+    const daten = await response.json().catch(() => ({}));
+    throw new ApiError(response.status, daten.detail ?? "2FA-Einrichtung fehlgeschlagen.");
   }
   return response.json();
 }

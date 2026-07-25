@@ -65,6 +65,34 @@ async def test_versenden_baut_multipart_mit_html_alternative(db, monkeypatch):
     assert "Hallo Welt" in text_parts[0].get_content()
 
 
+async def test_render_html_mit_code_zeigt_grossen_block(db):
+    html = await email_template_service.render_html(db, "Login-Code", "Nur 10 Minuten gültig.", code="123456")
+    # Code steht im groß gestylten Block …
+    assert "123456" in html
+    assert "font-size:40px" in html
+    # … ohne Code kein großer Block.
+    ohne = await email_template_service.render_html(db, "Betreff", "Inhalt")
+    assert "font-size:40px" not in ohne
+
+
+async def test_versenden_mit_code_html_gross_plaintext_fallback(db, monkeypatch):
+    gesendete = {}
+
+    async def fake_send(message, **kwargs):
+        gesendete["message"] = message
+
+    monkeypatch.setattr("app.services.notifier.email.aiosmtplib.send", fake_send)
+    await EmailNotifier()._versenden(
+        db, "Login-Code", "Nur 10 Minuten gültig.", empfaenger_liste=["a@example.org"], code="123456"
+    )
+
+    message = gesendete["message"]
+    html = [p for p in message.walk() if p.get_content_type() == "text/html"][0].get_content()
+    text = [p for p in message.walk() if p.get_content_type() == "text/plain"][0].get_content()
+    assert "123456" in html and "font-size:40px" in html
+    assert "123456" in text  # Fallback für Text-Clients
+
+
 def test_lokales_logo_png_nur_fuer_vorhandenes_png():
     # SVG / leer -> None
     assert email_template_service.lokales_logo_png("") is None

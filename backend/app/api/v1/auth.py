@@ -17,6 +17,8 @@ from app.schemas.auth import (
     BarcodeVorschau,
     MeinProfil,
     Gruppenfuehrer2FA,
+    Gruppenfuehrer2FAEinrichten,
+    Gruppenfuehrer2FAEinrichtenErgebnis,
     GruppenfuehrerLoginErgebnis,
     GruppenfuehrerToken,
     NamePinLogin,
@@ -26,6 +28,7 @@ from app.schemas.auth import (
 )
 from app.db.session import AsyncSessionLocal
 from app.services import (
+    audit_service,
     barcode_service,
     feature_modul_service,
     mitglied_login_reservierung_service,
@@ -34,6 +37,7 @@ from app.services import (
     stammdaten_service,
     zwei_faktor_service,
 )
+from app.services.config_service import config_service
 
 TRUSTED_DEVICE_COOKIE = "gruppenfuehrer_trusted_device"
 TRUSTED_DEVICE_MAX_AGE_SECONDS = 60 * 60 * 24 * zwei_faktor_service.TRUSTED_DEVICE_TAGE
@@ -304,10 +308,20 @@ async def gruppenfuehrer_login(
             detail="Name oder Passwort falsch.",
         )
 
-    # Kein 2FA (oder bereits vertrauenswürdiges Gerät) → direkt Token ausstellen.
-    if not person.zwei_faktor_aktiv or await zwei_faktor_service.trusted_device_gueltig(
-        db, person, gruppenfuehrer_trusted_device
-    ):
+    # Zugang ohne aktives 2FA: entweder Pflicht-Einrichtung erzwingen oder – wenn
+    # die Pflicht abgeschaltet ist – wie bisher direkt ein Token ausstellen.
+    if not person.zwei_faktor_aktiv:
+        pflicht = bool(await config_service.get(db, "zwei_faktor_pflicht", True))
+        if pflicht:
+            return GruppenfuehrerLoginErgebnis(
+                einrichtung_erforderlich=True,
+                email_gesetzt=bool(person.email),
+                challenge=gruppenfuehrer_2fa_session.signiere_challenge(person.id),
+            )
+        return GruppenfuehrerLoginErgebnis(access_token=_gruppenfuehrer_token(person))
+
+    # 2FA aktiv, aber bereits vertrauenswürdiges Gerät → direkt Token ausstellen.
+    if await zwei_faktor_service.trusted_device_gueltig(db, person, gruppenfuehrer_trusted_device):
         return GruppenfuehrerLoginErgebnis(access_token=_gruppenfuehrer_token(person))
 
     # 2FA: OTP per E-Mail senden (Best-Effort – ohne E-Mail bleibt der
@@ -318,6 +332,57 @@ async def gruppenfuehrer_login(
         pass
     return GruppenfuehrerLoginErgebnis(
         zwei_faktor_erforderlich=True,
+        challenge=gruppenfuehrer_2fa_session.signiere_challenge(person.id),
+    )
+
+
+@router.post(
+    "/gruppenfuehrer/2fa/einrichten",
+    response_model=Gruppenfuehrer2FAEinrichtenErgebnis,
+    dependencies=[Depends(rate_limit(10, 60))],
+)
+async def gruppenfuehrer_2fa_einrichten(
+    db: DbSession, daten: Gruppenfuehrer2FAEinrichten
+) -> Gruppenfuehrer2FAEinrichtenErgebnis:
+    """Erzwungene 2FA-Einrichtung (Pflicht): aktiviert 2FA für den per `challenge`
+    ausgewiesenen Zugang, liefert die Recovery-Codes **einmalig** zurück und sendet
+    sofort einen OTP für den anschließenden zweiten Schritt (`/gruppenfuehrer/2fa`)."""
+    person_id = gruppenfuehrer_2fa_session.lese_challenge(daten.challenge)
+    if person_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Anmeldung abgelaufen. Bitte erneut mit Passwort anmelden.",
+        )
+    person = await stammdaten_service.get_person(db, person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Nicht angemeldet.")
+    if person.zwei_faktor_aktiv:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA ist bereits aktiv. Bitte erneut mit Passwort anmelden.",
+        )
+    if not person.email:
+        neue_email = (daten.email or "").strip()
+        if not neue_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Für 2FA muss eine E-Mail hinterlegt werden.",
+            )
+        person.email = neue_email
+    try:
+        codes = await zwei_faktor_service.aktivieren(db, person)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    # OTP für den zweiten Schritt senden (Best-Effort – Recovery-Codes bleiben Fallback).
+    try:
+        await zwei_faktor_service.otp_erzeugen_und_senden(db, person)
+    except ValueError:
+        pass
+    await audit_service.protokolliere(
+        db, person.name, "gruppenfuehrer_2fa_aktiviert", "gruppenfuehrer", person.id
+    )
+    return Gruppenfuehrer2FAEinrichtenErgebnis(
+        recovery_codes=codes,
         challenge=gruppenfuehrer_2fa_session.signiere_challenge(person.id),
     )
 
