@@ -5,7 +5,12 @@ import QRCode from "qrcode";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
-import { barcodeVorschau, type BarcodeVorschau } from "../../api/auth";
+import {
+  barcodeVorschau,
+  mitgliedPasswortLogin,
+  passwortAnfordern,
+  type BarcodeVorschau,
+} from "../../api/auth";
 import {
   holeMitgliedLoginReservierung,
   mitgliedLoginEinloesen,
@@ -53,6 +58,42 @@ export function MitgliedLogin() {
   const [qrVorschauPerson, setQrVorschauPerson] = useState<{ name: string; bildUrl: string | null } | null>(
     null
   );
+
+  // Persönlicher Passwort-Login (Handy/App)
+  const [pwName, setPwName] = useState("");
+  const [pwPasswort, setPwPasswort] = useState("");
+  const [pwLaeuft, setPwLaeuft] = useState(false);
+  const [pwFehler, setPwFehler] = useState<string | null>(null);
+  const [pwLinkGesendet, setPwLinkGesendet] = useState(false);
+
+  async function passwortLogin(e: FormEvent) {
+    e.preventDefault();
+    setPwFehler(null);
+    setPwLaeuft(true);
+    try {
+      const identitaet = await mitgliedPasswortLogin(pwName.trim(), pwPasswort);
+      identitaetSpeichern(identitaet.name);
+      navigate("/mitglied");
+    } catch (err) {
+      setPwFehler(err instanceof ApiError ? String(err.detail) : t.pw_fehler);
+    } finally {
+      setPwLaeuft(false);
+    }
+  }
+
+  async function passwortLinkAnfordern() {
+    setPwFehler(null);
+    if (!pwName.trim()) {
+      setPwFehler(t.pw_name_fehlt);
+      return;
+    }
+    try {
+      await passwortAnfordern(pwName.trim());
+    } catch {
+      /* Bewusst kein Fehler nach außen (kein Enumeration-Leak). */
+    }
+    setPwLinkGesendet(true);
+  }
 
   useEffect(() => {
     const wert = barcode.trim();
@@ -143,6 +184,58 @@ export function MitgliedLogin() {
     <div className="seite">
       <div className="karte">
         <h1>{t.titel}</h1>
+        <form onSubmit={passwortLogin}>
+          <div className="formular-feld">
+            <label htmlFor="pw-name">{t.pw_name_label}</label>
+            <input
+              id="pw-name"
+              value={pwName}
+              onChange={(e) => setPwName(e.target.value)}
+              autoComplete="username"
+              required
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="pw-passwort">{t.pw_passwort_label}</label>
+            <input
+              id="pw-passwort"
+              type="password"
+              value={pwPasswort}
+              onChange={(e) => setPwPasswort(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </div>
+          {pwFehler && <Fehlertext>{pwFehler}</Fehlertext>}
+          <button type="submit" disabled={pwLaeuft}>
+            {pwLaeuft ? t.pw_anmelden_laeuft : t.pw_anmelden}
+          </button>
+        </form>
+        <p style={{ marginTop: 12, marginBottom: 0 }}>
+          <button
+            type="button"
+            onClick={passwortLinkAnfordern}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              color: "var(--farbe-primaer)",
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+          >
+            {t.pw_link_anfordern}
+          </button>
+        </p>
+        {pwLinkGesendet && (
+          <p className="text-mute" style={{ marginTop: 8 }}>
+            {t.pw_link_gesendet}
+          </p>
+        )}
+      </div>
+
+      <div className="karte">
+        <h2>{t.andere_anmeldung}</h2>
 
         {qrAnsicht ? (
           <div className="text-center">

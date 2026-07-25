@@ -75,6 +75,21 @@ export const texte = {
     label_pin_wiederholen: "PIN wiederholen",
     speichern_laeuft: "Wird gespeichert…",
   },
+  passwort_setzen: {
+    titel: "Passwort setzen",
+    link_ungueltig: "Link ungültig.",
+    zu_kurz: "Das Passwort muss mindestens 8 Zeichen haben.",
+    ungleich: "Die Passwörter stimmen nicht überein.",
+    fehler_speichern: "Passwort konnte nicht gesetzt werden.",
+    fertig:
+      "Dein Passwort wurde gesetzt. Du kannst dich jetzt mit deinem Namen und Passwort anmelden.",
+    link_abgelaufen: "Dieser Link ist abgelaufen oder wurde bereits verwendet.",
+    fuer_person_prefix: "Für",
+    fuer_person_suffix: "ein persönliches Passwort festlegen.",
+    label_pw: "Neues Passwort",
+    label_pw_wiederholen: "Passwort wiederholen",
+    speichern_laeuft: "Wird gespeichert…",
+  },
   person_freigabe: {
     titel: "Personen-Freigabe",
     ungueltig: "Freigabe ungültig.",
@@ -443,6 +458,17 @@ export const texte = {
   mitglied_login: {
     titel: "Mitglieder-Login",
     anmeldung_fehler: "Anmeldung fehlgeschlagen.",
+    // Persönlicher Passwort-Login (Handy/App)
+    pw_name_label: "Name",
+    pw_passwort_label: "Passwort",
+    pw_anmelden: "Anmelden",
+    pw_anmelden_laeuft: "Wird angemeldet…",
+    pw_fehler: "Name oder Passwort falsch.",
+    pw_name_fehlt: "Bitte zuerst deinen Namen eingeben.",
+    pw_link_anfordern: "Passwort vergessen oder erstmalig setzen?",
+    pw_link_gesendet:
+      "Falls für diesen Namen eine E-Mail hinterlegt ist, wurde ein Link zum Setzen des Passworts gesendet.",
+    andere_anmeldung: "Oder mit Barcode/PIN anmelden",
     qr_fehler: "QR-Code konnte nicht erzeugt werden.",
     qr_hinweis:
       "Mit dem Handy scannen und dich dort auswählen – dieses Gerät meldet sich danach automatisch an.",

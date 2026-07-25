@@ -12,10 +12,11 @@ from app.core.rate_limit import rate_limit
 from app.schemas.auth import (
     FreigabeEinloesen,
     FreigabeTokenInfo,
+    PasswortSetzen,
     PinSetzen,
     PinTokenInfo,
 )
-from app.services import pin_service, stammdaten_service
+from app.services import passwort_service, pin_service, stammdaten_service
 
 router = APIRouter(tags=["pin"])
 
@@ -39,6 +40,33 @@ async def pin_setzen(db: DbSession, token: str, daten: PinSetzen) -> None:
     if not pin_service.pin_setzen_token_gueltig(eintrag):
         raise HTTPException(status_code=status.HTTP_410_GONE, detail="Der Link ist abgelaufen oder wurde bereits genutzt.")
     await pin_service.pin_setzen_per_token(db, eintrag, daten.pin)
+
+
+@router.get(
+    "/passwort-setzen/{token}", response_model=PinTokenInfo, dependencies=[Depends(rate_limit(20, 60))]
+)
+async def passwort_setzen_info(db: DbSession, token: str) -> PinTokenInfo:
+    eintrag = await passwort_service.get_token(db, token)
+    if eintrag is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link nicht gefunden.")
+    person = await stammdaten_service.get_person(db, eintrag.person_id)
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    return PinTokenInfo(name=person.name, gueltig=passwort_service.token_gueltig(eintrag))
+
+
+@router.post(
+    "/passwort-setzen/{token}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(rate_limit(10, 60))]
+)
+async def passwort_setzen(db: DbSession, token: str, daten: PasswortSetzen) -> None:
+    eintrag = await passwort_service.get_token(db, token)
+    if eintrag is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link nicht gefunden.")
+    if not passwort_service.token_gueltig(eintrag):
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE, detail="Der Link ist abgelaufen oder wurde bereits genutzt."
+        )
+    await passwort_service.setzen_per_token(db, eintrag, daten.passwort)
 
 
 @router.get(

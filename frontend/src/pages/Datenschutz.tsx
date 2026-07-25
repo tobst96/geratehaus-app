@@ -36,13 +36,18 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
-        <h2>Anmeldung per Name &amp; PIN</h2>
+        <h2>Anmeldung per Name, PIN &amp; Passwort</h2>
         <p>
-          Standardmäßig identifizierst du dich – am Kiosk-Tablet im Gerätehaus ebenso wie beim
-          Zugriff von außerhalb (Mitglieder-Login) – über die Auswahl deines Namens und deinen
-          persönlichen PIN. Der PIN wird ausschließlich als Hash (nicht im Klartext) in der
-          Datenbank gespeichert und dient dazu, dir deine Eintragungen und den Zugriff auf
-          freigegebene Module (z. B. Fahrzeugkalender, eigene Dienststunden) eindeutig zuzuordnen.
+          Am Kiosk-Tablet im Gerätehaus identifizierst du dich über die Auswahl deines Namens und
+          deinen persönlichen PIN (oder per Barcode). Für den persönlichen Login auf deinem eigenen
+          Gerät (Handy/App) meldest du dich mit deinem Namen und einem persönlichen Passwort an. PIN
+          und Passwort werden ausschließlich als Hash (nicht im Klartext) in der Datenbank
+          gespeichert und dienen dazu, dir deine Eintragungen und den Zugriff auf freigegebene
+          Module (z. B. Fahrzeugkalender, eigene Dienststunden) eindeutig zuzuordnen.
+        </p>
+        <p>
+          Dein Passwort legst du über einen Link fest, den du dir an deine hinterlegte
+          E-Mail-Adresse schicken lassen kannst.
         </p>
         <p>
           Hast du noch keinen PIN gesetzt, kannst du dir einen Link zum Setzen deines PINs an deine
