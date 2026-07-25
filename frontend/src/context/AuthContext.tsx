@@ -8,6 +8,7 @@ import {
   namePinLogin,
 } from "../api/auth";
 import { holeMeineBerechtigungen } from "../api/meta";
+import { tokenGueltig } from "../utils/jwt";
 
 const NAME_SPEICHER_KEY = "angezeigter_name";
 
@@ -59,12 +60,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [angezeigterName, setAngezeigterName] = useState<string | null>(
     localStorage.getItem(NAME_SPEICHER_KEY)
   );
-  const [gruppenfuehrerAngemeldet, setGruppenfuehrerAngemeldet] = useState<boolean>(
-    getGruppenfuehrerToken() !== null
-  );
+  // Ein abgelaufenes Token darf nicht als "angemeldet" gelten – sonst führt z. B.
+  // das Logo (startseite) fälschlich in den Gruppenführer-Bereich statt zur
+  // öffentlichen Startseite. Abgelaufenes Token wird gleich aufgeräumt.
+  const initialToken = getGruppenfuehrerToken();
+  const initialGueltig = tokenGueltig(initialToken);
+  const [gruppenfuehrerAngemeldet, setGruppenfuehrerAngemeldet] = useState<boolean>(initialGueltig);
   const [gruppenfuehrerRolle, setGruppenfuehrerRolle] = useState<string | null>(
-    rolleAusToken(getGruppenfuehrerToken())
+    initialGueltig ? rolleAusToken(initialToken) : null
   );
+
+  useEffect(() => {
+    if (initialToken && !initialGueltig) setGruppenfuehrerToken(null);
+    // Nur einmal beim Mount – räumt ein bereits abgelaufenes Token weg.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Eigene Modul-Rechte (Keys). null = noch nicht geladen. Admins bekommen vom
   // Backend alle Keys, sodass hatModulZugriff für sie stets true ist.
   const [modulRechte, setModulRechte] = useState<Set<string> | null>(null);
