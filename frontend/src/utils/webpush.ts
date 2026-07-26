@@ -15,8 +15,9 @@ export function pushWirdUnterstuetzt(): boolean {
 /** Wandelt den Base64URL-kodierten VAPID-Public-Key in das von
  * `pushManager.subscribe({ applicationServerKey })` erwartete Uint8Array. */
 export function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const roh = base64String.trim();
+  const padding = "=".repeat((4 - (roh.length % 4)) % 4);
+  const base64 = (roh + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(base64);
   const output = new Uint8Array(raw.length);
   for (let i = 0; i < raw.length; i++) {

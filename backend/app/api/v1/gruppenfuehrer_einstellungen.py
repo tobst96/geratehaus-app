@@ -34,6 +34,23 @@ async def einstellungen_schreiben(
     return await config_service.get_all(db, refresh=True)
 
 
+@router.post("/vapid-generieren")
+async def vapid_generieren(db: DbSession) -> dict[str, str]:
+    """Erzeugt ein gültiges VAPID-Schlüsselpaar für Web-Push und speichert es –
+    vermeidet fehlerhaft von Hand eingetragene Schlüssel (Base64url-Format)."""
+    from app.services.notifier.webpush import generiere_vapid_schluessel
+
+    public_key, private_key = generiere_vapid_schluessel()
+    await config_service.set_many(
+        db,
+        {
+            "notifier_webpush_vapid_public_key": public_key,
+            "notifier_webpush_vapid_private_key": private_key,
+        },
+    )
+    return {"public_key": public_key, "private_key": private_key}
+
+
 @router.post("/logo")
 async def logo_hochladen(
     db: DbSession, datei: UploadFile

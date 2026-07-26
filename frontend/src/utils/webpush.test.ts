@@ -13,6 +13,11 @@ describe("urlBase64ToUint8Array", () => {
     const arr = urlBase64ToUint8Array("_-A");
     expect(Array.from(arr)).toEqual([255, 224]);
   });
+
+  it("ignoriert umschließende Whitespace/Zeilenumbrüche (häufiger Copy-Paste-Fehler)", () => {
+    const arr = urlBase64ToUint8Array("  aGk\n");
+    expect(Array.from(arr)).toEqual([104, 105]);
+  });
 });
 
 describe("pushWirdUnterstuetzt", () => {

@@ -35,6 +35,13 @@ export const fuehreArchivierungAus = () =>
 
 export const sendeTestmail = () => apiPost<void>("/gruppenfuehrer/einstellungen/email-testen");
 
+/** Erzeugt serverseitig ein gültiges VAPID-Schlüsselpaar für Web-Push und
+ * speichert es. Gibt die neuen Schlüssel (Base64url) zurück. */
+export const generiereVapidSchluessel = () =>
+  apiPost<{ public_key: string; private_key: string }>(
+    "/gruppenfuehrer/einstellungen/vapid-generieren"
+  );
+
 export const sendeTestdruck = () => apiPost<void>("/gruppenfuehrer/einstellungen/testdruck");
 
 // --- Erhöhte Zugänge (Person = Konto): Admin/Gruppenführer an der Person -----

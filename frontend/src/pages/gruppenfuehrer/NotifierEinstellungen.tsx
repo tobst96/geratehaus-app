@@ -5,6 +5,7 @@ import {
   schreibeEinstellungen,
   sendeTestmail,
   sendeTestdruck,
+  generiereVapidSchluessel,
 } from "../../api/gruppenfuehrer";
 import { ApiError } from "../../api/client";
 import { Banner } from "../../components/Banner";
@@ -61,6 +62,7 @@ export function NotifierEinstellungen() {
   const [testmailErgebnis, setTestmailErgebnis] = useState<string | null>(null);
   const [testdruckLaeuft, setTestdruckLaeuft] = useState(false);
   const [testdruckErgebnis, setTestdruckErgebnis] = useState<string | null>(null);
+  const [vapidLaeuft, setVapidLaeuft] = useState(false);
 
   useEffect(() => {
     async function laden() {
@@ -195,6 +197,22 @@ export function NotifierEinstellungen() {
       );
     } finally {
       setTestdruckLaeuft(false);
+    }
+  }
+
+  async function vapidGenerierenKlick() {
+    setVapidLaeuft(true);
+    try {
+      const { public_key, private_key } = await generiereVapidSchluessel();
+      setConfig((c) =>
+        c
+          ? { ...c, webpush_enabled: true, webpush_vapid_public: public_key, webpush_vapid_private: private_key }
+          : c
+      );
+    } catch {
+      /* Fehler bewusst still – der Endpunkt ist idempotent, erneut versuchbar. */
+    } finally {
+      setVapidLaeuft(false);
     }
   }
 
@@ -482,9 +500,16 @@ export function NotifierEinstellungen() {
               placeholder="mailto:admin@example.org"
               disabled={!config.webpush_enabled}
             />
-            <p className="hinweistext">
-              {t.vapid_keys_hinweis} <code>webpush generate-vapid-keys</code>
-            </p>
+            <button
+              type="button"
+              className="sekundaer"
+              onClick={vapidGenerierenKlick}
+              disabled={vapidLaeuft}
+              style={{ marginTop: 8 }}
+            >
+              {vapidLaeuft ? t.vapid_generieren_laeuft : t.vapid_generieren}
+            </button>
+            <p className="hinweistext">{t.vapid_generieren_hinweis}</p>
           </div>
         </div>
 

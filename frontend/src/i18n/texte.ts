@@ -757,6 +757,10 @@ export const texte = {
     vapid_private: "VAPID Private Key",
     vapid_subject: "VAPID Subject (mailto:-Adresse)",
     vapid_keys_hinweis: "Generiere Keys mit:",
+    vapid_generieren: "Schlüssel generieren",
+    vapid_generieren_laeuft: "Generiere …",
+    vapid_generieren_hinweis:
+      "Erzeugt automatisch ein gültiges VAPID-Schlüsselpaar und speichert es. Danach noch „Speichern“ nicht vergessen und die Subject-Adresse (mailto:) eintragen.",
     // Ereignisse
     ereignisse_titel: "🔔 Welche Ereignisse benachrichtigen?",
     ereignisse_hinweis:
