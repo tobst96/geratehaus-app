@@ -40,6 +40,7 @@ from app.api.v1 import (
     gruppenfuehrer_person_kanaele,
     gruppenfuehrer_stammdaten,
     gruppenfuehrer_update,
+    mitglied,
     oeffentlich,
     person_bild_reservierungen,
     pin,
@@ -151,6 +152,7 @@ app.include_router(gruppenfuehrer_berechtigungen.router, prefix="/api/v1")
 app.include_router(gruppenfuehrer_person_kanaele.router, prefix="/api/v1")
 app.include_router(gruppenfuehrer_buchungen.router, prefix="/api/v1")
 app.include_router(push.router, prefix="/api/v1")
+app.include_router(mitglied.router, prefix="/api/v1")
 app.include_router(divera.router, prefix="/api/v1")
 app.include_router(elw.router, prefix="/api/v1")
 app.include_router(oeffentlich.router, prefix="/api/v1")

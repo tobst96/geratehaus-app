@@ -16,6 +16,8 @@ from app.schemas.auth import (
     BarcodeIdentitaet,
     BarcodeVorschau,
     MeinProfil,
+    MeinPasswort,
+    MeinProfilUpdate,
     Gruppenfuehrer2FA,
     Gruppenfuehrer2FAEinrichten,
     Gruppenfuehrer2FAEinrichtenErgebnis,
@@ -73,14 +75,44 @@ async def abmelden(response: Response) -> None:
     response.delete_cookie(NAME_COOKIE)
 
 
-@router.get("/mein-profil", response_model=MeinProfil)
-async def mein_profil(person: CurrentPerson) -> MeinProfil:
+def _mein_profil_out(person) -> MeinProfil:
     return MeinProfil(
         name=person.name,
         bild_url=datei_token.signierte_url(person.bild_url),
         gruppe_id=person.gruppe_id,
         funktion_id=person.funktion_id,
+        email=person.email,
+        benachrichtigungen_aktiv=person.benachrichtigungen_aktiv,
+        passwort_gesetzt=bool(person.passwort_hash),
     )
+
+
+@router.get("/mein-profil", response_model=MeinProfil)
+async def mein_profil(person: CurrentPerson) -> MeinProfil:
+    return _mein_profil_out(person)
+
+
+@router.put("/mein-profil", response_model=MeinProfil)
+async def mein_profil_aktualisieren(
+    db: DbSession, person: CurrentPerson, daten: MeinProfilUpdate
+) -> MeinProfil:
+    """Selbstverwaltung: E-Mail und Benachrichtigungs-Opt-in der eigenen Person."""
+    if daten.email is not None:
+        person.email = daten.email.strip() or None
+    if daten.benachrichtigungen_aktiv is not None:
+        person.benachrichtigungen_aktiv = daten.benachrichtigungen_aktiv
+    await db.commit()
+    await db.refresh(person)
+    return _mein_profil_out(person)
+
+
+@router.post("/mein-passwort", status_code=status.HTTP_204_NO_CONTENT)
+async def mein_passwort_setzen(
+    db: DbSession, person: CurrentPerson, daten: MeinPasswort
+) -> None:
+    """Setzt/ändert das eigene Passwort (bereits über das Namens-Cookie
+    identifiziert – z. B. nach PIN-/Barcode-Login oder Passwort-Login)."""
+    await gruppenfuehrer_service.person_passwort_setzen(db, person, daten.passwort)
 
 
 @router.post(
