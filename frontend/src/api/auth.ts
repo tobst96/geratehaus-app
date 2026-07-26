@@ -1,4 +1,4 @@
-import { apiGet, apiPost, ApiError } from "./client";
+import { apiGet, apiPost, apiPut, ApiError } from "./client";
 
 const BASIS_URL = "/api/v1";
 
@@ -38,6 +38,9 @@ export interface MeinProfil {
   bild_url: string | null;
   gruppe_id: number | null;
   funktion_id: number | null;
+  email: string | null;
+  benachrichtigungen_aktiv: boolean;
+  passwort_gesetzt: boolean;
 }
 
 export interface PersonAuswahl {
@@ -122,6 +125,14 @@ export const freigabeAblehnen = (token: string) =>
   apiPost<void>(`/person-freigabe/${encodeURIComponent(token)}/ablehnen`);
 
 export const holeMeinProfil = () => apiGet<MeinProfil>("/auth/mein-profil");
+
+export const aktualisiereMeinProfil = (daten: {
+  email?: string | null;
+  benachrichtigungen_aktiv?: boolean;
+}) => apiPut<MeinProfil>("/auth/mein-profil", daten);
+
+export const setzeMeinPasswort = (passwort: string) =>
+  apiPost<void>("/auth/mein-passwort", { passwort });
 
 export const mitgliedAbmelden = () => apiPost<void>("/auth/abmelden");
 

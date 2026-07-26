@@ -125,3 +125,15 @@ class MeinProfil(BaseModel):
     bild_url: str | None
     gruppe_id: int | None
     funktion_id: int | None
+    email: str | None = None
+    benachrichtigungen_aktiv: bool = False
+    passwort_gesetzt: bool = False
+
+
+class MeinPasswort(BaseModel):
+    passwort: str = Field(min_length=8, max_length=128)
+
+
+class MeinProfilUpdate(BaseModel):
+    email: str | None = None
+    benachrichtigungen_aktiv: bool | None = None
