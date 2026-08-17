@@ -34,28 +34,13 @@
  */
 export const texte = {
   landing: {
-    untertitel:
+    erklaerung:
       "Die digitale Einsatzverwaltung für Feuerwehren und ähnliche Organisationen: " +
       "Einsatzberichte, Dienstbücher, Dienststunden und Fahrzeugbuchungen – papierlos, " +
-      "am Gerätehaus-Tablet und von überall per Login.",
-    mitglied: {
-      titel: "Mitglied",
-      beschreibung:
-        "Per Barcode anmelden und – falls freigegeben – eigene Einsätze, Dienstbuch, " +
-        "Dienststunden oder Fahrzeugbuchungen verwalten.",
-      login: "Mitglieder-Login",
-    },
-    gruppenfuehrer: {
-      titel: "Gruppenführer",
-      beschreibung:
-        "Einsatzberichte, Dienstbucheinträge und Fahrzeugreservierungen einsehen und bearbeiten.",
-      login: "Gruppenführer-Login",
-    },
-    admin: {
-      titel: "Admin",
-      beschreibung: "Personal, Stammdaten und alle Einstellungen verwalten.",
-      login: "Admin-Login",
-    },
+      "am Gerätehaus-Tablet und von überall per Login. Nach der Anmeldung geht es in den " +
+      "eigenen Mitgliederbereich; mit entsprechender Berechtigung von dort aus direkt weiter " +
+      "in den Gruppenführer- oder Admin-Bereich.",
+    anmelden_button: "Anmelden",
     kiosk_hinweis:
       'Du betreust ein Tablet im Gerätehaus? Den Kiosk-Modus-Link dafür erzeugt ein Admin unter "Kiosk-Geräte".',
     api_doku: "API-Dokumentation (Swagger)",
@@ -392,11 +377,10 @@ export const texte = {
     einstellungen: "Einstellungen",
   },
   gruppenfuehrer_login: {
-    titel: "Anmeldung Gruppenführer / Admin",
-    name: "Name",
-    passwort: "Passwort",
-    anmelden: "Anmelden",
-    anmelden_laeuft: "Anmelden …",
+    titel: "Gruppenführer- / Admin-Bereich",
+    pruefung_laeuft: "Zugang wird geprüft …",
+    kein_zugang: "Kein erhöhter Zugang für dieses Konto.",
+    zurueck_zum_mitgliederbereich: "Zurück zum Mitgliederbereich",
     anmeldung_fehler: "Anmeldung fehlgeschlagen.",
     // 2FA-Schritt
     code_titel: "Bestätigungscode",
