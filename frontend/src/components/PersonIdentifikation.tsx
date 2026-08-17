@@ -5,6 +5,7 @@ import {
   useState,
   type Ref,
 } from "react";
+import { Link } from "react-router-dom";
 import {
   barcodeVorschau,
   namePinPruefen,
@@ -17,6 +18,7 @@ import { ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useConfig } from "../context/ConfigContext";
 import { useBarcodeSound } from "../hooks/useBarcodeSound";
+import { istKioskModus } from "../utils/kiosk";
 import { BarcodeEingabe } from "./BarcodeEingabe";
 
 export interface PersonInfo {
@@ -62,6 +64,10 @@ function PersonIdentifikationImpl(
 ) {
   const { config } = useConfig();
   const barcodeModus = config?.modul_barcode_aktiv !== false;
+  // Name+PIN ist nur am Kiosk-Tablet erlaubt – außerhalb (öffentlicher
+  // Mitglieder-Login, direkt aufgerufene Modul-Seiten) gilt ausschließlich der
+  // Name+Passwort-Login unter /mitglied/login.
+  const kioskModus = istKioskModus();
   const { barcodeEinscannenEinmalig, nameLoginEinmalig } = useAuth();
   const { spieleErkannt, spieleFehler } = useBarcodeSound();
 
@@ -113,7 +119,7 @@ function PersonIdentifikationImpl(
 
   // Namenssuche (debounced), nur solange keine Person gewählt ist
   useEffect(() => {
-    if (barcodeModus || gewaehlt) return;
+    if (barcodeModus || !kioskModus || gewaehlt) return;
     const wert = suche.trim();
     if (!wert) {
       setTreffer([]);
@@ -126,20 +132,20 @@ function PersonIdentifikationImpl(
     }, 250);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [suche, gewaehlt, barcodeModus]);
+  }, [suche, gewaehlt, barcodeModus, kioskModus]);
 
   // Profilbild schon bei der Namensauswahl in den Browser-Cache vorladen, damit
   // es nach korrektem PIN sofort (ohne Ladeverzögerung) eingeblendet wird.
   useEffect(() => {
-    if (barcodeModus || !gewaehlt?.bild_url) return;
+    if (barcodeModus || !kioskModus || !gewaehlt?.bild_url) return;
     const img = new Image();
     img.src = gewaehlt.bild_url;
-  }, [gewaehlt, barcodeModus]);
+  }, [gewaehlt, barcodeModus, kioskModus]);
 
   // Live-PIN-Prüfung: das Profilbild erscheint erst, wenn der korrekte PIN
   // eingegeben wurde (nicht schon bei der Namensauswahl).
   useEffect(() => {
-    if (barcodeModus || !gewaehlt || !gewaehlt.pin_gesetzt || !pin) {
+    if (barcodeModus || !kioskModus || !gewaehlt || !gewaehlt.pin_gesetzt || !pin) {
       setPinBestaetigt(null);
       onVorschau?.(null);
       return;
@@ -159,7 +165,7 @@ function PersonIdentifikationImpl(
     }, 400);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pin, gewaehlt, barcodeModus]);
+  }, [pin, gewaehlt, barcodeModus, kioskModus]);
 
   function zuruecksetzen() {
     setBarcode("");
@@ -194,7 +200,7 @@ function PersonIdentifikationImpl(
       setMeldung(
         weg === "mail"
           ? "Ein Link zum Setzen des PINs wurde an die hinterlegte E-Mail geschickt."
-          : "Es wurde eine Freigabe-Anfrage an die Moderatoren geschickt (keine E-Mail hinterlegt)."
+          : "Es wurde eine Freigabe-Anfrage an die Gruppenführer geschickt (keine E-Mail hinterlegt)."
       );
     } catch (err) {
       setMeldung(err instanceof ApiError ? String(err.detail) : "Anfrage fehlgeschlagen.");
@@ -210,6 +216,12 @@ function PersonIdentifikationImpl(
         if (!wert) throw new ApiError(400, "Barcode erforderlich.");
         const name = await barcodeEinscannenEinmalig(wert);
         return name;
+      }
+      if (!kioskModus) {
+        throw new ApiError(
+          400,
+          "Diese Anmeldung ist nur am Kiosk-Tablet verfügbar. Bitte über den persönlichen Login anmelden."
+        );
       }
       if (!gewaehlt) throw new ApiError(400, "Bitte zuerst eine Person auswählen.");
       if (!gewaehlt.pin_gesetzt) {
@@ -249,6 +261,17 @@ function PersonIdentifikationImpl(
           placeholder="Barcode scannen oder eingeben"
           autoFocus={autoFocus}
         />
+      </div>
+    );
+  }
+
+  if (!kioskModus) {
+    return (
+      <div className="person-ident">
+        <p className="text-mute">
+          🔒 Diese Anmeldung ist nur am Kiosk-Tablet verfügbar. Bitte über den{" "}
+          <Link to="/mitglied/login">persönlichen Login</Link> anmelden.
+        </p>
       </div>
     );
   }

@@ -27,6 +27,7 @@ from app.services import (
     einsatz_service,
     formular_service,
     pin_service,
+    pressebericht_service,
     stammdaten_service,
 )
 from app.services.config_service import config_service
@@ -36,18 +37,57 @@ logger = structlog.get_logger(__name__)
 DIVERA_POLL_INTERVALL_SEKUNDEN = 300
 
 
+# Toleranz für den Sentry-Cron-Monitor gegen Deploy-Neustarts/Jitter:
+# - `checkin_margin`: so viele Minuten darf ein Check-in verspätet sein, bevor er
+#   als „verpasst" zählt (deckt den kurzen Scheduler-Ausfall beim Neu-Bauen/Neustart ab).
+# - `failure_issue_threshold`: erst nach so vielen AUFEINANDERFOLGENDEN Ausfällen wird
+#   ein Issue erzeugt → ein einzelner Deploy-Miss löst kein „Cron failure" mehr aus,
+#   ein echter anhaltender Ausfall aber weiterhin.
+CHECKIN_MARGIN_MINUTEN = 5
+FAILURE_ISSUE_THRESHOLD = 2
+# Deploy-Fenster (Minuten), das ein Container-Neustart typischerweise braucht und das
+# ein eng getakteter Minuten-Job komplett überbrücken können soll, ohne ein
+# „Cron failure"-Issue zu erzeugen.
+DEPLOY_FENSTER_MINUTEN = 6
+
+
+def _failure_threshold(schedule: dict) -> int:
+    """Für sehr kurz getaktete Intervall-Jobs (Minutentakt) verpasst EIN
+    Deploy-Neustart mehrere AUFEINANDERFOLGENDE Ticks. Damit das kein Issue erzeugt,
+    wird die Schwelle so gewählt, dass ein ~`DEPLOY_FENSTER_MINUTEN`-langer Neustart
+    überbrückt wird (Anzahl verpasster Ticks + 1 Puffer). Langsamere Jobs (crontab,
+    ≥ mehrminütige Intervalle) behalten die strenge Standard-Schwelle – dort ist ein
+    verpasster Lauf bereits ein echtes Signal. Regression: JAVASCRIPT-2Z (der
+    1-Minuten-Job `einsatz-geplanter-abschluss` flappte bei jedem Deploy)."""
+    if schedule.get("type") == "interval" and schedule.get("unit") == "minute":
+        wert = int(schedule.get("value", 1) or 1)
+        if 0 < wert <= 5:
+            verpasste_ticks = -(-DEPLOY_FENSTER_MINUTEN // wert)  # ceil-Division
+            return max(FAILURE_ISSUE_THRESHOLD, verpasste_ticks + 1)
+    return FAILURE_ISSUE_THRESHOLD
+
+
+def _monitor_config(schedule: dict) -> dict:
+    """Baut die Sentry-Monitor-Konfiguration für einen Job (inkl. Deploy-Toleranz)."""
+    return {
+        "schedule": schedule,
+        "timezone": zeit.STANDARD_ZEITZONE,
+        "checkin_margin": CHECKIN_MARGIN_MINUTEN,
+        "failure_issue_threshold": _failure_threshold(schedule),
+        "recovery_threshold": 1,
+    }
+
+
 def _ueberwacht(slug: str, schedule: dict):
     """Dekorator: meldet jeden Lauf des Scheduler-Jobs als Sentry-Cron-Check-in
     (Sentry „Crons"). So erkennt Sentry ausgefallene/verspätete Läufe und misst
     die Laufzeit. Ist Sentry nicht initialisiert (Fehlerberichte aus), ist der
     Check-in ein No-op – der Job läuft unverändert. Job-interne Fehler werden
-    zusätzlich weiterhin über die LoggingIntegration als Issue gemeldet."""
-    monitor_config = {
-        "schedule": schedule,
-        "timezone": zeit.STANDARD_ZEITZONE,
-        "failure_issue_threshold": 1,
-        "recovery_threshold": 1,
-    }
+    zusätzlich weiterhin über die LoggingIntegration als Issue gemeldet.
+
+    Die Monitor-Config toleriert bewusst kurze Deploy-Neustarts (siehe
+    `_monitor_config`), damit nicht jeder Rebuild ein „Cron failure"-Issue erzeugt."""
+    monitor_config = _monitor_config(schedule)
 
     def deko(func):
         @functools.wraps(func)
@@ -147,6 +187,20 @@ async def _einsatz_geplanter_abschluss_job() -> None:
                 await einsatz_service.einsatz_abschliessen(db, einsatz)
         except Exception:
             logger.warning("einsatz_geplanter_abschluss_fehlgeschlagen", exc_info=True)
+
+
+@_ueberwacht("pressebericht-versand", {"type": "interval", "value": 15, "unit": "minute"})
+async def _pressebericht_versand_job() -> None:
+    """Läuft alle 15 min; versendet zeitgesteuerte Presseberichte (Modus 'stunden'
+    bzw. 'uhrzeit'). Modus 'schliessen' läuft direkt beim Einsatz-Abschluss und wird
+    hier nicht berücksichtigt."""
+    async with AsyncSessionLocal() as db:
+        try:
+            gesendet = await pressebericht_service.faellige_presseberichte_versenden(db)
+            if gesendet:
+                logger.info("presseberichte_versendet", anzahl=gesendet)
+        except Exception:
+            logger.warning("pressebericht_versand_job_fehlgeschlagen", exc_info=True)
 
 
 @_ueberwacht("personen-inaktivitaet", {"type": "crontab", "value": "0 0 * * *"})
@@ -376,6 +430,17 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("personen_inaktivitaet_job_registriert", uhrzeit="00:00")
+
+    # Alle 15 min; ob/was versendet wird, entscheidet der Job anhand von
+    # pressebericht_versand_modus (app_config) – so wirken Änderungen ohne Neustart.
+    scheduler.add_job(
+        _pressebericht_versand_job,
+        "interval",
+        minutes=15,
+        id="pressebericht_versand",
+        replace_existing=True,
+    )
+    logger.info("pressebericht_versand_job_registriert")
 
     scheduler.add_job(
         _barcode_erneuerung_job,

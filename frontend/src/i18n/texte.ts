@@ -1,0 +1,996 @@
+/**
+ * Zentrale String-Quelle („leichtes i18n").
+ *
+ * Ziel: feste UI-Texte an EINER Stelle bündeln, damit Wording je Feuerwehr leicht
+ * angepasst und später ggf. übersetzt werden kann. **Deutsch bleibt** die einzige
+ * Sprache – daher bewusst kein i18n-Framework/Hook, sondern ein einfaches, getyptes
+ * Objekt: `import { texte } from "../i18n/texte"` und `texte.<bereich>.<schlüssel>`.
+ *
+ * Konvention:
+ * - Nach Seite/Feature verschachteln (`texte.landing`, `texte.login`, …).
+ * - Nur **statische** Texte hier ablegen; dynamische Werte (Namen, Zahlen, aus
+ *   `config`) bleiben im Component. Für Einsetzungen kleine Funktionen nutzen.
+ * - Migration seitenweise – Bestand bleibt bis dahin inline (kein Big-Bang).
+ *
+ * Migrierte Seiten: `pages/LandingPage.tsx`, `pages/PinSetzen.tsx`, `pages/PersonFreigabe.tsx`,
+ * `pages/KioskHome.tsx`, `pages/mitglied/MitgliedLogin.tsx`, `pages/Start.tsx`,
+ * `pages/NotFound.tsx`, `pages/PersonBildHochladen.tsx`, `pages/ManuelleEintragung.tsx`,
+ * `pages/DienstbuchManuelleEintragung.tsx`, `pages/DienststundenManuelleEintragung.tsx`,
+ * `pages/FahrzeugbuchungManuelleEintragung.tsx`, `pages/gruppenfuehrer/GruppenfuehrerLogin.tsx`,
+ * `pages/gruppenfuehrer/Dashboard.tsx`, `pages/gruppenfuehrer/FormularZusammenfassung.tsx`,
+ * `pages/gruppenfuehrer/ModulUnterseite.tsx`, `pages/gruppenfuehrer/Buchungsmanagement.tsx`,
+ * `pages/gruppenfuehrer/AuditLog.tsx`, `pages/gruppenfuehrer/Systemstatus.tsx`,
+ * `pages/gruppenfuehrer/Update.tsx` (Intro-Absatz mit <code> bewusst inline),
+ * `pages/gruppenfuehrer/Berechtigungen.tsx`, `pages/gruppenfuehrer/PersonKanaele.tsx`,
+ * `pages/gruppenfuehrer/DienstbuchDetailGruppenfuehrer.tsx`,
+ * `pages/gruppenfuehrer/GruppenfuehrerLayout.tsx` (Nav; funktionale ?tab-Keys bleiben literal),
+ * `pages/gruppenfuehrer/KioskGeraete.tsx`, `pages/gruppenfuehrer/Module.tsx`,
+ * `pages/gruppenfuehrer/BarcodeGenerator.tsx`, `pages/gruppenfuehrer/SitzplatzEditor.tsx`,
+ * `pages/gruppenfuehrer/EinsatzDetailGruppenfuehrer.tsx`, `pages/gruppenfuehrer/Einstellungen.tsx`,
+ * `pages/gruppenfuehrer/NotifierEinstellungen.tsx`, `pages/gruppenfuehrer/Listen.tsx`
+ * (Tab-Namen bleiben literal – funktionale ?tab=-Keys), `pages/gruppenfuehrer/Personal.tsx`
+ * (Alias `txt` wegen `.map((t) => …)`-Kollisionen).
+ * Damit ist der gesamte Gruppenführer-Bereich migriert.
+ */
+export const texte = {
+  landing: {
+    erklaerung:
+      "Die digitale Einsatzverwaltung für Feuerwehren und ähnliche Organisationen: " +
+      "Einsatzberichte, Dienstbücher, Dienststunden und Fahrzeugbuchungen – papierlos, " +
+      "am Gerätehaus-Tablet und von überall per Login. Nach der Anmeldung geht es in den " +
+      "eigenen Mitgliederbereich; mit entsprechender Berechtigung von dort aus direkt weiter " +
+      "in den Gruppenführer- oder Admin-Bereich.",
+    anmelden_button: "Anmelden",
+    kiosk_hinweis:
+      'Du betreust ein Tablet im Gerätehaus? Den Kiosk-Modus-Link dafür erzeugt ein Admin unter "Kiosk-Geräte".',
+    api_doku: "API-Dokumentation (Swagger)",
+  },
+  pin_setzen: {
+    titel: "PIN setzen",
+    link_ungueltig: "Link ungültig.",
+    pin_zu_kurz: "Der PIN muss mindestens 4 Zeichen haben.",
+    pins_ungleich: "Die PINs stimmen nicht überein.",
+    fehler_speichern: "PIN konnte nicht gesetzt werden.",
+    fertig: "Dein PIN wurde gesetzt. Du kannst dich jetzt am Gerätehaus mit deinem Namen und PIN anmelden.",
+    link_abgelaufen: "Dieser Link ist abgelaufen oder wurde bereits verwendet.",
+    // „Für <Name> einen persönlichen PIN festlegen." – Name bleibt dynamisch im Component.
+    fuer_person_prefix: "Für",
+    fuer_person_suffix: "einen persönlichen PIN festlegen.",
+    label_pin: "Neuer PIN",
+    label_pin_wiederholen: "PIN wiederholen",
+    speichern_laeuft: "Wird gespeichert…",
+  },
+  passwort_setzen: {
+    titel: "Passwort setzen",
+    link_ungueltig: "Link ungültig.",
+    zu_kurz: "Das Passwort muss mindestens 8 Zeichen haben.",
+    ungleich: "Die Passwörter stimmen nicht überein.",
+    fehler_speichern: "Passwort konnte nicht gesetzt werden.",
+    fertig:
+      "Dein Passwort wurde gesetzt. Du kannst dich jetzt mit deinem Namen und Passwort anmelden.",
+    link_abgelaufen: "Dieser Link ist abgelaufen oder wurde bereits verwendet.",
+    fuer_person_prefix: "Für",
+    fuer_person_suffix: "ein persönliches Passwort festlegen.",
+    label_pw: "Neues Passwort",
+    label_pw_wiederholen: "Passwort wiederholen",
+    speichern_laeuft: "Wird gespeichert…",
+  },
+  person_freigabe: {
+    titel: "Personen-Freigabe",
+    ungueltig: "Freigabe ungültig.",
+    email_pflicht: "Bitte eine E-Mail-Adresse angeben.",
+    pin_zu_kurz: "Der PIN muss mindestens 4 Zeichen haben.",
+    freigeben_fehler: "Freigabe fehlgeschlagen.",
+    ablehnen_fehler: "Ablehnen fehlgeschlagen.",
+    abgelehnt: "Die Anfrage wurde abgelehnt.",
+    nicht_mehr_offen: "Diese Freigabe ist nicht mehr offen.",
+    // Name bleibt dynamisch im Component → Text als Suffix/Prefix.
+    freigegeben_suffix:
+      "wurde freigegeben. Falls kein PIN direkt gesetzt wurde, erhält die Person einen Link zum Setzen des PINs per E-Mail.",
+    ablehnen_frage_prefix: "Anfrage von",
+    ablehnen_frage_suffix: "ablehnen?",
+    hinterlegen_prefix: "Für",
+    hinterlegen_suffix: "eine E-Mail-Adresse hinterlegen (und optional direkt einen PIN setzen).",
+    label_email: "E-Mail-Adresse",
+    label_pin_optional: "PIN (optional)",
+    pin_platzhalter: "Leer lassen, dann setzt die Person ihn selbst",
+    ablehnen: "Ablehnen",
+    ablehnen_laeuft: "Wird abgelehnt…",
+    freigeben: "Freigeben",
+    speichern_laeuft: "Wird gespeichert…",
+  },
+  kiosk: {
+    frage: "Was möchtest du machen?",
+    kacheln: {
+      einsatzbericht: "Einsatzbericht",
+      dienstbuch: "Dienstbuch",
+      dienststunden: "Dienststunden",
+      fahrzeugbuchung: "Fahrzeugbuchung",
+      formulare: "Formulare",
+    },
+  },
+  manuelle_eintragung: {
+    reservierung_fehler: "Reservierung konnte nicht geladen werden.",
+    eintragung_fehler: "Eintragung fehlgeschlagen.",
+    warten_titel: "Kurz gewartet",
+    // „… Bitte warte noch ca. <n> <Minute(n)>, bevor du es erneut versuchst."
+    warten_prefix: "Du hast dich auf diesem Gerät vor Kurzem bereits eingetragen. Bitte warte noch ca.",
+    warten_suffix: ", bevor du es erneut versuchst.",
+    minute: "Minute",
+    minuten: "Minuten",
+    eingetragen_titel: "Eingetragen!",
+    // „Du wurdest für <bezeichnung> im Einsatz „<titel>" eingetragen. …"
+    eingetragen_prefix: "Du wurdest für",
+    eingetragen_mitte: "im Einsatz",
+    eingetragen_suffix: "eingetragen. Du kannst diese Seite jetzt schließen.",
+    bereits_genutzt_titel: "Bereits genutzt",
+    bereits_genutzt_text:
+      "Diese Reservierung wurde bereits verwendet. Bitte am Gerätehaus einen neuen QR-Code erzeugen.",
+    abgelaufen_titel: "Abgelaufen",
+    abgelaufen_text: "Diese Reservierung ist abgelaufen. Bitte am Gerätehaus einen neuen QR-Code erzeugen.",
+    titel: "Ohne Barcode eintragen",
+    einsatz_label: "Einsatz",
+    wer_bist_du: "Wer bist du?",
+    aendern: "Ändern",
+    namen_platzhalter: "Namen eingeben und auswählen…",
+    keine_person:
+      "Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.",
+    kein_pin:
+      "Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich – bitte im Gerätehaus einen persönlichen PIN setzen (lassen).",
+    dein_pin: "Dein PIN",
+    vab: "Verdienstausfallbescheinigung",
+    atemschutz_angelegt: "Atemschutz angelegt",
+    atemschutzminuten_label: "Atemschutzminuten:",
+    bemerkung_label: "Bemerkung (optional)",
+    bemerkung_platzhalter: "Notizen…",
+    speichern_laeuft: "Wird gespeichert…",
+    eintragen: "Eintragen",
+  },
+  dienstbuch_eintragung: {
+    // Ergänzt `manuelle_eintragung` um die Dienstbuch-spezifischen Texte.
+    dienstbuch_label: "Dienstbuch", // Kopf: <label> „<titel>"
+    eingetragen_prefix: "Du wurdest für das Dienstbuch", // … „<titel>" <manuelle_eintragung.eingetragen_suffix>
+    gruppe: "Gruppe",
+    keine_gruppe: "– keine –",
+  },
+  dienststunden_eintragung: {
+    // Ergänzt `manuelle_eintragung` um die Dienststunden-spezifischen Texte.
+    titel: "Dienststunden ohne Barcode eintragen",
+    erfasst_text: "Deine Dienststunden wurden erfasst. Du kannst diese Seite jetzt schließen.",
+    als: "als", // „<name>: <stunden> als <funktion> am <datum>"
+    am: "am",
+    funktion: "Funktion",
+    stunden: "Stunden",
+    datum: "Datum",
+  },
+  fahrzeugbuchung_eintragung: {
+    // Fahrzeugbuchung „anfragen" (nicht „eintragen") – eigene Buttons/Erfolgstexte.
+    titel: "Fahrzeugbuchung ohne Barcode anfragen",
+    anfrage_fehler: "Anfrage konnte nicht gestellt werden.",
+    angefragt_titel: "Anfrage gestellt!",
+    angefragt_text: "Deine Fahrzeugbuchung wurde angefragt. Du kannst diese Seite jetzt schließen.",
+    kein_pin:
+      "Für dich ist kein PIN hinterlegt. Eine Selbst-Buchung ohne PIN ist nicht möglich – bitte im Gerätehaus einen persönlichen PIN setzen (lassen).",
+    fahrzeug: "Fahrzeug",
+    von: "Von",
+    bis: "Bis",
+    zweck: "Zweck",
+    stellen_laeuft: "Wird gestellt…",
+    anfrage_stellen: "Anfrage stellen",
+  },
+  update: {
+    titel: "Update",
+    ladefehler: "Status konnte nicht geladen werden.",
+    ausloesen_fehler: "Update konnte nicht angestoßen werden.",
+    kanal_fehler: "Kanal konnte nicht geändert werden.",
+    installieren_confirm:
+      "Update jetzt installieren? Der Server aktualisiert sich und startet dabei kurz neu.",
+    kanal_titel: "Update-Kanal",
+    stable: "Stable",
+    beta: "Beta",
+    versionsstatus: "Versionsstatus",
+    installierte_version: "Installierte Version",
+    verfuegbare_version: "Verfügbare Version", // gefolgt von (Kanal)
+    veroeffentlicht_am: "Veröffentlicht am",
+    neue_version_verfuegbar: "🆕 Es ist eine neue Version verfügbar.",
+    release_hinweise: "Release-Hinweise ansehen",
+    installieren: "Update installieren",
+    installieren_laeuft: "Update wird angestoßen …",
+    aktuell: "Du bist auf dem neuesten Stand.",
+    erneut_pruefen: "Erneut prüfen",
+  },
+  systemstatus: {
+    titel: "Systemstatus",
+    ladefehler: "Status konnte nicht geladen werden.",
+    aktualisieren: "Aktualisieren",
+    aktualisieren_laeuft: "Aktualisiere …",
+    intro:
+      "Betriebsstatus der Kern-Dienste und geplanten Hintergrund-Jobs. Nur für Admins sichtbar – " +
+      "hilft beim Self-Hosting-Support.",
+    dienste: "Dienste",
+    version: "Version",
+    datenbank: "Datenbank",
+    email_smtp: "E-Mail (SMTP)",
+    objektspeicher: "Objektspeicher (MinIO)",
+    divera: "Divera",
+    hintergrund_jobs: "Hintergrund-Jobs",
+    keine_jobs: "Keine geplanten Jobs.",
+    th_job: "Job",
+    th_naechster_lauf: "Nächster Lauf",
+    // Ampel-/Status-Kurztexte
+    nv: "n/v",
+    ok: "OK",
+    fehler: "Fehler",
+    aktiv: "aktiv",
+    konfiguriert: "konfiguriert",
+    nicht_konfiguriert: "nicht konfiguriert",
+    erreichbar: "erreichbar",
+    nicht_erreichbar: "nicht erreichbar",
+    inaktiv: "inaktiv",
+    laeuft: "läuft",
+    gestoppt: "gestoppt",
+    api_key_gesetzt: "aktiv · API-Key gesetzt",
+    kein_api_key: "aktiv · kein API-Key",
+  },
+  person_kanaele: {
+    kanaele_titel: "Benachrichtigungskanäle",
+    keine_email: "Keine E-Mail bei der Person hinterlegt",
+    aktiv: "aktiv",
+    speichern: "Speichern",
+    gespeichert: "Gespeichert.",
+    speichern_fehler: "Speichern fehlgeschlagen.",
+    abo_fehler: "Abo konnte nicht gesetzt werden.",
+    welche_titel: "Welche Benachrichtigungen?",
+    welche_intro:
+      "Nur abonnierte Ereignisse werden über die aktiven Kanäle oben zugestellt. " +
+      "Angeboten werden nur Ereignisse aktivierter Module.",
+  },
+  dienstbuch_detail: {
+    zurueck: "← Zurück zu den Listen",
+    ladefehler: "Dienstbuch konnte nicht geladen werden.",
+    schliessen_fehler: "Schließen fehlgeschlagen.",
+    oeffnen_fehler: "Wieder öffnen fehlgeschlagen.",
+    markierung_fehler: "Markierung fehlgeschlagen.",
+    // Confirm: „Dienstbuch „<titel>" wieder öffnen?"
+    wieder_oeffnen_confirm_prefix: "Dienstbuch",
+    wieder_oeffnen_confirm_suffix: "wieder öffnen?",
+    geschlossen: "geschlossen",
+    offen: "offen",
+    archiviert: "archiviert",
+    relevant_badge: "★ relevant",
+    als_pdf: "Als PDF exportieren",
+    schliesst_ab: "Schließt ab …",
+    schliessen: "Dienstbuch schließen",
+    oeffnet: "Öffnet …",
+    wieder_oeffnen: "Dienstbuch wieder öffnen",
+    relevant_entfernen: "Relevant-Markierung entfernen",
+    relevant_markieren: "Als relevant markieren",
+    notizen: "Notizen",
+    teilnehmer: "Teilnehmer", // gefolgt von (Anzahl)
+    th_name: "Name",
+    th_gruppe: "Gruppe",
+    th_atemschutz: "Atemschutz (min)",
+    keine_teilnehmer: "Keine Teilnehmer eingetragen.",
+  },
+  berechtigungen: {
+    titel: "Berechtigungen",
+    ladefehler: "Berechtigungen konnten nicht geladen werden.",
+    setzen_fehler: "Berechtigung konnte nicht gesetzt werden.",
+    intro:
+      "Zugriff je Gruppenführer und Modul. Admins haben immer Vollzugriff. Hinweis: Die " +
+      "Berechtigungen werden bereits gepflegt, greifen aber noch nicht (Aktivierung folgt in " +
+      "einem späteren Schritt).",
+    filter_label: "Nach Zugriff auf Modul filtern",
+    alle_anzeigen: "– alle anzeigen –",
+    th_gruppenfuehrer: "Gruppenführer",
+    admin_vollzugriff: "(Admin – Vollzugriff)",
+    keine_treffer: "Keine Gruppenführer mit diesem Zugriff.",
+  },
+  audit_log: {
+    titel: "Audit-Log",
+    ladefehler: "Audit-Log konnte nicht geladen werden.",
+    intro:
+      "Sicherheitsrelevante Aktionen (Löschungen, Freigaben, Rechte- und Zugangsänderungen), " +
+      "neueste zuerst. Nur für Admins sichtbar. Einträge älter als die konfigurierte " +
+      "Aufbewahrungsfrist werden automatisch gelöscht.",
+    filter_label: "Nach Aktion filtern",
+    alle_anzeigen: "– alle anzeigen –",
+    neu_laden: "Neu laden",
+    export_csv: "Export CSV",
+    export_json: "Export JSON",
+    th_zeitpunkt: "Zeitpunkt",
+    th_akteur: "Akteur",
+    th_aktion: "Aktion",
+    th_objekt: "Objekt",
+    th_details: "Details",
+    keine_eintraege: "Keine Einträge.",
+    // Menschlesbare Labels für die maschinellen Aktions-Schlüssel (auch historische).
+    aktionen: {
+      person_geloescht: "Person gelöscht",
+      einsatz_geloescht: "Einsatz gelöscht",
+      buchung_genehmigt: "Buchung genehmigt",
+      buchung_abgelehnt: "Buchung abgelehnt",
+      berechtigung_geaendert: "Berechtigung geändert",
+      moderator_angelegt: "Gruppenführer angelegt",
+      moderator_passwort_geaendert: "Gruppenführer-Passwort geändert",
+      moderator_geloescht: "Gruppenführer gelöscht",
+      modul_flag_geaendert: "Modul-Einstellung geändert",
+    } as Record<string, string>,
+  },
+  buchungsmanagement: {
+    titel: "Buchungsmanagement",
+    ausstehende: "Ausstehende Anfragen", // gefolgt von (Anzahl)
+    keine_ausstehenden: "Keine ausstehenden Anfragen.",
+    zweck: "Zweck:",
+    verantwortlich: "Verantwortlich:",
+    konflikt_mit: "Konflikt mit:",
+    genehmigen: "Genehmigen",
+    ablehnen: "Ablehnen",
+    ablehnungsgrund_platzhalter: "Ablehnungsgrund (optional)",
+    ladefehler: "Buchungen konnten nicht geladen werden.",
+    genehmigen_fehler: "Genehmigen fehlgeschlagen.",
+    ablehnen_fehler: "Ablehnen fehlgeschlagen.",
+  },
+  formular_zusammenfassung: {
+    einreichung_singular: "Einreichung",
+    einreichung_plural: "Einreichungen",
+    durchschnitt: "Durchschnitt:",
+    keine_antworten: "Keine Antworten.",
+  },
+  modul_unterseite: {
+    zurueck: "← Zurück zu den Modulen",
+    unbekannt: "Unbekanntes Modul.",
+  },
+  dashboard: {
+    titel: "Dashboard",
+    ladefehler: "Dashboard konnte nicht geladen werden.",
+    zu_buchungen: "Zu den Buchungen",
+    offene_buchungen: "Offene Buchungen",
+    zu_dienststunden: "Zu Listen → Dienststunden",
+    schwellenwert_ueberschreitungen: "Schwellenwert-Überschreitungen",
+    th_name: "Name",
+    th_funktion: "Funktion",
+    th_stunden: "Stunden",
+    th_schwellenwert: "Schwellenwert",
+    keine_ueberschreitungen: "Keine Überschreitungen.",
+    einsaetze_pro_monat: "Einsätze pro Monat",
+    keine_daten: "Keine Daten.",
+  },
+  gruppenfuehrer_nav: {
+    organisation_fallback: "Gruppenführer",
+    menue_oeffnen: "Menü öffnen",
+    menue: "Menü",
+    schliessen: "Schließen",
+    abmelden: "Abmelden",
+    // Gruppen-Überschriften
+    gruppe_listen: "Listen",
+    gruppe_module: "Module",
+    gruppe_verwaltung: "Verwaltung",
+    // Nav-Einträge (der Pfad ist der funktionale Teil, hier nur Anzeige)
+    dashboard: "Dashboard",
+    buchungen: "Buchungen",
+    uebersicht: "Übersicht",
+    berechtigungen: "Berechtigungen",
+    audit_log: "Audit-Log",
+    systemstatus: "Systemstatus",
+    update: "Update",
+    einstellungen: "Einstellungen",
+  },
+  gruppenfuehrer_login: {
+    titel: "Gruppenführer- / Admin-Bereich",
+    pruefung_laeuft: "Zugang wird geprüft …",
+    kein_zugang: "Kein erhöhter Zugang für dieses Konto.",
+    zurueck_zum_mitgliederbereich: "Zurück zum Mitgliederbereich",
+    anmeldung_fehler: "Anmeldung fehlgeschlagen.",
+    // 2FA-Schritt
+    code_titel: "Bestätigungscode",
+    code_hinweis:
+      "Wir haben dir einen Anmelde-Code per E-Mail geschickt. Gib ihn hier ein (oder verwende einen deiner Recovery-Codes).",
+    code_label: "Code",
+    geraet_vertrauen: "Diesem Gerät 30 Tage vertrauen (kein Code mehr nötig)",
+    pruefe: "Prüfe …",
+    bestaetigen: "Bestätigen",
+    code_ungueltig: "Code ungültig.",
+    // Pflicht-2FA: erzwungene Einrichtung im Login
+    einrichtung_titel: "Zwei-Faktor-Authentisierung einrichten",
+    einrichtung_hinweis:
+      "Für dieses Konto ist Zwei-Faktor-Authentisierung verpflichtend. Richte sie jetzt einmalig ein: Wir schicken dir Anmelde-Codes künftig per E-Mail.",
+    einrichtung_email_label: "E-Mail-Adresse für Codes",
+    einrichtung_button: "2FA einrichten",
+    einrichtung_laeuft: "Richte ein …",
+    einrichtung_fehler: "Einrichtung fehlgeschlagen.",
+    recovery_titel: "Recovery-Codes sichern",
+    recovery_hinweis:
+      "Bewahre diese Codes sicher auf – jeder funktioniert einmalig, falls du keinen E-Mail-Code erhältst. Sie werden nur jetzt angezeigt.",
+    recovery_weiter: "Weiter zur Code-Eingabe",
+  },
+  start: {
+    frage: "Wähle einen Bereich:",
+    kacheln: {
+      einsatztagebuch: "Einsatztagebuch",
+      dienstbuch: "Dienstbuch",
+      dienststunden: "Dienststunden",
+      fahrzeugbuchung: "Fahrzeugbuchung",
+    },
+    pin_einrichten: "PIN einrichten",
+    nur_geraetehaus: "(nur im Gerätehaus)",
+    nicht_im_geraetehaus: "Ich bin nicht im Gerätehaus",
+  },
+  not_found: {
+    titel: "Seite nicht gefunden",
+    zur_startseite: "Zurück zur Startseite",
+  },
+  bild_hochladen: {
+    reservierung_fehler: "Reservierung konnte nicht geladen werden.",
+    upload_fehler: "Foto konnte nicht hochgeladen werden.",
+    gespeichert_titel: "Foto gespeichert!",
+    hochgeladenes_foto_alt: "Hochgeladenes Foto",
+    // „Das Profilfoto für <Name> wurde gespeichert. …" – Name dynamisch.
+    gespeichert_prefix: "Das Profilfoto für",
+    gespeichert_suffix: "wurde gespeichert. Du kannst diese Seite jetzt schließen.",
+    bereits_genutzt_titel: "Bereits genutzt",
+    bereits_genutzt_text:
+      "Dieser QR-Code wurde bereits verwendet. Bitte am Gerätehaus einen neuen erzeugen lassen.",
+    abgelaufen_titel: "Abgelaufen",
+    abgelaufen_text:
+      "Dieser QR-Code ist abgelaufen. Bitte am Gerätehaus einen neuen erzeugen lassen.",
+    // „Profilfoto für <Name>" – Name dynamisch.
+    profilfoto_prefix: "Profilfoto für",
+    hochladen_laeuft: "Wird hochgeladen…",
+    foto_aufnehmen: "Foto aufnehmen oder auswählen",
+  },
+  mitglied_login: {
+    titel: "Mitglieder-Login",
+    // Persönlicher Passwort-Login – einzige Anmeldemöglichkeit auf dieser Seite
+    // (Barcode/PIN sind bewusst nicht mehr verfügbar, nur noch am Kiosk).
+    pw_name_label: "Name",
+    pw_passwort_label: "Passwort",
+    pw_anmelden: "Anmelden",
+    pw_anmelden_laeuft: "Wird angemeldet…",
+    pw_fehler: "Name oder Passwort falsch.",
+    pw_name_fehlt: "Bitte zuerst deinen Namen eingeben.",
+    pw_link_anfordern: "Passwort vergessen oder erstmalig setzen?",
+    pw_link_gesendet:
+      "Falls für diesen Namen eine E-Mail hinterlegt ist, wurde ein Link zum Setzen des Passworts gesendet.",
+  },
+  kiosk_geraete: {
+    titel: "Kiosk-Geräte",
+    intro:
+      "Jedes Tablet im Gerätehaus braucht einen eigenen Link. Diesen Link einmalig als " +
+      "Lesezeichen / Startbildschirm-Symbol auf dem jeweiligen Tablet hinterlegen.",
+    autolock_titel: "Auto-Sperre",
+    autolock_hinweis:
+      "Nach dieser Zeit ohne Bedienung springt das Kiosk-Tablet automatisch zurück zur " +
+      "Startseite (verhindert hängende Sitzungen mit gewählter Person). 0 = aus.",
+    autolock_label: "Sekunden bis Rücksprung",
+    speichern: "Speichern",
+    gespeichert: "✓ gespeichert",
+    bezeichnung_platzhalter: "Bezeichnung (z. B. Tablet Garage)",
+    anlegen: "Anlegen",
+    keine_geraete: "Noch keine Kiosk-Geräte angelegt.",
+    kopieren: "Kopieren",
+    pdf: "PDF",
+    loeschen: "Löschen",
+    individuell_label: "Auf Kiosk anzeigen individuell festlegen",
+    individuell_hinweis_an: "Nur die angehakten Module erscheinen auf diesem Kiosk.",
+    individuell_hinweis_aus: "Nutzt die globale Startseiten-Einstellung der Module.",
+    module_labels: {
+      einsatztagebuch: "Einsatzbericht",
+      dienstbuch: "Dienstbuch",
+      dienststunden: "Dienststunden",
+      fahrzeugbuchung: "Fahrzeugbuchung",
+    },
+    loeschen_bestaetigen:
+      "Diesen Kiosk-Link wirklich löschen? Das Tablet kann sich danach nicht mehr aufrufen.",
+    link_manuell_kopieren: "Link manuell kopieren:",
+    fehler_laden: "Kiosk-Geräte konnten nicht geladen werden.",
+    fehler_speichern: "Speichern fehlgeschlagen.",
+    fehler_anlegen: "Anlegen fehlgeschlagen.",
+    fehler_loeschen: "Löschen fehlgeschlagen.",
+  },
+  module_uebersicht: {
+    titel: "Module",
+    intro_1: "Module ein-/ausschalten und sortieren.",
+    intro_klick: "Auf den Modulnamen klicken",
+    intro_2:
+      ", um die Einstellungen des Moduls (Unterseite) zu öffnen. Die Reihenfolge gilt für die " +
+      "Kiosk-Kacheln und die Navigation. Deaktivierte Module verschwinden aus der Navigation.",
+    suche_platzhalter: "Modul suchen…",
+    keine_treffer: "Keine Module gefunden.",
+    gruppe_intern_titel: "Interne Module",
+    gruppe_intern_hinweis: "Verwaltung & Technik – nicht für Mitglieder sichtbar.",
+    gruppe_mitglieder_titel: "Mitglieder-Module",
+    gruppe_mitglieder_hinweis: "Erscheinen als Kacheln am Kiosk / im Mitglieder-Login.",
+    nach_oben: "Nach oben",
+    nach_unten: "Nach unten",
+    einstellungen_oeffnen: "Einstellungen dieses Moduls öffnen",
+    doku_titel: "Dokumentation dieses Moduls auf GitHub öffnen (passend zur installierten Version)",
+    doku_link: "📖 Doku ↗",
+    intern_badge: "intern",
+    immer_aktiv: "immer aktiv",
+    aktiv: "Aktiv",
+    auf_kiosk_anzeigen: "Auf Kiosk anzeigen",
+    aussenzugriff_erlauben: "Außenzugriff erlauben",
+    fehler_laden: "Module konnten nicht geladen werden.",
+    fehler_aendern: "Modul konnte nicht geändert werden.",
+    fehler_reihenfolge: "Reihenfolge konnte nicht gespeichert werden.",
+  },
+  barcode_generator: {
+    titel: "Barcode-Generierung",
+    intro:
+      "Erzeugt für jede Person einen echten Strichcode (Code128), der ein eindeutiges Geheimnis " +
+      "codiert und 2 Jahre gültig ist. Personen werden unter Stammdaten → Personen verwaltet.",
+    gueltigkeit_label: "Gültigkeitsdauer neuer Barcodes (Tage)",
+    speichert: "Speichert …",
+    speichern: "Speichern",
+    sendet: "Wird gesendet …",
+    alle_senden: "Alle neu generieren & senden",
+    mail_ein: "Mail",
+    mail_mehr: "Mails",
+    versendet: "versendet",
+    fehlgeschlagen_suffix: "fehlgeschlagen",
+    gueltigkeit_hinweis:
+      "Gilt nur für neu erzeugte Barcodes. Bereits ausgegebene Barcodes behalten ihr " +
+      "ursprüngliches Ablaufdatum. „Alle neu generieren & senden“ erneuert alle Barcodes und " +
+      "schickt sie per Mail an Personen mit aktivierten Benachrichtigungen.",
+    download_html: "📥 Alle Barcodes als HTML herunterladen",
+    keine_personen: "Keine Personen angelegt. Siehe Stammdaten → Personen.",
+    gueltig_bis: "Gültig bis",
+    barcode_alt: "Barcode",
+    download_titel: "Barcodes",
+    generieren: "Generieren",
+    drucken: "🖨️ Drucken",
+    fehler_personen: "Personen konnten nicht geladen werden.",
+    fehler_speichern: "Speichern fehlgeschlagen.",
+    fehler_massenversand: "Massenversand fehlgeschlagen.",
+  },
+  sitzplatz_editor: {
+    // Preset-Button-Labels (reine UI). Die Sitzplatz-Bezeichnungen selbst bleiben
+    // literal im Component, da sie als Daten in fahrzeug.sitzplaetze gespeichert werden.
+    preset_labels: {
+      trupp: "Trupp (1+2)",
+      staffel: "Staffel (1+5)",
+      gruppe_2pa: "Gruppe (1+8, 2 PA)",
+      gruppe_4pa: "Gruppe (1+8, 4 PA)",
+    },
+    titel_prefix: "Sitzplätze:",
+    hinweis:
+      "Vorlage wählen, dann Sitzplätze per Ziehen positionieren. Klick auf freie Fläche fügt einen " +
+      "neuen Sitzplatz hinzu, Klick auf einen Sitzplatz erlaubt Umbenennen/Löschen.",
+    vorlage_ersetzen_bestaetigen: "Vorhandene Sitzplätze durch Vorlage ersetzen?",
+    neuer_sitzplatz_prompt: "Bezeichnung des neuen Sitzplatzes:",
+    neuer_sitzplatz_default: "Sitzplatz",
+    umbenennen_prompt: "Neue Bezeichnung:",
+    umbenennen: "Umbenennen",
+    loeschen: "Löschen",
+    funktion_label: "Funktion (Vorschlag beim Scannen)",
+    funktion_keine: "– keine –",
+    abbrechen: "Abbrechen",
+    speichert: "Speichert …",
+    speichern: "Speichern",
+    fehler_speichern: "Speichern fehlgeschlagen.",
+  },
+  einsatz_detail: {
+    zurueck: "← Zurück zu den Listen",
+    badge_archiviert: "archiviert",
+    einsatznummer: "Einsatznummer:",
+    adresse: "Adresse:",
+    meldung: "Meldung:",
+    pdf_export: "Als PDF exportieren",
+    schliesst_ab: "Schließt ab …",
+    abschliessen: "Einsatz abschließen",
+    oeffnet: "Öffnet …",
+    wieder_oeffnen: "Einsatz wieder öffnen",
+    loeschen: "Einsatz löschen",
+    einsatzdetails: "Einsatzdetails",
+    ja: "Ja",
+    teilnehmer: "Teilnehmer",
+    keine_teilnehmer: "Keine Teilnehmer eingetragen.",
+    timeline: "Timeline",
+    keine_ereignisse: "Noch keine Ereignisse protokolliert.",
+    th_name: "Name",
+    th_fahrzeug: "Fahrzeug",
+    th_sitzplatz: "Sitzplatz",
+    th_funktion: "Funktion",
+    th_vab: "VAB",
+    th_atemschutz: "Atemschutz (min)",
+    th_nur_geraetehaus: "Nur Gerätehaus",
+    th_auf_anfahrt: "Auf Anfahrt",
+    th_ohne_barcode: "Ohne Barcode",
+    th_ip_browser: "IP / Browser",
+    th_bemerkung: "Bemerkung",
+    // Bestätigungsdialoge: Einsatztitel wird dynamisch zwischen Prefix/Suffix gesetzt.
+    frage_prefix: "Einsatz „",
+    wieder_oeffnen_frage_suffix: "“ wieder öffnen?",
+    loeschen_frage_suffix:
+      "“ wirklich unwiderruflich löschen? Alle Teilnahmen und Timeline-Einträge werden mit entfernt.",
+    fehler_laden: "Einsatz konnte nicht geladen werden.",
+    fehler_abschliessen: "Abschließen fehlgeschlagen.",
+    fehler_oeffnen: "Wieder öffnen fehlgeschlagen.",
+    fehler_loeschen: "Löschen fehlgeschlagen.",
+  },
+  einstellungen: {
+    // Zwei-Faktor-Verwaltung
+    zwei_faktor_titel: "Zwei-Faktor-Anmeldung (dein Zugang)",
+    zwei_faktor_hinweis:
+      "Bei Aktivierung wird beim Login von einem neuen Gerät zusätzlich ein per E-Mail " +
+      "gesendeter Code abgefragt. Voraussetzung ist eine hinterlegte E-Mail-Adresse.",
+    recovery_codes_hinweis: "Recovery-Codes – jetzt sicher notieren (werden nicht erneut angezeigt):",
+    aktiv: "✓ Aktiv",
+    neue_recovery_codes: "Neue Recovery-Codes",
+    deaktivieren: "Deaktivieren",
+    zwei_faktor_email_noetig:
+      "Für 2FA muss zuerst eine E-Mail für deinen Zugang hinterlegt werden (durch einen Admin).",
+    zwei_faktor_aktivieren: "Zwei-Faktor-Anmeldung aktivieren",
+    zwei_faktor_deaktivieren_bestaetigen:
+      "Zwei-Faktor-Authentisierung für deinen Zugang deaktivieren?",
+    fehler_2fa_aktivieren: "2FA konnte nicht aktiviert werden.",
+    fehler_2fa_deaktivieren: "2FA konnte nicht deaktiviert werden.",
+    fehler_codes: "Codes konnten nicht erzeugt werden.",
+    // Haupt-Einstellungen
+    titel: "Einstellungen",
+    gespeichert_banner: "Einstellungen erfolgreich gespeichert",
+    organisation_branding: "Organisation & Branding",
+    org_name_label: "Name der Organisation",
+    basis_url_label: "Öffentliche Adresse (für QR-Codes)",
+    basis_url_platzhalter: "https://geraetehausapp.feuerwehr-musterstadt.de",
+    basis_url_hinweis:
+      "Wird für alle QR-Code-Links genutzt (Barcode vergessen, Profilbild-Upload usw.), statt der " +
+      "aktuellen Browser-Adresse – wichtig, falls das Gerätehaus-Tablet unter einer anderen Adresse " +
+      "erreichbar ist als das Internet.",
+    logo_label: "Logo",
+    logo_alt: "Logo",
+    logo_dark_label: "Logo für Dark Mode (optional)",
+    logo_dark_alt: "Logo (Dark Mode)",
+    logo_dark_hinweis: "Wird im dunklen Design statt des Standard-Logos angezeigt.",
+    primaerfarbe: "Primärfarbe",
+    akzentfarbe: "Akzentfarbe",
+    archivierung: "Archivierung",
+    archivierungszeitraum_label: "Archivierungszeitraum (Jahre)",
+    zwei_faktor_pflicht_titel: "Zwei-Faktor-Pflicht",
+    zwei_faktor_pflicht_label: "2FA für alle erhöhten Konten (Admin/Gruppenführer) verpflichtend",
+    zwei_faktor_pflicht_hinweis:
+      "Ist die Pflicht aktiv, müssen Admins und Gruppenführer ohne aktives 2FA es beim nächsten " +
+      "Login einmalig einrichten (E-Mail hinterlegen + Recovery-Codes sichern), bevor sie hineinkommen.",
+    fehlerberichte: "Fehlerberichte",
+    fehlerberichte_label: "Technische Fehlerberichte an den Entwickler senden",
+    fehlerberichte_hinweis:
+      "Hilft, Bugs über alle Installationen von Gerätehaus.app hinweg schneller zu finden und " +
+      "zu beheben. Es werden nur Stacktraces und technische Fehlerdetails übertragen, keine " +
+      "Namen oder sonstigen Inhalte. Wirkt erst nach einem Neustart des Backend-Containers.",
+    speichern: "Speichern",
+    wartung: "Wartung",
+    archivierung_jetzt: "Archivierung jetzt ausführen",
+    setup_erneut: "Setup-Wizard erneut ausführen",
+    // Aktionen / Toasts / Prompts
+    archiviert_prefix: "Archiviert:",
+    einsaetze: "Einsätze",
+    dienstbuecher: "Dienstbücher",
+    setup_erneut_bestaetigen:
+      "Den Setup-Wizard mit den aktuellen Werten erneut ausführen? Admin-Passwort und " +
+      "Grunddaten werden überschrieben.",
+    setup_passwort_prompt: "Neues Admin-Passwort (mind. 8 Zeichen):",
+    setup_erfolg: "Setup erneut durchgeführt.",
+    fehler_laden: "Einstellungen konnten nicht geladen werden.",
+    fehler_speichern: "Einstellungen konnten nicht gespeichert werden.",
+    fehler_logo: "Logo-Upload fehlgeschlagen.",
+    fehler_archivierung: "Archivierung fehlgeschlagen.",
+    fehler_setup: "Setup fehlgeschlagen.",
+  },
+  notifier_einstellungen: {
+    titel: "Benachrichtigungen konfigurieren",
+    intro: "Stelle hier Telegram, Email und Web Push ein – ganz ohne .env!",
+    gespeichert_banner: "Konfiguration gespeichert",
+    // Telegram
+    telegram_titel: "🤖 Telegram",
+    telegram_aktivieren: "Telegram aktivieren",
+    bot_token: "Bot Token",
+    chat_ids: "Chat-IDs (kommagetrennt)",
+    // Email
+    email_titel: "📧 Email (SMTP)",
+    email_aktivieren: "Email aktivieren",
+    smtp_server: "SMTP Server",
+    smtp_port: "SMTP Port",
+    starttls: "STARTTLS verwenden",
+    email_von: "Von Email-Adresse",
+    email_empfaenger: "Empfänger für Testmail (kommagetrennt)",
+    email_empfaenger_hinweis:
+      "Nur für die Testmail unten. Echte Benachrichtigungen gehen an die Personen, die das " +
+      "in ihren Stammdaten (Personal) individuell aktiviert haben.",
+    benutzername: "Benutzername",
+    passwort: "Passwort",
+    email_pdf_einsatz: "Einsatzbericht (PDF) bei Abschluss automatisch per E-Mail versenden",
+    email_pdf_dienstbuch:
+      "Dienstbuch (PDF) beim automatischen nächtlichen Abschluss per E-Mail versenden",
+    testmail_sendet: "Sendet …",
+    testmail_senden: "Testmail senden",
+    testmail_erfolg: "Testmail wurde gesendet.",
+    testmail_fehler: "Testmail konnte nicht gesendet werden.",
+    // Drucker
+    drucker_titel: "🖨️ Netzwerkdrucker (IPP)",
+    drucker_hinweis:
+      "Druckt das Einsatz-/Dienstbuch-PDF an einen Netzwerkdrucker – als Fallback, wenn der " +
+      "E-Mail-Versand scheitert, und optional bei jedem Abschluss.",
+    drucker_aktivieren: "Netzwerkdrucker aktivieren",
+    drucker_url: "IPP-URL des Druckers",
+    drucker_immer_einsatz:
+      "Einsatzbericht (PDF) bei Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)",
+    drucker_immer_dienstbuch:
+      "Dienstbuch (PDF) beim Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)",
+    testdruck_druckt: "Druckt …",
+    testdruck_senden: "Testdruck senden",
+    testdruck_erfolg: "Testdruck wurde an den Drucker gesendet.",
+    testdruck_fehler: "Testdruck fehlgeschlagen.",
+    // Web Push
+    webpush_titel: "🔔 Web Push (VAPID)",
+    webpush_aktivieren: "Web Push aktivieren",
+    vapid_public: "VAPID Public Key",
+    vapid_private: "VAPID Private Key",
+    vapid_subject: "VAPID Subject (mailto:-Adresse)",
+    vapid_keys_hinweis: "Generiere Keys mit:",
+    vapid_generieren: "Schlüssel generieren",
+    vapid_generieren_laeuft: "Generiere …",
+    vapid_generieren_hinweis:
+      "Erzeugt automatisch ein gültiges VAPID-Schlüsselpaar und speichert es. Danach noch „Speichern“ nicht vergessen und die Subject-Adresse (mailto:) eintragen.",
+    // Ereignisse
+    ereignisse_titel: "🔔 Welche Ereignisse benachrichtigen?",
+    ereignisse_hinweis:
+      "Legt fest, bei welchen Ereignissen überhaupt eine Benachrichtigung verschickt wird.",
+    ereignis_neuer_einsatz: "Einsatz abgeschlossen",
+    ereignis_divera_alarm: "Neuer Einsatz via Divera angelegt",
+    ereignis_neues_dienstbuch: "Neues Dienstbuch",
+    ereignis_buchungsanfrage: "Neue Buchungsanfrage",
+    ereignis_schwellenwert: "Schwellenwert-Überschreitung",
+    ereignis_person_inaktiv: "Person inaktiv (wird bald gelöscht)",
+    speichert: "Wird gespeichert…",
+    speichern: "Konfiguration speichern",
+    fehler_laden: "Fehler beim Laden",
+    fehler_speichern: "Fehler beim Speichern",
+  },
+  listen: {
+    // Tab-Namen selbst bleiben literal (funktionale ?tab=-Keys). Hier nur der übrige UI-Text.
+    fehler_liste: "Liste konnte nicht geladen werden.",
+    filtern: "Filtern",
+    von: "Von",
+    bis: "Bis",
+    ja: "Ja",
+    nein: "Nein",
+    archiviert_alle: "Alle",
+    archiviert_aktive: "Nur aktive",
+    archiviert_archivierte: "Nur archivierte",
+    // Gemeinsame Spaltenköpfe
+    th_titel: "Titel",
+    th_zeitpunkt: "Zeitpunkt",
+    th_quelle: "Quelle",
+    th_status: "Status",
+    th_teilnehmer: "Teilnehmer",
+    th_archiviert: "Archiviert",
+    th_person: "Person",
+    th_funktion: "Funktion",
+    th_stunden: "Stunden",
+    th_datum: "Datum",
+    // Dienstbücher
+    status_alle: "Alle Status",
+    status_offen: "Nur offene",
+    status_geschlossen: "Nur geschlossene",
+    th_eroeffnet: "Eröffnet am",
+    geschlossen: "Geschlossen",
+    offen: "Offen",
+    // Dienststunden
+    alle_eintraege: "Alle Einträge",
+    // Schwellenwert
+    schwellenwert_titel: "Schwellenwert-Überschreitungen",
+    schwellenwert_hinweis:
+      "Personen, die den Schwellenwert ihrer Funktion auch nach Abzug bereits übernommener Stunden " +
+      "noch überschreiten. Übernommene Stunden werden vom Überschuss abgezogen, ohne die " +
+      "Dienststunden-Einträge selbst zu verändern.",
+    keine_ueberschreitungen: "Aktuell keine Überschreitungen.",
+    th_summe: "Summe",
+    th_schwellenwert: "Schwellenwert",
+    th_uebernommen: "Bereits übernommen",
+    th_ueberschuss: "Überschuss",
+    th_stunden_uebernehmen: "Stunden übernehmen",
+    speichert: "Speichert …",
+    uebernehmen: "Übernehmen",
+    fehler_uebernahme: "Übernahme konnte nicht gespeichert werden.",
+    // Buchungen
+    buchung_status_ausstehend: "Ausstehend",
+    buchung_status_genehmigt: "Genehmigt",
+    buchung_status_abgelehnt: "Abgelehnt",
+    buchung_status_zurueckgezogen: "Zurückgezogen",
+    th_fahrzeug: "Fahrzeug",
+    th_zweck: "Zweck",
+    th_verantwortlich: "Verantwortlich",
+    // Formulare
+    fehler_formulare: "Formulare konnten nicht geladen werden.",
+    keine_formulare: "Keine für dich freigegebenen Formulare.",
+    auswertung: "Auswertung",
+    einreichungen: "Einreichungen",
+    keine_einreichungen: "Noch keine Einreichungen.",
+    fehler_daten: "Daten konnten nicht geladen werden.",
+  },
+  personal: {
+    // Ampel-Titel + Kopieren
+    ampel_rot_titel: "Überfällig – lange kein Einsatz/Dienst/Dienststunden",
+    ampel_gelb_titel: "Länger kein Einsatz/Dienst/Dienststunden",
+    ampel_inaktiv_titel: "Als inaktiv markiert – keine Ampel",
+    kopiert: "Kopiert!",
+    kopieren_fehlgeschlagen: "Kopieren fehlgeschlagen – Text manuell kopieren:",
+    // Ereignis-Labels (Verlauf-Filter)
+    ereignis_funktion_geaendert: "Funktion geändert",
+    ereignis_stammdaten_geaendert: "Stammdaten geändert",
+    ereignis_bild_geaendert: "Profilbild geändert",
+    ereignis_pin_gesetzt: "PIN gesetzt",
+    ereignis_pin_gesperrt: "PIN gesperrt",
+    ereignis_pin_entsperrt: "PIN entsperrt",
+    ereignis_pin_verweigert: "PIN-Zugriff verweigert",
+    ereignis_inaktivitaets_warnung: "Inaktivitäts-Warnung",
+    ereignis_dienststunden_erfasst: "Dienststunden erfasst",
+    // Fehler / Toasts / Prompts / Confirms
+    fehler_personen_laden: "Personen konnten nicht geladen werden.",
+    fehler_erster_zugang_pw: "Für den ersten Zugang ein Passwort mit mindestens 8 Zeichen setzen.",
+    fehler_zugang_setzen: "Zugang konnte nicht gesetzt werden.",
+    fehler_zugang_entziehen: "Zugang konnte nicht entzogen werden.",
+    fehler_pw_min: "Passwort mindestens 8 Zeichen.",
+    fehler_pw_setzen: "Passwort konnte nicht gesetzt werden.",
+    fehler_person_anlegen: "Person konnte nicht angelegt werden.",
+    fehler_import: "Import fehlgeschlagen.",
+    fehler_aenderung: "Änderung konnte nicht gespeichert werden.",
+    fehler_gruppe: "Gruppe konnte nicht gespeichert werden.",
+    fehler_funktion: "Funktion konnte nicht gespeichert werden.",
+    fehler_barcode_mail: "Barcode konnte nicht per Mail gesendet werden.",
+    fehler_pin_speichern: "PIN konnte nicht gespeichert werden.",
+    fehler_pin_sperre: "PIN-Sperre konnte nicht aufgehoben werden.",
+    pin_prompt_prefix: "Neuen PIN für ",
+    pin_prompt_suffix: " festlegen (4-6 Ziffern):",
+    pin_wiederholung_prompt: "PIN zur Bestätigung erneut eingeben:",
+    fehler_pin_format: "Der PIN muss aus 4 bis 6 Ziffern bestehen.",
+    fehler_pin_ungleich: "Die beiden Eingaben stimmen nicht überein. Bitte erneut versuchen.",
+    barcode_gesendet_prefix: "Barcode wurde an ",
+    barcode_gesendet_suffix: " gesendet.",
+    zugang_entziehen_frage_prefix: "Erhöhten Zugang von „",
+    zugang_entziehen_frage_suffix: "“ entziehen? Die Person bleibt als Mitglied bestehen.",
+    zwei_fa_reset_frage_prefix: "Zwei-Faktor-Anmeldung von „",
+    zwei_fa_reset_frage_suffix: "“ zurücksetzen?",
+    loeschen_frage_prefix: "Person „",
+    loeschen_frage_suffix:
+      "“ wirklich unwiderruflich löschen? Alle zugehörigen Eintragungen und Daten werden mit entfernt.",
+    // Kopf / Toolbar
+    titel: "Personal",
+    btn_einstellungen: "Personal-Einstellungen",
+    btn_csv_import: "CSV-Import",
+    btn_person_hinzufuegen: "+ Person hinzufügen",
+    suche_platzhalter: "Suche…",
+    schliessen: "Schließen",
+    // CSV-Import
+    import_titel: "Personen per CSV importieren",
+    import_beschreibung_1: "CSV mit den Spalten ",
+    import_beschreibung_2:
+      ". Gruppe und Funktion werden über den Namen zugeordnet (leer = keine). Fehlerhafte " +
+      "Zeilen werden übersprungen und unten aufgelistet.",
+    import_vorlage: "Beispiel-CSV herunterladen",
+    import_startet: "Importiere…",
+    import_starten: "Import starten",
+    import_person_angelegt: "Person(en) angelegt",
+    import_zeilen_uebersprungen: "Zeile(n) übersprungen",
+    zeile: "Zeile",
+    // Person anlegen
+    anlegen_titel: "Person hinzufügen",
+    ph_vorname: "Vorname",
+    ph_zwischenname_optional: "Zwischenname (optional)",
+    ph_zwischenname: "Zwischenname",
+    ph_nachname: "Nachname",
+    barcode_alt: "Barcode",
+    abbrechen: "Abbrechen",
+    anlegen: "Anlegen",
+    lege_an: "Lege Person an …",
+    foto_gespeichert: "Foto gespeichert!",
+    wurde_angelegt: " wurde angelegt.",
+    angelegt_suffix: " angelegt",
+    fertig: "Fertig",
+    foto_scan_hinweis: "Mit dem Handy scannen, um direkt ein Profilfoto aufzunehmen oder hochzuladen.",
+    qr_alt: "QR-Code für Foto-Upload",
+    gueltig_bis: "Gültig bis",
+    ueberspringen: "Überspringen",
+    bild_qr_titel: "Bild per QR-Code hochladen",
+    bild_qr_hinweis_prefix: "Mit dem Handy scannen, um ein Profilfoto für ",
+    bild_qr_hinweis_suffix: " aufzunehmen oder hochzuladen.",
+    // Filter
+    filter_prefix: "⚙ Filter",
+    zuruecksetzen: "Zurücksetzen",
+    filter_keine_mail: "Keine E-Mail hinterlegt",
+    filter_kein_bild: "Kein Profilbild",
+    filter_benachrichtigungen: "Benachrichtigungen erlaubt",
+    filter_alle: "alle",
+    filter_erlaubt: "erlaubt",
+    filter_nicht_erlaubt: "nicht erlaubt",
+    filter_abo: "Abonniert Benachrichtigung",
+    filter_beliebig: "– beliebig –",
+    abo_person: "Person",
+    abo_personen: "Personen",
+    abo_hinweis_rest: "abonniert · 📧 = aktiver Mail-Kanal mit hinterlegter E-Mail",
+    legend_inaktiv: "länger inaktiv",
+    legend_ueberfaellig: "überfällig",
+    mail_kanal_titel: "Aktiver Mail-Kanal mit hinterlegter E-Mail",
+    // Detail-Tabs
+    tab_stammdaten: "Stammdaten",
+    ph_email: "E-Mail",
+    keine_gruppe: "– keine Gruppe –",
+    funktion_titel: "Default-Funktion für Dienststunden",
+    keine_funktion: "– keine Funktion –",
+    inaktiv_titel:
+      "Inaktive Personen erhalten keine Aktivitäts-Ampel und keine Ampel-Benachrichtigung. Die " +
+      "automatische Inaktivitäts-Löschung bleibt davon unberührt.",
+    inaktiv_label: "Inaktiv (von der Aktivitäts-Ampel ausnehmen)",
+    bild_hochladen: "Bild hochladen",
+    bild_qr_hochladen: "Bild per QR-Code hochladen",
+    person_loeschen: "Person löschen",
+    tab_zugang: "Zugang",
+    pin_setzen: "PIN setzen",
+    pin_gesetzt: "🔒 PIN gesetzt",
+    kein_pin: "Kein PIN gesetzt",
+    pin_sperre_aufheben: "PIN-Sperre aufheben",
+    pin_gesperrt_hinweis: "⛔ PIN-Login gesperrt (zu viele Fehlversuche)",
+    barcode_erzeugen: "Barcode erzeugen",
+    barcode_mail_senden: "Barcode per Mail senden",
+    email_noetig_titel: "Erst eine E-Mail-Adresse hinterlegen",
+    kopieren: "Kopieren",
+    barcode_deaktiviert: "Das Barcode-Modul ist deaktiviert – die Anmeldung erfolgt über Name + PIN.",
+    tab_benachrichtigungen: "Benachrichtigungen",
+    benachr_email_noetig_titel:
+      "Erst eine E-Mail-Adresse hinterlegen, sonst kommen keine Benachrichtigungen an",
+    benachrichtigungen_aktiv: "Benachrichtigungen aktiv",
+    tab_verlauf: "Verlauf",
+    keine_ereignisse: "Noch keine Ereignisse.",
+    verlauf_filter_label: "Nach Ereignistyp filtern",
+    alle_ereignisse: "Alle Ereignisse",
+    keine_ereignisse_filter: "Keine Ereignisse für diesen Filter.",
+    tab_erhoehter_zugang: "Erhöhter Zugang",
+    erhoehter_zugang_hinweis:
+      "Erhöhter Zugang zum Gruppenführer-/Admin-Bereich (Anmeldung mit Name + Passwort). Der " +
+      "Kiosk-/Mitglied-Zugang per PIN bleibt davon unberührt.",
+    normales_mitglied: "Normales Mitglied",
+    gruppenfuehrer: "Gruppenführer",
+    administrator: "Administrator",
+    ph_login_passwort: "Login-Passwort (mind. 8 Zeichen)",
+    aktuelle_rolle: "Aktuelle Rolle:",
+    rolle_2fa: "2FA",
+    aktiv: "aktiv",
+    inaktiv: "inaktiv",
+    passwort_neu: "Passwort neu setzen",
+    zwei_fa_reset: "2FA zurücksetzen",
+    zugang_entziehen: "Zugang entziehen",
+  },
+  elw: {
+    // Öffentliche Upload-Seite
+    titel: "ELW-Upload",
+    laedt: "Lädt …",
+    einsatz_prefix: "Einsatz:",
+    hinweis:
+      "Hier kannst du Dateien (Einsatzberichte, Fotos usw.) zu diesem Einsatz hochladen. " +
+      "Der Link ist gültig, solange der Einsatz offen ist.",
+    datei_waehlen: "Datei auswählen (Bild oder PDF, max. 10 MB)",
+    hochladen: "Hochladen",
+    laedt_hoch: "Wird hochgeladen …",
+    erfolg_prefix: "Hochgeladen:",
+    weitere_hochladen: "Weitere Datei hochladen",
+    fehler_upload: "Upload fehlgeschlagen.",
+    // Fehlzustände beim Laden
+    geschlossen_titel: "Einsatz abgeschlossen",
+    geschlossen_text: "Der Einsatz ist abgeschlossen – der Upload-Link ist nicht mehr gültig.",
+    ungueltig_titel: "Link ungültig",
+    ungueltig_text: "Dieser Upload-Link ist ungültig oder abgelaufen.",
+    // Admin-Modul-Unterseite
+    admin_titel: "ELW",
+    admin_intro:
+      "Wenn dieses Modul aktiv ist, geht bei jeder Einsatz-Anlage automatisch eine E-Mail an " +
+      "die unten hinterlegte Adresse – mit einem Login-losen Link, über den der Einsatzleitwagen " +
+      "Dateien in den Einsatz-Ordner (Objektspeicher) hochladen kann. Der Link ist gültig, solange " +
+      "der Einsatz offen ist. Voraussetzung: aktives Objektspeicher-Modul (MinIO) und E-Mail-Versand.",
+    email_label: "E-Mail-Adresse des ELW",
+    email_platzhalter: "elw@feuerwehr.example",
+    speichern: "Speichern",
+    fehler_laden: "Einstellungen konnten nicht geladen werden.",
+    fehler_speichern: "Speichern fehlgeschlagen.",
+  },
+} as const;

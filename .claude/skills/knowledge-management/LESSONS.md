@@ -166,3 +166,66 @@ zurückbleiben – Identität gilt nur für die eine Aktion.
 
 - Alle vier Modul-Eintragungen (Einsatz, Dienstbuch, Dienststunden, Fahrzeugbuchung)
 - Jede künftige Kiosk-Aktion mit Personenbezug
+
+## `docker compose run backend <cmd>` startet die KOMPLETTE App (Scheduler-Duplikat!)
+
+### Problem
+
+Ein einmaliger Befehl wie `docker compose run backend '<pip-audit-Einzeiler>'`
+startet **nicht** nur den Befehl – der `ENTRYPOINT ./docker-entrypoint.sh` fährt
+zuerst die volle App hoch (Migrationen + `uvicorn` + **APScheduler**). Der Container
+bleibt dann als `geratehaus-app-backend-run-<hash>` **dauerhaft laufen** (hier 2 Tage),
+mit einem **zweiten Scheduler gegen dieselbe Produktions-DB**.
+
+### Symptom
+
+Ein bereits im Code behobener und als *resolved* markierter Scheduler-Fehler
+(z. B. Sentry `formular_ablauf_job_fehlgeschlagen`, JAVASCRIPT-39) **feuert
+weiter alle 15 min**, obwohl der reguläre `backend-1` den Job sauber ausführt –
+weil das alte Streuner-Image den Job mit veraltetem Code/Query ausführt. Erkennen:
+`docker ps -a | grep -- -run-`.
+
+### Lösung / Prävention
+
+- Streuner entfernen: `docker rm -f geratehaus-app-backend-run-<hash>`.
+- Einmalige Befehle **immer** wie `scripts/test-backend.sh` starten:
+  `docker compose run --rm -T --no-deps --entrypoint sh backend -c '<cmd>'`
+  (überschreibt den App-Entrypoint, räumt via `--rm` auf, keine Deps).
+- Bei „resolved, feuert aber weiter": zuerst auf **verwaiste `-run-`-Container** prüfen,
+  bevor man erneut im Code sucht.
+
+## Verwaiste Sentry-Cron-Monitor-Umgebung → dauerhaftes „missed check-in"
+
+### Problem
+
+Ein Sentry-Cron-Monitor („Crons") wird **pro `environment` getrennt** ausgewertet.
+Ändert sich das von der App gemeldete `environment`, bleibt die alte Umgebung als
+**verwaiste Dimension** am Monitor zurück: Dort kommen KEINE Check-ins mehr an, also
+meldet Sentry für sie **jede geplante Ausführung als „missed check-in"** – dauerhaft.
+Am aggressivsten beim **1-Minuten-Job** (`einsatz-geplanter-abschluss`).
+
+### Konkreter Fall (11.07.2026, JAVASCRIPT-2Z)
+
+Vor dem Version-Fix (`installierte_version()` aus `pyproject.toml`, Commit 073a40f)
+meldete sich die beta-Instanz fälschlich als `environment=production` (dist-info
+0.4.0). Dadurch entstand am Monitor eine `production`-Umgebung. Nach dem Fix checkt der
+Container korrekt als `beta` ein → `production` verwaist und feuert endlos „missed".
+`get_monitor_details` zeigt es klar: `beta` = Status ok (jede Minute), `production` =
+Status error, letzter Check-in am Deploy-Zeitpunkt des Version-Fixes.
+
+**Wichtig:** `failure_issue_threshold` (Deploy-Toleranz) hilft hier NICHT – es kommen
+gar keine Check-ins an, nicht nur zu wenige.
+
+### Diagnose & Lösung
+
+- Diagnose: `get_monitor_details(monitorSlug=…)` → Abschnitt „Environments" auf verwaiste
+  Umgebungen (Status error, alter „Last check-in") prüfen; „Recent Check-Ins" zeigt, aus
+  welcher Umgebung tatsächlich eingecheckt wird.
+- **Permanenter Fix nur in der Sentry-UI**: Crons → Monitor → die verwaiste Umgebung
+  (bzw. den Monitor) löschen. Er wird beim nächsten Check-in sauber unter der aktuellen
+  Umgebung neu angelegt. Der Sentry-MCP hat **kein** Monitor-Lösch-Tool (nur
+  `find_monitors`/`get_monitor_details`).
+- Übergangsweise: Issue auf „ignored (untilEscalating)" – echte neue Ausfälle der
+  aktuellen Umgebung tauchen dann wieder auf.
+- Gilt für **alle** Cron-Monitore, die den Umgebungswechsel miterlebt haben
+  (divera-polling, formular-ablauf, backup, divera-personal-sync, einsatz-geplanter-abschluss).

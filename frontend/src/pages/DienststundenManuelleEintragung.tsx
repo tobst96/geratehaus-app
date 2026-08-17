@@ -14,6 +14,7 @@ import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { DienststundenReservierungInfo, FunktionDienststunden, Person } from "../api/types";
 import { formatiereDatum } from "../utils/datum";
 import "./dienststunden/Dienststunden.css";
+import { texte } from "../i18n/texte";
 
 const SCHNELLAUSWAHL_STUNDEN = [0.25, 0.5, 1, 1.5, 2, 3, 4];
 const STEPPER_SCHRITT = 0.25;
@@ -44,6 +45,8 @@ function heuteAlsDatum(): string {
 }
 
 export function DienststundenManuelleEintragung() {
+  const t = texte.manuelle_eintragung;
+  const t2 = texte.dienststunden_eintragung;
   const { token } = useParams<{ token: string }>();
   const [info, setInfo] = useState<DienststundenReservierungInfo | null>(null);
   const [personen, setPersonen] = useState<Person[]>([]);
@@ -78,7 +81,7 @@ export function DienststundenManuelleEintragung() {
         if (funktionenResult.length > 0) setFunktionId(String(funktionenResult[0].id));
       })
       .catch((err) =>
-        setLadeFehler(err instanceof ApiError ? String(err.detail) : "Reservierung konnte nicht geladen werden.")
+        setLadeFehler(err instanceof ApiError ? String(err.detail) : t.reservierung_fehler)
       );
   }, [token]);
 
@@ -120,7 +123,7 @@ export function DienststundenManuelleEintragung() {
       eintragungVermerken();
       setErfolg(true);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Eintragung fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.eintragung_fehler);
     } finally {
       setLaeuft(false);
     }
@@ -130,11 +133,10 @@ export function DienststundenManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Kurz gewartet</h1>
+          <h1>{t.warten_titel}</h1>
           <p>
-            Du hast dich auf diesem Gerät vor Kurzem bereits eingetragen. Bitte warte noch ca.{" "}
-            {gesperrtMinuten} {gesperrtMinuten === 1 ? "Minute" : "Minuten"}, bevor du es erneut
-            versuchst.
+            {t.warten_prefix}{" "}
+            {gesperrtMinuten} {gesperrtMinuten === 1 ? t.minute : t.minuten}{t.warten_suffix}
           </p>
         </div>
       </div>
@@ -161,15 +163,15 @@ export function DienststundenManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Eingetragen!</h1>
+          <h1>{t.eingetragen_titel}</h1>
           {gebucht && (
             <p style={{ fontWeight: 600 }}>
               {gebucht.personName}: {gebucht.stundenText}
-              {gebucht.funktionName ? ` als ${gebucht.funktionName}` : ""} am{" "}
+              {gebucht.funktionName ? ` ${t2.als} ${gebucht.funktionName}` : ""} {t2.am}{" "}
               {formatiereDatum(gebucht.datum)}
             </p>
           )}
-          <p>Deine Dienststunden wurden erfasst. Du kannst diese Seite jetzt schließen.</p>
+          <p>{t2.erfasst_text}</p>
         </div>
       </div>
     );
@@ -179,8 +181,8 @@ export function DienststundenManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Bereits genutzt</h1>
-          <p>Diese Reservierung wurde bereits verwendet. Bitte am Gerätehaus einen neuen QR-Code erzeugen.</p>
+          <h1>{t.bereits_genutzt_titel}</h1>
+          <p>{t.bereits_genutzt_text}</p>
         </div>
       </div>
     );
@@ -190,8 +192,8 @@ export function DienststundenManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Abgelaufen</h1>
-          <p>Diese Reservierung ist abgelaufen. Bitte am Gerätehaus einen neuen QR-Code erzeugen.</p>
+          <h1>{t.abgelaufen_titel}</h1>
+          <p>{t.abgelaufen_text}</p>
         </div>
       </div>
     );
@@ -200,11 +202,11 @@ export function DienststundenManuelleEintragung() {
   return (
     <div className="seite">
       <div className="karte">
-        <h1>Dienststunden ohne Barcode eintragen</h1>
+        <h1>{t2.titel}</h1>
 
         <form onSubmit={absenden}>
           <div className="formular-feld">
-          <label htmlFor="dsme-person">Wer bist du?</label>
+          <label htmlFor="dsme-person">{t.wer_bist_du}</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
               <div
@@ -224,7 +226,7 @@ export function DienststundenManuelleEintragung() {
                 </div>
               <strong>{ausgewaehltePerson.name}</strong>
               <button type="button" className="sekundaer" onClick={() => setAusgewaehltePerson(null)}>
-                Ändern
+                {t.aendern}
               </button>
             </div>
           ) : (
@@ -233,7 +235,7 @@ export function DienststundenManuelleEintragung() {
                 id="dsme-person"
                 value={suche}
                 onChange={(e) => setSuche(e.target.value)}
-                placeholder="Namen eingeben und auswählen…"
+                placeholder={t.namen_platzhalter}
                 autoFocus
               />
               {trefferliste.length > 0 && (
@@ -253,23 +255,18 @@ export function DienststundenManuelleEintragung() {
                 </ul>
               )}
               {suche.trim().length > 0 && trefferliste.length === 0 && (
-                <p className="hinweistext">
-                  Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
-                </p>
+                <p className="hinweistext">{t.keine_person}</p>
               )}
             </>
           )}
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <Fehlertext>
-              Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich –
-              bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
-            </Fehlertext>
+            <Fehlertext>{t.kein_pin}</Fehlertext>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
-              <label htmlFor="dsme-pin">Dein PIN</label>
+              <label htmlFor="dsme-pin">{t.dein_pin}</label>
               <input
                 id="dsme-pin"
                 type="password"
@@ -282,7 +279,7 @@ export function DienststundenManuelleEintragung() {
           )}
 
           <div className="formular-feld">
-            <label htmlFor="dsme-funktion">Funktion</label>
+            <label htmlFor="dsme-funktion">{t2.funktion}</label>
             <select
               id="dsme-funktion"
               value={funktionId}
@@ -298,7 +295,7 @@ export function DienststundenManuelleEintragung() {
           </div>
 
           <div className="formular-feld">
-            <label>Stunden</label>
+            <label>{t2.stunden}</label>
             <div className="stunden-chips">
               {SCHNELLAUSWAHL_STUNDEN.map((w) => (
                 <button
@@ -333,7 +330,7 @@ export function DienststundenManuelleEintragung() {
           </div>
 
           <div className="formular-feld">
-            <label htmlFor="dsme-datum">Datum</label>
+            <label htmlFor="dsme-datum">{t2.datum}</label>
             <input
               id="dsme-datum"
               type="date"
@@ -349,7 +346,7 @@ export function DienststundenManuelleEintragung() {
             type="submit"
             disabled={laeuft || !ausgewaehltePerson || !ausgewaehltePerson.pin_gesetzt || !pin}
           >
-            {laeuft ? "Wird gespeichert…" : "Eintragen"}
+            {laeuft ? t.speichern_laeuft : t.eintragen}
           </button>
         </form>
       </div>

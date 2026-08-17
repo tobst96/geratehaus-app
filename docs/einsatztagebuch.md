@@ -17,7 +17,7 @@ Einsatzbericht als PDF. Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Logi
 - Die Ansicht ist so gebaut, dass sie **ohne Scrollen** auf das Tablet passt;
   Einsatzdetails ggf. über einen Button als Popup.
 
-## Moderator (Liste/Detail)
+## Gruppenführer (Liste/Detail)
 
 - Liste der Einsätze, Detailansicht mit Teilnehmern und Timeline.
 - **PDF-Export**, Einsatz **abschließen / wieder öffnen**, **Einsatz löschen**.

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, status
 
-from app.api.deps import CurrentModerator, DbSession
+from app.api.deps import CurrentGruppenfuehrer, DbSession
 from app.schemas.setup import SetupRequest, SetupStatus
-from app.services import logo_service, setup_service
+from app.services import feature_modul_service, logo_service, setup_service
 from app.services.config_service import config_service
 
 router = APIRouter(prefix="/setup", tags=["setup"])
@@ -13,11 +13,19 @@ async def setup_status(db: DbSession) -> SetupStatus:
     return SetupStatus(ist_eingerichtet=await setup_service.ist_eingerichtet(db))
 
 
+@router.get("/module")
+async def setup_module(db: DbSession) -> list[dict]:
+    """Modul-Metadaten für den Wizard-Auswahlschritt, vor dem ein Gruppenführer
+    existiert – daher ohne Auth. Liefert nur Key/Name/Aktiv-Status, keine
+    schützenswerten Daten; abschaltbare (nicht immer-aktive) Module."""
+    return [m for m in await feature_modul_service.liste(db) if not m["immer_aktiv"]]
+
+
 @router.post("", status_code=status.HTTP_204_NO_CONTENT)
 async def setup_ausfuehren(db: DbSession, daten: SetupRequest) -> None:
-    """Führt den Setup-Wizard aus. Nur erlaubt, solange noch kein Moderator
+    """Führt den Setup-Wizard aus. Nur erlaubt, solange noch kein Gruppenführer
     existiert (First-Run). Für ein erneutes Setup siehe
-    /setup/erneut-ausfuehren im Moderator-Bereich."""
+    /setup/erneut-ausfuehren im Gruppenführer-Bereich."""
     if await setup_service.ist_eingerichtet(db):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -28,9 +36,9 @@ async def setup_ausfuehren(db: DbSession, daten: SetupRequest) -> None:
 
 @router.post("/logo")
 async def setup_logo_hochladen(db: DbSession, datei: UploadFile) -> dict[str, str]:
-    """Logo-Upload während des First-Run-Wizards, vor dem ein Moderator
+    """Logo-Upload während des First-Run-Wizards, vor dem ein Gruppenführer
     existiert. Nach Abschluss des Setups läuft der Upload über
-    /moderator/einstellungen/logo."""
+    /gruppenfuehrer/einstellungen/logo."""
     if await setup_service.ist_eingerichtet(db):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -44,8 +52,8 @@ async def setup_logo_hochladen(db: DbSession, datei: UploadFile) -> dict[str, st
 
 @router.post("/erneut-ausfuehren", status_code=status.HTTP_204_NO_CONTENT)
 async def setup_erneut_ausfuehren(
-    db: DbSession, daten: SetupRequest, _moderator: CurrentModerator
+    db: DbSession, daten: SetupRequest, _gruppenfuehrer: CurrentGruppenfuehrer
 ) -> None:
-    """Erlaubt Moderatoren, den Setup-Wizard nachträglich erneut zu
+    """Erlaubt Gruppenführer, den Setup-Wizard nachträglich erneut zu
     durchlaufen, z. B. bei einer Migration auf eine neue Instanz."""
     await setup_service.setup_durchfuehren(db, daten)

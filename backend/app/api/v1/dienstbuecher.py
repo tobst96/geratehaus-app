@@ -10,7 +10,7 @@ from app.api.deps import (
     require_modul_zugriff,
     require_zugriff,
 )
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.schemas.dienstbuch import (
     AnwesenheitEintrag,
     AnwesenheitOut,
@@ -36,10 +36,10 @@ router = APIRouter(
     ],
 )
 
-# Moderator-Aktionen (Auswertungen, Schließen/Wieder-Öffnen, „relevant") erfordern
+# Gruppenführer-Aktionen (Auswertungen, Schließen/Wieder-Öffnen, „relevant") erfordern
 # das Modul-Recht „dienstbuch" (Admin-Bypass). Kiosk-/Mitglieder-Endpunkte
 # (Anlegen, Teilnehmer, Reservierung) bleiben über require_zugriff erreichbar.
-DienstbuchZugriff = Annotated[Moderator, Depends(require_modul_zugriff("dienstbuch"))]
+DienstbuchZugriff = Annotated[Person, Depends(require_modul_zugriff("dienstbuch"))]
 
 
 @router.get("/letzte", response_model=list[DienstbuchOut])
@@ -56,7 +56,7 @@ async def anlegen(db: DbSession, daten: DienstbuchAnlegen) -> DienstbuchOut:
 @router.get("/relevante-uebersicht", response_model=list[RelevanteDiensteEintrag])
 async def relevante_uebersicht(
     db: DbSession,
-    _moderator: DienstbuchZugriff,
+    _gruppenfuehrer: DienstbuchZugriff,
     von: date | None = None,
     bis: date | None = None,
 ) -> list[RelevanteDiensteEintrag]:
@@ -69,7 +69,7 @@ async def relevante_uebersicht(
 @router.get("/anwesenheit", response_model=AnwesenheitOut)
 async def anwesenheit(
     db: DbSession,
-    _moderator: DienstbuchZugriff,
+    _gruppenfuehrer: DienstbuchZugriff,
     von: date | None = None,
     bis: date | None = None,
 ) -> AnwesenheitOut:
@@ -130,7 +130,7 @@ async def dienstbuch_pdf(db: DbSession, dienstbuch_id: int) -> Response:
 
 
 @router.post("/{dienstbuch_id}/schliessen", response_model=DienstbuchOut)
-async def schliessen(db: DbSession, _moderator: DienstbuchZugriff, dienstbuch_id: int) -> DienstbuchOut:
+async def schliessen(db: DbSession, _gruppenfuehrer: DienstbuchZugriff, dienstbuch_id: int) -> DienstbuchOut:
     dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
     if dienstbuch is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden.")
@@ -138,7 +138,7 @@ async def schliessen(db: DbSession, _moderator: DienstbuchZugriff, dienstbuch_id
 
 
 @router.post("/{dienstbuch_id}/wieder-oeffnen", response_model=DienstbuchOut)
-async def wieder_oeffnen(db: DbSession, _moderator: DienstbuchZugriff, dienstbuch_id: int) -> DienstbuchOut:
+async def wieder_oeffnen(db: DbSession, _gruppenfuehrer: DienstbuchZugriff, dienstbuch_id: int) -> DienstbuchOut:
     dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
     if dienstbuch is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden.")
@@ -147,7 +147,7 @@ async def wieder_oeffnen(db: DbSession, _moderator: DienstbuchZugriff, dienstbuc
 
 @router.patch("/{dienstbuch_id}/relevant", response_model=DienstbuchOut)
 async def relevant_setzen(
-    db: DbSession, _moderator: DienstbuchZugriff, dienstbuch_id: int, daten: RelevantSetzen
+    db: DbSession, _gruppenfuehrer: DienstbuchZugriff, dienstbuch_id: int, daten: RelevantSetzen
 ) -> DienstbuchOut:
     dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
     if dienstbuch is None:
@@ -159,7 +159,7 @@ async def relevant_setzen(
 async def reservierung_anlegen(db: DbSession, dienstbuch_id: int) -> DienstbuchReservierungOut:
     """Erstellt einen Reservierungs-Token für 'Barcode vergessen' im
     Dienstbuch. Bewusst ohne Auth, der Button steht im Kiosk ohne
-    Moderator-Login."""
+    Gruppenführer-Login."""
     dienstbuch = await dienstbuch_service.get_dienstbuch(db, dienstbuch_id)
     if dienstbuch is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dienstbuch nicht gefunden.")

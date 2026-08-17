@@ -19,7 +19,7 @@ class AuditLog(Base):
     zeitpunkt: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    # Benutzername des auslösenden Moderators (kein FK: der Zugang kann später
+    # Benutzername des auslösenden Gruppenführers (kein FK: der Zugang kann später
     # umbenannt/gelöscht werden, das Protokoll soll erhalten bleiben).
     akteur: Mapped[str] = mapped_column(String(255), nullable=False)
     # Maschinenlesbare Aktion, z. B. "person_geloescht", "buchung_genehmigt".

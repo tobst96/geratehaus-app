@@ -16,7 +16,7 @@ vi.mock("../../api/formular", () => ({
   holeOeffentlichesErgebnis: () => Promise.resolve(null),
   formularDateiHochladen: vi.fn(),
 }));
-vi.mock("../moderator/FormularZusammenfassung", () => ({ FormularZusammenfassung: () => null }));
+vi.mock("../gruppenfuehrer/FormularZusammenfassung", () => ({ FormularZusammenfassung: () => null }));
 
 import { FormularAusfuellen } from "./FormularAusfuellen";
 

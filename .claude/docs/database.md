@@ -19,7 +19,7 @@ Migrationen in `backend/alembic/versions/`. Übergeordnet: `.claude/architecture
 | Bereich | Modelle (Tabellen) |
 | --- | --- |
 | Konfiguration | `AppConfig` (`app_config`) |
-| Personen | `Person`, `PersonEreignis` (Timeline), `PersonBildReservierung`, `NamensAbweichung` |
+| Personen | `Person`, `PersonEreignis` (Timeline), `PersonBildReservierung` |
 | Moderator | `Moderator` (Feld `rolle`: `admin` / Gruppenführer) |
 | Einsätze | `Einsatz`, `EinsatzPerson`, `EinsatzEreignis` (Timeline), `EinsatzFeldDefinition` |
 | Dienstbuch | `Dienstbuch`, `DienstbuchPerson`, `DienstbuchReservierung` |
@@ -27,7 +27,7 @@ Migrationen in `backend/alembic/versions/`. Übergeordnet: `.claude/architecture
 | Fahrzeuge/Buchung | `Fahrzeug`, `FahrzeugBuchung`, `FahrzeugbuchungReservierung`, `FahrzeugToken` |
 | Sitzplätze | `SitzplatzReservierung` |
 | Funktionen/Gruppen | `FunktionEinsatz`, `FunktionDienststunden`, `Gruppe` |
-| Tokens | `BarcodeToken`, `KioskToken`, `BuchungAktionToken`, `MitgliedLoginReservierung` |
+| Tokens | `BarcodeToken`, `KioskToken`, `BuchungAktionToken` |
 | Push/Divera | `PushSubscription`, `DiveraVorschlag` |
 
 ## Konventionen

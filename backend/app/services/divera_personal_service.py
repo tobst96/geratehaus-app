@@ -1,7 +1,7 @@
 """Divera-Personal-Abgleich: schlägt neue Personen (in Divera, aber noch nicht
 im System) und E-Mail-Aktualisierungen (für bestehende, per divera_user_id
 oder Name gematchte Personen) vor. Vorschläge werden in DiveraVorschlag
-zwischengespeichert, bis ein Moderator sie über das "Vorschlag"-Popup
+zwischengespeichert, bis ein Gruppenführer sie über das "Vorschlag"-Popup
 übernimmt oder ignoriert (siehe app/api/v1/divera_personal.py)."""
 
 from datetime import datetime, timedelta, timezone

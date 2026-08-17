@@ -55,7 +55,7 @@ class DienstbuchPerson(Base, TimestampMixin):
 
 
 class DienstbuchFeldDefinition(Base, TimestampMixin):
-    """Frei vom Moderator konfigurierbares Zusatzfeld für Dienstbücher (analog
+    """Frei vom Gruppenführer konfigurierbares Zusatzfeld für Dienstbücher (analog
     EinsatzFeldDefinition). Werte selbst liegen pro Dienstbuch in
     Dienstbuch.zusatzfelder (JSONB, keyed by schluessel). Typ ``auswahl`` nutzt
     zusätzlich ``optionen`` (Liste auswählbarer Werte)."""

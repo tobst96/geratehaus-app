@@ -39,12 +39,21 @@ body {
   color: var(--farbe-text);
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* Lange, nicht umbrechbare Strings (E-Mails, URLs, Tokens, Recovery-Codes)
+     dürfen keine Karte über die Viewport-Breite hinaus aufziehen → Ursache des
+     horizontalen Overflows auf schmalen Screens. */
+  overflow-wrap: break-word;
 }
 
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* Defensives Netz gegen horizontalen Overflow einzelner Seiten. `clip` (nicht
+     `hidden`) erzeugt keinen Scroll-Container und lässt `position: sticky`
+     (z. B. die Personal-Suchleiste) unberührt. Breite Tabellen scrollen weiter
+     in ihrem eigenen `.tabelle-scroll`-Wrapper. */
+  overflow-x: clip;
 }
 
 button,
@@ -272,6 +281,92 @@ button.karte:focus-visible {
   align-items: center;
 }
 
+/* Zentrierter Text (Utility) – ersetzt das vielfach kopierte Inline-
+   `{ textAlign: "center" }` (u. a. Karten, Tabellenzellen). */
+.text-center {
+  text-align: center;
+}
+
+/* Kein Zeilenumbruch (Utility) – ersetzt Inline-`{ whiteSpace: "nowrap" }`,
+   v. a. für schmale Tabellenzellen (Datum/Zeit) und Buttons. */
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Toasts (Komponente ToastProvider) – flüchtiges Aktions-Feedback unten mittig,
+   dark-mode-tauglich über die Oberflächen-Variablen. Ersetzt native alert()-Dialoge. */
+.toast-container {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(calc(100% - 24px), 420px);
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--farbe-oberflaeche);
+  color: var(--farbe-text);
+  border: 1px solid var(--farbe-rand);
+  border-left: 4px solid var(--farbe-primaer);
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  pointer-events: auto;
+  animation: toast-ein 0.18s ease-out;
+}
+
+.toast--erfolg {
+  border-left-color: #2e7d32;
+}
+.toast--fehler {
+  border-left-color: #b00020;
+}
+.toast--info {
+  border-left-color: var(--farbe-primaer);
+}
+
+.toast-text {
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--farbe-text-mute);
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0 4px;
+  min-height: 0;
+}
+.toast-close:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+  color: var(--farbe-text);
+}
+
+@keyframes toast-ein {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Seitenfüllender Fehlerzustand (Komponente SeitenFehler) – ersetzt verstreute
    Inline-`color:red`-Blöcke, dark-mode-tauglich über die Oberflächen-Variablen. */
 .seiten-fehler {
@@ -453,7 +548,7 @@ table tr:hover {
 }
 
 
-/* === Moderator-Navigation (Sidebar) ===================================== */
+/* === Gruppenführer-Navigation (Sidebar) ===================================== */
 
 .mod-shell {
   display: flex;
@@ -1014,6 +1109,59 @@ table tr:hover {
 }
 .mitglied-abmelden-link:hover {
   background: var(--farbe-oberflaeche-hover);
+}
+.mitglied-bereichswechsel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  background: var(--farbe-oberflaeche);
+  border: 1px solid var(--farbe-rand);
+  border-radius: 12px;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  transition: border-color 0.15s, transform 0.05s;
+}
+.mitglied-bereichswechsel:active {
+  transform: scale(0.99);
+}
+@media (hover: hover) {
+  .mitglied-bereichswechsel:hover {
+    border-color: var(--farbe-primaer);
+  }
+}
+.mitglied-bereichswechsel-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--farbe-primaer);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mitglied-bereichswechsel-icon svg {
+  width: 56%;
+  height: 56%;
+}
+.mitglied-bereichswechsel-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+.mitglied-bereichswechsel-text strong {
+  font-size: 1.02rem;
+}
+.mitglied-bereichswechsel-pfeil {
+  font-size: 1.3rem;
+  color: var(--farbe-primaer);
+  flex-shrink: 0;
 }
 .mitglied-frage {
   font-size: 1.15rem;

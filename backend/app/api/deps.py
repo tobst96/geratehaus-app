@@ -8,18 +8,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import mitglied_session
 from app.core.security import decode_access_token
 from app.db.session import get_db
-from app.models.moderator import Moderator
 from app.models.person import Person
 from app.services.config_service import config_service
 
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 
-_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/moderator/login", auto_error=False)
+_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/gruppenfuehrer/login", auto_error=False)
 
 
-async def get_current_moderator(
+async def get_current_gruppenfuehrer(
     db: DbSession, token: Annotated[str | None, Depends(_oauth2_scheme)] = None
-) -> Moderator:
+) -> Person:
+    """Der/die im Gruppenführerbereich angemeldete **Person** (Konto). Das JWT trägt
+    im `sub` den eindeutigen `Person.name`; zusätzlich muss die Person „elevated"
+    sein (`gruppenfuehrer_rolle` gesetzt), sonst 401 – eine normale Person ohne erhöhte
+    Rechte kommt so nicht in den Gruppenführerbereich."""
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Nicht angemeldet.",
@@ -30,29 +33,29 @@ async def get_current_moderator(
     payload = decode_access_token(token)
     if payload is None or "sub" not in payload:
         raise credentials_error
-    result = await db.execute(select(Moderator).where(Moderator.username == payload["sub"]))
-    moderator = result.scalar_one_or_none()
-    if moderator is None:
+    result = await db.execute(select(Person).where(Person.name == payload["sub"]))
+    person = result.scalar_one_or_none()
+    if person is None or person.gruppenfuehrer_rolle is None:
         raise credentials_error
-    return moderator
+    return person
 
 
-CurrentModerator = Annotated[Moderator, Depends(get_current_moderator)]
+CurrentGruppenfuehrer = Annotated[Person, Depends(get_current_gruppenfuehrer)]
 
 
-async def get_current_admin(moderator: CurrentModerator) -> Moderator:
-    """Wie CurrentModerator, verlangt zusätzlich die Rolle "admin". Personal,
-    Einstellungen, Punkte und Barcodes sind Admin-only; Gruppenführer sehen
-    nur Einsatzberichte/Dienstbuch/Fahrzeugbuchungen (CurrentModerator)."""
-    if moderator.rolle != "admin":
+async def get_current_admin(person: CurrentGruppenfuehrer) -> Person:
+    """Wie CurrentGruppenfuehrer, verlangt zusätzlich die Rolle "admin". Personal,
+    Einstellungen und Verwaltung sind Admin-only; Gruppenführer sehen nur ihre
+    freigegebenen Bereiche (CurrentGruppenfuehrer + granulare Rechte)."""
+    if person.gruppenfuehrer_rolle != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Nur für Admins zugänglich.",
         )
-    return moderator
+    return person
 
 
-CurrentAdmin = Annotated[Moderator, Depends(get_current_admin)]
+CurrentAdmin = Annotated[Person, Depends(get_current_admin)]
 
 
 async def get_current_person(
@@ -89,7 +92,7 @@ async def require_zugriff(
 ) -> None:
     """Zugriffs-Gate für die (sonst öffentlichen) Daten-Endpunkte: lässt durch, wenn
     mindestens EINE Identität vorliegt – Kiosk-Token (Header `X-Kiosk-Token`),
-    Moderator (Bearer-JWT) oder Mitglied (Namens-Cookie). Verhindert, dass Einsätze/
+    Gruppenführer (Bearer-JWT) oder Mitglied (Namens-Cookie). Verhindert, dass Einsätze/
     Stammdaten/Buchungen anonym über die offene API abgefragt werden.
 
     Phase 1: Der Mitglieder-Cookie ist noch nicht kryptografisch gesichert (per Name
@@ -105,7 +108,7 @@ async def require_zugriff(
     # 2) Mitglied (signierter Namens-Cookie – bloße Präsenz genügt nicht mehr)
     if mitglied_session.lese_name(geraetehaus_name) is not None:
         return
-    # 3) Moderator (signiertes Bearer-JWT genügt fürs Gate)
+    # 3) Gruppenführer (signiertes Bearer-JWT genügt fürs Gate)
     if token:
         payload = decode_access_token(token)
         if payload is not None and "sub" in payload:
@@ -119,7 +122,7 @@ async def require_zugriff(
 
 def require_modul_aktiv(config_schluessel: str):
     """Dependency-Factory: sperrt eine Route, wenn das zugehörige Modul über
-    den Moderator-Bereich deaktiviert wurde (z. B. 'modul_dienstbuch_aktiv')."""
+    den Gruppenführer-Bereich deaktiviert wurde (z. B. 'modul_dienstbuch_aktiv')."""
 
     async def _check(db: DbSession) -> None:
         aktiv = await config_service.get(db, config_schluessel, True)
@@ -133,20 +136,16 @@ def require_modul_aktiv(config_schluessel: str):
 
 
 def require_modul_zugriff(modul_key: str):
-    """Dependency-Factory für das granulare Berechtigungssystem: verlangt, dass der
-    angemeldete Moderator Zugriff auf das Modul `modul_key` hat (Admins immer, via
-    Admin-Bypass in berechtigungs_service). Gibt den Moderator zurück, sonst 403.
+    """Dependency-Factory für das granulare Berechtigungssystem: verlangt, dass die
+    angemeldete (elevated) Person Zugriff auf das Modul `modul_key` hat (Admins
+    immer, via Admin-Bypass in berechtigungs_service). Gibt die Person zurück, sonst 403."""
 
-    Phase 4-Werkzeug: bewusst noch NICHT auf bestehende Endpunkte angewandt – die
-    schrittweise Umstellung (inkl. Datenmigration Rollen→Rechte) erfolgt separat,
-    damit bestehende Zugänge nicht ausgesperrt werden."""
-
-    async def _check(moderator: CurrentModerator, db: DbSession) -> Moderator:
+    async def _check(person: CurrentGruppenfuehrer, db: DbSession) -> Person:
         # lokaler Import vermeidet einen Import-Zyklus (Service nutzt Models/Config)
         from app.services import berechtigungs_service
 
-        if await berechtigungs_service.hat_zugriff(db, moderator, modul_key):
-            return moderator
+        if await berechtigungs_service.hat_zugriff(db, person, modul_key):
+            return person
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Kein Zugriff auf dieses Modul.",

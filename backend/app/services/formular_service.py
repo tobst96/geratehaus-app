@@ -406,7 +406,7 @@ async def _benachrichtige_empfaenger(
             f"Es ist eine neue Einreichung für das Formular {formular.name} eingegangen.\n"
             f"Zeitpunkt: {lokal:%d.%m.%Y %H:%M} Uhr\n\n"
             + "\n".join(zeilen)
-            + (f"\n\nIm System ansehen: {basis}/moderator/module/formular" if basis else "")
+            + (f"\n\nIm System ansehen: {basis}/gruppenfuehrer/module/formular" if basis else "")
         )
         await EmailNotifier().send_an(
             db, formular.email_empfaenger, f"Neue Formular-Einreichung: {formular.name}", nachricht
@@ -428,7 +428,7 @@ async def einreichungen_fuer(db: AsyncSession, formular_id: int) -> list[Formula
 async def einreichungen_out(db: AsyncSession, formular_id: int) -> list[EinreichungOut]:
     """Wie `einreichungen_fuer`, aber als Response-DTOs mit **freigeschalteten**
     Datei-Antworten: `datei`-Werte (`/uploads/formulare/…`) bekommen einen
-    signierten `?token=` angehängt, damit der Moderator die hochgeladene Datei
+    signierten `?token=` angehängt, damit der Gruppenführer die hochgeladene Datei
     öffnen kann (der `/uploads`-Mount lehnt sie ohne Token ab). Der gespeicherte
     Antwort-Snapshot bleibt unverändert (der Token wird nur beim Ausliefern
     erzeugt und würde sonst mit-persistiert und ablaufen)."""
@@ -587,9 +587,24 @@ async def ablauf_zusammenfassungen_versenden(db: AsyncSession) -> int:
     email_aktiv = await config_service.get(db, "notifier_email_aktiv", False)
     gesendet = 0
     for formular in formulare:
-        # Zuerst markieren, damit ein einmal abgelaufenes Formular nicht wiederholt
-        # verarbeitet wird (auch bei fehlendem Empfänger / Mailfehler).
+        # Skalare vorab sichern: nach commit/rollback sind die ORM-Attribute
+        # „expired" und würden beim (synchronen) Logging einen Lazy-Load in der
+        # falschen Umgebung auslösen (MissingGreenlet).
+        formular_id = formular.id
+        # Marker SOFORT und pro Formular persistieren, damit ein einmal abgelaufenes
+        # Formular nicht wiederholt verarbeitet wird – auch wenn der Mailversand unten
+        # scheitert und dabei die Transaktion invalidiert. Früher lag der einzige
+        # commit() am Schleifenende: ein Fehler dort ließ ALLE Marker verloren gehen,
+        # sodass der Job alle 15 min erneut dieselben Formulare fand und fehlschlug.
         formular.zusammenfassung_gesendet_am = jetzt
+        try:
+            await db.commit()
+        except Exception:  # noqa: BLE001
+            await db.rollback()
+            logger.warning(
+                "formular_ablauf_markierung_fehlgeschlagen", formular_id=formular_id, exc_info=True
+            )
+            continue
         if not (formular.email_empfaenger and email_aktiv):
             continue
         try:
@@ -602,8 +617,10 @@ async def ablauf_zusammenfassungen_versenden(db: AsyncSession) -> int:
             )
             gesendet += 1
         except Exception:  # noqa: BLE001
-            logger.warning("formular_ablauf_mail_fehlgeschlagen", formular_id=formular.id, exc_info=True)
-    await db.commit()
+            # Der Marker ist bereits committet; ein Mailfehler darf ihn nicht
+            # zurücknehmen. Transaktion für den nächsten Durchlauf säubern.
+            await db.rollback()
+            logger.warning("formular_ablauf_mail_fehlgeschlagen", formular_id=formular_id, exc_info=True)
     return gesendet
 
 
@@ -681,7 +698,7 @@ async def formular_duplizieren(db: AsyncSession, formular: Formular) -> Formular
         aktiv=False,
         login_erforderlich=formular.login_erforderlich,
         email_empfaenger=formular.email_empfaenger,
-        moderator_sichtbar=formular.moderator_sichtbar,
+        gruppenfuehrer_sichtbar=formular.gruppenfuehrer_sichtbar,
         max_einreichungen=formular.max_einreichungen,
         aufbewahrung_tage=formular.aufbewahrung_tage,
         danke_text=formular.danke_text,
@@ -744,13 +761,25 @@ async def einreichungen_aufbewahrung_bereinigen(db: AsyncSession) -> int:
     )
     geloescht = 0
     for formular in formulare:
+        # Pro Formular committen und Fehler abfangen: so lässt ein Problem bei
+        # einem Formular (das die Transaktion invalidiert) nicht den ganzen Job
+        # scheitern – analog zum Ablauf-Job (vgl. JAVASCRIPT-39).
+        formular_id = formular.id
         grenze = jetzt - timedelta(days=formular.aufbewahrung_tage)
-        res = await db.execute(
-            delete(FormularEinreichung).where(
-                FormularEinreichung.formular_id == formular.id,
-                FormularEinreichung.erstellt_am < grenze,
+        try:
+            res = await db.execute(
+                delete(FormularEinreichung).where(
+                    FormularEinreichung.formular_id == formular_id,
+                    FormularEinreichung.erstellt_am < grenze,
+                )
             )
-        )
-        geloescht += res.rowcount or 0
-    await db.commit()
+            await db.commit()
+            geloescht += res.rowcount or 0
+        except Exception:  # noqa: BLE001
+            await db.rollback()
+            logger.warning(
+                "formular_aufbewahrung_bereinigung_fehlgeschlagen",
+                formular_id=formular_id,
+                exc_info=True,
+            )
     return geloescht

@@ -8,7 +8,6 @@ from sqlalchemy import select
 
 from app.core.security import hash_secret
 from app.models.einsatz import EinsatzPerson
-from app.models.moderator import Moderator
 from app.models.person import Person
 from app.schemas.einsatz import EinsatzAnlegen
 from app.services import ampel_service, einsatz_service, stammdaten_service
@@ -177,10 +176,10 @@ async def test_benachrichtigung_reset_bei_neuer_aktivitaet(db, monkeypatch):
 @pytest.mark.asyncio
 async def test_ampel_endpunkt(client, db):
     await _schwellen(db)
-    db.add(Moderator(username="gf", passwort_hash=hash_secret("geheim123"), rolle="gruppenfuehrer"))
+    db.add(Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer"))
     await db.commit()
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "gf", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "gf", "password": "geheim123"}
     )
     token = login.json()["access_token"]
 
@@ -188,7 +187,7 @@ async def test_ampel_endpunkt(client, db):
     await _einsatz_teilnahme(db, p, 70)
 
     r = await client.get(
-        "/api/v1/moderator/stammdaten/personen/ampel",
+        "/api/v1/gruppenfuehrer/stammdaten/personen/ampel",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert r.status_code == 200
@@ -198,16 +197,16 @@ async def test_ampel_endpunkt(client, db):
 
 @pytest.mark.asyncio
 async def test_person_inaktiv_persistiert(client, db):
-    db.add(Moderator(username="admin", passwort_hash=hash_secret("geheim123"), rolle="admin"))
+    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     token = login.json()["access_token"]
     p = await _person(db, "Max Muster")
 
     r = await client.put(
-        f"/api/v1/moderator/stammdaten/personen/{p.id}",
+        f"/api/v1/gruppenfuehrer/stammdaten/personen/{p.id}",
         headers={"Authorization": f"Bearer {token}"},
         json={"inaktiv": True},
     )
@@ -234,3 +233,36 @@ async def test_auto_loeschung_unabhaengig_von_inaktiv(db):
     verbleibend = {p.name for p in (await db.execute(select(Person))).scalars().all()}
     assert "Ohne Markierung" not in verbleibend
     assert "Inaktiv markiert" not in verbleibend
+
+
+@pytest.mark.asyncio
+async def test_inaktivitaet_ein_fehler_bricht_lauf_nicht_ab(db, monkeypatch):
+    """Robustheit (analog JAVASCRIPT-39/-3B): schlägt die Verarbeitung EINER Person
+    fehl (Fehler invalidiert die Transaktion), läuft der nächtliche Job trotzdem
+    für die übrigen Personen weiter."""
+    from sqlalchemy import text
+
+    await config_service.set(db, "personen_inaktivitaet_tage", 1)
+    alt = datetime.now(timezone.utc) - timedelta(days=100)
+    kaputt = await _person(db, "Kaputt")
+    kaputt.erstellt_am = alt
+    gut = await _person(db, "Gut")
+    gut.erstellt_am = alt
+    await db.commit()
+
+    async def _flaky(_db, person):
+        if person.name == "Kaputt":
+            # Echter DB-Fehler → asyncpg-Transaktion invalidiert.
+            await _db.execute(text("SELECT 1 FROM tabelle_die_es_nicht_gibt"))
+        return datetime(2020, 1, 1, tzinfo=timezone.utc)
+
+    monkeypatch.setattr(stammdaten_service, "_letzte_aktivitaet", _flaky)
+
+    # Job darf NICHT werfen …
+    await stammdaten_service.personen_inaktivitaet_pruefen(db)
+
+    verbleibend = {p.name for p in (await db.execute(select(Person))).scalars().all()}
+    # … „Gut" wurde trotz Fehler bei „Kaputt" verarbeitet (gelöscht) …
+    assert "Gut" not in verbleibend
+    # … und „Kaputt" blieb bestehen (fehlgeschlagen, aber sauber übersprungen).
+    assert "Kaputt" in verbleibend

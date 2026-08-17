@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ApiError } from "../../api/client";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
-import { FormularZusammenfassung } from "../moderator/FormularZusammenfassung";
+import { FormularZusammenfassung } from "../gruppenfuehrer/FormularZusammenfassung";
 import {
   formularDateiHochladen,
   formularEinreichen,
@@ -127,7 +127,7 @@ export function FormularAusfuellen() {
   if (gesendet) {
     return (
       <div style={{ maxWidth: 640, margin: "24px auto", padding: "0 16px" }}>
-        <div className="karte" style={{ textAlign: "center" }}>
+        <div className="karte text-center">
           <h2>Vielen Dank!</h2>
           <p>{formular.danke_text || "Deine Einreichung wurde gespeichert."}</p>
           <Link to="/formulare">← Zu den Formularen</Link>

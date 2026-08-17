@@ -7,7 +7,7 @@ eingebunden werden. Vorgeschlagene Dateien:
 |---|---|
 | `kiosk.png` | Kiosk-Startseite mit Modul-Kacheln |
 | `einsatz.png` | Einsatz-Garage (Fahrzeuge/Sitzplätze) |
-| `dashboard.png` | Moderator-Dashboard |
+| `dashboard.png` | Gruppenführer-Dashboard |
 | `mitglied.png` | Mitglieder-Hub am Smartphone |
 
 **Wichtig – Datenschutz:** Keine echten Personendaten (Namen, E-Mail-Adressen,

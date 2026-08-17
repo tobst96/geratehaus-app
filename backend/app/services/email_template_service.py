@@ -40,11 +40,13 @@ async def render_html(
     nachricht: str,
     aktionen: list[dict[str, str]] | None = None,
     logo_ref: str | None = None,
+    code: str | None = None,
 ) -> str:
     """`aktionen` je Eintrag `{"label": ..., "url": ..., "farbe": "#..."}` für
     Buttons in der Mail. `logo_ref` überschreibt die Logo-Quelle (z. B.
     `cid:logo` für ein inline eingebettetes Logo); ohne Angabe wird die
-    öffentliche absolute Logo-URL verwendet."""
+    öffentliche absolute Logo-URL verwendet. `code` – falls gesetzt – wird als
+    großer, hervorgehobener Block dargestellt (z. B. der 2FA-Anmeldecode)."""
     organisation_name = await config_service.get(db, "organisation_name", "Meine Feuerwehr")
     farbe_primaer = await config_service.get(db, "farbe_primaer", "#FFA633")
     farbe_akzent = await config_service.get(db, "farbe_akzent", "#1A1A1A")
@@ -63,6 +65,7 @@ async def render_html(
         "betreff": betreff,
         "absaetze": nachricht.splitlines(),
         "aktionen": aktionen or [],
+        "code": code,
     }
     return _env.get_template("basis.html").render(**kontext)
 

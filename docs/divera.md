@@ -30,7 +30,7 @@ Personal abgeglichen. Internes, **an-/abschaltbares** Modul. Zu finden unter
 
 - Ein täglicher Job holt Divera-Personal-Vorschläge (neue Personen,
   E-Mail-Abweichungen) und räumt alte Vorschläge auf. Vorschläge werden im
-  Moderator-Bereich bestätigt.
+  Gruppenführer-Bereich bestätigt.
 
 ## Hinweis
 

@@ -11,6 +11,7 @@ import { ApiError } from "../api/client";
 import { eintragungGesperrtMinuten, eintragungVermerken } from "../utils/eintragungssperre";
 import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { Person, ReservierungInfo } from "../api/types";
+import { texte } from "../i18n/texte";
 
 const AGT_MAX_MINUTEN = 35;
 const AGT_DEFAULT_MINUTEN = 30;
@@ -26,6 +27,7 @@ function initialenAus(name: string): string {
 }
 
 export function ManuelleEintragung() {
+  const t = texte.manuelle_eintragung;
   const { token } = useParams<{ token: string }>();
   const [info, setInfo] = useState<ReservierungInfo | null>(null);
   const [personen, setPersonen] = useState<Person[]>([]);
@@ -51,7 +53,7 @@ export function ManuelleEintragung() {
         setPersonen(personenResult);
       })
       .catch((err) =>
-        setLadeFehler(err instanceof ApiError ? String(err.detail) : "Reservierung konnte nicht geladen werden.")
+        setLadeFehler(err instanceof ApiError ? String(err.detail) : t.reservierung_fehler)
       );
   }, [token]);
 
@@ -83,7 +85,7 @@ export function ManuelleEintragung() {
       eintragungVermerken();
       setErfolg(true);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Eintragung fehlgeschlagen.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.eintragung_fehler);
     } finally {
       setLaeuft(false);
     }
@@ -93,11 +95,10 @@ export function ManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Kurz gewartet</h1>
+          <h1>{t.warten_titel}</h1>
           <p>
-            Du hast dich auf diesem Gerät vor Kurzem bereits eingetragen. Bitte warte noch ca.{" "}
-            {gesperrtMinuten} {gesperrtMinuten === 1 ? "Minute" : "Minuten"}, bevor du es erneut
-            versuchst.
+            {t.warten_prefix}{" "}
+            {gesperrtMinuten} {gesperrtMinuten === 1 ? t.minute : t.minuten}{t.warten_suffix}
           </p>
         </div>
       </div>
@@ -124,10 +125,10 @@ export function ManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Eingetragen!</h1>
+          <h1>{t.eingetragen_titel}</h1>
           <p>
-            Du wurdest für <strong>{info.bezeichnung}</strong> im Einsatz „{info.einsatz_titel}“
-            eingetragen. Du kannst diese Seite jetzt schließen.
+            {t.eingetragen_prefix} <strong>{info.bezeichnung}</strong> {t.eingetragen_mitte} „{info.einsatz_titel}“
+            {t.eingetragen_suffix}
           </p>
         </div>
       </div>
@@ -138,8 +139,8 @@ export function ManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Bereits genutzt</h1>
-          <p>Diese Reservierung wurde bereits verwendet. Bitte am Gerätehaus einen neuen QR-Code erzeugen.</p>
+          <h1>{t.bereits_genutzt_titel}</h1>
+          <p>{t.bereits_genutzt_text}</p>
         </div>
       </div>
     );
@@ -149,8 +150,8 @@ export function ManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Abgelaufen</h1>
-          <p>Diese Reservierung ist abgelaufen. Bitte am Gerätehaus einen neuen QR-Code erzeugen.</p>
+          <h1>{t.abgelaufen_titel}</h1>
+          <p>{t.abgelaufen_text}</p>
         </div>
       </div>
     );
@@ -159,15 +160,15 @@ export function ManuelleEintragung() {
   return (
     <div className="seite">
       <div className="karte">
-        <h1>Ohne Barcode eintragen</h1>
+        <h1>{t.titel}</h1>
         <p className="text-mute">
-          {info.bezeichnung} · Einsatz „{info.einsatz_titel}“
+          {info.bezeichnung} · {t.einsatz_label} „{info.einsatz_titel}“
           {info.fahrzeug_name ? ` · ${info.fahrzeug_name}` : ""}
         </p>
 
         <form onSubmit={absenden}>
           <div className="formular-feld">
-          <label htmlFor="me-person">Wer bist du?</label>
+          <label htmlFor="me-person">{t.wer_bist_du}</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
               <div
@@ -187,7 +188,7 @@ export function ManuelleEintragung() {
                 </div>
               <strong>{ausgewaehltePerson.name}</strong>
               <button type="button" className="sekundaer" onClick={() => setAusgewaehltePerson(null)}>
-                Ändern
+                {t.aendern}
               </button>
             </div>
           ) : (
@@ -196,7 +197,7 @@ export function ManuelleEintragung() {
                 id="me-person"
                 value={suche}
                 onChange={(e) => setSuche(e.target.value)}
-                placeholder="Namen eingeben und auswählen…"
+                placeholder={t.namen_platzhalter}
                 autoFocus
               />
               {trefferliste.length > 0 && (
@@ -216,23 +217,18 @@ export function ManuelleEintragung() {
                 </ul>
               )}
               {suche.trim().length > 0 && trefferliste.length === 0 && (
-                <p className="hinweistext">
-                  Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
-                </p>
+                <p className="hinweistext">{t.keine_person}</p>
               )}
             </>
           )}
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <Fehlertext>
-              Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich –
-              bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
-            </Fehlertext>
+            <Fehlertext>{t.kein_pin}</Fehlertext>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
-              <label htmlFor="me-pin">Dein PIN</label>
+              <label htmlFor="me-pin">{t.dein_pin}</label>
               <input
                 id="me-pin"
                 type="password"
@@ -249,7 +245,7 @@ export function ManuelleEintragung() {
               <div className="formular-feld">
                 <label>
                   <input type="checkbox" checked={vab} onChange={(e) => setVab(e.target.checked)} />{" "}
-                  Verdienstausfallbescheinigung
+                  {t.vab}
                 </label>
               </div>
 
@@ -264,14 +260,14 @@ export function ManuelleEintragung() {
                       else if (atemschutzminuten === 0) setAtemschutzminuten(AGT_DEFAULT_MINUTEN);
                     }}
                   />{" "}
-                  Atemschutz angelegt
+                  {t.atemschutz_angelegt}
                 </label>
               </div>
 
               {atemschutzAktiv && (
                 <div className="formular-feld">
                   <label htmlFor="me-atemschutz">
-                    Atemschutzminuten: <strong>{atemschutzminuten}</strong>
+                    {t.atemschutzminuten_label} <strong>{atemschutzminuten}</strong>
                   </label>
                   <input
                     id="me-atemschutz"
@@ -289,13 +285,13 @@ export function ManuelleEintragung() {
           )}
 
           <div className="formular-feld">
-            <label htmlFor="me-bemerkung">Bemerkung (optional)</label>
+            <label htmlFor="me-bemerkung">{t.bemerkung_label}</label>
             <textarea
               id="me-bemerkung"
               rows={2}
               value={bemerkung}
               onChange={(e) => setBemerkung(e.target.value)}
-              placeholder="Notizen…"
+              placeholder={t.bemerkung_platzhalter}
             />
           </div>
 
@@ -305,7 +301,7 @@ export function ManuelleEintragung() {
             type="submit"
             disabled={laeuft || !ausgewaehltePerson || !ausgewaehltePerson.pin_gesetzt || !pin}
           >
-            {laeuft ? "Wird gespeichert…" : "Eintragen"}
+            {laeuft ? t.speichern_laeuft : t.eintragen}
           </button>
         </form>
       </div>

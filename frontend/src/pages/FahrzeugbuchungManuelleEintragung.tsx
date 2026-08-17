@@ -11,6 +11,7 @@ import { holeFahrzeuge } from "../api/stammdaten";
 import { ApiError } from "../api/client";
 import { Ladeanzeige } from "../components/Ladeanzeige";
 import type { Fahrzeug, FahrzeugbuchungReservierungInfo, Person } from "../api/types";
+import { texte } from "../i18n/texte";
 
 function initialenAus(name: string): string {
   return name
@@ -29,6 +30,8 @@ function jetztAlsDatetimeLocal(minutenSpaeter = 0): string {
 }
 
 export function FahrzeugbuchungManuelleEintragung() {
+  const t = texte.manuelle_eintragung;
+  const t2 = texte.fahrzeugbuchung_eintragung;
   const { token } = useParams<{ token: string }>();
   const [info, setInfo] = useState<FahrzeugbuchungReservierungInfo | null>(null);
   const [personen, setPersonen] = useState<Person[]>([]);
@@ -61,7 +64,7 @@ export function FahrzeugbuchungManuelleEintragung() {
         if (buchbar.length > 0) setFahrzeugId(String(buchbar[0].id));
       })
       .catch((err) =>
-        setLadeFehler(err instanceof ApiError ? String(err.detail) : "Reservierung konnte nicht geladen werden.")
+        setLadeFehler(err instanceof ApiError ? String(err.detail) : t.reservierung_fehler)
       );
   }, [token]);
 
@@ -93,7 +96,7 @@ export function FahrzeugbuchungManuelleEintragung() {
       });
       setErfolg(true);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Anfrage konnte nicht gestellt werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t2.anfrage_fehler);
     } finally {
       setLaeuft(false);
     }
@@ -119,8 +122,8 @@ export function FahrzeugbuchungManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Anfrage gestellt!</h1>
-          <p>Deine Fahrzeugbuchung wurde angefragt. Du kannst diese Seite jetzt schließen.</p>
+          <h1>{t2.angefragt_titel}</h1>
+          <p>{t2.angefragt_text}</p>
         </div>
       </div>
     );
@@ -130,8 +133,8 @@ export function FahrzeugbuchungManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Bereits genutzt</h1>
-          <p>Diese Reservierung wurde bereits verwendet. Bitte am Gerätehaus einen neuen QR-Code erzeugen.</p>
+          <h1>{t.bereits_genutzt_titel}</h1>
+          <p>{t.bereits_genutzt_text}</p>
         </div>
       </div>
     );
@@ -141,8 +144,8 @@ export function FahrzeugbuchungManuelleEintragung() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>Abgelaufen</h1>
-          <p>Diese Reservierung ist abgelaufen. Bitte am Gerätehaus einen neuen QR-Code erzeugen.</p>
+          <h1>{t.abgelaufen_titel}</h1>
+          <p>{t.abgelaufen_text}</p>
         </div>
       </div>
     );
@@ -151,11 +154,11 @@ export function FahrzeugbuchungManuelleEintragung() {
   return (
     <div className="seite">
       <div className="karte">
-        <h1>Fahrzeugbuchung ohne Barcode anfragen</h1>
+        <h1>{t2.titel}</h1>
 
         <form onSubmit={absenden}>
           <div className="formular-feld">
-          <label htmlFor="fbme-person">Wer bist du?</label>
+          <label htmlFor="fbme-person">{t.wer_bist_du}</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
               <div
@@ -175,7 +178,7 @@ export function FahrzeugbuchungManuelleEintragung() {
                 </div>
               <strong>{ausgewaehltePerson.name}</strong>
               <button type="button" className="sekundaer" onClick={() => setAusgewaehltePerson(null)}>
-                Ändern
+                {t.aendern}
               </button>
             </div>
           ) : (
@@ -184,7 +187,7 @@ export function FahrzeugbuchungManuelleEintragung() {
                 id="fbme-person"
                 value={suche}
                 onChange={(e) => setSuche(e.target.value)}
-                placeholder="Namen eingeben und auswählen…"
+                placeholder={t.namen_platzhalter}
                 autoFocus
               />
               {trefferliste.length > 0 && (
@@ -204,23 +207,18 @@ export function FahrzeugbuchungManuelleEintragung() {
                 </ul>
               )}
               {suche.trim().length > 0 && trefferliste.length === 0 && (
-                <p className="hinweistext">
-                  Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.
-                </p>
+                <p className="hinweistext">{t.keine_person}</p>
               )}
             </>
           )}
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <Fehlertext>
-              Für dich ist kein PIN hinterlegt. Eine Selbst-Buchung ohne PIN ist nicht möglich –
-              bitte im Gerätehaus einen persönlichen PIN setzen (lassen).
-            </Fehlertext>
+            <Fehlertext>{t2.kein_pin}</Fehlertext>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
-              <label htmlFor="fbme-pin">Dein PIN</label>
+              <label htmlFor="fbme-pin">{t.dein_pin}</label>
               <input
                 id="fbme-pin"
                 type="password"
@@ -233,7 +231,7 @@ export function FahrzeugbuchungManuelleEintragung() {
           )}
 
           <div className="formular-feld">
-            <label htmlFor="fbme-fahrzeug">Fahrzeug</label>
+            <label htmlFor="fbme-fahrzeug">{t2.fahrzeug}</label>
             <select
               id="fbme-fahrzeug"
               value={fahrzeugId}
@@ -249,7 +247,7 @@ export function FahrzeugbuchungManuelleEintragung() {
           </div>
 
           <div className="formular-feld">
-            <label htmlFor="fbme-von">Von</label>
+            <label htmlFor="fbme-von">{t2.von}</label>
             <input
               id="fbme-von"
               type="datetime-local"
@@ -260,7 +258,7 @@ export function FahrzeugbuchungManuelleEintragung() {
           </div>
 
           <div className="formular-feld">
-            <label htmlFor="fbme-bis">Bis</label>
+            <label htmlFor="fbme-bis">{t2.bis}</label>
             <input
               id="fbme-bis"
               type="datetime-local"
@@ -271,7 +269,7 @@ export function FahrzeugbuchungManuelleEintragung() {
           </div>
 
           <div className="formular-feld">
-            <label htmlFor="fbme-zweck">Zweck</label>
+            <label htmlFor="fbme-zweck">{t2.zweck}</label>
             <input id="fbme-zweck" value={zweck} onChange={(e) => setZweck(e.target.value)} required />
           </div>
 
@@ -281,7 +279,7 @@ export function FahrzeugbuchungManuelleEintragung() {
             type="submit"
             disabled={laeuft || !ausgewaehltePerson || !ausgewaehltePerson.pin_gesetzt || !pin}
           >
-            {laeuft ? "Wird gestellt…" : "Anfrage stellen"}
+            {laeuft ? t2.stellen_laeuft : t2.anfrage_stellen}
           </button>
         </form>
       </div>

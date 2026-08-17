@@ -18,14 +18,14 @@ Einsätze, Dienste, Dienststunden und Fahrzeugbuchungen – am Tablet im Geräte
 
 Gerätehaus.app läuft als **Kiosk** auf einem Tablet oder Bildschirm im Gerätehaus: Mitglieder
 identifizieren sich – standardmäßig per **Namensauswahl + persönlichem PIN**, optional (Modul „Barcode")
-per **Barcode-Scan** – und tragen sich für Einsätze, Dienste oder Dienststunden ein. Ein Moderator-Bereich
+per **Barcode-Scan** – und tragen sich für Einsätze, Dienste oder Dienststunden ein. Ein Gruppenführer-Bereich
 verwaltet alle Stammdaten, Personen und Einstellungen. Über den zusätzlichen **öffentlichen
 Mitglieder-Login** lassen sich freigeschaltete Module auch von außerhalb – z. B. vom eigenen Smartphone –
 nutzen.
 
 > **Open-Source-Prinzip:** Kein einziger feuerwehr-spezifischer Wert steht hart im Code. Name, Logo,
 > Farben, Module, Fahrzeuge, Sitzplätze, Funktionen und Zusatzfelder werden beim ersten Start über einen
-> Einrichtungsassistenten festgelegt und sind danach jederzeit im Moderator-Bereich änderbar.
+> Einrichtungsassistenten festgelegt und sind danach jederzeit im Gruppenführer-Bereich änderbar.
 
 ## 📑 Inhalt
 
@@ -60,10 +60,10 @@ Fahrzeuge mit Sitzplätzen, belegte Plätze in Grün, Countdown.
 </td>
 <td width="50%" valign="top">
 
-**Moderator-Dashboard**
+**Gruppenführer-Dashboard**
 Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
 
-<img src="docs/screenshots/dashboard.png" alt="Moderator-Dashboard">
+<img src="docs/screenshots/dashboard.png" alt="Gruppenführer-Dashboard">
 
 </td>
 </tr>
@@ -87,15 +87,18 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
   ein- und ausblendbar; das Kiosk-Gerät wird per Geräte-Token autorisiert (kein Login nötig).
 - **Identifikation per Namensauswahl + PIN** (Standard) – die Person sucht ihren Namen und bestätigt mit
   ihrem persönlichen PIN. Hat sie noch keinen PIN, fordert sie über einen Knopf einen **Self-Service-Link
-  per E-Mail** an; ist keine E-Mail hinterlegt, geht stattdessen eine **Freigabe-Mail an die Moderatoren**
+  per E-Mail** an; ist keine E-Mail hinterlegt, geht stattdessen eine **Freigabe-Mail an die Gruppenführer**
   (Ja/Nein), die dann E-Mail und optional den PIN setzen. Personen ohne PIN werden zusätzlich in einem
   einstellbaren Intervall automatisch per E-Mail erinnert (Modul Personal).
 - **Modul „Barcode" (optional)** – ist es aktiv, identifizieren sich Mitglieder stattdessen per echtem
   **Code128-Strichcode** pro Person (konfigurierbare Gültigkeit); beim Scannen wird das Profilbild groß
   zur Bestätigung angezeigt, **Scan-Töne** geben sofortiges akustisches Feedback. Bestehende Instanzen
   behalten den Barcode-Login bei einem Update automatisch.
-- **Öffentlicher Mitglieder-Login** – Identifikation am eigenen Smartphone per Namensauswahl + PIN bzw.
-  Barcode; Zugriff auf alle für den Außenzugriff freigeschalteten Module, Abmelden jederzeit möglich.
+- **Ein Login für alle** – die persönliche Anmeldung (`/mitglied/login`, Name + Passwort) führt immer
+  in den eigenen Mitgliederbereich mit Zugriff auf alle für den Außenzugriff freigeschalteten Module,
+  Abmelden jederzeit möglich. Wer zusätzlich Gruppenführer- oder Admin-Rechte hat, wechselt von dort per
+  Klick **ohne erneute Passworteingabe** in den entsprechenden Bereich (die 2FA-Pflicht bleibt als
+  Schutzschicht bestehen). Namensauswahl + PIN bzw. Barcode bleiben ausschließlich dem Kiosk vorbehalten.
 - **„Barcode vergessen"** (bei aktivem Barcode-Modul) – erzeugt im Scan-Dialog einen QR-Code für genau
   diese Aktion; die Person scannt ihn mit dem eigenen Handy und trägt sich ohne Barcode ein (kurzlebiger,
   einmalig gültiger Token). Solche Eintragungen sind in Listen und PDF als „ohne Barcode" markiert.
@@ -114,27 +117,29 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
 | **Einsatz-Jahresstatistik** | Zeigt die Einsatzzahl des laufenden Jahres mit Vergleich zum Vorjahr **zum selben Stichtag** (inkl. Startwert bei Einführung mitten im Jahr) |
 | **Dienstbuch** | Schnelles Eintragen in zuletzt eröffnete Dienste; frei konfigurierbare **Zusatzfelder** (Text/Mehrzeilig/Checkbox/**Auswahl**) analog zum Einsatz |
 | **Dienststunden** | Erfassung pro Person/Funktion, kumulierte Übersicht mit konfigurierbaren Schwellenwerten |
-| **Fahrzeugbuchung** | Kalenderansicht mit Konflikterkennung und Moderator-Freigabe; Anfrage-Mails mit **Annehmen/Ablehnen-Buttons** ohne Login; optional **externe iCal-Kalender** (z. B. Divera) als nicht buchbare Fremdtermine überlagern |
+| **Fahrzeugbuchung** | Kalenderansicht mit Konflikterkennung und Gruppenführer-Freigabe; Anfrage-Mails mit **Annehmen/Ablehnen-Buttons** ohne Login; optional **externe iCal-Kalender** (z. B. Divera) als nicht buchbare Fremdtermine überlagern |
+| **Pressebericht** | Konfigurierbarer Einsatz-Pressebericht als PDF (wählbare Inhalte: Grunddaten, einzelne Zusatzfelder, Divera-Infos, Teilnehmer-Zahl und/oder -Namen, Fahrzeuge, MinIO-Ordner-Link); Versand per Mail an die Abonnenten – sofort beim Abschließen, eine bestimmte Anzahl Stunden danach oder täglich zu fester Uhrzeit; zusätzlich Ablage im Objektspeicher und Eintrag in der Einsatz-Timeline |
+| **ELW (Einsatzleitwagen)** | Bei jeder Einsatz-Anlage geht ein **Login-loser Upload-Link** (signiertes Token) an eine fest konfigurierte Adresse; darüber lädt der ELW Dateien (Berichte/Fotos) in den Einsatz-Ordner im Objektspeicher – **gültig, solange der Einsatz offen ist** |
 | **Barcode** | Optionale Identifikation per Code128-Strichcode statt Namensauswahl + PIN; eigene Modul-Unterseite zum Erzeugen/Erneuern und Versenden der Barcodes |
 
 Jedes Modul ist einzeln **aktivierbar**, unabhängig davon auf der Kiosk-Startseite **ein-/ausblendbar**
 und separat für den **Außenzugriff** (Mitglieder-Login) freischaltbar.
 
-### 🛠️ Moderator-Bereich
+### 🛠️ Gruppenführer-Bereich
 
-- **Rollen & Berechtigungen** – Admin und Gruppenführer; Admins sehen alles, für die übrigen Moderatoren
+- **Rollen & Berechtigungen** – Admin und Gruppenführer; Admins sehen alles, für die übrigen Gruppenführer
   lässt sich der Zugriff **pro Modul granular freigeben** (Berechtigungs-Matrix).
 - **Dashboard** mit konfigurierbaren Schwellenwert-Anzeigen für Dienststunden.
 - **Gefilterte Listen** aller Einsätze, Dienstbücher, Dienststunden und Buchungen.
 - **Stammdaten** – Fahrzeuge/Sitzplätze, Funktionen, Einsatz-/Dienstbuch-Zusatzfelder, Personen (inkl.
   Barcodes, **CSV-Import** mit Beispieldatei), Kiosk-Geräte.
-- **Module & Berechtigungen** – zentrale Modul-Übersicht und Rechte-Matrix pro Moderator.
+- **Module & Berechtigungen** – zentrale Modul-Übersicht und Rechte-Matrix pro Gruppenführer.
 - **Benachrichtigungen** – Telegram, E-Mail (SMTP, inkl. Testmail-Button) und Web-Push, vollständig im
-  Moderator-Bereich konfigurierbar. Mails im **HTML-Design der Website**; die Einsatz-Benachrichtigung
+  Gruppenführer-Bereich konfigurierbar. Mails im **HTML-Design der Website**; die Einsatz-Benachrichtigung
   kann PDF-Bericht und Timeline enthalten. **Kanäle und Ereignisse sind pro Person einstellbar** –
   zugestellt wird nur an die freigegebenen Kanäle; die Abo-Auswahl je Person zeigt nur Ereignisse
   **aktivierter Module**. Admin-/Betriebs-Mails (Buchungsanfragen, Backup-Status) lassen sich
-  zusätzlich **pro Moderatoren-Zugang** abonnieren.
+  zusätzlich **pro Gruppenführer-Zugang** abonnieren.
 - **Divera 24/7** – Anbindung (Polling oder Webhook); importiert Alarme als Einsätze (inkl. **Adresse &
   Meldung**), gleicht das **Personal** ab (Vorschläge für neue Mitglieder) und kann Einsätze der letzten
   Tage nachholen. Änderungen wirken ohne Neustart.
@@ -214,7 +219,7 @@ Die App ist danach unter **`http://localhost:9112`** erreichbar (Port über `HTT
 | Logs ansehen | `docker compose logs -f` |
 | App stoppen | `docker compose down` |
 
-Beim allerersten Aufruf – solange die Datenbank leer ist und kein Moderator existiert – startet automatisch
+Beim allerersten Aufruf – solange die Datenbank leer ist und kein Gruppenführer existiert – startet automatisch
 der **Einrichtungsassistent**.
 
 ### Einrichtungsassistent
@@ -224,10 +229,14 @@ Der Wizard fragt in wenigen Schritten die Grunddaten ab:
 1. **Name** der Organisation
 2. **Logo** (optional, PNG oder SVG – PWA-Icons werden automatisch generiert)
 3. **Primär- und Akzentfarbe**
-4. **Admin-Passwort** für den Moderator-Login (mindestens 8 Zeichen)
+4. **Admin-Passwort** für den Gruppenführer-Login (mindestens 8 Zeichen)
+5. **Fahrzeuge** (optional, nur Name – weitere Angaben wie Sitzplätze später im Modul „Fahrzeuge")
+6. **Module** (optional, welche Feature-Module direkt aktiv sein sollen)
+7. **Benachrichtigungen** (optional, Basis-Konfiguration für E-Mail und Web-Push)
 
-Danach ist die App einsatzbereit. Der Wizard kann später über **Einstellungen → Setup-Wizard erneut
-ausführen** wiederholt werden.
+Die Schritte 5–7 sind überspringbar und lassen sich jederzeit später im Gruppenführer-Bereich
+nachholen. Danach ist die App einsatzbereit. Der Wizard kann später über **Einstellungen →
+Setup-Wizard erneut ausführen** wiederholt werden.
 
 ### Erste Schritte nach der Einrichtung
 
@@ -244,15 +253,15 @@ Es gibt bewusst zwei getrennte Konfigurationswege:
 | Wo | Was | Beispiel |
 |---|---|---|
 | `.env` | Rein technische/infrastrukturelle Werte, vor dem Start gesetzt | DB-Zugang, JWT-/Cookie-Secret, HTTP-Port |
-| Moderator-Bereich (UI) | Fachliche/betriebliche Werte, jederzeit live änderbar | Organisationsname, Farben, Logo, Module, Personen, Fahrzeuge, Zusatzfelder, Benachrichtigungen, Divera, Zugänge |
+| Gruppenführer-Bereich (UI) | Fachliche/betriebliche Werte, jederzeit live änderbar | Organisationsname, Farben, Logo, Module, Personen, Fahrzeuge, Zusatzfelder, Benachrichtigungen, Divera, Zugänge |
 
 Alle Variablen in `.env.example` sind kommentiert. Fachliche Werte gehören **nicht** in die `.env` – sie
-werden ausschließlich über den Setup-Wizard bzw. den Moderator-Bereich gepflegt und landen in der
+werden ausschließlich über den Setup-Wizard bzw. den Gruppenführer-Bereich gepflegt und landen in der
 `app_config`-Tabelle.
 
 ### Benachrichtigungen aktivieren
 
-Telegram, E-Mail (SMTP) und Web-Push lassen sich vollständig im Moderator-Bereich unter
+Telegram, E-Mail (SMTP) und Web-Push lassen sich vollständig im Gruppenführer-Bereich unter
 **Benachrichtigungen** konfigurieren – Bot-Token, SMTP-Zugangsdaten und VAPID-Schlüssel werden in der
 Datenbank gespeichert (keine `.env`-Bearbeitung nötig). Ein „Testmail senden"-Button prüft die
 SMTP-Konfiguration direkt. Welche Ereignisse eine Person über welchen Kanal erhält, ist pro Person
@@ -260,7 +269,7 @@ einstellbar.
 
 ### Divera-24/7-Integration
 
-Vollständig im Moderator-Bereich unter **Einstellungen → Divera 24/7** konfigurierbar: Anbindung
+Vollständig im Gruppenführer-Bereich unter **Einstellungen → Divera 24/7** konfigurierbar: Anbindung
 aktivieren, API-Key/Accesskey hinterlegen und Modus wählen (Polling alle 5 Minuten oder Webhook). Für
 den Webhook-Modus die URL
 `https://<deine-instanz>/api/v1/divera/webhook?accesskey=<dein-Accesskey>` bei Divera hinterlegen.
@@ -337,7 +346,7 @@ frontend/   React + Vite PWA
 ```
 
 Der Aufbau innerhalb von `backend/app/` und `frontend/src/` orientiert sich an fachlichen Domänen
-(Einsätze, Dienstbuch, Dienststunden, Buchungen, Personen, Moderator-Bereich) statt an technischen
+(Einsätze, Dienstbuch, Dienststunden, Buchungen, Personen, Gruppenführer-Bereich) statt an technischen
 Schichten.
 
 ## 📄 Lizenz

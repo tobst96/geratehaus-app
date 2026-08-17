@@ -28,28 +28,31 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
-        <h2>Name &amp; Namensabweichungen</h2>
+        <h2>Name</h2>
         <p>
           Dein Name wird in einem Cookie auf deinem Gerät gespeichert, damit er bei jedem Besuch
-          vorausgefüllt ist. Weicht der eingetragene Name vom zuvor gespeicherten Namen ab, wird
-          diese Abweichung serverseitig protokolliert, damit Moderatoren Unstimmigkeiten in den
-          Aufzeichnungen nachvollziehen können.
+          vorausgefüllt ist.
         </p>
       </div>
 
       <div className="karte">
-        <h2>Anmeldung per Name &amp; PIN</h2>
+        <h2>Anmeldung per Name, PIN &amp; Passwort</h2>
         <p>
-          Standardmäßig identifizierst du dich – am Kiosk-Tablet im Gerätehaus ebenso wie beim
-          Zugriff von außerhalb (Mitglieder-Login) – über die Auswahl deines Namens und deinen
-          persönlichen PIN. Der PIN wird ausschließlich als Hash (nicht im Klartext) in der
-          Datenbank gespeichert und dient dazu, dir deine Eintragungen und den Zugriff auf
-          freigegebene Module (z. B. Fahrzeugkalender, eigene Dienststunden) eindeutig zuzuordnen.
+          Am Kiosk-Tablet im Gerätehaus identifizierst du dich über die Auswahl deines Namens und
+          deinen persönlichen PIN (oder per Barcode). Für den persönlichen Login auf deinem eigenen
+          Gerät (Handy/App) meldest du dich mit deinem Namen und einem persönlichen Passwort an. PIN
+          und Passwort werden ausschließlich als Hash (nicht im Klartext) in der Datenbank
+          gespeichert und dienen dazu, dir deine Eintragungen und den Zugriff auf freigegebene
+          Module (z. B. Fahrzeugkalender, eigene Dienststunden) eindeutig zuzuordnen.
+        </p>
+        <p>
+          Dein Passwort legst du über einen Link fest, den du dir an deine hinterlegte
+          E-Mail-Adresse schicken lassen kannst.
         </p>
         <p>
           Hast du noch keinen PIN gesetzt, kannst du dir einen Link zum Setzen deines PINs an deine
           hinterlegte E-Mail-Adresse schicken lassen. Ist keine E-Mail hinterlegt, wird stattdessen
-          eine Freigabe-Anfrage an die Moderatoren deiner Organisation gesendet, die daraufhin eine
+          eine Freigabe-Anfrage an die Gruppenführer deiner Organisation gesendet, die daraufhin eine
           E-Mail-Adresse (und auf Wunsch direkt einen PIN) für dich hinterlegen können. Solange kein
           PIN gesetzt ist, kann an eine hinterlegte E-Mail-Adresse in einstellbaren Abständen eine
           Erinnerung zum Setzen des PINs versendet werden.
@@ -58,6 +61,17 @@ export function Datenschutz() {
           Alternativ kann deine Organisation die Identifikation per persönlichem <strong>Barcode</strong>
           aktivieren; in diesem Fall identifizierst du dich am Kiosk durch Scannen deines Barcodes
           statt per Name und PIN.
+        </p>
+        <p>
+          Für Gruppenführer- und Admin-Zugänge ist eine <strong>Zwei-Faktor-Authentisierung</strong>
+          vorgesehen (standardmäßig verpflichtend): Beim Login wird zusätzlich zum Passwort ein
+          einmaliger Anmelde-Code an die hinterlegte E-Mail-Adresse geschickt. Bei der Einrichtung
+          werden zudem einmalig <strong>Recovery-Codes</strong> angezeigt (als Hash gespeichert), die
+          bei fehlendem E-Mail-Zugriff als Ersatzcode dienen. Auf Wunsch kann ein Gerät für 30 Tage als
+          vertrauenswürdig markiert werden, sodass dort kein erneuter Code nötig ist (technische
+          Kennung in einem Cookie). Von einem bereits per Name+Passwort angemeldeten Mitglied mit
+          Gruppenführer-/Admin-Rechten aus ist der Wechsel in den entsprechenden Bereich ohne erneute
+          Passworteingabe möglich – die Zwei-Faktor-Prüfung bleibt dabei unverändert bestehen.
         </p>
       </div>
 
@@ -129,7 +143,36 @@ export function Datenschutz() {
           E-Mail-Benachrichtigung mit den übermittelten Antworten an eine hinterlegte Adresse versendet
           werden. Formulare können zudem eine ausdrückliche Einwilligung vor dem Absenden verlangen und
           eine Aufbewahrungsfrist haben, nach der die Einreichungen automatisch gelöscht werden. Zugriff
-          auf die Einreichungen haben nur Administratoren bzw. ausdrücklich freigegebene Moderatoren.
+          auf die Einreichungen haben nur Administratoren bzw. ausdrücklich freigegebene Gruppenführer.
+        </p>
+      </div>
+
+      <div className="karte">
+        <h2>Pressebericht (optional)</h2>
+        <p>
+          Ist das optionale Pressebericht-Modul aktiv, wird zu einem Einsatz automatisch ein
+          Pressebericht als PDF erzeugt und per E-Mail an die Personen versendet, die dieses Ereignis
+          in ihren Benachrichtigungskanälen abonniert haben. Welche Angaben der Bericht enthält, legt
+          die Organisation fest – je nach Einstellung u.&nbsp;a. Einsatz-Grunddaten, die Zahl der
+          beteiligten Personen und/oder deren <strong>Namen</strong> sowie die eingesetzten Fahrzeuge
+          mit Besatzung. Der Bericht kann damit personenbezogene Daten enthalten. Sofern das
+          Objektspeicher-Modul aktiv ist, wird er zusätzlich im Einsatz-Ordner abgelegt (siehe
+          „Objektspeicher für Dokumente"). Der Versand erfolgt – je nach Einstellung – sofort beim
+          Abschluss des Einsatzes, eine bestimmte Anzahl Stunden danach oder täglich zu einer festen
+          Uhrzeit.
+        </p>
+      </div>
+
+      <div className="karte">
+        <h2>ELW-Upload (optional)</h2>
+        <p>
+          Ist das optionale ELW-Modul aktiv, wird bei jeder Einsatz-Anlage eine E-Mail mit einem
+          Login-losen Upload-Link an eine fest hinterlegte Adresse (Einsatzleitwagen) gesendet. Über
+          diesen Link können – ohne Anmeldung, aber nur solange der Einsatz offen ist – Dateien
+          (Bilder/PDF) zum Einsatz hochgeladen werden. Diese Dateien werden im Einsatz-Ordner des
+          Objektspeichers abgelegt und können personenbezogene Daten enthalten; jeder Upload wird in
+          der Einsatz-Timeline protokolliert. Der Link ist über ein signiertes Token abgesichert und
+          verliert seine Gültigkeit mit dem Abschluss des Einsatzes.
         </p>
       </div>
 
@@ -137,7 +180,7 @@ export function Datenschutz() {
         <h2>Aufbewahrung &amp; Archivierung</h2>
         <p>
           Einsätze und Dienstbücher werden nach einem von der Organisation festgelegten Zeitraum
-          automatisch archiviert. Archivierte Einträge bleiben für Moderatoren einsehbar, werden
+          automatisch archiviert. Archivierte Einträge bleiben für Gruppenführer einsehbar, werden
           Kameraden aber nicht mehr in den laufenden Listen angezeigt.
         </p>
 

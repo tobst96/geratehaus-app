@@ -1,5 +1,4 @@
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
 from app.models.person import Person
 from app.services import benachrichtigungskanal_service as ks
 from app.services import notifier_service
@@ -15,10 +14,10 @@ async def _person(db, name, email=None):
 
 
 async def _admin_token(client, db):
-    db.add(Moderator(username="admin", passwort_hash=hash_secret("geheim123"), rolle="admin"))
+    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     return login.json()["access_token"]
 
@@ -48,7 +47,7 @@ async def test_benachrichtigungs_uebersicht_endpoint(client, db):
     token = await _admin_token(client, db)
 
     r = await client.get(
-        "/api/v1/moderator/personen/benachrichtigungs-uebersicht",
+        "/api/v1/gruppenfuehrer/personen/benachrichtigungs-uebersicht",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert r.status_code == 200
@@ -155,22 +154,22 @@ async def test_abo_endpoints(client, db):
 
     # Einsatz-Ereignis wird nur bei aktivem Einsatztagebuch-Modul angeboten.
     await config_service.set(db, "modul_einsatztagebuch_aktiv", True)
-    typen = await client.get("/api/v1/moderator/ereignis-typen", headers=h)
+    typen = await client.get("/api/v1/gruppenfuehrer/ereignis-typen", headers=h)
     assert typen.status_code == 200
     assert "benachrichtigung_neuer_einsatz" in {t["key"] for t in typen.json()}
 
     put = await client.put(
-        f"/api/v1/moderator/personen/{person.id}/abos/benachrichtigung_neuer_einsatz",
+        f"/api/v1/gruppenfuehrer/personen/{person.id}/abos/benachrichtigung_neuer_einsatz",
         json={"aktiv": True},
         headers=h,
     )
     assert put.status_code == 204
 
-    abos = await client.get(f"/api/v1/moderator/personen/{person.id}/abos", headers=h)
+    abos = await client.get(f"/api/v1/gruppenfuehrer/personen/{person.id}/abos", headers=h)
     assert abos.status_code == 200 and "benachrichtigung_neuer_einsatz" in abos.json()
 
     ungueltig = await client.put(
-        f"/api/v1/moderator/personen/{person.id}/abos/gibt-es-nicht",
+        f"/api/v1/gruppenfuehrer/personen/{person.id}/abos/gibt-es-nicht",
         json={"aktiv": True},
         headers=h,
     )

@@ -1,4 +1,4 @@
-from app.api.v1.moderator_meta import _version_zu_tag
+from app.api.v1.gruppenfuehrer_meta import _version_zu_tag
 
 
 def test_version_zu_tag():

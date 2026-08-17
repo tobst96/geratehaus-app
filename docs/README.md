@@ -14,6 +14,8 @@ Version.
 ## Interne Module (an-/abschaltbar)
 - [MinIO](minio.md) – Objektspeicher, Dokumentablage, Dateibrowser
 - [Divera 24/7](divera.md) – Alarm-Anbindung & Personal-Abgleich
+- [Pressebericht](pressebericht.md) – konfigurierbarer Einsatz-Pressebericht als PDF-Mail
+- [ELW](elw.md) – Login-loser Upload-Link für den Einsatzleitwagen (pro Einsatz)
 - [Barcode](barcode.md) – Identifikation per Barcode oder Name+PIN
 
 ## Mitgliederseitige Module

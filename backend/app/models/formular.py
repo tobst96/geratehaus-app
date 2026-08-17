@@ -23,8 +23,8 @@ class Formular(Base, TimestampMixin):
     login_erforderlich: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Formularspezifischer Empfänger, der bei jeder Einreichung per Mail informiert wird.
     email_empfaenger: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    # Dürfen Gruppenführer/Moderatoren die Einreichungen sehen (sonst nur Admins)?
-    moderator_sichtbar: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Dürfen Gruppenführer/Gruppenführer die Einreichungen sehen (sonst nur Admins)?
+    gruppenfuehrer_sichtbar: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Optionales Startdatum (NULL = sofort) und Ablaufdatum (NULL = dauerhaft gültig).
     start_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     ablauf_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -1,4 +1,4 @@
-"""Zwei-Faktor-Authentisierung (E-Mail-OTP) für Moderator-/Admin-Logins.
+"""Zwei-Faktor-Authentisierung (E-Mail-OTP) für Gruppenführer-/Admin-Logins.
 
 Opt-in pro Zugang. Nach korrektem Passwort wird – sofern das Gerät nicht als
 vertrauenswürdig bekannt ist – ein 6-stelliger Code an die hinterlegte E-Mail
@@ -20,7 +20,8 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_secret, verify_secret
-from app.models.moderator import Moderator, ModeratorRecoveryCode, ModeratorTrustedDevice
+from app.models.gruppenfuehrer import GruppenfuehrerRecoveryCode, GruppenfuehrerTrustedDevice
+from app.models.person import Person
 
 OTP_GUELTIGKEIT_MINUTEN = 10
 OTP_MAX_VERSUCHE = 5
@@ -44,49 +45,49 @@ def _sha256(wert: str) -> str:
 
 # --- OTP -------------------------------------------------------------------
 
-async def otp_erzeugen_und_senden(db: AsyncSession, moderator: Moderator) -> None:
+async def otp_erzeugen_und_senden(db: AsyncSession, person: Person) -> None:
     """Erzeugt einen neuen 6-stelligen OTP, speichert ihn (gehasht) und schickt
     ihn an die hinterlegte E-Mail. Wirft ValueError, wenn keine E-Mail gesetzt ist."""
-    if not moderator.email:
+    if not person.email:
         raise ValueError("Für diesen Zugang ist keine E-Mail hinterlegt.")
     code = f"{secrets.randbelow(1_000_000):06d}"
-    moderator.otp_code_hash = hash_secret(code)
-    moderator.otp_ablauf_am = _jetzt() + timedelta(minutes=OTP_GUELTIGKEIT_MINUTEN)
-    moderator.otp_versuche = 0
+    person.otp_code_hash = hash_secret(code)
+    person.otp_ablauf_am = _jetzt() + timedelta(minutes=OTP_GUELTIGKEIT_MINUTEN)
+    person.otp_versuche = 0
     await db.commit()
 
     from app.services.notifier.email import EmailNotifier
 
     await EmailNotifier().send_an(
         db,
-        moderator.email,
+        person.email,
         "Dein Login-Code für Gerätehaus.app",
-        f"Dein Anmelde-Code lautet: {code}\n\n"
-        f"Er ist {OTP_GUELTIGKEIT_MINUTEN} Minuten gültig. Wenn du dich nicht anmelden "
-        f"wolltest, ignoriere diese E-Mail.",
+        f"Dein Anmelde-Code ist {OTP_GUELTIGKEIT_MINUTEN} Minuten gültig. Wenn du dich "
+        f"nicht anmelden wolltest, ignoriere diese E-Mail.",
+        code=code,
     )
 
 
-async def otp_pruefen(db: AsyncSession, moderator: Moderator, code: str) -> bool:
-    if not moderator.otp_code_hash or moderator.otp_ablauf_am is None:
+async def otp_pruefen(db: AsyncSession, person: Person, code: str) -> bool:
+    if not person.otp_code_hash or person.otp_ablauf_am is None:
         return False
-    if _als_utc(moderator.otp_ablauf_am) < _jetzt():
-        await _otp_loeschen(db, moderator)
+    if _als_utc(person.otp_ablauf_am) < _jetzt():
+        await _otp_loeschen(db, person)
         return False
-    if moderator.otp_versuche >= OTP_MAX_VERSUCHE:
+    if person.otp_versuche >= OTP_MAX_VERSUCHE:
         return False
-    if verify_secret(code.strip(), moderator.otp_code_hash):
-        await _otp_loeschen(db, moderator)
+    if verify_secret(code.strip(), person.otp_code_hash):
+        await _otp_loeschen(db, person)
         return True
-    moderator.otp_versuche += 1
+    person.otp_versuche += 1
     await db.commit()
     return False
 
 
-async def _otp_loeschen(db: AsyncSession, moderator: Moderator) -> None:
-    moderator.otp_code_hash = None
-    moderator.otp_ablauf_am = None
-    moderator.otp_versuche = 0
+async def _otp_loeschen(db: AsyncSession, person: Person) -> None:
+    person.otp_code_hash = None
+    person.otp_ablauf_am = None
+    person.otp_versuche = 0
     await db.commit()
 
 
@@ -99,26 +100,26 @@ def _recovery_code_erzeugen() -> str:
     return "-".join(teile)
 
 
-async def recovery_codes_erzeugen(db: AsyncSession, moderator: Moderator) -> list[str]:
+async def recovery_codes_erzeugen(db: AsyncSession, person: Person) -> list[str]:
     """Erzeugt einen frischen Satz Recovery-Codes (ersetzt vorhandene) und gibt
     sie **einmalig im Klartext** zurück (danach nur noch als Hash gespeichert)."""
     await db.execute(
-        delete(ModeratorRecoveryCode).where(ModeratorRecoveryCode.moderator_id == moderator.id)
+        delete(GruppenfuehrerRecoveryCode).where(GruppenfuehrerRecoveryCode.person_id == person.id)
     )
     codes = [_recovery_code_erzeugen() for _ in range(RECOVERY_CODE_ANZAHL)]
     for code in codes:
-        db.add(ModeratorRecoveryCode(moderator_id=moderator.id, code_hash=hash_secret(code)))
+        db.add(GruppenfuehrerRecoveryCode(person_id=person.id, code_hash=hash_secret(code)))
     await db.commit()
     return codes
 
 
-async def recovery_code_pruefen(db: AsyncSession, moderator: Moderator, code: str) -> bool:
+async def recovery_code_pruefen(db: AsyncSession, person: Person, code: str) -> bool:
     eingabe = code.strip().upper()
     offene = (
         await db.execute(
-            select(ModeratorRecoveryCode).where(
-                ModeratorRecoveryCode.moderator_id == moderator.id,
-                ModeratorRecoveryCode.benutzt.is_(False),
+            select(GruppenfuehrerRecoveryCode).where(
+                GruppenfuehrerRecoveryCode.person_id == person.id,
+                GruppenfuehrerRecoveryCode.benutzt.is_(False),
             )
         )
     ).scalars().all()
@@ -132,13 +133,13 @@ async def recovery_code_pruefen(db: AsyncSession, moderator: Moderator, code: st
 
 # --- Trusted Devices -------------------------------------------------------
 
-async def trusted_device_ausstellen(db: AsyncSession, moderator: Moderator) -> str:
+async def trusted_device_ausstellen(db: AsyncSession, person: Person) -> str:
     """Legt ein vertrauenswürdiges Gerät an (30 Tage) und gibt das Roh-Token
     zurück (kommt als httponly-Cookie zum Client, DB speichert nur den Hash)."""
     roh = secrets.token_urlsafe(32)
     db.add(
-        ModeratorTrustedDevice(
-            moderator_id=moderator.id,
+        GruppenfuehrerTrustedDevice(
+            person_id=person.id,
             token_hash=_sha256(roh),
             ablauf_am=_jetzt() + timedelta(days=TRUSTED_DEVICE_TAGE),
             erstellt_am=_jetzt(),
@@ -148,14 +149,14 @@ async def trusted_device_ausstellen(db: AsyncSession, moderator: Moderator) -> s
     return roh
 
 
-async def trusted_device_gueltig(db: AsyncSession, moderator: Moderator, roh_token: str | None) -> bool:
+async def trusted_device_gueltig(db: AsyncSession, person: Person, roh_token: str | None) -> bool:
     if not roh_token:
         return False
     eintrag = (
         await db.execute(
-            select(ModeratorTrustedDevice).where(
-                ModeratorTrustedDevice.moderator_id == moderator.id,
-                ModeratorTrustedDevice.token_hash == _sha256(roh_token),
+            select(GruppenfuehrerTrustedDevice).where(
+                GruppenfuehrerTrustedDevice.person_id == person.id,
+                GruppenfuehrerTrustedDevice.token_hash == _sha256(roh_token),
             )
         )
     ).scalar_one_or_none()
@@ -166,27 +167,27 @@ async def trusted_device_gueltig(db: AsyncSession, moderator: Moderator, roh_tok
 
 # --- Aktivierung / Reset ---------------------------------------------------
 
-async def aktivieren(db: AsyncSession, moderator: Moderator) -> list[str]:
+async def aktivieren(db: AsyncSession, person: Person) -> list[str]:
     """Schaltet 2FA für den Zugang ein und gibt frische Recovery-Codes zurück.
     Voraussetzung: hinterlegte E-Mail."""
-    if not moderator.email:
+    if not person.email:
         raise ValueError("Für 2FA muss zuerst eine E-Mail hinterlegt werden.")
-    moderator.zwei_faktor_aktiv = True
+    person.zwei_faktor_aktiv = True
     await db.commit()
-    return await recovery_codes_erzeugen(db, moderator)
+    return await recovery_codes_erzeugen(db, person)
 
 
-async def deaktivieren(db: AsyncSession, moderator: Moderator) -> None:
+async def deaktivieren(db: AsyncSession, person: Person) -> None:
     """Schaltet 2FA aus und räumt OTP, Recovery-Codes und Trusted-Devices ab.
     Dient auch als Admin-Reset (Aussperren aufheben)."""
-    moderator.zwei_faktor_aktiv = False
-    moderator.otp_code_hash = None
-    moderator.otp_ablauf_am = None
-    moderator.otp_versuche = 0
+    person.zwei_faktor_aktiv = False
+    person.otp_code_hash = None
+    person.otp_ablauf_am = None
+    person.otp_versuche = 0
     await db.execute(
-        delete(ModeratorRecoveryCode).where(ModeratorRecoveryCode.moderator_id == moderator.id)
+        delete(GruppenfuehrerRecoveryCode).where(GruppenfuehrerRecoveryCode.person_id == person.id)
     )
     await db.execute(
-        delete(ModeratorTrustedDevice).where(ModeratorTrustedDevice.moderator_id == moderator.id)
+        delete(GruppenfuehrerTrustedDevice).where(GruppenfuehrerTrustedDevice.person_id == person.id)
     )
     await db.commit()

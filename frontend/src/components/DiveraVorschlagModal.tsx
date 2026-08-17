@@ -8,7 +8,7 @@ import {
   holeDiveraVorschlaege,
   holeIgnorierteDiveraVorschlaege,
   type DiveraVorschlagOut,
-} from "../api/moderator";
+} from "../api/gruppenfuehrer";
 import { ApiError } from "../api/client";
 import { Ladeanzeige } from "./Ladeanzeige";
 

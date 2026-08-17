@@ -25,15 +25,13 @@ from app.models.fahrzeugbuchung_reservierung import FahrzeugbuchungReservierung
 from app.models.funktion import FunktionDienststunden, FunktionEinsatz
 from app.models.gruppe import Gruppe
 from app.models.kiosk_token import KioskToken
-from app.models.mitglied_login_reservierung import MitgliedLoginReservierung
-from app.models.moderator import Moderator, ModeratorRecoveryCode, ModeratorTrustedDevice
+from app.models.gruppenfuehrer import GruppenfuehrerRecoveryCode, GruppenfuehrerTrustedDevice
 from app.models.modul import Modul
-from app.models.namens_abweichung import NamensAbweichung
 from app.models.person import Person
 from app.models.person_bild_reservierung import PersonBildReservierung
 from app.models.person_ereignis import PersonEreignis
 from app.models.person_ereignis_abo import PersonEreignisAbo
-from app.models.pin_token import PersonFreigabeToken, PinSetzenToken
+from app.models.pin_token import PasswortSetzenToken, PersonFreigabeToken, PinSetzenToken
 from app.models.push_subscription import PushSubscription
 from app.models.reservierung import SitzplatzReservierung
 
@@ -66,12 +64,9 @@ __all__ = [
     "FunktionEinsatz",
     "Gruppe",
     "KioskToken",
-    "MitgliedLoginReservierung",
-    "Moderator",
-    "ModeratorRecoveryCode",
-    "ModeratorTrustedDevice",
+    "GruppenfuehrerRecoveryCode",
+    "GruppenfuehrerTrustedDevice",
     "Modul",
-    "NamensAbweichung",
     "Person",
     "PersonBildReservierung",
     "AuditLog",
@@ -79,6 +74,7 @@ __all__ = [
     "PersonEreignisAbo",
     "PersonFreigabeToken",
     "PinSetzenToken",
+    "PasswortSetzenToken",
     "PushSubscription",
     "SitzplatzReservierung",
 ]

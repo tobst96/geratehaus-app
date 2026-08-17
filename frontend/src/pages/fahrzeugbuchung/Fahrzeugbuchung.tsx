@@ -169,7 +169,7 @@ export function Fahrzeugbuchung() {
       });
       setHinweis(
         ergebnis.konflikt_hinweis
-          ? "Anfrage gespeichert – Achtung, es gibt eine Überschneidung mit einer anderen Buchung. Der Moderator entscheidet."
+          ? "Anfrage gespeichert – Achtung, es gibt eine Überschneidung mit einer anderen Buchung. Der Gruppenführer entscheidet."
           : "Anfrage gespeichert."
       );
       setZweck("");

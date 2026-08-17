@@ -9,7 +9,7 @@ Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Login).
   eintragen. Gruppe wird bei der Personenauswahl automatisch vorgewählt.
 - „Barcode vergessen": Eintragung per Handy-QR-Code (Name + PIN erforderlich).
 
-## Moderator (Liste/Detail)
+## Gruppenführer (Liste/Detail)
 
 - Dienstbücher anlegen, Teilnehmer verwalten, Zeitfenster & Abschluss.
 - **PDF-Export** je Dienstbuch; Dienstbuch schließen / wieder öffnen.

@@ -1,13 +1,13 @@
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import modul_service
 
 
 async def _admin_token(client, db):
-    db.add(Moderator(username="admin", passwort_hash=hash_secret("geheim123"), rolle="admin"))
+    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     login = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     return login.json()["access_token"]
 
@@ -35,11 +35,11 @@ async def test_set_aktiv_schaltet_um(db):
 
 async def test_module_endpoint_erfordert_admin(client, db):
     await modul_service.ensure_module(db)
-    ohne = await client.get("/api/v1/moderator/module")
+    ohne = await client.get("/api/v1/gruppenfuehrer/module")
     assert ohne.status_code == 401
     token = await _admin_token(client, db)
     mit = await client.get(
-        "/api/v1/moderator/module", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/gruppenfuehrer/module", headers={"Authorization": f"Bearer {token}"}
     )
     assert mit.status_code == 200
     assert "einsatztagebuch" in {m["key"] for m in mit.json()}
@@ -49,7 +49,7 @@ async def test_modul_patch_setzt_aktiv(client, db):
     await modul_service.ensure_module(db)
     token = await _admin_token(client, db)
     resp = await client.patch(
-        "/api/v1/moderator/module/barcodes",
+        "/api/v1/gruppenfuehrer/module/barcodes",
         json={"aktiv": False},
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -57,7 +57,7 @@ async def test_modul_patch_setzt_aktiv(client, db):
     assert resp.json()["aktiv"] is False
 
     fehlend = await client.patch(
-        "/api/v1/moderator/module/gibt-es-nicht",
+        "/api/v1/gruppenfuehrer/module/gibt-es-nicht",
         json={"aktiv": False},
         headers={"Authorization": f"Bearer {token}"},
     )

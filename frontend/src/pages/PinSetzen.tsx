@@ -4,8 +4,10 @@ import { useParams } from "react-router-dom";
 import { pinSetzen, pinSetzenInfo, type PinTokenInfo } from "../api/auth";
 import { ApiError } from "../api/client";
 import { Ladeanzeige } from "../components/Ladeanzeige";
+import { texte } from "../i18n/texte";
 
 export function PinSetzen() {
+  const t = texte.pin_setzen;
   const { token = "" } = useParams<{ token: string }>();
   const [info, setInfo] = useState<PinTokenInfo | null>(null);
   const [ladeFehler, setLadeFehler] = useState<string | null>(null);
@@ -18,18 +20,18 @@ export function PinSetzen() {
   useEffect(() => {
     pinSetzenInfo(token)
       .then(setInfo)
-      .catch((err) => setLadeFehler(err instanceof ApiError ? String(err.detail) : "Link ungültig."));
-  }, [token]);
+      .catch((err) => setLadeFehler(err instanceof ApiError ? String(err.detail) : t.link_ungueltig));
+  }, [token, t.link_ungueltig]);
 
   async function absenden(e: FormEvent) {
     e.preventDefault();
     setFehler(null);
     if (pin.length < 4) {
-      setFehler("Der PIN muss mindestens 4 Zeichen haben.");
+      setFehler(t.pin_zu_kurz);
       return;
     }
     if (pin !== pin2) {
-      setFehler("Die PINs stimmen nicht überein.");
+      setFehler(t.pins_ungleich);
       return;
     }
     setLaeuft(true);
@@ -37,7 +39,7 @@ export function PinSetzen() {
       await pinSetzen(token, pin);
       setFertig(true);
     } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "PIN konnte nicht gesetzt werden.");
+      setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_speichern);
     } finally {
       setLaeuft(false);
     }
@@ -47,7 +49,7 @@ export function PinSetzen() {
     return (
       <div className="seite">
         <div className="karte">
-          <h1>PIN setzen</h1>
+          <h1>{t.titel}</h1>
           <Fehlertext>{ladeFehler}</Fehlertext>
         </div>
       </div>
@@ -58,18 +60,18 @@ export function PinSetzen() {
   return (
     <div className="seite">
       <div className="karte">
-        <h1>PIN setzen</h1>
+        <h1>{t.titel}</h1>
         {fertig ? (
-          <p>Dein PIN wurde gesetzt. Du kannst dich jetzt am Gerätehaus mit deinem Namen und PIN anmelden.</p>
+          <p>{t.fertig}</p>
         ) : !info.gueltig ? (
-          <Fehlertext>Dieser Link ist abgelaufen oder wurde bereits verwendet.</Fehlertext>
+          <Fehlertext>{t.link_abgelaufen}</Fehlertext>
         ) : (
           <form onSubmit={absenden}>
             <p className="text-mute">
-              Für <strong>{info.name}</strong> einen persönlichen PIN festlegen.
+              {t.fuer_person_prefix} <strong>{info.name}</strong> {t.fuer_person_suffix}
             </p>
             <div className="formular-feld">
-              <label htmlFor="pin1">Neuer PIN</label>
+              <label htmlFor="pin1">{t.label_pin}</label>
               <input
                 id="pin1"
                 type="password"
@@ -81,7 +83,7 @@ export function PinSetzen() {
               />
             </div>
             <div className="formular-feld">
-              <label htmlFor="pin2">PIN wiederholen</label>
+              <label htmlFor="pin2">{t.label_pin_wiederholen}</label>
               <input
                 id="pin2"
                 type="password"
@@ -93,7 +95,7 @@ export function PinSetzen() {
             </div>
             {fehler && <Fehlertext>{fehler}</Fehlertext>}
             <button type="submit" disabled={laeuft}>
-              {laeuft ? "Wird gespeichert…" : "PIN setzen"}
+              {laeuft ? t.speichern_laeuft : t.titel}
             </button>
           </form>
         )}

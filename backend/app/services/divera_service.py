@@ -12,6 +12,12 @@ from app.services.config_service import config_service
 
 logger = structlog.get_logger(__name__)
 
+# Der 5-Minuten-Poll holt zusätzlich zur Live-Abfrage (/pull/all, nur aktive
+# Alarme) die Alarm-Historie der letzten X Minuten und importiert fehlende – auch
+# bereits geschlossene – Alarme nach. So rutscht kein Einsatz durch die
+# Timing-Lücke, der zwischen zwei Polls erstellt UND geschlossen wurde.
+DIVERA_POLLING_HISTORIE_MINUTEN = 30
+
 
 def _alarm_normalisieren(roh: dict[str, Any]) -> dict[str, Any] | None:
     """Bildet unterschiedliche Divera-Antwortformen auf ein einheitliches
@@ -138,6 +144,12 @@ async def importiere_alarm(db: AsyncSession, roh: dict[str, Any]) -> Einsatz | N
 
     if geladen is not None:
         await minio_service.einsatz_dokumente(db, geladen)
+        # ELW-Modul: Upload-Link nur für neu angelegte, OFFENE Einsätze senden
+        # (nicht für nachgeholte, bereits geschlossene Alarme).
+        if not geschlossen:
+            from app.services import elw_service
+
+            await elw_service.anlage_mail_senden(db, geladen)
     return geladen
 
 
@@ -158,9 +170,29 @@ async def synchronisiere(db: AsyncSession) -> int:
         einsatz = await importiere_alarm(db, roh)
         if einsatz is not None:
             anzahl_neu += 1
+
+    # Sicherheitsnetz gegen die Timing-Lücke von /pull/all (das nur aktuell aktive
+    # Alarme liefert): zusätzlich die Historie der letzten Minuten holen und
+    # fehlende – auch bereits geschlossene – Alarme idempotent (Upsert über
+    # divera_id) nachimportieren.
+    historie = await divera_client.hole_alarme_historie(
+        api_key, minuten=DIVERA_POLLING_HISTORIE_MINUTEN
+    )
+    for roh in historie:
+        einsatz = await importiere_alarm(db, roh)
+        if einsatz is not None:
+            anzahl_neu += 1
+
     await config_service.set(db, "divera_letzter_sync", datetime.now(timezone.utc).isoformat())
-    await config_service.set(db, "divera_letzter_sync_anzahl", len(alarme))
+    await config_service.set(db, "divera_letzter_sync_anzahl", len(alarme) + len(historie))
     if neuer_ts is not None:
         await config_service.set(db, "divera_last_ts", neuer_ts)
-    logger.info("divera_synchronisation_abgeschlossen", anzahl_neu=anzahl_neu, anzahl_gesamt=len(alarme), last_ts=last_ts, neuer_ts=neuer_ts)
+    logger.info(
+        "divera_synchronisation_abgeschlossen",
+        anzahl_neu=anzahl_neu,
+        anzahl_aktiv=len(alarme),
+        anzahl_historie=len(historie),
+        last_ts=last_ts,
+        neuer_ts=neuer_ts,
+    )
     return anzahl_neu

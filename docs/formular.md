@@ -62,11 +62,11 @@ E-Mail-Versand ist in den Benachrichtigungen konfiguriert.)
   Formularänderungen lesbar).
 - **Admins** sehen alle Einreichungen auf der Modul-Unterseite „Formulare".
 - Pro Formular ist einstellbar, ob die Einreichungen auch für **Gruppenführer/
-  Moderatoren** sichtbar sind. Wenn aktiviert, erscheinen sie unter
+  Gruppenführer** sichtbar sind. Wenn aktiviert, erscheinen sie unter
   **Listen → Formulare**; sonst bleiben sie admin-intern.
 - **Zwischenstand/Auswertung**: Neben den Einzel-Einreichungen gibt es eine
   aggregierte Auswertung (Ø bei Sterne/Skala/Zahl, Anzahl je Dropdown-Option/Ja-Nein,
-  Freitext-Antworten) – jederzeit im Admin- und (bei Freigabe) Moderator-Bereich
+  Freitext-Antworten) – jederzeit im Admin- und (bei Freigabe) Gruppenführer-Bereich
   einsehbar.
 - **CSV-Export** der Einreichungen (Excel-freundlich) und **Formular duplizieren**
   (als Vorlage) auf der Modul-Unterseite.
@@ -74,7 +74,7 @@ E-Mail-Versand ist in den Benachrichtigungen konfiguriert.)
 ## Admin (Modul-Unterseite)
 
 Unter **Module → Formular**: Formulare anlegen/bearbeiten/löschen, aktiv/inaktiv
-schalten, Login-Pflicht, E-Mail-Empfänger und Moderator-Sichtbarkeit setzen, Felder
+schalten, Login-Pflicht, E-Mail-Empfänger und Gruppenführer-Sichtbarkeit setzen, Felder
 verwalten (Typ, Pflicht, Dropdown-Optionen, max. Sternzahl, Reihenfolge) und
 Einreichungen einsehen. An/Aus, Kiosk-Anzeige und Außenzugriff werden auf der
 Übersichtsseite „Module" geschaltet.
@@ -83,4 +83,4 @@ Einreichungen einsehen. An/Aus, Kiosk-Anzeige und Außenzugriff werden auf der
 
 Formular-Einreichungen können personenbezogene Daten enthalten (je nach
 Formularinhalt und ggf. der zugeordneten Person). Zugriff nur für Admins bzw.
-freigegebene Moderatoren. Details: Datenschutz-Seite der App.
+freigegebene Gruppenführer. Details: Datenschutz-Seite der App.

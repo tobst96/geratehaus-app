@@ -4,15 +4,15 @@ und der Admin-only Statusendpunkt (DB/SMTP/MinIO/Divera/Scheduler)."""
 import pytest
 
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services.config_service import config_service
 
 
 async def _token(client, db, username="admin", rolle="admin"):
-    db.add(Moderator(username=username, passwort_hash=hash_secret("geheim123"), rolle=rolle))
+    db.add(Person(name=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle))
     await db.commit()
     r = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": username, "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": username, "password": "geheim123"}
     )
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
@@ -30,7 +30,7 @@ async def test_systemstatus_admin(client, db):
     await config_service.set(db, "divera_api_key", "geheim")
     h = await _token(client, db)
 
-    r = await client.get("/api/v1/moderator/meta/systemstatus", headers=h)
+    r = await client.get("/api/v1/gruppenfuehrer/meta/systemstatus", headers=h)
     assert r.status_code == 200
     d = r.json()
     assert d["datenbank"]["ok"] is True
@@ -47,5 +47,5 @@ async def test_systemstatus_admin(client, db):
 @pytest.mark.asyncio
 async def test_systemstatus_nur_admin(client, db):
     h = await _token(client, db, "gf", "gruppenfuehrer")
-    r = await client.get("/api/v1/moderator/meta/systemstatus", headers=h)
+    r = await client.get("/api/v1/gruppenfuehrer/meta/systemstatus", headers=h)
     assert r.status_code == 403

@@ -1,11 +1,26 @@
 import { Fehlertext } from "../../components/Fehlertext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { markiereAlsEingerichtet, setupAusfuehren, setupLogoHochladen } from "../../api/setup";
+import {
+  holeSetupModule,
+  markiereAlsEingerichtet,
+  setupAusfuehren,
+  setupLogoHochladen,
+  type SetupModul,
+} from "../../api/setup";
 import { ApiError } from "../../api/client";
 import { useConfig } from "../../context/ConfigContext";
 
-const SCHRITTE = ["Organisation", "Logo", "Farben", "Admin-Passwort", "Fehlerberichte"] as const;
+const SCHRITTE = [
+  "Organisation",
+  "Logo",
+  "Farben",
+  "Admin-Passwort",
+  "Fahrzeuge",
+  "Module",
+  "Benachrichtigungen",
+  "Fehlerberichte",
+] as const;
 
 export function SetupWizard() {
   const navigate = useNavigate();
@@ -19,9 +34,44 @@ export function SetupWizard() {
   const [farbeAkzent, setFarbeAkzent] = useState("#1A1A1A");
   const [adminPasswort, setAdminPasswort] = useState("");
   const [adminPasswortWiederholung, setAdminPasswortWiederholung] = useState("");
+  const [fahrzeugName, setFahrzeugName] = useState("");
+  const [fahrzeugNamen, setFahrzeugNamen] = useState<string[]>([]);
+  const [moduleListe, setModuleListe] = useState<SetupModul[] | null>(null);
+  const [moduleLadevorgang, setModuleLadevorgang] = useState(false);
+  const [moduleAuswahl, setModuleAuswahl] = useState<Record<string, boolean>>({});
+  const [emailAktiv, setEmailAktiv] = useState(false);
+  const [emailSmtpHost, setEmailSmtpHost] = useState("");
+  const [emailSmtpPort, setEmailSmtpPort] = useState(587);
+  const [emailSmtpUser, setEmailSmtpUser] = useState("");
+  const [emailSmtpPasswort, setEmailSmtpPasswort] = useState("");
+  const [emailSmtpTls, setEmailSmtpTls] = useState(true);
+  const [emailVon, setEmailVon] = useState("");
+  const [emailEmpfaenger, setEmailEmpfaenger] = useState("");
+  const [pushAktiv, setPushAktiv] = useState(false);
   const [fehlerberichteAktiv, setFehlerberichteAktiv] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [wirdAbgeschlossen, setWirdAbgeschlossen] = useState(false);
+
+  const MODULE_SCHRITT = SCHRITTE.indexOf("Module");
+
+  useEffect(() => {
+    if (schritt !== MODULE_SCHRITT || moduleListe !== null) return;
+    setModuleLadevorgang(true);
+    holeSetupModule()
+      .then((module) => {
+        setModuleListe(module);
+        setModuleAuswahl(Object.fromEntries(module.map((m) => [m.key, m.aktiv])));
+      })
+      .catch(() => setFehler("Module konnten nicht geladen werden."))
+      .finally(() => setModuleLadevorgang(false));
+  }, [schritt, moduleListe, MODULE_SCHRITT]);
+
+  function fahrzeugHinzufuegen() {
+    const name = fahrzeugName.trim();
+    if (!name || fahrzeugNamen.includes(name)) return;
+    setFahrzeugNamen((namen) => [...namen, name]);
+    setFahrzeugName("");
+  }
 
   async function logoAuswaehlen(datei: File) {
     setLogoLadevorgang(true);
@@ -57,6 +107,22 @@ export function SetupWizard() {
         farbe_akzent: farbeAkzent,
         admin_passwort: adminPasswort,
         fehlerberichte_aktiv: fehlerberichteAktiv,
+        fahrzeuge: fahrzeugNamen.map((name) => ({ name })),
+        module_aktiv: moduleAuswahl,
+        notifier:
+          emailAktiv || pushAktiv
+            ? {
+                email_aktiv: emailAktiv,
+                email_smtp_host: emailSmtpHost,
+                email_smtp_port: emailSmtpPort,
+                email_smtp_user: emailSmtpUser,
+                email_smtp_password: emailSmtpPasswort,
+                email_smtp_use_tls: emailSmtpTls,
+                email_from: emailVon,
+                email_recipients: emailEmpfaenger,
+                push_aktiv: pushAktiv,
+              }
+            : undefined,
       });
       markiereAlsEingerichtet();
       neuLaden();
@@ -168,6 +234,164 @@ export function SetupWizard() {
 
         {schritt === 4 && (
           <>
+            <p>
+              Lege optional die ersten Fahrzeuge an (nur Name). Weitere Angaben wie Sitzplätze
+              lassen sich später im Modul „Fahrzeuge" ergänzen. Dieser Schritt kann übersprungen
+              werden.
+            </p>
+            <div className="formular-feld" style={{ display: "flex", gap: 8 }}>
+              <input
+                value={fahrzeugName}
+                onChange={(e) => setFahrzeugName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    fahrzeugHinzufuegen();
+                  }
+                }}
+                placeholder="z. B. HLF 20"
+              />
+              <button type="button" className="sekundaer" onClick={fahrzeugHinzufuegen}>
+                Hinzufügen
+              </button>
+            </div>
+            {fahrzeugNamen.length > 0 && (
+              <ul>
+                {fahrzeugNamen.map((name) => (
+                  <li key={name} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    {name}
+                    <button
+                      type="button"
+                      className="sekundaer"
+                      onClick={() => setFahrzeugNamen((namen) => namen.filter((n) => n !== name))}
+                    >
+                      Entfernen
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+
+        {schritt === 5 && (
+          <>
+            <p>Wähle, welche Module direkt aktiv sein sollen. Weitere Module lassen sich jederzeit unter „Module" nachträglich aktivieren.</p>
+            {moduleLadevorgang && <p>Module werden geladen …</p>}
+            {moduleListe?.map((modul) => (
+              <div className="formular-feld" key={modul.key}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(moduleAuswahl[modul.key])}
+                    onChange={(e) =>
+                      setModuleAuswahl((auswahl) => ({ ...auswahl, [modul.key]: e.target.checked }))
+                    }
+                  />{" "}
+                  {modul.name}
+                </label>
+              </div>
+            ))}
+          </>
+        )}
+
+        {schritt === 6 && (
+          <>
+            <p>Optional: Basis-Benachrichtigungskonfiguration. Details und weitere Kanäle lassen sich später unter „Benachrichtigungen" ergänzen.</p>
+            <div className="formular-feld">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={emailAktiv}
+                  onChange={(e) => setEmailAktiv(e.target.checked)}
+                />{" "}
+                E-Mail-Benachrichtigungen aktivieren
+              </label>
+            </div>
+            {emailAktiv && (
+              <>
+                <div className="formular-feld">
+                  <label htmlFor="notifier-smtp-host">SMTP-Server</label>
+                  <input
+                    id="notifier-smtp-host"
+                    value={emailSmtpHost}
+                    onChange={(e) => setEmailSmtpHost(e.target.value)}
+                    placeholder="smtp.gmail.com"
+                  />
+                </div>
+                <div className="formular-feld">
+                  <label htmlFor="notifier-smtp-port">SMTP-Port</label>
+                  <input
+                    id="notifier-smtp-port"
+                    type="number"
+                    value={emailSmtpPort}
+                    onChange={(e) => setEmailSmtpPort(Number(e.target.value))}
+                  />
+                </div>
+                <div className="formular-feld">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={emailSmtpTls}
+                      onChange={(e) => setEmailSmtpTls(e.target.checked)}
+                    />{" "}
+                    STARTTLS verwenden
+                  </label>
+                </div>
+                <div className="formular-feld">
+                  <label htmlFor="notifier-smtp-user">Benutzername</label>
+                  <input
+                    id="notifier-smtp-user"
+                    value={emailSmtpUser}
+                    onChange={(e) => setEmailSmtpUser(e.target.value)}
+                  />
+                </div>
+                <div className="formular-feld">
+                  <label htmlFor="notifier-smtp-passwort">Passwort</label>
+                  <input
+                    id="notifier-smtp-passwort"
+                    type="password"
+                    value={emailSmtpPasswort}
+                    onChange={(e) => setEmailSmtpPasswort(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <div className="formular-feld">
+                  <label htmlFor="notifier-email-von">Absenderadresse</label>
+                  <input
+                    id="notifier-email-von"
+                    type="email"
+                    value={emailVon}
+                    onChange={(e) => setEmailVon(e.target.value)}
+                    placeholder="notifications@example.com"
+                  />
+                </div>
+                <div className="formular-feld">
+                  <label htmlFor="notifier-email-empfaenger">Empfängeradressen</label>
+                  <input
+                    id="notifier-email-empfaenger"
+                    value={emailEmpfaenger}
+                    onChange={(e) => setEmailEmpfaenger(e.target.value)}
+                    placeholder="moderator@example.com"
+                  />
+                </div>
+              </>
+            )}
+            <div className="formular-feld">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={pushAktiv}
+                  onChange={(e) => setPushAktiv(e.target.checked)}
+                />{" "}
+                Web-Push aktivieren (Schlüssel werden automatisch erzeugt)
+              </label>
+            </div>
+          </>
+        )}
+
+        {schritt === 7 && (
+          <>
             <label style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
               <input
                 type="checkbox"
@@ -179,7 +403,7 @@ export function SetupWizard() {
                 Technische Fehlerberichte an den Entwickler von Gerätehaus.app senden, damit Bugs
                 über alle Installationen hinweg schneller gefunden und behoben werden können. Es
                 werden nur Stacktraces und technische Fehlerdetails übertragen, keine Namen oder
-                sonstigen Inhalte. Jederzeit änderbar unter Moderator → Einstellungen.
+                sonstigen Inhalte. Jederzeit änderbar unter Gruppenführer → Einstellungen.
               </span>
             </label>
           </>

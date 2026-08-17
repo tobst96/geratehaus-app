@@ -3,7 +3,7 @@
 Alle anderen Module fragen fachliche Einstellungen ausschließlich über
 ConfigService an – nie direkt über die app_config-Tabelle und nie über eine
 Konstante im Code. Werte werden im Prozess gecached und bei jeder Änderung
-über den Moderator-Bereich invalidiert.
+über den Gruppenführer-Bereich invalidiert.
 """
 
 import json

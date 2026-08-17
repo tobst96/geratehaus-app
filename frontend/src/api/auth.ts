@@ -1,17 +1,25 @@
-import { apiGet, apiPost, ApiError } from "./client";
+import { apiGet, apiPost, apiPut, ApiError } from "./client";
 
 const BASIS_URL = "/api/v1";
 
-export interface ModeratorToken {
+export interface GruppenfuehrerToken {
   access_token: string;
   token_type: string;
 }
 
-export interface ModeratorLoginErgebnis {
+export interface GruppenfuehrerLoginErgebnis {
   access_token: string | null;
   token_type: string;
   zwei_faktor_erforderlich: boolean;
+  /** Pflicht-2FA: Zugang muss 2FA jetzt erzwungen einrichten (kein Token). */
+  einrichtung_erforderlich: boolean;
+  email_gesetzt: boolean;
   challenge: string | null;
+}
+
+export interface Gruppenfuehrer2FAEinrichtenErgebnis {
+  recovery_codes: string[];
+  challenge: string;
 }
 
 export interface BarcodeIdentitaet {
@@ -30,6 +38,11 @@ export interface MeinProfil {
   bild_url: string | null;
   gruppe_id: number | null;
   funktion_id: number | null;
+  email: string | null;
+  benachrichtigungen_aktiv: boolean;
+  passwort_gesetzt: boolean;
+  /** null = normales Mitglied ohne erhöhten Zugang; sonst "gruppenfuehrer"/"admin". */
+  gruppenfuehrer_rolle: string | null;
 }
 
 export interface PersonAuswahl {
@@ -64,7 +77,7 @@ export const namePinPruefen = (personId: number, pin: string) =>
   apiPost<NamePinVorschau>("/auth/name-pin/pruefen", { person_id: personId, pin });
 
 /** Stößt für eine Person ohne PIN den passenden Weg an (Self-Service-Mail oder
- * Moderator-Freigabe). Gibt {weg: "mail" | "freigabe"} zurück. */
+ * Gruppenführer-Freigabe). Gibt {weg: "mail" | "freigabe"} zurück. */
 export const pinAnfordern = (personId: number) =>
   apiPost<{ weg: string }>("/auth/pin-anfordern", { person_id: personId });
 
@@ -78,6 +91,22 @@ export const pinSetzenInfo = (token: string) =>
 
 export const pinSetzen = (token: string, pin: string) =>
   apiPost<void>(`/pin-setzen/${encodeURIComponent(token)}`, { pin });
+
+/** Persönlicher Mitglieder-Login per Name + Passwort (Handy/App). Setzt bei Erfolg
+ * das Mitglieder-Identitäts-Cookie serverseitig und liefert den Namen. */
+export const mitgliedPasswortLogin = (name: string, passwort: string) =>
+  apiPost<BarcodeIdentitaet>("/auth/mitglied-login", { name, passwort });
+
+/** Fordert einen „Passwort setzen"-Link an die zur Person hinterlegte E-Mail an.
+ * Antwortet immer gleich (kein Enumeration-Leak). */
+export const passwortAnfordern = (name: string) =>
+  apiPost<{ status: string }>("/auth/mitglied-passwort-anfordern", { name });
+
+export const passwortSetzenInfo = (token: string) =>
+  apiGet<PinTokenInfo>(`/passwort-setzen/${encodeURIComponent(token)}`);
+
+export const passwortSetzen = (token: string, passwort: string) =>
+  apiPost<void>(`/passwort-setzen/${encodeURIComponent(token)}`, { passwort });
 
 export interface FreigabeTokenInfo {
   name: string;
@@ -99,39 +128,55 @@ export const freigabeAblehnen = (token: string) =>
 
 export const holeMeinProfil = () => apiGet<MeinProfil>("/auth/mein-profil");
 
+export const aktualisiereMeinProfil = (daten: {
+  email?: string | null;
+  benachrichtigungen_aktiv?: boolean;
+}) => apiPut<MeinProfil>("/auth/mein-profil", daten);
+
+export const setzeMeinPasswort = (passwort: string) =>
+  apiPost<void>("/auth/mein-passwort", { passwort });
+
 export const mitgliedAbmelden = () => apiPost<void>("/auth/abmelden");
 
 export const barcodeVorschau = (token: string) =>
   apiGet<BarcodeVorschau>(`/auth/barcode-vorschau/${encodeURIComponent(token)}`);
 
-/** Eigener Aufruf statt apiPost: FastAPIs OAuth2PasswordRequestForm erwartet
- * application/x-www-form-urlencoded, nicht JSON. */
-export async function moderatorLogin(
-  username: string,
-  passwort: string
-): Promise<ModeratorLoginErgebnis> {
-  const body = new URLSearchParams({ username, password: passwort });
-  const response = await fetch(`${BASIS_URL}/auth/moderator/login`, {
+/** Erzwungene 2FA-Einrichtung (Pflicht) im Login-Fluss: aktiviert 2FA für den per
+ * `challenge` ausgewiesenen Zugang und liefert Recovery-Codes + einen neuen
+ * Challenge für den anschließenden Code-Schritt. `email` nur nötig, wenn am Konto
+ * noch keine hinterlegt ist. */
+export async function gruppenfuehrer2faEinrichten(
+  challenge: string,
+  email?: string
+): Promise<Gruppenfuehrer2FAEinrichtenErgebnis> {
+  const response = await fetch(`${BASIS_URL}/auth/gruppenfuehrer/2fa/einrichten`, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    // credentials für das httponly Trusted-Device-Cookie (2FA-Überspringen).
+    headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body,
+    body: JSON.stringify({ challenge, email: email ?? null }),
   });
   if (!response.ok) {
     const daten = await response.json().catch(() => ({}));
-    throw new ApiError(response.status, daten.detail ?? "Anmeldung fehlgeschlagen.");
+    throw new ApiError(response.status, daten.detail ?? "2FA-Einrichtung fehlgeschlagen.");
   }
   return response.json();
 }
 
+/** Wechsel in den Gruppenführer-/Admin-Bereich für eine bereits per
+ * Namens-Cookie identifizierte Person – kein erneutes Passwort nötig. Liefert
+ * dieselbe Ergebnisstruktur wie der Passwort-Login (Token, oder 2FA-Einrichtung/
+ * -Challenge, falls die Pflicht greift). Wirft ApiError(403), wenn die Person
+ * keinen erhöhten Zugang hat, ApiError(401) ohne Mitglied-Cookie. */
+export const gruppenfuehrerStepUp = () =>
+  apiPost<GruppenfuehrerLoginErgebnis>("/auth/gruppenfuehrer/step-up");
+
 /** Zweiter Login-Schritt bei aktivem 2FA: E-Mail-Code oder Recovery-Code. */
-export async function moderator2fa(
+export async function gruppenfuehrer2fa(
   challenge: string,
   code: string,
   angemeldetBleiben: boolean
-): Promise<ModeratorLoginErgebnis> {
-  const response = await fetch(`${BASIS_URL}/auth/moderator/2fa`, {
+): Promise<GruppenfuehrerLoginErgebnis> {
+  const response = await fetch(`${BASIS_URL}/auth/gruppenfuehrer/2fa`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

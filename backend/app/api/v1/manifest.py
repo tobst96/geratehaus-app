@@ -27,7 +27,7 @@ async def standard_icon() -> Response:
 @router.get("/manifest.webmanifest")
 async def manifest(db: DbSession) -> JSONResponse:
     """Generiert das PWA-Manifest dynamisch aus app_config – Name, Icon und
-    Theme-Farbe ändern sich sofort mit den Moderator-Einstellungen, ohne
+    Theme-Farbe ändern sich sofort mit den Gruppenführer-Einstellungen, ohne
     Neubau des Frontends."""
     organisation_name = await config_service.get(db, "organisation_name", "Meine Feuerwehr")
     farbe_primaer = await config_service.get(db, "farbe_primaer", "#FFA633")

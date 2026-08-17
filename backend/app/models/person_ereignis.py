@@ -8,7 +8,7 @@ from app.db.base import Base
 
 class PersonEreignis(Base):
     """Chronologisches Ereignisprotokoll einer Person (z. B. Funktionswechsel) –
-    Grundlage der Timeline im Moderator-Bereich."""
+    Grundlage der Timeline im Gruppenführer-Bereich."""
 
     __tablename__ = "person_ereignisse"
 

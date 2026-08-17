@@ -53,6 +53,55 @@ DEFAULTS: list[ConfigDefault] = [
     # Einmal-Marker: übernimmt bestehende Divera-Instanzen (divera_aktiv=true) ins
     # neue Divera-Modul (modul_divera_aktiv=true), siehe Lifespan in app/main.py.
     ConfigDefault("modul_divera_migration_done", "false", ConfigTyp.BOOL, "Divera-Modul-Migration erfolgt"),
+    ConfigDefault("modul_pressebericht_aktiv", "false", ConfigTyp.BOOL, "Pressebericht-Modul aktiv"),
+    ConfigDefault("modul_elw_aktiv", "false", ConfigTyp.BOOL, "ELW-Modul aktiv"),
+    ConfigDefault(
+        "elw_email", "", ConfigTyp.STR,
+        "ELW-Modul: feste E-Mail-Adresse, die bei Einsatz-Anlage den Upload-Link erhält",
+    ),
+    # Pressebericht: Inhaltsauswahl (welche Blöcke der Bericht enthält).
+    ConfigDefault(
+        "pressebericht_felder_grunddaten", "true", ConfigTyp.BOOL,
+        "Pressebericht: Einsatz-Grunddaten (Titel/Zeitpunkt/Adresse/Meldung/Nummer) aufnehmen",
+    ),
+    ConfigDefault(
+        "pressebericht_zusatzfelder", "[]", ConfigTyp.JSON,
+        "Pressebericht: Liste der Einsatz-Zusatzfeld-Schlüssel, die aufgenommen werden",
+    ),
+    ConfigDefault(
+        "pressebericht_felder_divera", "false", ConfigTyp.BOOL,
+        "Pressebericht: Divera-Informationen (Einsatznummer/Adresse/Meldung) aufnehmen",
+    ),
+    ConfigDefault(
+        "pressebericht_teilnehmer_anzahl", "true", ConfigTyp.BOOL,
+        "Pressebericht: Gesamtzahl der beteiligten Personen aufnehmen",
+    ),
+    ConfigDefault(
+        "pressebericht_teilnehmer_namen", "false", ConfigTyp.BOOL,
+        "Pressebericht: Namensliste der beteiligten Personen aufnehmen",
+    ),
+    ConfigDefault(
+        "pressebericht_fahrzeuge", "true", ConfigTyp.BOOL,
+        "Pressebericht: Auflistung der Fahrzeuge mit Besatzung aufnehmen",
+    ),
+    ConfigDefault(
+        "pressebericht_minio_link", "false", ConfigTyp.BOOL,
+        "Pressebericht: App-internen Link zum MinIO-Ordner des Einsatzes aufnehmen",
+    ),
+    # Pressebericht: Versandzeitpunkt.
+    ConfigDefault(
+        "pressebericht_versand_modus", "schliessen", ConfigTyp.STR,
+        "Pressebericht-Versand: 'schliessen' (bei Abschluss), 'stunden' (X h nach "
+        "Abschluss) oder 'uhrzeit' (täglich, nur abgeschlossene Einsätze)",
+    ),
+    ConfigDefault(
+        "pressebericht_versand_stunden", "24", ConfigTyp.INT,
+        "Pressebericht-Versand: Stunden nach Abschluss (Modus 'stunden')",
+    ),
+    ConfigDefault(
+        "pressebericht_versand_uhrzeit", "08:00", ConfigTyp.STR,
+        "Pressebericht-Versand: Uhrzeit HH:MM (Modus 'uhrzeit')",
+    ),
     # Barcode-Modul: wenn AUS (Default), Login per Namenssuche + PIN statt Barcode-Scan.
     # Nicht mitgliederseitig – daher keine _startseite/_aussenzugriff-Keys.
     ConfigDefault("modul_barcode_aktiv", "false", ConfigTyp.BOOL, "Barcode-Modul aktiv"),
@@ -73,11 +122,15 @@ DEFAULTS: list[ConfigDefault] = [
     # Aufbewahrungsfrist des Audit-Logs: Einträge, die älter sind, werden
     # täglich automatisch gelöscht (Datenminimierung). 0 = keine Löschung.
     ConfigDefault("audit_aufbewahrung_tage", "365", ConfigTyp.INT, "Audit-Log: Aufbewahrungsfrist in Tagen (0 = unbegrenzt)"),
-    # Brute-Force-Schutz für den Moderator-Login (analog PIN). Nach so vielen
+    # Brute-Force-Schutz für den Gruppenführer-Login (analog PIN). Nach so vielen
     # aufeinanderfolgenden Fehlversuchen wird der betroffene Zugang für die
     # angegebene Dauer gesperrt (0 = Sperre aus; Sperre läuft automatisch ab).
-    ConfigDefault("moderator_login_max_fehlversuche", "5", ConfigTyp.INT, "Moderator-Login: Fehlversuche bis zur Sperre (0 = aus)"),
-    ConfigDefault("moderator_login_sperre_minuten", "15", ConfigTyp.INT, "Moderator-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
+    ConfigDefault("gruppenfuehrer_login_max_fehlversuche", "5", ConfigTyp.INT, "Gruppenführer-Login: Fehlversuche bis zur Sperre (0 = aus)"),
+    ConfigDefault("gruppenfuehrer_login_sperre_minuten", "15", ConfigTyp.INT, "Gruppenführer-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
+    # Ist die Pflicht aktiv, müssen erhöhte Konten (Admin/Gruppenführer) ohne
+    # aktives 2FA es beim nächsten Login erzwungen einrichten (E-Mail +
+    # Recovery-Codes), bevor ein Token ausgestellt wird. Abschaltbar durch Admins.
+    ConfigDefault("zwei_faktor_pflicht", "true", ConfigTyp.BOOL, "2FA für erhöhte Konten (Admin/Gruppenführer) verpflichtend"),
     # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
     # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
     # anhand der Registry ergänzt bzw. ignoriert.
@@ -285,6 +338,12 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.BOOL,
         "Benachrichtigung, wenn eine Person die rote Aktivitäts-Ampel erreicht",
     ),
+    ConfigDefault(
+        "benachrichtigung_pressebericht",
+        "true",
+        ConfigTyp.BOOL,
+        "Benachrichtigung mit dem Pressebericht (PDF) eines Einsatzes",
+    ),
     # Benachrichtigungskanäle (Zugangsdaten, ersetzt frühere .env-Werte)
     ConfigDefault("notifier_telegram_aktiv", "false", ConfigTyp.BOOL, "Telegram-Versand aktiv"),
     ConfigDefault("notifier_telegram_bot_token", "", ConfigTyp.STR, "Telegram Bot-Token"),
@@ -315,6 +374,27 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault(
         "notifier_email_recipients", "", ConfigTyp.STR, "Empfängeradressen, kommagetrennt"
     ),
+    # Druck-Fallback per IPP: druckt das bereits erzeugte Einsatz-/Dienstbuch-PDF
+    # an einen Netzwerkdrucker – als Fallback bei Mail-Fehler und optional „immer".
+    ConfigDefault("drucker_aktiv", "false", ConfigTyp.BOOL, "Netzwerkdrucker-Fallback (IPP) aktiv"),
+    ConfigDefault(
+        "drucker_ipp_url",
+        "",
+        ConfigTyp.STR,
+        "IPP-URL des Netzwerkdruckers (z. B. ipp://drucker.local:631/ipp/print)",
+    ),
+    ConfigDefault(
+        "drucker_immer_einsatz",
+        "false",
+        ConfigTyp.BOOL,
+        "Einsatz-PDF beim Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)",
+    ),
+    ConfigDefault(
+        "drucker_immer_dienstbuch",
+        "false",
+        ConfigTyp.BOOL,
+        "Dienstbuch-PDF beim Abschluss immer ausdrucken (nicht nur bei Mail-Fehler)",
+    ),
     ConfigDefault("notifier_webpush_aktiv", "false", ConfigTyp.BOOL, "Web-Push-Versand aktiv"),
     ConfigDefault("notifier_webpush_vapid_public_key", "", ConfigTyp.STR, "VAPID Public Key"),
     ConfigDefault("notifier_webpush_vapid_private_key", "", ConfigTyp.STR, "VAPID Private Key"),
@@ -342,6 +422,13 @@ DEFAULTS: list[ConfigDefault] = [
         "Neues Dienstbuch eröffnet: {titel}",
         ConfigTyp.STR,
         "Text bei neuem Dienstbuch. Platzhalter: {titel}",
+    ),
+    ConfigDefault(
+        "benachrichtigung_text_pressebericht",
+        "Pressebericht zum Einsatz: {titel}\n\nDer vollständige Bericht befindet sich im "
+        "PDF-Anhang.",
+        ConfigTyp.STR,
+        "Text der Pressebericht-Mail (PDF im Anhang). Platzhalter: {titel}",
     ),
     ConfigDefault(
         "benachrichtigung_text_buchungsanfrage",

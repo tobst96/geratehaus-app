@@ -7,15 +7,15 @@ from datetime import datetime, timezone
 import pytest
 
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import modul_service
 
 
 async def _token(client, db, username="admin", rolle="admin"):
-    db.add(Moderator(username=username, passwort_hash=hash_secret("geheim123"), rolle=rolle))
+    db.add(Person(name=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle))
     await db.commit()
     r = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": username, "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": username, "password": "geheim123"}
     )
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
@@ -27,7 +27,7 @@ async def test_feld_crud_und_auswahl_optionen(client, db):
 
     # Anlegen: Textfeld
     r = await client.post(
-        "/api/v1/moderator/stammdaten/dienstbuch-felder",
+        "/api/v1/gruppenfuehrer/stammdaten/dienstbuch-felder",
         json={"label": "Ausbildungsthema", "typ": "text"},
         headers=h,
     )
@@ -37,7 +37,7 @@ async def test_feld_crud_und_auswahl_optionen(client, db):
 
     # Anlegen: Auswahl mit Optionen
     r = await client.post(
-        "/api/v1/moderator/stammdaten/dienstbuch-felder",
+        "/api/v1/gruppenfuehrer/stammdaten/dienstbuch-felder",
         json={"label": "Art", "typ": "auswahl", "optionen": ["Übung", " Unterricht ", ""]},
         headers=h,
     )
@@ -48,7 +48,7 @@ async def test_feld_crud_und_auswahl_optionen(client, db):
 
     # Update auf anderen Typ leert Optionen
     r = await client.put(
-        f"/api/v1/moderator/stammdaten/dienstbuch-felder/{auswahl['id']}",
+        f"/api/v1/gruppenfuehrer/stammdaten/dienstbuch-felder/{auswahl['id']}",
         json={"typ": "text"},
         headers=h,
     )
@@ -56,7 +56,7 @@ async def test_feld_crud_und_auswahl_optionen(client, db):
     assert r.json()["optionen"] == []
 
     # Liste (inkl. inaktive) enthält beide
-    r = await client.get("/api/v1/moderator/stammdaten/dienstbuch-felder", headers=h)
+    r = await client.get("/api/v1/gruppenfuehrer/stammdaten/dienstbuch-felder", headers=h)
     assert len(r.json()) == 2
 
 
@@ -65,7 +65,7 @@ async def test_ungueltiger_typ_400(client, db):
     await modul_service.ensure_module(db)
     h = await _token(client, db)
     r = await client.post(
-        "/api/v1/moderator/stammdaten/dienstbuch-felder",
+        "/api/v1/gruppenfuehrer/stammdaten/dienstbuch-felder",
         json={"label": "X", "typ": "quatsch"},
         headers=h,
     )
@@ -77,7 +77,7 @@ async def test_gf_ohne_stammdaten_recht_403(client, db):
     await modul_service.ensure_module(db)
     h = await _token(client, db, "gf", "gruppenfuehrer")
     r = await client.post(
-        "/api/v1/moderator/stammdaten/dienstbuch-felder",
+        "/api/v1/gruppenfuehrer/stammdaten/dienstbuch-felder",
         json={"label": "X", "typ": "text"},
         headers=h,
     )
@@ -91,7 +91,7 @@ async def test_zusatzfelder_beim_anlegen_und_patch(client, db):
 
     # Feld anlegen, damit die öffentliche Definitionsliste etwas liefert
     await client.post(
-        "/api/v1/moderator/stammdaten/dienstbuch-felder",
+        "/api/v1/gruppenfuehrer/stammdaten/dienstbuch-felder",
         json={"label": "Ausbildungsthema", "typ": "text"},
         headers=h,
     )

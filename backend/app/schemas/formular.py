@@ -89,7 +89,7 @@ class FormularOut(BaseModel):
     aktiv: bool
     login_erforderlich: bool
     email_empfaenger: str | None
-    moderator_sichtbar: bool
+    gruppenfuehrer_sichtbar: bool
     start_am: datetime | None
     ablauf_am: datetime | None
     max_einreichungen: int | None
@@ -108,7 +108,7 @@ class FormularCreate(BaseModel):
     aktiv: bool = False
     login_erforderlich: bool = False
     email_empfaenger: str | None = Field(default=None, max_length=255)
-    moderator_sichtbar: bool = False
+    gruppenfuehrer_sichtbar: bool = False
     start_am: datetime | None = None
     ablauf_am: datetime | None = None
     max_einreichungen: int | None = None
@@ -126,7 +126,7 @@ class FormularUpdate(BaseModel):
     aktiv: bool | None = None
     login_erforderlich: bool | None = None
     email_empfaenger: str | None = Field(default=None, max_length=255)
-    moderator_sichtbar: bool | None = None
+    gruppenfuehrer_sichtbar: bool | None = None
     # Datum-/Text-Felder: explizit null = löschen; weggelassen = unverändert
     # (`model_dump(exclude_unset=True)` im Service).
     start_am: datetime | None = None
@@ -142,7 +142,7 @@ class FormularUpdate(BaseModel):
 
 class FormularOeffentlichOut(BaseModel):
     """Öffentliche Sicht (Kiosk/Mitglied): nur was zum Ausfüllen nötig ist –
-    ohne E-Mail-Empfänger und Moderator-Sichtbarkeit."""
+    ohne E-Mail-Empfänger und Gruppenführer-Sichtbarkeit."""
 
     model_config = ConfigDict(from_attributes=True)
 

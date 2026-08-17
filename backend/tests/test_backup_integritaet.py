@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from app.core.security import hash_secret
-from app.models.moderator import Moderator
+from app.models.person import Person
 from app.services import backup_service
 from app.services.config_service import config_service
 
@@ -69,16 +69,16 @@ async def test_endpunkt_pruefen(client, db, tmp_path, monkeypatch):
     monkeypatch.setattr(backup_service.settings, "upload_dir", str(tmp_path / "u"))
     await backup_service.erstelle_backup(db)
 
-    db.add(Moderator(username="admin", passwort_hash=hash_secret("geheim123"), rolle="admin"))
+    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     r = await client.post(
-        "/api/v1/auth/moderator/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
     )
     h = {"Authorization": f"Bearer {r.json()['access_token']}"}
 
-    r = await client.post("/api/v1/moderator/backup/integritaet-pruefen", headers=h)
+    r = await client.post("/api/v1/gruppenfuehrer/backup/integritaet-pruefen", headers=h)
     assert r.status_code == 200
     assert r.json()["ok"] is True
     # Gespeichertes Ergebnis lesbar
-    r = await client.get("/api/v1/moderator/backup/integritaet", headers=h)
+    r = await client.get("/api/v1/gruppenfuehrer/backup/integritaet", headers=h)
     assert r.json()["ok"] is True

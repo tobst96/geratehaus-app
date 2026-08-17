@@ -36,7 +36,7 @@ async def _anfrage_erstellen(db, fahrzeug, person, monkeypatch):
 
 async def test_anfrage_erstellt_aktion_mail_mit_buttons(db, monkeypatch):
     fahrzeug, person = await _fahrzeug_und_person(db)
-    await config_service.set(db, "notifier_email_recipients", "moderator@example.org")
+    await config_service.set(db, "notifier_email_recipients", "gruppenfuehrer@example.org")
     buchung, gesendet = await _anfrage_erstellen(db, fahrzeug, person, monkeypatch)
 
     assert len(gesendet) == 1
@@ -56,7 +56,7 @@ async def test_ohne_empfaengerliste_keine_aktion_mail(db, monkeypatch):
 
 async def test_genehmigen_per_token_setzt_status(db, monkeypatch):
     fahrzeug, person = await _fahrzeug_und_person(db)
-    await config_service.set(db, "notifier_email_recipients", "moderator@example.org")
+    await config_service.set(db, "notifier_email_recipients", "gruppenfuehrer@example.org")
     buchung, _ = await _anfrage_erstellen(db, fahrzeug, person, monkeypatch)
 
     token = await buchung_aktion_service.token_erstellen(db, buchung.id)
@@ -67,7 +67,7 @@ async def test_genehmigen_per_token_setzt_status(db, monkeypatch):
 
 async def test_zweite_aktion_nach_entscheidung_aendert_nichts(db, monkeypatch):
     fahrzeug, person = await _fahrzeug_und_person(db)
-    await config_service.set(db, "notifier_email_recipients", "moderator@example.org")
+    await config_service.set(db, "notifier_email_recipients", "gruppenfuehrer@example.org")
     buchung, _ = await _anfrage_erstellen(db, fahrzeug, person, monkeypatch)
 
     token1 = await buchung_aktion_service.token_erstellen(db, buchung.id)

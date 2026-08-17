@@ -5,7 +5,7 @@ export interface ModulKurz {
   name: string;
 }
 
-export interface ModeratorBerechtigung {
+export interface GruppenfuehrerBerechtigung {
   id: number;
   username: string;
   rolle: string;
@@ -15,12 +15,12 @@ export interface ModeratorBerechtigung {
 
 export interface BerechtigungMatrix {
   module: ModulKurz[];
-  moderatoren: ModeratorBerechtigung[];
+  gruppenfuehrer: GruppenfuehrerBerechtigung[];
 }
 
-export const holeBerechtigungen = () => apiGet<BerechtigungMatrix>("/moderator/berechtigungen");
+export const holeBerechtigungen = () => apiGet<BerechtigungMatrix>("/gruppenfuehrer/berechtigungen");
 
-export const setzeBerechtigung = (moderatorId: number, modulKey: string, erlaubt: boolean) =>
-  apiPut<void>(`/moderator/berechtigungen/${moderatorId}/${encodeURIComponent(modulKey)}`, {
+export const setzeBerechtigung = (gruppenfuehrerId: number, modulKey: string, erlaubt: boolean) =>
+  apiPut<void>(`/gruppenfuehrer/berechtigungen/${gruppenfuehrerId}/${encodeURIComponent(modulKey)}`, {
     erlaubt,
   });

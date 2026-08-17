@@ -84,17 +84,17 @@ class EmailNotifier(Notifier):
         aktionen: list[dict[str, str]],
     ) -> None:
         """Wie test_versenden(): an die zentral konfigurierte Empfängerliste
-        (Moderator-Einstellungen > Benachrichtigungen), zusätzlich mit
+        (Gruppenführer-Einstellungen > Benachrichtigungen), zusätzlich mit
         Annehmen/Ablehnen-Buttons in der HTML-Mail. Diese Liste ist – anders
         als die per-Person-Empfänger in send() – ausschließlich für
-        Moderatoren gedacht, da nur sie zu solchen Aktionen berechtigt sind;
+        Gruppenführer gedacht, da nur sie zu solchen Aktionen berechtigt sind;
         die Buttons verlinken auf einmal verwendbare, ablaufende Tokens statt
         echten Login-geschützten Endpunkten. Best-effort wie send(), da diese
         Mail nicht der einzige Weg ist, eine Buchung zu entscheiden."""
-        # Admin-Empfänger: opted-in Moderatoren + globale Liste (non-breaking).
-        from app.services import moderator_service
+        # Admin-Empfänger: opted-in Gruppenführer + globale Liste (non-breaking).
+        from app.services import gruppenfuehrer_service
 
-        empfaenger = await moderator_service.admin_benachrichtigungs_empfaenger(db)
+        empfaenger = await gruppenfuehrer_service.admin_benachrichtigungs_empfaenger(db)
         if not empfaenger:
             return
         try:
@@ -104,12 +104,15 @@ class EmailNotifier(Notifier):
         except (aiosmtplib.SMTPException, OSError):
             logger.warning("email_versand_fehlgeschlagen", exc_info=True)
 
-    async def send_an(self, db: AsyncSession, empfaenger: str, betreff: str, nachricht: str) -> None:
+    async def send_an(
+        self, db: AsyncSession, empfaenger: str, betreff: str, nachricht: str, code: str | None = None
+    ) -> None:
         """Wie send(): an eine einzelne, individuelle Adresse statt an die
         global konfigurierte Empfängerliste – z. B. Rückmeldung an die
-        anfragende Person einer Fahrzeugbuchung."""
+        anfragende Person einer Fahrzeugbuchung. `code` wird – falls gesetzt – im
+        HTML groß hervorgehoben (z. B. der 2FA-Anmeldecode)."""
         try:
-            await self._versenden(db, betreff, nachricht, empfaenger_liste=[empfaenger])
+            await self._versenden(db, betreff, nachricht, empfaenger_liste=[empfaenger], code=code)
         except (aiosmtplib.SMTPException, OSError):
             logger.warning("email_versand_fehlgeschlagen", exc_info=True)
 
@@ -154,7 +157,7 @@ class EmailNotifier(Notifier):
     ) -> None:
         """Wie send_an(), zusätzlich mit Datei-Anhang (z. B. Barcode-PNG).
         Wirft Fehler weiter (wie test_versenden), da dies eine gezielte
-        Moderator-Aktion ist, deren Erfolg/Fehler zurückgemeldet werden soll."""
+        Gruppenführer-Aktion ist, deren Erfolg/Fehler zurückgemeldet werden soll."""
         await self._versenden(
             db,
             betreff,
@@ -171,6 +174,7 @@ class EmailNotifier(Notifier):
         anhang: tuple[str, bytes, str, str] | None = None,
         empfaenger_liste: list[str] | None = None,
         aktionen: list[dict[str, str]] | None = None,
+        code: str | None = None,
     ) -> None:
         if empfaenger_liste is not None:
             empfaenger = empfaenger_liste
@@ -183,7 +187,12 @@ class EmailNotifier(Notifier):
         message["From"] = await config_service.get(db, "notifier_email_from", "geratehaus@example.org")
         message["To"] = ", ".join(empfaenger)
         message["Subject"] = betreff
-        message.set_content(nachricht)
+        # Optionaler Code (z. B. 2FA-OTP): im Plaintext-Fallback vorangestellt, im
+        # HTML als großer hervorgehobener Block (nicht im Fließtext) dargestellt.
+        # Schlüsselwort-nahe Code-Zeile hilft der iOS-Tastatur (QuickType), den
+        # Code direkt zum Einfügen anzubieten (Feld nutzt autocomplete=one-time-code).
+        plaintext = f"Code: {code}\n\n{nachricht}" if code else nachricht
+        message.set_content(plaintext)
         # HTML-Alternative im Design der eingestellten Website (Logo, Farben) –
         # Plaintext-Teil bleibt als Fallback erhalten (manche Clients/Spamfilter
         # bevorzugen ihn weiterhin), wird also ergänzt statt ersetzt.
@@ -196,6 +205,7 @@ class EmailNotifier(Notifier):
             betreff,
             nachricht,
             aktionen=aktionen,
+            code=code,
             logo_ref=f"cid:{email_template_service.LOGO_CID}" if logo_bytes else None,
         )
         message.add_alternative(html, subtype="html")

@@ -1,6 +1,6 @@
 """Modul-Registry für das Berechtigungssystem.
 
-Die Registry listet alle Anwendungsbereiche, für die künftig pro Moderator ein
+Die Registry listet alle Anwendungsbereiche, für die künftig pro Gruppenführer ein
 Zugriff vergeben werden kann. `ensure_module()` seedet sie idempotent in die
 `module`-Tabelle (analog zu `config_service.ensure_defaults`). Neue Module hier
 registrieren – bestehende Einträge (inkl. vom Admin gesetztem `aktiv`) bleiben
@@ -24,7 +24,7 @@ class ModulDef:
 
 
 # Bewusst inkl. Querschnittsbereiche (Personal, Stammdaten, …), damit später der
-# Zugriff je Bereich pro Moderator vergeben werden kann. „berechtigungen" ist das
+# Zugriff je Bereich pro Gruppenführer vergeben werden kann. „berechtigungen" ist das
 # Berechtigungssystem selbst – es erscheint als eigenes Modul in der Liste.
 MODUL_REGISTRY: list[ModulDef] = [
     ModulDef("einsatztagebuch", "Einsatztagebuch", "Einsätze erfassen und verwalten"),
@@ -37,7 +37,7 @@ MODUL_REGISTRY: list[ModulDef] = [
     ModulDef("kiosk-geraete", "Kiosk-Geräte", "Kiosk-/Geräte-Tokens verwalten"),
     ModulDef("benachrichtigungen", "Benachrichtigungen", "Benachrichtigungskanäle konfigurieren"),
     ModulDef("einstellungen", "Einstellungen", "App-Konfiguration"),
-    ModulDef("berechtigungen", "Berechtigungen", "Modul-Zugriffe pro Moderator vergeben"),
+    ModulDef("berechtigungen", "Berechtigungen", "Modul-Zugriffe pro Gruppenführer vergeben"),
 ]
 
 

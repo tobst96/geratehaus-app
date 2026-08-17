@@ -81,6 +81,14 @@ async def einsatz_pdf(db: AsyncSession, einsatz: Any) -> bytes:
     return pdf
 
 
+async def pressebericht_pdf(db: AsyncSession, einsatz: Any, kontext: dict[str, Any]) -> bytes:
+    """Rendert den Pressebericht aus einem vom `pressebericht_service` vorbereiteten
+    Kontext (nur die konfigurierten Blöcke). Legt – anders als `einsatz_pdf` – NICHT
+    selbst in MinIO ab; das übernimmt der `pressebericht_service` gezielt im
+    Einsatz-Ordner unter eigenem Namen."""
+    return await _rendern(db, "pressebericht.html", einsatz=einsatz, **kontext)
+
+
 async def dienstbuch_pdf(db: AsyncSession, dienstbuch: Any) -> bytes:
     from app.services import dienstbuch_service
 

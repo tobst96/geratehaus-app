@@ -13,7 +13,7 @@ pro Installation) nutzen viele Open-Source-Projekte für anonyme
 Crash-Reports (z. B. VS Code, Homebrew).
 
 Initialisiert wird nur, wenn die jeweilige Instanz über den Setup-Wizard
-oder die Moderator-Einstellungen zugestimmt hat (app_config
+oder die Gruppenführer-Einstellungen zugestimmt hat (app_config
 "fehlerberichte_aktiv", Default aus). Wirkt erst nach einem Neustart des
 Backend-Containers, da sentry_sdk.init() globale Hooks installiert und
 nicht für dynamisches Umschalten zur Laufzeit gedacht ist.

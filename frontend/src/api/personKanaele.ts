@@ -12,19 +12,19 @@ export interface PersonKanal {
   aktiv: boolean;
 }
 
-export const holeKanalTypen = () => apiGet<KanalTyp[]>("/moderator/kanal-typen");
+export const holeKanalTypen = () => apiGet<KanalTyp[]>("/gruppenfuehrer/kanal-typen");
 
 export const holePersonKanaele = (personId: number) =>
-  apiGet<PersonKanal[]>(`/moderator/personen/${personId}/kanaele`);
+  apiGet<PersonKanal[]>(`/gruppenfuehrer/personen/${personId}/kanaele`);
 
 export const setzePersonKanal = (personId: number, typ: string, zielwert: string, aktiv: boolean) =>
-  apiPut<PersonKanal>(`/moderator/personen/${personId}/kanaele/${encodeURIComponent(typ)}`, {
+  apiPut<PersonKanal>(`/gruppenfuehrer/personen/${personId}/kanaele/${encodeURIComponent(typ)}`, {
     zielwert,
     aktiv,
   });
 
 export const loeschePersonKanal = (personId: number, typ: string) =>
-  apiDelete<void>(`/moderator/personen/${personId}/kanaele/${encodeURIComponent(typ)}`);
+  apiDelete<void>(`/gruppenfuehrer/personen/${personId}/kanaele/${encodeURIComponent(typ)}`);
 
 export interface EreignisTyp {
   key: string;
@@ -33,13 +33,13 @@ export interface EreignisTyp {
   modul_label: string;
 }
 
-export const holeEreignisTypen = () => apiGet<EreignisTyp[]>("/moderator/ereignis-typen");
+export const holeEreignisTypen = () => apiGet<EreignisTyp[]>("/gruppenfuehrer/ereignis-typen");
 
 export const holePersonAbos = (personId: number) =>
-  apiGet<string[]>(`/moderator/personen/${personId}/abos`);
+  apiGet<string[]>(`/gruppenfuehrer/personen/${personId}/abos`);
 
 export const setzePersonAbo = (personId: number, ereignis: string, aktiv: boolean) =>
-  apiPut<void>(`/moderator/personen/${personId}/abos/${encodeURIComponent(ereignis)}`, { aktiv });
+  apiPut<void>(`/gruppenfuehrer/personen/${personId}/abos/${encodeURIComponent(ereignis)}`, { aktiv });
 
 export interface PersonBenachrichtigung {
   person_id: number;
@@ -49,4 +49,4 @@ export interface PersonBenachrichtigung {
 
 /** Gebündelte Abo-/Mail-Übersicht aller Personen (für den Personal-Filter). */
 export const holeBenachrichtigungsUebersicht = () =>
-  apiGet<PersonBenachrichtigung[]>("/moderator/personen/benachrichtigungs-uebersicht");
+  apiGet<PersonBenachrichtigung[]>("/gruppenfuehrer/personen/benachrichtigungs-uebersicht");
