@@ -227,9 +227,13 @@ Der Wizard fragt in wenigen Schritten die Grunddaten ab:
 2. **Logo** (optional, PNG oder SVG – PWA-Icons werden automatisch generiert)
 3. **Primär- und Akzentfarbe**
 4. **Admin-Passwort** für den Gruppenführer-Login (mindestens 8 Zeichen)
+5. **Fahrzeuge** (optional, nur Name – weitere Angaben wie Sitzplätze später im Modul „Fahrzeuge")
+6. **Module** (optional, welche Feature-Module direkt aktiv sein sollen)
+7. **Benachrichtigungen** (optional, Basis-Konfiguration für E-Mail und Web-Push)
 
-Danach ist die App einsatzbereit. Der Wizard kann später über **Einstellungen → Setup-Wizard erneut
-ausführen** wiederholt werden.
+Die Schritte 5–7 sind überspringbar und lassen sich jederzeit später im Gruppenführer-Bereich
+nachholen. Danach ist die App einsatzbereit. Der Wizard kann später über **Einstellungen →
+Setup-Wizard erneut ausführen** wiederholt werden.
 
 ### Erste Schritte nach der Einrichtung
 
