@@ -128,6 +128,10 @@ class MeinProfil(BaseModel):
     email: str | None = None
     benachrichtigungen_aktiv: bool = False
     passwort_gesetzt: bool = False
+    # None = normales Mitglied ohne erhöhten Zugang; sonst "gruppenfuehrer"/"admin".
+    # Steuert im Frontend, ob der Wechsel in den Gruppenführer-/Admin-Bereich
+    # angeboten wird (siehe /auth/gruppenfuehrer/step-up).
+    gruppenfuehrer_rolle: str | None = None
 
 
 class MeinPasswort(BaseModel):

@@ -8,7 +8,6 @@ from sqlalchemy import select
 from app.api.deps import CurrentPerson, DbSession
 from app.core import datei_token, mitglied_session, gruppenfuehrer_2fa_session
 from app.core.rate_limit import rate_limit
-from app.core.security import create_access_token
 from app.models.barcode_token import BarcodeToken
 from app.models.person import Person
 from app.schemas.auth import (
@@ -42,7 +41,6 @@ from app.services import (
     stammdaten_service,
     zwei_faktor_service,
 )
-from app.services.config_service import config_service
 
 TRUSTED_DEVICE_COOKIE = "gruppenfuehrer_trusted_device"
 TRUSTED_DEVICE_MAX_AGE_SECONDS = 60 * 60 * 24 * zwei_faktor_service.TRUSTED_DEVICE_TAGE
@@ -84,6 +82,7 @@ def _mein_profil_out(person) -> MeinProfil:
         email=person.email,
         benachrichtigungen_aktiv=person.benachrichtigungen_aktiv,
         passwort_gesetzt=bool(person.passwort_hash),
+        gruppenfuehrer_rolle=person.gruppenfuehrer_rolle,
     )
 
 
@@ -351,10 +350,6 @@ async def mitglied_passwort_anfordern(db: DbSession, daten: PasswortAnfordern) -
     return {"status": "ok"}
 
 
-def _gruppenfuehrer_token(person) -> str:
-    return create_access_token(subject=person.name, extra_claims={"rolle": person.gruppenfuehrer_rolle})
-
-
 @router.post(
     "/gruppenfuehrer/login",
     response_model=GruppenfuehrerLoginErgebnis,
@@ -378,33 +373,30 @@ async def gruppenfuehrer_login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Name oder Passwort falsch.",
         )
+    return await gruppenfuehrer_service.zugang_entscheiden(db, person, gruppenfuehrer_trusted_device)
 
-    # Zugang ohne aktives 2FA: entweder Pflicht-Einrichtung erzwingen oder – wenn
-    # die Pflicht abgeschaltet ist – wie bisher direkt ein Token ausstellen.
-    if not person.zwei_faktor_aktiv:
-        pflicht = bool(await config_service.get(db, "zwei_faktor_pflicht", True))
-        if pflicht:
-            return GruppenfuehrerLoginErgebnis(
-                einrichtung_erforderlich=True,
-                email_gesetzt=bool(person.email),
-                challenge=gruppenfuehrer_2fa_session.signiere_challenge(person.id),
-            )
-        return GruppenfuehrerLoginErgebnis(access_token=_gruppenfuehrer_token(person))
 
-    # 2FA aktiv, aber bereits vertrauenswürdiges Gerät → direkt Token ausstellen.
-    if await zwei_faktor_service.trusted_device_gueltig(db, person, gruppenfuehrer_trusted_device):
-        return GruppenfuehrerLoginErgebnis(access_token=_gruppenfuehrer_token(person))
-
-    # 2FA: OTP per E-Mail senden (Best-Effort – ohne E-Mail bleibt der
-    # Recovery-Code-Weg) und Challenge für den zweiten Schritt zurückgeben.
-    try:
-        await zwei_faktor_service.otp_erzeugen_und_senden(db, person)
-    except ValueError:
-        pass
-    return GruppenfuehrerLoginErgebnis(
-        zwei_faktor_erforderlich=True,
-        challenge=gruppenfuehrer_2fa_session.signiere_challenge(person.id),
-    )
+@router.post(
+    "/gruppenfuehrer/step-up",
+    response_model=GruppenfuehrerLoginErgebnis,
+    dependencies=[Depends(rate_limit(10, 60))],
+)
+async def gruppenfuehrer_step_up(
+    db: DbSession,
+    person: CurrentPerson,
+    gruppenfuehrer_trusted_device: Annotated[str | None, Cookie()] = None,
+) -> GruppenfuehrerLoginErgebnis:
+    """Wechsel in den Gruppenführer-/Admin-Bereich für eine bereits per
+    Namens-Cookie identifizierte Person – kein erneutes Passwort nötig, da das
+    Cookie bereits heute für sensible Aktionen ausreicht (z. B. eigenes Passwort
+    setzen). Die 2FA-Pflicht bleibt unverändert die Schutzschicht für den
+    erhöhten Bereich (siehe `zugang_entscheiden`)."""
+    if person.gruppenfuehrer_rolle is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Kein erhöhter Zugang für diese Person.",
+        )
+    return await gruppenfuehrer_service.zugang_entscheiden(db, person, gruppenfuehrer_trusted_device)
 
 
 @router.post(
@@ -491,4 +483,4 @@ async def moderator_2fa(db: DbSession, response: Response, daten: Gruppenfuehrer
             httponly=True,
             samesite="lax",
         )
-    return GruppenfuehrerLoginErgebnis(access_token=_gruppenfuehrer_token(person))
+    return GruppenfuehrerLoginErgebnis(access_token=gruppenfuehrer_service.gruppenfuehrer_token(person))
