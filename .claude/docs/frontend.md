@@ -44,7 +44,7 @@ React 18 + TypeScript + Vite PWA. Einstieg `src/main.tsx`, Routing `src/App.tsx`
 - `punkte` ist bewusst für jeden Moderator erreichbar (Gruppenführer dürfen
   Belohnungen vergeben); die Regel-Einstellungen bleiben in der Seite admin-only.
 - Token-Routen für Kiosk/öffentliche Flows: `/kiosk/:token`,
-  `/mitglied-anmelden/:token`, `/eintragen/:token`, `/person-bild/:token`, u. a.
+  `/eintragen/:token`, `/person-bild/:token`, u. a.
 
 ## Konventionen
 

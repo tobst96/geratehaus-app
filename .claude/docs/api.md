@@ -23,7 +23,7 @@ Dependencies in `app/api/deps.py`. Übergeordnet: `.claude/architecture.md`.
 | Dienstbuch | `dienstbuecher`, `dienstbuch_reservierungen` |
 | Dienststunden | `dienststunden`, `dienststunden_reservierungen` |
 | Fahrzeugbuchung | `buchungen`, `buchung_aktionen`, `fahrzeugbuchung_reservierungen`, `moderator_buchungen` |
-| Personen-Reservierungen | `person_bild_reservierungen`, `mitglied_login_reservierungen` |
+| Personen-Reservierungen | `person_bild_reservierungen` |
 | Moderator-Bereich | `moderator_dashboard`, `moderator_listen`, `moderator_punkte`, `moderator_barcodes`, `moderator_einstellungen`, `moderator_update` |
 | Öffentlich/Integration | `oeffentlich`, `divera`, `push`, `manifest` |
 

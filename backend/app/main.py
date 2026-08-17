@@ -22,7 +22,6 @@ from app.api.v1 import (
     fahrzeugbuchung_reservierungen,
     formulare,
     manifest,
-    mitglied_login_reservierungen,
     gruppenfuehrer_audit,
     gruppenfuehrer_backup,
     gruppenfuehrer_formular,
@@ -159,7 +158,6 @@ app.include_router(oeffentlich.router, prefix="/api/v1")
 app.include_router(csp_report.router, prefix="/api/v1")
 app.include_router(pin.router, prefix="/api/v1")
 app.include_router(reservierungen.router, prefix="/api/v1")
-app.include_router(mitglied_login_reservierungen.router, prefix="/api/v1")
 app.include_router(formulare.router, prefix="/api/v1")
 app.include_router(gruppenfuehrer_formular.router, prefix="/api/v1")
 app.include_router(manifest.router, prefix="/api/v1")

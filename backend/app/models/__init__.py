@@ -25,7 +25,6 @@ from app.models.fahrzeugbuchung_reservierung import FahrzeugbuchungReservierung
 from app.models.funktion import FunktionDienststunden, FunktionEinsatz
 from app.models.gruppe import Gruppe
 from app.models.kiosk_token import KioskToken
-from app.models.mitglied_login_reservierung import MitgliedLoginReservierung
 from app.models.gruppenfuehrer import GruppenfuehrerRecoveryCode, GruppenfuehrerTrustedDevice
 from app.models.modul import Modul
 from app.models.person import Person
@@ -65,7 +64,6 @@ __all__ = [
     "FunktionEinsatz",
     "Gruppe",
     "KioskToken",
-    "MitgliedLoginReservierung",
     "GruppenfuehrerRecoveryCode",
     "GruppenfuehrerTrustedDevice",
     "Modul",

@@ -27,7 +27,7 @@ Migrationen in `backend/alembic/versions/`. Übergeordnet: `.claude/architecture
 | Fahrzeuge/Buchung | `Fahrzeug`, `FahrzeugBuchung`, `FahrzeugbuchungReservierung`, `FahrzeugToken` |
 | Sitzplätze | `SitzplatzReservierung` |
 | Funktionen/Gruppen | `FunktionEinsatz`, `FunktionDienststunden`, `Gruppe` |
-| Tokens | `BarcodeToken`, `KioskToken`, `BuchungAktionToken`, `MitgliedLoginReservierung` |
+| Tokens | `BarcodeToken`, `KioskToken`, `BuchungAktionToken` |
 | Push/Divera | `PushSubscription`, `DiveraVorschlag` |
 
 ## Konventionen
