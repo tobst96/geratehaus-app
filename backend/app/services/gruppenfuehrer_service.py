@@ -10,8 +10,11 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import hash_secret, verify_secret
+from app.core import gruppenfuehrer_2fa_session
+from app.core.security import create_access_token, hash_secret, verify_secret
 from app.models.person import Person
+from app.schemas.auth import GruppenfuehrerLoginErgebnis
+from app.services import zwei_faktor_service
 from app.services.config_service import config_service
 
 
@@ -153,8 +156,47 @@ async def person_de_elevieren(db: AsyncSession, person: Person) -> Person:
     person.passwort_hash = None
     person.login_fehlversuche = 0
     person.login_gesperrt_bis = None
-    from app.services import zwei_faktor_service
 
     await zwei_faktor_service.deaktivieren(db, person)  # committet inkl. der Felder oben
     await db.refresh(person)
     return person
+
+
+def gruppenfuehrer_token(person: Person) -> str:
+    return create_access_token(subject=person.name, extra_claims={"rolle": person.gruppenfuehrer_rolle})
+
+
+async def zugang_entscheiden(
+    db: AsyncSession, person: Person, trusted_device_roh: str | None
+) -> GruppenfuehrerLoginErgebnis:
+    """Entscheidet, wie eine bereits als Passwort- ODER Cookie-authentifizierte
+    Person Zugang zum Gruppenführerbereich erhält: direktes Token, Pflicht-
+    2FA-Einrichtung oder OTP-Challenge. Wiederverwendet von `/gruppenfuehrer/login`
+    (Passwort) und `/gruppenfuehrer/step-up` (bereits per Namens-Cookie
+    identifizierte Person, kein erneutes Passwort nötig)."""
+    # Zugang ohne aktives 2FA: entweder Pflicht-Einrichtung erzwingen oder – wenn
+    # die Pflicht abgeschaltet ist – direkt ein Token ausstellen.
+    if not person.zwei_faktor_aktiv:
+        pflicht = bool(await config_service.get(db, "zwei_faktor_pflicht", True))
+        if pflicht:
+            return GruppenfuehrerLoginErgebnis(
+                einrichtung_erforderlich=True,
+                email_gesetzt=bool(person.email),
+                challenge=gruppenfuehrer_2fa_session.signiere_challenge(person.id),
+            )
+        return GruppenfuehrerLoginErgebnis(access_token=gruppenfuehrer_token(person))
+
+    # 2FA aktiv, aber bereits vertrauenswürdiges Gerät → direkt Token ausstellen.
+    if await zwei_faktor_service.trusted_device_gueltig(db, person, trusted_device_roh):
+        return GruppenfuehrerLoginErgebnis(access_token=gruppenfuehrer_token(person))
+
+    # 2FA: OTP per E-Mail senden (Best-Effort – ohne E-Mail bleibt der
+    # Recovery-Code-Weg) und Challenge für den zweiten Schritt zurückgeben.
+    try:
+        await zwei_faktor_service.otp_erzeugen_und_senden(db, person)
+    except ValueError:
+        pass
+    return GruppenfuehrerLoginErgebnis(
+        zwei_faktor_erforderlich=True,
+        challenge=gruppenfuehrer_2fa_session.signiere_challenge(person.id),
+    )

@@ -5,7 +5,7 @@ import {
   mitgliedAbmelden as mitgliedAbmeldenApi,
   gruppenfuehrer2fa,
   gruppenfuehrer2faEinrichten as gruppenfuehrer2faEinrichtenApi,
-  gruppenfuehrerLogin,
+  gruppenfuehrerStepUp as gruppenfuehrerStepUpApi,
   namePinLogin,
   type Gruppenfuehrer2FAEinrichtenErgebnis,
 } from "../api/auth";
@@ -43,10 +43,9 @@ interface AuthContextValue {
   berechtigungenGeladen: boolean;
   /** Ob der angemeldete Gruppenführer auf ein Modul zugreifen darf (Admin: immer true). */
   hatModulZugriff: (modulKey: string) => boolean;
-  gruppenfuehrerAnmelden: (
-    username: string,
-    passwort: string
-  ) => Promise<{
+  /** Wechsel in den Gruppenführer-/Admin-Bereich für eine bereits per
+   * Namens-Cookie identifizierte Person – kein erneutes Passwort nötig. */
+  gruppenfuehrerStepUp: () => Promise<{
     zweiFaktorErforderlich: boolean;
     einrichtungErforderlich: boolean;
     emailGesetzt: boolean;
@@ -160,18 +159,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setGruppenfuehrerRolle(rolleAusToken(accessToken));
   }
 
-  /** Login Schritt 1. Liefert `{ zweiFaktorErforderlich, challenge }`: ist 2FA
-   * nötig, muss der Aufrufer `gruppenfuehrer2faAbschliessen` mit dem Code aufrufen. */
-  async function gruppenfuehrerAnmelden(
-    username: string,
-    passwort: string
-  ): Promise<{
+  /** Wechsel in den Gruppenführer-/Admin-Bereich für eine bereits per
+   * Namens-Cookie identifizierte Person. Liefert `{ zweiFaktorErforderlich,
+   * challenge }`: ist 2FA nötig, muss der Aufrufer `gruppenfuehrer2faAbschliessen`
+   * mit dem Code aufrufen. */
+  async function gruppenfuehrerStepUp(): Promise<{
     zweiFaktorErforderlich: boolean;
     einrichtungErforderlich: boolean;
     emailGesetzt: boolean;
     challenge: string | null;
   }> {
-    const ergebnis = await gruppenfuehrerLogin(username, passwort);
+    const ergebnis = await gruppenfuehrerStepUpApi();
     if (ergebnis.access_token) {
       sitzungSetzen(ergebnis.access_token);
       return { zweiFaktorErforderlich: false, einrichtungErforderlich: false, emailGesetzt: false, challenge: null };
@@ -229,7 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         gruppenfuehrerRolle,
         berechtigungenGeladen: modulRechte !== null || gruppenfuehrerRolle === "admin",
         hatModulZugriff,
-        gruppenfuehrerAnmelden,
+        gruppenfuehrerStepUp,
         gruppenfuehrer2faEinrichten,
         gruppenfuehrer2faAbschliessen,
         gruppenfuehrerAbmelden,

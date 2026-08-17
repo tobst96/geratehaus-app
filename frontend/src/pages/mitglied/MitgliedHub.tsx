@@ -248,6 +248,16 @@ export function MitgliedHub() {
         </div>
       )}
 
+      {profil?.gruppenfuehrer_rolle && (
+        <button type="button" className="karte" onClick={() => navigate("/gruppenfuehrer")}>
+          <strong>
+            {profil.gruppenfuehrer_rolle === "admin"
+              ? "Zum Admin-Bereich"
+              : "Zum Gruppenführer-Bereich"}
+          </strong>
+        </button>
+      )}
+
       {angezeigterName && (
         <>
           <InstallPrompt />

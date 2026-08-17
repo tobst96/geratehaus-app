@@ -11,37 +11,16 @@ export function LandingPage() {
       <div className="karte text-center">
         <h1>{config?.organisation_name ?? "Gerätehaus.app"}</h1>
         <p style={{ color: "var(--farbe-text-mute)", maxWidth: 560, margin: "0 auto" }}>
-          {t.untertitel}
+          {t.erklaerung}
         </p>
+        <Link to="/mitglied/login">
+          <button type="button" style={{ marginTop: 20 }}>
+            {t.anmelden_button}
+          </button>
+        </Link>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
-        <div className="karte">
-          <h2>{t.mitglied.titel}</h2>
-          <p className="text-mute">{t.mitglied.beschreibung}</p>
-          <Link to="/mitglied/login">
-            <button type="button">{t.mitglied.login}</button>
-          </Link>
-        </div>
-
-        <div className="karte">
-          <h2>{t.gruppenfuehrer.titel}</h2>
-          <p className="text-mute">{t.gruppenfuehrer.beschreibung}</p>
-          <Link to="/gruppenfuehrer/login">
-            <button type="button">{t.gruppenfuehrer.login}</button>
-          </Link>
-        </div>
-
-        <div className="karte">
-          <h2>{t.admin.titel}</h2>
-          <p className="text-mute">{t.admin.beschreibung}</p>
-          <Link to="/gruppenfuehrer/login">
-            <button type="button">{t.admin.login}</button>
-          </Link>
-        </div>
-      </div>
-
-      <div className="karte text-center">
+      <div className="karte text-center" style={{ opacity: 0.85 }}>
         <p style={{ margin: 0 }}>{t.kiosk_hinweis}</p>
         <p style={{ margin: "0.5rem 0 0" }}>
           <a href="/api/v1/docs" target="_blank" rel="noreferrer">

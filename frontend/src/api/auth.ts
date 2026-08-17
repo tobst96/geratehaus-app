@@ -41,6 +41,8 @@ export interface MeinProfil {
   email: string | null;
   benachrichtigungen_aktiv: boolean;
   passwort_gesetzt: boolean;
+  /** null = normales Mitglied ohne erhöhten Zugang; sonst "gruppenfuehrer"/"admin". */
+  gruppenfuehrer_rolle: string | null;
 }
 
 export interface PersonAuswahl {
@@ -139,27 +141,6 @@ export const mitgliedAbmelden = () => apiPost<void>("/auth/abmelden");
 export const barcodeVorschau = (token: string) =>
   apiGet<BarcodeVorschau>(`/auth/barcode-vorschau/${encodeURIComponent(token)}`);
 
-/** Eigener Aufruf statt apiPost: FastAPIs OAuth2PasswordRequestForm erwartet
- * application/x-www-form-urlencoded, nicht JSON. */
-export async function gruppenfuehrerLogin(
-  username: string,
-  passwort: string
-): Promise<GruppenfuehrerLoginErgebnis> {
-  const body = new URLSearchParams({ username, password: passwort });
-  const response = await fetch(`${BASIS_URL}/auth/gruppenfuehrer/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    // credentials für das httponly Trusted-Device-Cookie (2FA-Überspringen).
-    credentials: "include",
-    body,
-  });
-  if (!response.ok) {
-    const daten = await response.json().catch(() => ({}));
-    throw new ApiError(response.status, daten.detail ?? "Anmeldung fehlgeschlagen.");
-  }
-  return response.json();
-}
-
 /** Erzwungene 2FA-Einrichtung (Pflicht) im Login-Fluss: aktiviert 2FA für den per
  * `challenge` ausgewiesenen Zugang und liefert Recovery-Codes + einen neuen
  * Challenge für den anschließenden Code-Schritt. `email` nur nötig, wenn am Konto
@@ -180,6 +161,14 @@ export async function gruppenfuehrer2faEinrichten(
   }
   return response.json();
 }
+
+/** Wechsel in den Gruppenführer-/Admin-Bereich für eine bereits per
+ * Namens-Cookie identifizierte Person – kein erneutes Passwort nötig. Liefert
+ * dieselbe Ergebnisstruktur wie der Passwort-Login (Token, oder 2FA-Einrichtung/
+ * -Challenge, falls die Pflicht greift). Wirft ApiError(403), wenn die Person
+ * keinen erhöhten Zugang hat, ApiError(401) ohne Mitglied-Cookie. */
+export const gruppenfuehrerStepUp = () =>
+  apiPost<GruppenfuehrerLoginErgebnis>("/auth/gruppenfuehrer/step-up");
 
 /** Zweiter Login-Schritt bei aktivem 2FA: E-Mail-Code oder Recovery-Code. */
 export async function gruppenfuehrer2fa(
