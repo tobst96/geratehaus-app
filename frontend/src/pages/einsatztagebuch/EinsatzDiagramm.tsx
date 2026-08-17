@@ -106,9 +106,13 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   const uebersichtRef = useRef<HTMLDivElement>(null);
   const [detailsAlsPopup, setDetailsAlsPopup] = useState(false);
   const [detailsOffen, setDetailsOffen] = useState(false);
+  // Einmal geöffnet reicht als Wahrnehmung, auch wenn danach wieder
+  // geschlossen wird – steuert, ob der "Einsatzdetails"-Button noch pulsiert.
+  const [detailsGesehen, setDetailsGesehen] = useState(false);
   useEffect(() => {
     setDetailsAlsPopup(false);
     setDetailsOffen(false);
+    setDetailsGesehen(false);
   }, [einsatz.id]);
 
   const [felder, setFelder] = useState<EinsatzFeldDefinition[] | null>(null);
@@ -401,6 +405,17 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   const aktiveFahrzeuge = fahrzeuge.filter((f) => f.aktiv);
   const aktivesFahrzeug = aktiveFahrzeuge.find((f) => f.id === aktivesFahrzeugId) ?? null;
   const hatLinkeSpalte = (felder && felder.length > 0) || geraetehausTeilnehmer.length > 0;
+  // Noch kein Zusatzfeld ausgefüllt – Button pulsiert, bis entweder etwas
+  // eingetragen oder das Popup mindestens einmal geöffnet wurde.
+  const detailsUnbefuellt = Boolean(
+    felder &&
+      felder.length > 0 &&
+      felder.every((f) => {
+        const wert = feldWerte[f.schluessel];
+        return f.typ === "checkbox" ? !wert : !String(wert ?? "").trim();
+      })
+  );
+  const detailsPulsiert = detailsUnbefuellt && !detailsGesehen;
 
   useEffect(() => {
     if (aktivesFahrzeug || detailsAlsPopup || !hatLinkeSpalte) return;
@@ -481,7 +496,13 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         <h2 style={{ margin: 0, fontWeight: 800, fontSize: "1.9rem" }}>{einsatz.titel}</h2>
         <div className="einsatz-kopf-aktionen">
           {!aktivesFahrzeug && detailsAlsPopup && hatLinkeSpalte && (
-            <button className="sekundaer" onClick={() => setDetailsOffen(true)}>
+            <button
+              className={`sekundaer${detailsPulsiert ? " pulsieren" : ""}`}
+              onClick={() => {
+                setDetailsOffen(true);
+                setDetailsGesehen(true);
+              }}
+            >
               Einsatzdetails
             </button>
           )}
