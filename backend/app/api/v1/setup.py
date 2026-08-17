@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, status
 
 from app.api.deps import CurrentGruppenfuehrer, DbSession
 from app.schemas.setup import SetupRequest, SetupStatus
-from app.services import logo_service, setup_service
+from app.services import feature_modul_service, logo_service, setup_service
 from app.services.config_service import config_service
 
 router = APIRouter(prefix="/setup", tags=["setup"])
@@ -11,6 +11,14 @@ router = APIRouter(prefix="/setup", tags=["setup"])
 @router.get("/status", response_model=SetupStatus)
 async def setup_status(db: DbSession) -> SetupStatus:
     return SetupStatus(ist_eingerichtet=await setup_service.ist_eingerichtet(db))
+
+
+@router.get("/module")
+async def setup_module(db: DbSession) -> list[dict]:
+    """Modul-Metadaten für den Wizard-Auswahlschritt, vor dem ein Gruppenführer
+    existiert – daher ohne Auth. Liefert nur Key/Name/Aktiv-Status, keine
+    schützenswerten Daten; abschaltbare (nicht immer-aktive) Module."""
+    return [m for m in await feature_modul_service.liste(db) if not m["immer_aktiv"]]
 
 
 @router.post("", status_code=status.HTTP_204_NO_CONTENT)
