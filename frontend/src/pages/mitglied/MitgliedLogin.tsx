@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import QRCode from "qrcode";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
+import { istKioskModus } from "../../utils/kiosk";
 import { oeffentlicheBasisUrl } from "../../utils/oeffentlicheUrl";
 import {
   barcodeVorschau,
@@ -234,6 +235,7 @@ export function MitgliedLogin() {
         )}
       </div>
 
+      {(barcodeModus || istKioskModus()) && (
       <div className="karte">
         <h2>{t.andere_anmeldung}</h2>
 
@@ -346,6 +348,7 @@ export function MitgliedLogin() {
           </form>
         )}
       </div>
+      )}
     </div>
   );
 }

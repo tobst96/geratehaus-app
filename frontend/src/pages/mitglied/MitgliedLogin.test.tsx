@@ -14,8 +14,9 @@ vi.mock("../../api/mitgliedLoginReservierungen", () => ({
 
 vi.mock("qrcode", () => ({ default: { toDataURL: vi.fn().mockResolvedValue("data:image/png;base64,x") } }));
 
+let barcodeAktiv = true;
 vi.mock("../../context/ConfigContext", () => ({
-  useConfig: () => ({ config: { modul_barcode_aktiv: true } }),
+  useConfig: () => ({ config: { modul_barcode_aktiv: barcodeAktiv } }),
 }));
 
 // useAuth mocken, damit wir das Persistieren der Identität direkt beobachten.
@@ -47,8 +48,28 @@ vi.mock("../../api/auth", () => ({
 
 import { MitgliedLogin } from "./MitgliedLogin";
 
+describe("MitgliedLogin – Kiosk-Beschränkung der Name+PIN-Anmeldung", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("blendet die Karte 'Andere Anmeldung' aus, wenn Barcode aus und kein Kiosk-Token gesetzt ist", () => {
+    barcodeAktiv = false;
+    render(<MitgliedLogin />);
+    expect(screen.queryByText("Oder mit Barcode/PIN anmelden")).not.toBeInTheDocument();
+  });
+
+  it("zeigt die Karte weiterhin, wenn ein Kiosk-Token gesetzt ist", () => {
+    barcodeAktiv = false;
+    localStorage.setItem("kiosk_token", "abc");
+    render(<MitgliedLogin />);
+    expect(screen.getByText("Oder mit Barcode/PIN anmelden")).toBeInTheDocument();
+  });
+});
+
 describe("MitgliedLogin – QR-Reservierungs-Login", () => {
   beforeEach(() => {
+    barcodeAktiv = true;
     identitaetSpeichern.mockReset();
     navigate.mockReset();
     mitgliedLoginReservierungAnlegen.mockReset().mockResolvedValue({ token: "tok", ablauf_am: "2026-07-12T12:00:00Z" });
@@ -76,6 +97,7 @@ describe("MitgliedLogin – QR-Reservierungs-Login", () => {
 
 describe("MitgliedLogin – Passwort-Login", () => {
   beforeEach(() => {
+    barcodeAktiv = true;
     identitaetSpeichern.mockReset();
     navigate.mockReset();
     mitgliedPasswortLogin.mockReset().mockResolvedValue({ name: "Max Muster" });
