@@ -94,8 +94,11 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
   **Code128-Strichcode** pro Person (konfigurierbare Gültigkeit); beim Scannen wird das Profilbild groß
   zur Bestätigung angezeigt, **Scan-Töne** geben sofortiges akustisches Feedback. Bestehende Instanzen
   behalten den Barcode-Login bei einem Update automatisch.
-- **Öffentlicher Mitglieder-Login** – Identifikation am eigenen Smartphone per Namensauswahl + PIN bzw.
-  Barcode; Zugriff auf alle für den Außenzugriff freigeschalteten Module, Abmelden jederzeit möglich.
+- **Ein Login für alle** – die persönliche Anmeldung (`/mitglied/login`, Name + Passwort) führt immer
+  in den eigenen Mitgliederbereich mit Zugriff auf alle für den Außenzugriff freigeschalteten Module,
+  Abmelden jederzeit möglich. Wer zusätzlich Gruppenführer- oder Admin-Rechte hat, wechselt von dort per
+  Klick **ohne erneute Passworteingabe** in den entsprechenden Bereich (die 2FA-Pflicht bleibt als
+  Schutzschicht bestehen). Namensauswahl + PIN bzw. Barcode bleiben ausschließlich dem Kiosk vorbehalten.
 - **„Barcode vergessen"** (bei aktivem Barcode-Modul) – erzeugt im Scan-Dialog einen QR-Code für genau
   diese Aktion; die Person scannt ihn mit dem eigenen Handy und trägt sich ohne Barcode ein (kurzlebiger,
   einmalig gültiger Token). Solche Eintragungen sind in Listen und PDF als „ohne Barcode" markiert.

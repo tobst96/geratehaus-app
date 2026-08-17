@@ -62,6 +62,17 @@ export function Datenschutz() {
           aktivieren; in diesem Fall identifizierst du dich am Kiosk durch Scannen deines Barcodes
           statt per Name und PIN.
         </p>
+        <p>
+          Für Gruppenführer- und Admin-Zugänge ist eine <strong>Zwei-Faktor-Authentisierung</strong>
+          vorgesehen (standardmäßig verpflichtend): Beim Login wird zusätzlich zum Passwort ein
+          einmaliger Anmelde-Code an die hinterlegte E-Mail-Adresse geschickt. Bei der Einrichtung
+          werden zudem einmalig <strong>Recovery-Codes</strong> angezeigt (als Hash gespeichert), die
+          bei fehlendem E-Mail-Zugriff als Ersatzcode dienen. Auf Wunsch kann ein Gerät für 30 Tage als
+          vertrauenswürdig markiert werden, sodass dort kein erneuter Code nötig ist (technische
+          Kennung in einem Cookie). Von einem bereits per Name+Passwort angemeldeten Mitglied mit
+          Gruppenführer-/Admin-Rechten aus ist der Wechsel in den entsprechenden Bereich ohne erneute
+          Passworteingabe möglich – die Zwei-Faktor-Prüfung bleibt dabei unverändert bestehen.
+        </p>
       </div>
 
       <div className="karte">
