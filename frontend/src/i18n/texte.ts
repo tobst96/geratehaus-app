@@ -457,8 +457,8 @@ export const texte = {
   },
   mitglied_login: {
     titel: "Mitglieder-Login",
-    anmeldung_fehler: "Anmeldung fehlgeschlagen.",
-    // Persönlicher Passwort-Login (Handy/App)
+    // Persönlicher Passwort-Login – einzige Anmeldemöglichkeit auf dieser Seite
+    // (Barcode/PIN sind bewusst nicht mehr verfügbar, nur noch am Kiosk).
     pw_name_label: "Name",
     pw_passwort_label: "Passwort",
     pw_anmelden: "Anmelden",
@@ -468,19 +468,6 @@ export const texte = {
     pw_link_anfordern: "Passwort vergessen oder erstmalig setzen?",
     pw_link_gesendet:
       "Falls für diesen Namen eine E-Mail hinterlegt ist, wurde ein Link zum Setzen des Passworts gesendet.",
-    andere_anmeldung: "Oder mit Barcode/PIN anmelden",
-    qr_fehler: "QR-Code konnte nicht erzeugt werden.",
-    qr_hinweis:
-      "Mit dem Handy scannen und dich dort auswählen – dieses Gerät meldet sich danach automatisch an.",
-    qr_alt: "QR-Code für Login ohne Barcode",
-    gueltig_bis: "Gültig bis", // gefolgt von der dynamischen Uhrzeit
-    zurueck_scannen: "Zurück zum Scannen",
-    barcode_label: "Barcode einscannen",
-    barcode_platzhalter: "Barcode scannen oder eingeben",
-    anmelden: "Anmelden",
-    anmelden_laeuft: "Wird angemeldet…",
-    barcode_vergessen: "Barcode vergessen",
-    qr_erzeugen_laeuft: "Erzeuge QR-Code …",
   },
   kiosk_geraete: {
     titel: "Kiosk-Geräte",
