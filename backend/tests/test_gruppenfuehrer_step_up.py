@@ -61,6 +61,7 @@ async def test_step_up_ohne_mitglied_cookie_401(client, db):
 @pytest.mark.asyncio
 async def test_step_up_mit_2fa_pflicht_liefert_einrichtung(client, db):
     await _pflicht(db, True)
+    await config_service.set(db, "notifier_email_smtp_host", "smtp.example.org")
     await _person(db, rolle="gruppenfuehrer")
     await _mitglied_einloggen(client, "Max Muster", "geheim123")
 
@@ -71,6 +72,21 @@ async def test_step_up_mit_2fa_pflicht_liefert_einrichtung(client, db):
     assert body["einrichtung_erforderlich"] is True
     assert body["email_gesetzt"] is True
     assert body["challenge"]
+
+
+@pytest.mark.asyncio
+async def test_step_up_ohne_smtp_liefert_token_statt_einrichtung(client, db):
+    """Regression: ohne konfiguriertes SMTP darf der Step-up nicht in der
+    Pflicht-Einrichtung hängen bleiben (Anmelde-Code käme nie an)."""
+    await _pflicht(db, True)
+    await _person(db, rolle="admin")  # SMTP bewusst NICHT konfiguriert
+    await _mitglied_einloggen(client, "Max Muster", "geheim123")
+
+    r = await client.post("/api/v1/auth/gruppenfuehrer/step-up")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["access_token"]
+    assert body["einrichtung_erforderlich"] is False
 
 
 @pytest.mark.asyncio

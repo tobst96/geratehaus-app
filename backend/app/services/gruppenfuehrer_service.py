@@ -174,11 +174,14 @@ async def zugang_entscheiden(
     2FA-Einrichtung oder OTP-Challenge. Wiederverwendet von `/gruppenfuehrer/login`
     (Passwort) und `/gruppenfuehrer/step-up` (bereits per Namens-Cookie
     identifizierte Person, kein erneutes Passwort nötig)."""
-    # Zugang ohne aktives 2FA: entweder Pflicht-Einrichtung erzwingen oder – wenn
-    # die Pflicht abgeschaltet ist – direkt ein Token ausstellen.
+    # Zugang ohne aktives 2FA: Pflicht-Einrichtung nur erzwingen, wenn auch SMTP
+    # konfiguriert ist – sonst käme der Anmelde-Code nie an und niemand könnte
+    # (z. B. auf einer frisch eingerichteten Instanz) je in den Gruppenführer-/
+    # Admin-Bereich, um SMTP überhaupt erst einzurichten.
     if not person.zwei_faktor_aktiv:
         pflicht = bool(await config_service.get(db, "zwei_faktor_pflicht", True))
-        if pflicht:
+        mail_konfiguriert = bool(await config_service.get(db, "notifier_email_smtp_host", ""))
+        if pflicht and mail_konfiguriert:
             return GruppenfuehrerLoginErgebnis(
                 einrichtung_erforderlich=True,
                 email_gesetzt=bool(person.email),

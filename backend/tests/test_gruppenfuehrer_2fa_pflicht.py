@@ -23,9 +23,14 @@ async def _pflicht(db, an: bool) -> None:
     await config_service.set(db, "zwei_faktor_pflicht", an)
 
 
+async def _smtp_konfigurieren(db) -> None:
+    await config_service.set(db, "notifier_email_smtp_host", "smtp.example.org")
+
+
 @pytest.mark.asyncio
 async def test_login_pflicht_ohne_2fa_verlangt_einrichtung(client, db):
     await _pflicht(db, True)
+    await _smtp_konfigurieren(db)
     await _gf(db)
     r = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"}
@@ -36,6 +41,23 @@ async def test_login_pflicht_ohne_2fa_verlangt_einrichtung(client, db):
     assert body["einrichtung_erforderlich"] is True
     assert body["email_gesetzt"] is True
     assert body["challenge"]
+
+
+@pytest.mark.asyncio
+async def test_login_pflicht_ohne_smtp_liefert_token_direkt(client, db):
+    """Regression: ohne konfiguriertes SMTP käme ein Anmelde-Code nie an – die
+    Pflicht-Einrichtung darf dann nicht erzwungen werden, sonst käme niemand
+    (z. B. auf einer frisch eingerichteten Instanz) je in den Bereich, um SMTP
+    überhaupt erst einzurichten."""
+    await _pflicht(db, True)
+    await _gf(db)  # SMTP bewusst NICHT konfiguriert (Default: leer)
+    r = await client.post(
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"}
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["access_token"]
+    assert body["einrichtung_erforderlich"] is False
 
 
 @pytest.mark.asyncio
