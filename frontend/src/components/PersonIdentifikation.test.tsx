@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { createRef } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
 let barcodeAktiv = true;
 vi.mock("../context/ConfigContext", () => ({
@@ -19,15 +19,18 @@ vi.mock("../hooks/useBarcodeSound", () => ({
   useBarcodeSound: () => ({ spieleErkannt: vi.fn(), spieleFehler: vi.fn() }),
 }));
 
+const barcodeVorschau = vi.fn();
 vi.mock("../api/auth", () => ({
-  barcodeVorschau: vi.fn(),
+  barcodeVorschau: (...a: unknown[]) => barcodeVorschau(...a),
   namePinPruefen: vi.fn(),
   personenAuswahl: vi.fn(),
   pinAnfordern: vi.fn(),
 }));
 
 vi.mock("./BarcodeEingabe", () => ({
-  BarcodeEingabe: ({ id }: { id?: string }) => <input id={id} />,
+  BarcodeEingabe: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+    <input id={id} value={value} onChange={(e) => onChange(e.target.value)} />
+  ),
 }));
 
 import { ApiError } from "../api/client";
@@ -76,5 +79,41 @@ describe("PersonIdentifikation", () => {
     barcodeAktiv = false;
     const ref = rendern();
     await expect(ref.current!.identifiziere()).rejects.toBeInstanceOf(ApiError);
+  });
+
+  describe("Bestätigungsfoto bleibt mind. 5s stehen", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      barcodeVorschau.mockReset().mockResolvedValue({
+        name: "Max Muster",
+        bild_url: "https://example.org/max.png",
+        funktion_id: null,
+        gruppe_id: null,
+      });
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("verschwindet nicht sofort bei zuruecksetzen(), aber nach 5s", async () => {
+      barcodeAktiv = true;
+      const ref = rendern();
+
+      fireEvent.change(screen.getByLabelText("Barcode einscannen"), { target: { value: "12345" } });
+      // Debounce (250ms) + API-Antwort abwarten.
+      await vi.advanceTimersByTimeAsync(300);
+      expect(screen.getByText("Max Muster")).toBeInTheDocument();
+
+      // Formular-Reset (z. B. nach erfolgreicher Eintragung) löscht die
+      // Eingabe, das Bestätigungsfoto bleibt aber zunächst stehen.
+      ref.current!.zuruecksetzen();
+      expect(screen.getByText("Max Muster")).toBeInTheDocument();
+
+      await vi.advanceTimersByTimeAsync(4000);
+      expect(screen.getByText("Max Muster")).toBeInTheDocument();
+
+      await vi.advanceTimersByTimeAsync(1500);
+      expect(screen.queryByText("Max Muster")).not.toBeInTheDocument();
+    });
   });
 });

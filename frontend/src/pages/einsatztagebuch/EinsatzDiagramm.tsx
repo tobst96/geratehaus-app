@@ -18,6 +18,7 @@ import {
   PersonIdentifikation,
   type PersonIdentifikationHandle,
 } from "../../components/PersonIdentifikation";
+import { useMindestwartezeit } from "../../hooks/useMindestwartezeit";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import type { EinsatzFeldDefinition, EinsatzOut, Fahrzeug, FunktionEinsatz, TeilnahmeOut } from "../../api/types";
 import { formatiereZeit } from "../../utils/datum";
@@ -89,11 +90,15 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   const [alleEingetragenFehler, setAlleEingetragenFehler] = useState<string | null>(null);
 
   // Im Scan-Popup identifizierte Person (Name+PIN oder Barcode) – für die große
-  // Bildvorschau links.
+  // Bildvorschau links. Bleibt nach dem Absenden mind. 5s sichtbar (Kiosk-UX),
+  // bevor das Popup schließt (siehe eintragen()).
   const [identPerson, setIdentPerson] = useState<{ name: string; bildUrl: string | null } | null>(null);
+  const identVorschau = useMindestwartezeit();
   // Beim Öffnen/Schließen eines Sitzplatz-Popups die Bildvorschau zurücksetzen.
   useEffect(() => {
     setIdentPerson(null);
+    identVorschau.zuruecksetzen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ausgewaehlteAktion]);
 
   // Passt die Übersicht nicht auf den Bildschirm (Scrollbalken), werden nur die
@@ -291,6 +296,9 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         auf_anfahrt: ausgewaehlteAktion.aufAnfahrt,
         bemerkung: bemerkung.trim() || null,
       });
+      // Bestätigungsfoto (bei Kiosk-Scan) mind. 5s stehen lassen, bevor das
+      // Popup schließt.
+      await identVorschau.warten();
       await onAktualisiert();
       setAusgewaehlteAktion(null);
       setAktivesFahrzeugId(null);
@@ -666,9 +674,15 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                         onPersonInfo={(info) => {
                           if (info?.funktion_id) setFunktionId(info.funktion_id);
                         }}
-                        onVorschau={(p) =>
-                          setIdentPerson(p ? { name: p.name, bildUrl: p.bild_url } : null)
-                        }
+                        onVorschau={(p) => {
+                          if (p) {
+                            identVorschau.start();
+                            setIdentPerson({ name: p.name, bildUrl: p.bild_url });
+                          } else {
+                            identVorschau.zuruecksetzen();
+                            setIdentPerson(null);
+                          }
+                        }}
                       />
                     )}
                   </div>

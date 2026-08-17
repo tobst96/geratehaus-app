@@ -19,6 +19,7 @@ import {
   PersonIdentifikation,
   type PersonIdentifikationHandle,
 } from "../../components/PersonIdentifikation";
+import { useMindestwartezeit } from "../../hooks/useMindestwartezeit";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { SeitenFehler } from "../../components/SeitenFehler";
@@ -48,6 +49,7 @@ export function Fahrzeugbuchung() {
   const barcodeModus = config?.modul_barcode_aktiv !== false;
   const mitgliedModus = useMitgliedModus();
   const identRef = useRef<PersonIdentifikationHandle>(null);
+  const identVorschau = useMindestwartezeit();
   const [buchungen, setBuchungen] = useState<BuchungOut[] | null>(null);
   const [externeTermine, setExterneTermine] = useState<ExternerTermin[]>([]);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
@@ -174,6 +176,9 @@ export function Fahrzeugbuchung() {
       );
       setZweck("");
       identRef.current?.zuruecksetzen();
+      // Bestätigungsfoto (bei Kiosk-Scan) mind. 5s stehen lassen, bevor das
+      // Formular schließt.
+      await identVorschau.warten();
       setFormularOffen(false);
       await laden();
     } catch (err) {
@@ -286,7 +291,11 @@ export function Fahrzeugbuchung() {
             </p>
           ) : (
             <div className="formular-feld">
-              <PersonIdentifikation ref={identRef} autoFocus />
+              <PersonIdentifikation
+                ref={identRef}
+                autoFocus
+                onVorschau={(p) => (p ? identVorschau.start() : identVorschau.zuruecksetzen())}
+              />
             </div>
           )}
           {qrFehler && <Fehlertext>{qrFehler}</Fehlertext>}
@@ -298,7 +307,14 @@ export function Fahrzeugbuchung() {
               {qrLaeuft ? "Erzeuge QR-Code …" : "Barcode vergessen"}
             </button>
           )}{" "}
-          <button type="button" className="sekundaer" onClick={() => setFormularOffen(false)}>
+          <button
+            type="button"
+            className="sekundaer"
+            onClick={() => {
+              identVorschau.zuruecksetzen();
+              setFormularOffen(false);
+            }}
+          >
             Abbrechen
           </button>
         </form>

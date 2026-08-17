@@ -9,6 +9,7 @@ import {
   PersonIdentifikation,
   type PersonIdentifikationHandle,
 } from "../components/PersonIdentifikation";
+import { useMindestwartezeit } from "../hooks/useMindestwartezeit";
 import "./dienststunden/Dienststunden.css";
 
 const SCHNELLAUSWAHL_STUNDEN = [0.25, 0.5, 1, 1.5, 2, 3, 4];
@@ -32,6 +33,7 @@ function heuteAlsDatum(): string {
 export function DienststundenStempel() {
   const { funktionId } = useParams<{ funktionId: string }>();
   const identRef = useRef<PersonIdentifikationHandle>(null);
+  const identVorschau = useMindestwartezeit();
   const [info, setInfo] = useState<DienststundenStempelInfo | null>(null);
   const [ladeFehler, setLadeFehler] = useState<string | null>(null);
   const [stunden, setStunden] = useState<number>(1);
@@ -55,6 +57,9 @@ export function DienststundenStempel() {
     try {
       const name = await identRef.current!.identifiziere();
       await stundenErfassen(info.funktion_id, stunden, heuteAlsDatum());
+      // Bestätigungsfoto (bei Kiosk-Scan) mind. 5s stehen lassen, bevor die
+      // Erfolgsseite die Identifikation ersetzt.
+      await identVorschau.warten();
       setErfolg({ name, stundenText: stundenAnzeige(stunden) });
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Eintragung fehlgeschlagen.");
@@ -155,7 +160,11 @@ export function DienststundenStempel() {
 
         <div className="formular-feld">
           <label>Anmelden</label>
-          <PersonIdentifikation ref={identRef} autoFocus />
+          <PersonIdentifikation
+            ref={identRef}
+            autoFocus
+            onVorschau={(p) => (p ? identVorschau.start() : identVorschau.zuruecksetzen())}
+          />
         </div>
 
         {fehler && <Fehlertext>{fehler}</Fehlertext>}

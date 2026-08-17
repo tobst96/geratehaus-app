@@ -11,13 +11,13 @@ import {
   namePinPruefen,
   personenAuswahl,
   pinAnfordern,
-  type BarcodeVorschau,
   type PersonAuswahl,
 } from "../api/auth";
 import { ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useConfig } from "../context/ConfigContext";
 import { useBarcodeSound } from "../hooks/useBarcodeSound";
+import { useGehaltenePerson } from "../hooks/useGehaltenePerson";
 import { istKioskModus } from "../utils/kiosk";
 import { BarcodeEingabe } from "./BarcodeEingabe";
 
@@ -73,7 +73,6 @@ function PersonIdentifikationImpl(
 
   // --- Barcode-Modus ---
   const [barcode, setBarcode] = useState("");
-  const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
 
   // --- Namen+PIN-Modus ---
   const [suche, setSuche] = useState("");
@@ -82,17 +81,17 @@ function PersonIdentifikationImpl(
   const [pin, setPin] = useState("");
   const [meldung, setMeldung] = useState<string | null>(null);
   const [anfordernLaeuft, setAnfordernLaeuft] = useState(false);
-  // Erst nach korrektem PIN bestätigte Person (für die Bildvorschau).
-  const [pinBestaetigt, setPinBestaetigt] = useState<{ name: string; bild_url: string | null } | null>(
-    null
-  );
+  // Angezeigte (gehaltene) Bestätigungsperson – bleibt mind. 5s sichtbar,
+  // auch wenn ein Formular-Reset (zuruecksetzen) schneller kommt.
+  const { gehalten, zeigen: gehalteneZeigen, graceClear: gehalteneGraceClear, forceClear: gehalteneForceClear } =
+    useGehaltenePerson();
 
   // Barcode-Live-Vorschau
   useEffect(() => {
     if (!barcodeModus) return;
     const wert = barcode.trim();
     if (!wert) {
-      setVorschau(null);
+      gehalteneGraceClear();
       onPersonInfo?.(null);
       onVorschau?.(null);
       return;
@@ -100,14 +99,14 @@ function PersonIdentifikationImpl(
     const timeout = setTimeout(() => {
       barcodeVorschau(wert)
         .then((v) => {
-          setVorschau(v);
+          gehalteneZeigen({ name: v.name, bild_url: v.bild_url });
           onPersonInfo?.({ name: v.name, funktion_id: v.funktion_id, gruppe_id: v.gruppe_id, bild_url: v.bild_url });
           // Barcode selbst ist der Nachweis – Bildvorschau direkt melden.
           onVorschau?.({ name: v.name, bild_url: v.bild_url });
           spieleErkannt();
         })
         .catch(() => {
-          setVorschau(null);
+          gehalteneGraceClear();
           onPersonInfo?.(null);
           onVorschau?.(null);
           spieleFehler();
@@ -146,7 +145,7 @@ function PersonIdentifikationImpl(
   // eingegeben wurde (nicht schon bei der Namensauswahl).
   useEffect(() => {
     if (barcodeModus || !kioskModus || !gewaehlt || !gewaehlt.pin_gesetzt || !pin) {
-      setPinBestaetigt(null);
+      gehalteneGraceClear();
       onVorschau?.(null);
       return;
     }
@@ -155,11 +154,11 @@ function PersonIdentifikationImpl(
     const timeout = setTimeout(() => {
       namePinPruefen(person.id, eingabe)
         .then((v) => {
-          setPinBestaetigt(v);
+          gehalteneZeigen(v);
           onVorschau?.(v);
         })
         .catch(() => {
-          setPinBestaetigt(null);
+          gehalteneGraceClear();
           onVorschau?.(null);
         });
     }, 400);
@@ -169,13 +168,15 @@ function PersonIdentifikationImpl(
 
   function zuruecksetzen() {
     setBarcode("");
-    setVorschau(null);
     setSuche("");
     setTreffer([]);
     setGewaehlt(null);
     setPin("");
     setMeldung(null);
-    setPinBestaetigt(null);
+    // Ein Reset nach erfolgreicher Eintragung kommt oft schneller als ein
+    // Mensch das Bestätigungsfoto lesen kann – daher gehalten statt sofort
+    // gelöscht (siehe useGehaltenePerson).
+    gehalteneGraceClear();
     onVorschau?.(null);
   }
 
@@ -185,7 +186,8 @@ function PersonIdentifikationImpl(
     setSuche(p.name);
     setPin("");
     setMeldung(null);
-    setPinBestaetigt(null);
+    // Aktive neue Auswahl durch den Bediener – kein Warten nötig.
+    gehalteneForceClear();
     onVorschau?.(null);
     // Gruppe/Funktion sofort vorwählen (Bild kommt erst nach korrektem PIN).
     onPersonInfo?.({ name: p.name, funktion_id: p.funktion_id, gruppe_id: p.gruppe_id, bild_url: p.bild_url });
@@ -242,14 +244,14 @@ function PersonIdentifikationImpl(
   if (barcodeModus) {
     return (
       <div className="person-ident">
-        {vorschau && !ohneVorschau && (
+        {gehalten && !ohneVorschau && (
           <div className="person-ident-vorschau">
-            {vorschau.bild_url ? (
-              <img src={vorschau.bild_url} alt={vorschau.name} className="person-ident-bild" />
+            {gehalten.bild_url ? (
+              <img src={gehalten.bild_url} alt={gehalten.name} className="person-ident-bild" />
             ) : (
-              <div className="person-ident-initialen">{initialen(vorschau.name)}</div>
+              <div className="person-ident-initialen">{initialen(gehalten.name)}</div>
             )}
-            <div className="person-ident-name">{vorschau.name}</div>
+            <div className="person-ident-name">{gehalten.name}</div>
           </div>
         )}
         <label htmlFor="ident-barcode">Barcode einscannen</label>
@@ -291,7 +293,7 @@ function PersonIdentifikationImpl(
             setGewaehlt(null);
             setPin("");
             setMeldung(null);
-            setPinBestaetigt(null);
+            gehalteneForceClear();
             onPersonInfo?.(null);
             onVorschau?.(null);
           }
@@ -312,14 +314,14 @@ function PersonIdentifikationImpl(
         </ul>
       )}
 
-      {pinBestaetigt && !ohneVorschau && (
+      {gehalten && !ohneVorschau && (
         <div className="person-ident-vorschau">
-          {pinBestaetigt.bild_url ? (
-            <img src={pinBestaetigt.bild_url} alt={pinBestaetigt.name} className="person-ident-bild" />
+          {gehalten.bild_url ? (
+            <img src={gehalten.bild_url} alt={gehalten.name} className="person-ident-bild" />
           ) : (
-            <div className="person-ident-initialen">{initialen(pinBestaetigt.name)}</div>
+            <div className="person-ident-initialen">{initialen(gehalten.name)}</div>
           )}
-          <div className="person-ident-name">{pinBestaetigt.name}</div>
+          <div className="person-ident-name">{gehalten.name}</div>
         </div>
       )}
 
