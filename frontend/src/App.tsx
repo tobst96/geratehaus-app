@@ -28,7 +28,6 @@ import { NotifierEinstellungen } from "./pages/gruppenfuehrer/NotifierEinstellun
 import { SetupWizard } from "./pages/setup/SetupWizard";
 import { MitgliedLogin } from "./pages/mitglied/MitgliedLogin";
 import { MitgliedHub } from "./pages/mitglied/MitgliedHub";
-import { MitgliedAnmelden } from "./pages/mitglied/MitgliedAnmelden";
 import { Einsatztagebuch } from "./pages/einsatztagebuch/Einsatztagebuch";
 import { EinsatzDetail } from "./pages/einsatztagebuch/EinsatzDetail";
 import { Dienstbuch } from "./pages/dienstbuch/Dienstbuch";
@@ -60,7 +59,6 @@ export function App() {
           <Route path="/gruppenfuehrer/login" element={<GruppenfuehrerLogin />} />
           <Route path="/mitglied/login" element={<MitgliedLogin />} />
           <Route path="/mitglied" element={<MitgliedHub />} />
-          <Route path="/mitglied-anmelden/:token" element={<MitgliedAnmelden />} />
 
           <Route path="/gruppenfuehrer" element={<GruppenfuehrerRoute />}>
             <Route element={<GruppenfuehrerLayout />}>

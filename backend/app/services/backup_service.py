@@ -83,7 +83,7 @@ KATEGORIEN: list[tuple[str, str, list[str]]] = [
         "tokens",
         "Tokens & Kurzlebiges",
         ["barcode_tokens", "fahrzeug_tokens", "kiosk_tokens", "pin_setzen_tokens",
-         "person_freigabe_tokens", "mitglied_login_reservierungen", "sitzplatz_reservierungen",
+         "person_freigabe_tokens", "sitzplatz_reservierungen",
          "divera_vorschlaege"],
     ),
 ]

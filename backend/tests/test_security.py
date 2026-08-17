@@ -98,13 +98,3 @@ async def test_rate_limit_gruppiert_nach_routen_muster():
     with pytest.raises(Exception) as exc:
         await check(request_fuer_token("ccc"))
     assert "429" in str(exc.value) or "Zu viele" in str(exc.value)
-
-
-@pytest.mark.asyncio
-async def test_oeffentlicher_post_wird_begrenzt(client, db):
-    """Integration: ein öffentlicher POST-Endpunkt ohne Auth (Login-Reservierung
-    anlegen) wird nach dem Limit mit 429 abgewiesen."""
-    _AUFRUFE.clear()
-    antworten = [await client.post("/api/v1/mitglied-login-reservierungen") for _ in range(16)]
-    assert antworten[-1].status_code == 429
-    assert any(a.status_code < 400 for a in antworten[:15])

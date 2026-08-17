@@ -35,7 +35,6 @@ from app.services import (
     audit_service,
     barcode_service,
     feature_modul_service,
-    mitglied_login_reservierung_service,
     gruppenfuehrer_service,
     passwort_service,
     pin_service,
@@ -152,40 +151,6 @@ async def barcode_einscannen(
         )
 
     barcode.last_used_at = datetime.utcnow()
-    await db.commit()
-
-    _setze_namens_cookie(response, person.name)
-    return BarcodeIdentitaet(name=person.name)
-
-
-@router.post(
-    "/mitglied-login-reservierungen/{token}/einloesen",
-    response_model=BarcodeIdentitaet,
-    dependencies=[Depends(rate_limit(30, 60))],
-)
-async def mitglied_login_einloesen(db: DbSession, response: Response, token: str) -> BarcodeIdentitaet:
-    """Wird vom URSPRÜNGLICHEN Gerät aufgerufen (nicht vom Handy!), sobald
-    Polling ergibt, dass die Auswahl auf dem Handy bestätigt wurde – setzt
-    den Namens-Cookie auf diesem Gerät, wie /auth/barcode."""
-    reservierung = await mitglied_login_reservierung_service.get_reservierung_by_token(db, token)
-    if reservierung is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservierung nicht gefunden.")
-    if reservierung.eingeloest:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Diese Reservierung wurde bereits genutzt."
-        )
-    if not reservierung.bestaetigt or reservierung.person_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Noch keine Person auf dem Handy bestätigt."
-        )
-    if mitglied_login_reservierung_service.ist_abgelaufen(reservierung):
-        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Diese Reservierung ist abgelaufen.")
-
-    person = await stammdaten_service.get_person(db, reservierung.person_id)
-    if person is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
-
-    reservierung.eingeloest = True
     await db.commit()
 
     _setze_namens_cookie(response, person.name)
