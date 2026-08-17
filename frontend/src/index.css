@@ -1110,6 +1110,59 @@ table tr:hover {
 .mitglied-abmelden-link:hover {
   background: var(--farbe-oberflaeche-hover);
 }
+.mitglied-bereichswechsel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  background: var(--farbe-oberflaeche);
+  border: 1px solid var(--farbe-rand);
+  border-radius: 12px;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  transition: border-color 0.15s, transform 0.05s;
+}
+.mitglied-bereichswechsel:active {
+  transform: scale(0.99);
+}
+@media (hover: hover) {
+  .mitglied-bereichswechsel:hover {
+    border-color: var(--farbe-primaer);
+  }
+}
+.mitglied-bereichswechsel-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--farbe-primaer);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mitglied-bereichswechsel-icon svg {
+  width: 56%;
+  height: 56%;
+}
+.mitglied-bereichswechsel-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+.mitglied-bereichswechsel-text strong {
+  font-size: 1.02rem;
+}
+.mitglied-bereichswechsel-pfeil {
+  font-size: 1.3rem;
+  color: var(--farbe-primaer);
+  flex-shrink: 0;
+}
 .mitglied-frage {
   font-size: 1.15rem;
   margin: 0 0 14px;

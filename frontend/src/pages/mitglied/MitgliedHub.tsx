@@ -23,6 +23,21 @@ const MODULE: { key: KachelModulKey; aktivKey: string; aussenKey: string; route:
   { key: "formulare", aktivKey: "modul_formular_aktiv", aussenKey: "modul_formular_aussenzugriff", route: "/formulare", label: "Formulare" },
 ];
 
+function GruppenfuehrerIcon() {
+  return (
+    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M32 6l20 8v14c0 14-8.5 24-20 30-11.5-6-20-16-20-30V14l20-8Z" fill="white" />
+      <path
+        d="M23 32l6 6 12-14"
+        stroke="var(--farbe-primaer)"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function initialen(name: string): string {
   return name
     .trim()
@@ -249,12 +264,24 @@ export function MitgliedHub() {
       )}
 
       {profil?.gruppenfuehrer_rolle && (
-        <button type="button" className="karte" onClick={() => navigate("/gruppenfuehrer")}>
-          <strong>
-            {profil.gruppenfuehrer_rolle === "admin"
-              ? "Zum Admin-Bereich"
-              : "Zum Gruppenführer-Bereich"}
-          </strong>
+        <button
+          type="button"
+          className="mitglied-bereichswechsel"
+          onClick={() => navigate("/gruppenfuehrer")}
+          aria-label={profil.gruppenfuehrer_rolle === "admin" ? "Zum Admin-Bereich" : "Zum Gruppenführer-Bereich"}
+        >
+          <span className="mitglied-bereichswechsel-icon">
+            <GruppenfuehrerIcon />
+          </span>
+          <span className="mitglied-bereichswechsel-text">
+            <strong>
+              {profil.gruppenfuehrer_rolle === "admin" ? "Zum Admin-Bereich" : "Zum Gruppenführer-Bereich"}
+            </strong>
+            <span className="text-mute">Verwaltung, Berechtigungen & Einstellungen</span>
+          </span>
+          <span className="mitglied-bereichswechsel-pfeil" aria-hidden="true">
+            →
+          </span>
         </button>
       )}
 
