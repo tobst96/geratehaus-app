@@ -105,6 +105,29 @@ describe("PersonIdentifikation", () => {
     expect(nameLoginEinmalig).toHaveBeenCalledWith(1, "");
   });
 
+  it("zeigt das Profilbild sofort bei der Auswahl, wenn die Person keinen PIN gesetzt hat", async () => {
+    barcodeAktiv = false;
+    localStorage.setItem("kiosk_token", "abc");
+    personenAuswahl.mockReset().mockResolvedValue([
+      {
+        id: 1,
+        name: "Ohne Pin Bild",
+        bild_url: "https://example.org/ohne-pin.png",
+        pin_gesetzt: false,
+        funktion_id: null,
+        gruppe_id: null,
+      },
+    ]);
+
+    rendern();
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Ohne" } });
+    await screen.findByText("Ohne Pin Bild");
+    fireEvent.click(screen.getByText("Ohne Pin Bild"));
+
+    const bild = await screen.findByAltText("Ohne Pin Bild");
+    expect(bild).toHaveAttribute("src", "https://example.org/ohne-pin.png");
+  });
+
   describe("Bestätigungsfoto bleibt mind. 5s stehen", () => {
     beforeEach(() => {
       vi.useFakeTimers();

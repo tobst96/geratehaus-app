@@ -151,9 +151,14 @@ function PersonIdentifikationImpl(
   }, [gewaehlt, barcodeModus, kioskModus]);
 
   // Live-PIN-Prüfung: das Profilbild erscheint erst, wenn der korrekte PIN
-  // eingegeben wurde (nicht schon bei der Namensauswahl).
+  // eingegeben wurde (nicht schon bei der Namensauswahl). Ohne gesetzten PIN
+  // gibt es nichts zu prüfen – die Vorschau wurde bereits bei der Auswahl
+  // gesetzt (siehe personWaehlen) und darf hier nicht wieder gelöscht werden.
   useEffect(() => {
-    if (barcodeModus || !kioskModus || !gewaehlt || !gewaehlt.pin_gesetzt || !pin) {
+    if (barcodeModus || !kioskModus || !gewaehlt || !gewaehlt.pin_gesetzt) {
+      return;
+    }
+    if (!pin) {
       gehalteneGraceClear();
       onVorschau?.(null);
       return;
@@ -197,9 +202,15 @@ function PersonIdentifikationImpl(
     setMeldung(null);
     // Aktive neue Auswahl durch den Bediener – kein Warten nötig.
     gehalteneForceClear();
-    onVorschau?.(null);
-    // Gruppe/Funktion sofort vorwählen (Bild kommt erst nach korrektem PIN).
+    // Gruppe/Funktion sofort vorwählen (Bild bei gesetztem PIN erst nach dessen
+    // korrekter Eingabe – ohne PIN gibt es nichts zu prüfen, daher sofort).
     onPersonInfo?.({ name: p.name, funktion_id: p.funktion_id, gruppe_id: p.gruppe_id, bild_url: p.bild_url });
+    if (p.pin_gesetzt) {
+      onVorschau?.(null);
+    } else {
+      gehalteneZeigen({ name: p.name, bild_url: p.bild_url });
+      onVorschau?.({ name: p.name, bild_url: p.bild_url });
+    }
   }
 
   async function pinLinkAnfordern() {

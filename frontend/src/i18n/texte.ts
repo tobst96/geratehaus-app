@@ -136,7 +136,7 @@ export const texte = {
     keine_person:
       "Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.",
     kein_pin:
-      "Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich – bitte im Gerätehaus einen persönlichen PIN setzen (lassen).",
+      "Für dich ist noch kein PIN hinterlegt. Die Eintragung ist trotzdem möglich, wird aber als „ohne PIN“ vermerkt.",
     dein_pin: "Dein PIN",
     vab: "Verdienstausfallbescheinigung",
     atemschutz_angelegt: "Atemschutz angelegt",
@@ -170,7 +170,7 @@ export const texte = {
     angefragt_titel: "Anfrage gestellt!",
     angefragt_text: "Deine Fahrzeugbuchung wurde angefragt. Du kannst diese Seite jetzt schließen.",
     kein_pin:
-      "Für dich ist kein PIN hinterlegt. Eine Selbst-Buchung ohne PIN ist nicht möglich – bitte im Gerätehaus einen persönlichen PIN setzen (lassen).",
+      "Für dich ist noch kein PIN hinterlegt. Die Anfrage ist trotzdem möglich, wird aber als „ohne PIN“ vermerkt.",
     fahrzeug: "Fahrzeug",
     von: "Von",
     bis: "Bis",
