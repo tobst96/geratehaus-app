@@ -1,9 +1,11 @@
 """Prüft auf neue Releases von Gerätehaus.app auf GitHub und kann ein Update
 anstoßen. Der Backend-Container hat bewusst keinen Zugriff auf Docker/Git des
-Hosts – „Update anstoßen" schreibt daher nur eine Markerdatei in einen per
-Bind-Mount geteilten Ordner (settings.update_signal_dir). Ein host-seitiges
-Skript (scripts/updater.sh, per cron/systemd) beobachtet den Ordner und führt
-das eigentliche Update aus (git pull + docker compose up -d --build)."""
+Hosts – „Update anstoßen" erstellt zuerst ein Backup und schreibt dann eine
+Markerdatei mit dem exakten Ziel-Git-Tag in einen per Bind-Mount geteilten
+Ordner (settings.update_signal_dir). Ein host-seitiges Skript
+(scripts/updater.sh, per cron/systemd) beobachtet den Ordner und führt das
+eigentliche Update aus (git fetch + checkout des Tags + docker compose up -d
+--build)."""
 
 import re
 import time
@@ -131,9 +133,11 @@ async def update_status(db: AsyncSession) -> dict:
             "kanal": kanal,
             "installierte_version": aktuelle_version,
             "verfuegbare_version": None,
+            "ziel_tag": None,
             "veroeffentlicht_am": None,
             "release_url": None,
             "update_verfuegbar": False,
+            "installierbar": False,
             "fehler": f"GitHub-Releases konnten nicht abgerufen werden: {exc}",
         }
 
@@ -143,20 +147,31 @@ async def update_status(db: AsyncSession) -> dict:
             "kanal": kanal,
             "installierte_version": aktuelle_version,
             "verfuegbare_version": None,
+            "ziel_tag": None,
             "veroeffentlicht_am": None,
             "release_url": None,
             "update_verfuegbar": False,
+            "installierbar": False,
             "fehler": None,
         }
 
-    verfuegbare_version = str(release.get("tag_name", "")).lstrip("v")
+    ziel_tag = str(release.get("tag_name", ""))
+    verfuegbare_version = ziel_tag.lstrip("v")
     return {
         "kanal": kanal,
         "installierte_version": aktuelle_version,
         "verfuegbare_version": verfuegbare_version,
+        # Exakter Git-Tag (mit „v"-Präfix) – das Host-Skript checkt diesen Ref direkt
+        # aus, unabhängig davon, auf welchem Branch/Tag der Host gerade steht.
+        "ziel_tag": ziel_tag,
         "veroeffentlicht_am": release.get("published_at"),
         "release_url": release.get("html_url"),
         "update_verfuegbar": _ist_neuer(verfuegbare_version, aktuelle_version),
+        # Anders als `update_verfuegbar` (verhindert automatische Downgrade-Vorschläge)
+        # erlaubt `installierbar` bewusst auch ältere Versionen – nötig, damit ein
+        # Kanalwechsel (z. B. von neuerer Beta zurück auf Stable) eine Install-Option
+        # anbietet, statt „bereits aktuell" zu zeigen.
+        "installierbar": verfuegbare_version != aktuelle_version,
         "fehler": None,
     }
 
@@ -166,39 +181,58 @@ async def kanal_setzen(db: AsyncSession, kanal: str) -> None:
 
 
 async def update_ausloesen(db: AsyncSession) -> dict:
-    """Stößt ein Update an, sofern eine neue Version verfügbar ist: schreibt eine
-    Markerdatei in den geteilten Signal-Ordner. Das eigentliche Update übernimmt
-    das host-seitige Skript (scripts/updater.sh). Gibt {angefordert, verfuegbare_version,
-    meldung} zurück; `angefordert=False` bei bereits aktueller Version oder Fehler."""
+    """Stößt ein Update an, sofern eine andere Version als die installierte verfügbar
+    ist (auch ein Kanalwechsel auf eine ältere Version zählt – siehe `installierbar`
+    in `update_status`): erstellt zuerst ein Backup, dann eine Markerdatei mit dem
+    exakten Ziel-Git-Tag im geteilten Signal-Ordner. Das eigentliche Update
+    (git fetch + checkout des Tags + docker compose up --build) übernimmt das
+    host-seitige Skript (scripts/updater.sh). Gibt {angefordert, verfuegbare_version,
+    meldung} zurück; `angefordert=False` bei bereits aktueller Version, fehlgeschlagenem
+    Backup oder sonstigem Fehler."""
     status = await update_status(db)
     verfuegbare_version = status["verfuegbare_version"]
 
     if status["fehler"]:
         return {"angefordert": False, "verfuegbare_version": verfuegbare_version, "meldung": status["fehler"]}
-    if not status["update_verfuegbar"]:
+    if not status["installierbar"]:
         return {
             "angefordert": False,
             "verfuegbare_version": verfuegbare_version,
             "meldung": "Es ist bereits die neueste Version installiert.",
         }
 
+    # Vor JEDEM Update ein Backup – bricht das Backup ab, wird auch kein Update
+    # angestoßen. `backup_lokal_aktiv` ist standardmäßig an, daher schlägt das nur
+    # fehl, wenn wirklich alle Backup-Ziele deaktiviert/fehlkonfiguriert sind.
+    from app.services import backup_service
+
+    try:
+        await backup_service.erstelle_backup(db, ausloeser="vor_update")
+    except backup_service.BackupFehler as exc:
+        logger.warning("update_backup_fehlgeschlagen", exc_info=True)
+        return {
+            "angefordert": False,
+            "verfuegbare_version": verfuegbare_version,
+            "meldung": f"Update abgebrochen: Backup vor dem Update ist fehlgeschlagen ({exc}).",
+        }
+
     marker = Path(settings.update_signal_dir) / UPDATE_MARKER_NAME
     try:
         marker.parent.mkdir(parents=True, exist_ok=True)
         marker.write_text(
-            f"{verfuegbare_version}\n{datetime.now(timezone.utc).isoformat()}\n", encoding="utf-8"
+            f"{status['ziel_tag']}\n{datetime.now(timezone.utc).isoformat()}\n", encoding="utf-8"
         )
     except OSError as exc:
         logger.warning("update_marker_schreiben_fehlgeschlagen", exc_info=True)
         return {
             "angefordert": False,
             "verfuegbare_version": verfuegbare_version,
-            "meldung": f"Update-Anforderung konnte nicht geschrieben werden: {exc}",
+            "meldung": f"Backup wurde erstellt, aber die Update-Anforderung konnte nicht geschrieben werden: {exc}",
         }
 
-    logger.info("update_angefordert", verfuegbare_version=verfuegbare_version)
+    logger.info("update_angefordert", ziel_tag=status["ziel_tag"])
     return {
         "angefordert": True,
         "verfuegbare_version": verfuegbare_version,
-        "meldung": "Update angefordert. Der Server aktualisiert sich in Kürze und startet dabei neu.",
+        "meldung": "Backup erstellt, Update angefordert. Der Server aktualisiert sich in Kürze und startet dabei neu.",
     }

@@ -27,8 +27,8 @@ export function Update() {
     laden();
   }, []);
 
-  async function updateInstallieren() {
-    if (!confirm(t.installieren_confirm)) return;
+  async function updateInstallieren(istUpgrade: boolean) {
+    if (!confirm(istUpgrade ? t.installieren_confirm : t.wechseln_confirm)) return;
     setInstalliert(true);
     setInstallMeldung(null);
     try {
@@ -65,10 +65,13 @@ export function Update() {
         <h2>{t.kanal_titel}</h2>
         <p className="text-mute">
           "Stable" zeigt nur fertige Veröffentlichungen an, "Beta" auch Vorabversionen. Ist eine
-          neue Version verfügbar, kann sie unten per Klick installiert werden. Das Update wird von
-          einem Skript auf dem Server ausgeführt (<code>git pull</code> +
-          <code>docker compose up -d --build</code>); dazu muss <code>scripts/updater.sh</code>
-          einmalig als Cronjob/systemd-Dienst auf dem Host eingerichtet sein.
+          neue Version verfügbar, kann sie unten per Klick installiert werden – auch beim Wechsel
+          zwischen den Kanälen wird direkt die für den gewählten Kanal aktuellste Version zum
+          Installieren angeboten. Vor jedem Update erstellt der Server automatisch ein Backup. Das
+          Update selbst wird von einem Skript auf dem Server ausgeführt (<code>git fetch</code> +
+          Checkout der Zielversion + <code>docker compose up -d --build</code>); dazu muss{" "}
+          <code>scripts/updater.sh</code> einmalig als Cronjob/systemd-Dienst auf dem Host
+          eingerichtet sein.
         </p>
         <div style={{ display: "flex", gap: 16 }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -125,18 +128,22 @@ export function Update() {
         </table>
         </div>
 
-        {status.update_verfuegbar ? (
+        {status.installierbar ? (
           <>
             <p style={{ marginTop: "1rem" }}>
-              {t.neue_version_verfuegbar}{" "}
+              {status.update_verfuegbar ? t.neue_version_verfuegbar : t.andere_version_verfuegbar}{" "}
               {status.release_url && (
                 <a href={status.release_url} target="_blank" rel="noreferrer">
                   {t.release_hinweise}
                 </a>
               )}
             </p>
-            <button onClick={updateInstallieren} disabled={installiert} style={{ marginTop: "0.5rem" }}>
-              {installiert ? t.installieren_laeuft : t.installieren}
+            <button
+              onClick={() => updateInstallieren(status.update_verfuegbar)}
+              disabled={installiert}
+              style={{ marginTop: "0.5rem" }}
+            >
+              {installiert ? t.installieren_laeuft : status.update_verfuegbar ? t.installieren : t.wechseln}
             </button>
           </>
         ) : (
