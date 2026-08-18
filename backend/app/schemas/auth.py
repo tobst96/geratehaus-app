@@ -135,6 +135,10 @@ class MeinProfil(BaseModel):
     # Steuert im Frontend, ob der Wechsel in den Gruppenführer-/Admin-Bereich
     # angeboten wird (siehe /auth/gruppenfuehrer/step-up).
     gruppenfuehrer_rolle: str | None = None
+    # True nur für erhöhte Zugänge ohne gepflegten Vornamen – Signal für den
+    # Migrations-Hinweis im Dashboard (Alt-Instanzen mit dem anonymen
+    # Platzhalter-Admin aus früheren Setup-Wizard-Versionen).
+    migration_hinweis: bool = False
 
 
 class MeinPasswort(BaseModel):

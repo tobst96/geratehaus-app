@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, status
 
 from app.api.deps import CurrentGruppenfuehrer, DbSession
-from app.schemas.setup import SetupRequest, SetupStatus
+from app.schemas.setup import SetupBasis, SetupRequest, SetupStatus
 from app.services import feature_modul_service, logo_service, setup_service
 from app.services.config_service import config_service
 
@@ -52,8 +52,9 @@ async def setup_logo_hochladen(db: DbSession, datei: UploadFile) -> dict[str, st
 
 @router.post("/erneut-ausfuehren", status_code=status.HTTP_204_NO_CONTENT)
 async def setup_erneut_ausfuehren(
-    db: DbSession, daten: SetupRequest, _gruppenfuehrer: CurrentGruppenfuehrer
+    db: DbSession, daten: SetupBasis, _gruppenfuehrer: CurrentGruppenfuehrer
 ) -> None:
-    """Erlaubt Gruppenführer, den Setup-Wizard nachträglich erneut zu
-    durchlaufen, z. B. bei einer Migration auf eine neue Instanz."""
-    await setup_service.setup_durchfuehren(db, daten)
+    """Erlaubt Gruppenführer, Branding/Module/Benachrichtigungen nachträglich
+    erneut über den Wizard-Ablauf zu setzen. Admin-Zugänge werden hier bewusst
+    NICHT verwaltet – dafür „Erhöhter Zugang" in Personal nutzen."""
+    await setup_service.setup_erneut_durchfuehren(db, daten)

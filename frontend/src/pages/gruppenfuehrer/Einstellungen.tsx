@@ -222,7 +222,6 @@ export function Einstellungen() {
         organisation_name: organisationName,
         farbe_primaer: farbePrimaer,
         farbe_akzent: farbeAkzent,
-        admin_passwort: prompt(t.setup_passwort_prompt) ?? "",
       });
       neuLaden();
       toast.erfolg(t.setup_erfolg);

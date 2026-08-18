@@ -45,6 +45,9 @@ export interface MeinProfil {
   passwort_gesetzt: boolean;
   /** null = normales Mitglied ohne erhöhten Zugang; sonst "gruppenfuehrer"/"admin". */
   gruppenfuehrer_rolle: string | null;
+  /** True nur für erhöhte Zugänge ohne gepflegten Vornamen (Alt-Instanzen mit dem
+   * anonymen Platzhalter-Admin aus früheren Setup-Wizard-Versionen). */
+  migration_hinweis: boolean;
 }
 
 export interface PersonAuswahl {
