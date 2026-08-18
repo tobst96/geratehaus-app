@@ -12,6 +12,54 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe V – Zwei-Faktor-Pflicht an tatsächlich funktionierendes SMTP koppeln
+
+### 2FA soll erst greifen, wenn E-Mail gesetzt UND SMTP wirklich funktioniert (nicht nur konfiguriert)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Feature / Backend / Sicherheit
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Nutzerwunsch: Zwei-Faktor-Anmeldung für erhöhte Zugänge
+  (Admin/Gruppenführer, verwaltet über „Erhöhter Zugang" in Personal) soll
+  automatisch aktiv sein, **solange** bei der jeweiligen Person eine E-Mail
+  hinterlegt ist **und** SMTP konfiguriert ist **und** SMTP nachweislich
+  funktioniert (nicht nur mit einem Host-Feld befüllt).
+- **Ist-Zustand (bereits vorhanden, per Analyse):** In
+  `gruppenfuehrer_service.zugang_entscheiden` (Zeile ~169-190) gibt es schon
+  eine globale Pflicht-Logik: Config `zwei_faktor_pflicht` (Default `true`)
+  erzwingt die 2FA-Einrichtung beim nächsten Login, aber **nur wenn zusätzlich**
+  `notifier_email_smtp_host` nicht leer ist – sonst bliebe man auf einer frisch
+  eingerichteten Instanz ohne SMTP komplett ausgesperrt. Hat die Person selbst
+  noch keine E-Mail, wird sie im Zuge der Pflicht-Einrichtung danach gefragt
+  (`email_gesetzt`-Flag, Frontend fragt optional nach).
+- **Tatsächliche Lücke:** Es wird nur geprüft, ob `notifier_email_smtp_host`
+  **gesetzt** ist – nicht, ob SMTP **tatsächlich funktioniert** (falsche
+  Zugangsdaten/Host würden die Pflicht trotzdem auslösen, der Anmelde-Code
+  käme dann nie an → faktische Aussperrung). Es gibt bereits einen
+  Testmail-Versand (`gruppenfuehrer_einstellungen.py`, Testmail-Endpunkt),
+  aber **kein gespeichertes Ergebnis** („zuletzt erfolgreich getestet am"),
+  das `zugang_entscheiden` heranziehen könnte.
+- Möglicher Lösungsweg (vor Umsetzung mit Nutzer klären): neuer Config-Key
+  z. B. `notifier_email_smtp_verifiziert_am` (Timestamp), gesetzt bei jedem
+  erfolgreichen Mailversand (Testmail **und/oder** jede echte gesendete Mail,
+  z. B. OTP-Versand selbst) und zurückgesetzt bei fehlgeschlagenem Versand/
+  SMTP-Konfigurationsänderung. `zugang_entscheiden` prüft dann zusätzlich
+  dieses Feld statt nur `smtp_host`.
+- Akzeptanzkriterien: 2FA-Pflicht greift nur, wenn SMTP nachweislich
+  funktioniert (nicht nur konfiguriert) UND die jeweilige Person eine E-Mail
+  hat; bei fehlschlagendem SMTP wird die Pflicht automatisch ausgesetzt statt
+  Zugänge auszusperren; Regressionstest für „SMTP konfiguriert aber fehlerhaft
+  → keine Pflicht-Einrichtung erzwungen".
+- Notizen: Betrifft nur die globale `zwei_faktor_pflicht`-Logik – kein neues
+  Per-Person-Feld nötig, da 2FA-Pflicht schon heute automatisch für alle
+  erhöhten Zugänge gilt (kein manuelles Ein-/Ausschalten je Person in
+  Personal vorgesehen, sofern nicht anders gewünscht – vor Umsetzung
+  gegenprüfen, ob der Nutzer stattdessen eine Sichtbarkeit/Steuerung pro
+  Person in Personal erwartet).
+
+---
+
 ## Etappe U – Personal-Liste: Filter „Ohne PIN"
 
 ### Filtermöglichkeit für Personen ohne gesetzten PIN
