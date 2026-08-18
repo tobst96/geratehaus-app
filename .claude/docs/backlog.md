@@ -12,6 +12,176 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AE – Frontend-Performance/Modernisierung (Audit 18.08.2026)
+
+> Aus einer Gesamtanalyse der App (Sicherheit + Frontend-Performance,
+> 18.08.2026). Vier Einzelpunkte, unabhängig voneinander umsetzbar.
+
+### Kein Code-Splitting – ein einziges Riesen-Bundle
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Frontend / Performance
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: `frontend/src/App.tsx` importiert alle ~30 Seiten (inkl.
+  Setup-Wizard, Kalender/`react-big-calendar`, Karte/`leaflet`+
+  `react-leaflet`, Barcode-Scanner/`@zxing/library`) statisch, kein
+  `React.lazy`/`import()`. `frontend/vite.config.ts` hat kein
+  `manualChunks`. Damit lädt selbst die einfache Kiosk-Startseite
+  Bibliotheken mit, die nur auf einzelnen Unterseiten gebraucht werden –
+  verzögert den ersten Render unnötig, besonders auf dem Kiosk-Tablet/
+  mobilen Netzen.
+- Akzeptanzkriterien: `React.lazy()` + `Suspense` mindestens für die
+  schweren, selten genutzten Routen (Kalender/Buchung, Karte/Fahrzeug,
+  Barcode-Generator/-Scanner, Setup-Wizard, Admin-Unterseiten). Messbare
+  Reduktion der initial geladenen Bundle-Größe (`npm run build`-Output
+  vorher/nachher vergleichen).
+- Notizen: Aus Frontend-Performance-Audit 18.08.2026.
+
+### React-Performance: fehlende Memoisierung (useMemo/useCallback/Context)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / Performance
+- Skills: geraetehaus-patterns, review
+- Beschreibung: Im gesamten Frontend (91+ Komponentendateien) faktisch
+  keine Verwendung von `useMemo`/`useCallback`. Konkret
+  `src/pages/gruppenfuehrer/Personal.tsx` (~1392 Zeilen, ~35 `useState`):
+  die gefilterte Liste wird bei jedem Render neu berechnet, auch bei
+  unabhängigem Modal-/Formular-State. `src/context/ConfigContext.tsx`
+  (Provider-`value`) erzeugt bei jedem Render ein neues Objekt ohne
+  `useMemo` – jeder Consumer würde bei Provider-Rerender mit neu rendern.
+  Bei aktuellen Wehrgrößen (wenige hundert Personen) noch unkritisch, wird
+  aber bei wachsenden Listen spürbar.
+- Akzeptanzkriterien: Teure Berechnungen (Filter/Sort großer Listen) in
+  Kernkomponenten mit `useMemo` versehen, Context-Provider-`value`
+  memoisiert. Kein Verhaltensunterschied, nur Performance.
+- Notizen: Aus Frontend-Performance-Audit 18.08.2026. Hängt inhaltlich mit
+  „Kein ESLint/Prettier-Setup" (unten) zusammen – ein Hooks-Lint hätte das
+  automatisch angezeigt.
+
+### N+1-Fetch bei Buchungs-Konfliktvergleich
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / Backend / Performance
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: `src/pages/gruppenfuehrer/Buchungsmanagement.tsx` lädt den
+  Konfliktvergleich aktuell mit
+  `Promise.all(liste.map(b => holeKonfliktvergleich(b.id)))` – ein eigener
+  Request pro ausstehender Buchung statt eines Batch-Endpunkts. Bei
+  mehreren gleichzeitig offenen Buchungsanfragen unnötig viele Roundtrips.
+- Akzeptanzkriterien: Neuer Backend-Endpunkt für Batch-Konfliktvergleich
+  (mehrere Buchungs-IDs auf einmal), Frontend nutzt ihn statt der
+  Einzel-Requests.
+- Notizen: Aus Frontend-Performance-Audit 18.08.2026.
+
+### Kein ESLint/Prettier-Setup im Frontend
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / DevOps
+- Skills: geraetehaus-patterns, review
+- Beschreibung: Frontend hat ein gutes `tsconfig.json` (`strict`,
+  `noUnusedLocals`), aber kein Lint-Setup. Ein Setup mit
+  `eslint-plugin-react-hooks` würde fehlende Hook-Dependencies und die o. g.
+  Memoisierungs-Lücken automatisch aufzeigen und künftig verhindern.
+- Akzeptanzkriterien: ESLint (+ Prettier oder vorhandene Formatierung) im
+  Frontend eingerichtet, `npm run lint`-Script, CI-Integration optional.
+- Notizen: Aus Frontend-Performance-Audit 18.08.2026. Bereits im Backlog
+  behandelt (nicht hier duplizieren): Profilbilder komprimieren/cachen =
+  [[Etappe AC]]. Fonts/PWA-Caching bereits vorbildlich (self-hosted,
+  `font-display: swap`) – kein Handlungsbedarf.
+
+---
+
+## Etappe AD – Sicherheitsaudit-Funde (18.08.2026)
+
+> Aus einer Gesamtanalyse der App (Sicherheit + Frontend-Performance,
+> 18.08.2026), ergänzend zur bereits weitgehend abgearbeiteten
+> [[Etappe P]] (Sicherheits-Roadmap). Die API selbst ist über
+> docker-compose bereits korrekt abgeschottet (nur der Frontend-Nginx-Port
+> ist nach außen gebunden, Backend/DB nicht öffentlich erreichbar) – kein
+> Finding dazu nötig.
+
+### JWT- und Cookie-Secret ohne Startup-Schutz gegen Default-Werte
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Backend / Sicherheit
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: `backend/app/core/config.py:25,28` – `jwt_secret_key` und
+  `cookie_secret_key` haben hart codierte Default-Werte
+  („change-me-to-a-random-secret" / „change-me-to-another-random-secret"),
+  die im öffentlichen Repo stehen. Es gibt keinen Startup-Check (weder in
+  `main.py`s `lifespan`, noch in `docker-entrypoint.sh`), der eine
+  Produktivinstanz mit unverändertem Default verhindert oder wenigstens
+  laut warnt. Vergisst ein Admin beim Setup, `.env` anzupassen, signiert
+  die App JWTs/Mitglieder-Session-Cookies mit einem jedem bekannten
+  Secret – jeder könnte damit gültige Admin-/Gruppenführer-Tokens fälschen.
+- Akzeptanzkriterien: Beim Start (production) wird geprüft, ob
+  `jwt_secret_key`/`cookie_secret_key` noch dem Default entsprechen; falls
+  ja, harter Fehlschlag (oder mindestens sehr auffällige Warnung in Log +
+  Health-Endpoint) statt stillem Weiterlaufen. Test dafür.
+- Notizen: Aus Sicherheitsaudit 18.08.2026.
+
+### Keine Token-Invalidierung bei Passwortänderung/2FA-Reset (Gruppenführer/Admin)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Backend / Sicherheit
+- Skills: planner, geraetehaus-patterns, tests, review
+- Beschreibung: `app/api/deps.py` (`get_current_gruppenfuehrer`) prüft pro
+  Request nur, ob die Rolle noch gesetzt ist – nicht, ob das JWT nach der
+  letzten Passwortänderung ausgestellt wurde. `gruppenfuehrer_service.
+  person_passwort_setzen` sowie `auth.py`s `mein_passwort_setzen` ändern
+  das Passwort, laufende Tokens bleiben aber bis `exp` (bis zu 480 Min,
+  `jwt_expire_minutes`) gültig. Ein gestohlenes Token überlebt damit eine
+  Passwort-Änderung, die eigentlich als Reaktion auf eine Kompromittierung
+  gedacht ist, bis zu 8 Stunden.
+- Akzeptanzkriterien: Passwortänderung/2FA-Reset invalidiert bestehende
+  Tokens (z. B. `passwort_geaendert_am`-Claim im Token gegen DB-Wert
+  prüfen, oder Token-Version/Revocation-Liste). Regressionstest: altes
+  Token nach Passwortänderung wird abgelehnt.
+- Notizen: Aus Sicherheitsaudit 18.08.2026.
+
+### Langlebige Session-Cookies ohne secure-Flag
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Backend / Sicherheit
+- Skills: bugfix, review
+- Beschreibung: `app/api/v1/auth.py` setzt das Namens-Cookie (5 Jahre
+  Gültigkeit) und das Trusted-Device-Cookie (30 Tage) mit
+  `httponly=True, samesite="lax"`, aber ohne `secure=True`. Bei einer
+  versehentlich per HTTP statt HTTPS erreichbaren Instanz (z. B.
+  Fehlkonfiguration im Reverse-Proxy, lokale Tests) würden diese
+  langlebigen Cookies im Klartext übertragen.
+- Akzeptanzkriterien: `secure=True` für diese Cookies in Produktion (über
+  Setting togglebar, damit lokale HTTP-Entwicklung weiter funktioniert).
+- Notizen: Aus Sicherheitsaudit 18.08.2026.
+
+### Rate-Limit auf lesenden Reservierungs-Token-Endpunkten nachziehen (Konsistenz)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Backend / Sicherheit
+- Skills: geraetehaus-patterns, review
+- Beschreibung: Die GET-Endpunkte (`GET /{token}`, `GET /{token}/personen`)
+  in `dienststunden_reservierungen.py` und den Analoga (Fahrzeugbuchung,
+  Personenbild) haben – anders als die schreibenden Endpunkte derselben
+  Router – kein `Depends(rate_limit(...))`. Tokens haben zwar 128 Bit
+  Entropie (praktisch nicht brute-forcebar), aber inkonsistent zum sonst
+  durchgängig angewendeten Muster.
+- Akzeptanzkriterien: Auch die GET-Routen der Reservierungs-Token-
+  Endpunkte mit `rate_limit` versehen, analog den POST-Pendants.
+- Notizen: Aus Sicherheitsaudit 18.08.2026. Bewusst nicht erneut gemeldet:
+  Swagger/OpenAPI unter `/api/v1/docs` ist laut [[Etappe P]] Punkt (0)
+  bereits bewusst akzeptiert („ohne offene sensible Daten" ist das
+  eigentliche Kriterium, nicht Abschalten).
+
+---
+
 ## Etappe AC – Profilbilder komprimieren + im Kiosk cachen (Ladezeit)
 
 ### Bilder beim Upload verkleinern; Kiosk-Anzeige möglichst aus dem Cache
