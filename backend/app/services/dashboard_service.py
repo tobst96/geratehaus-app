@@ -89,10 +89,11 @@ async def _schwellenwert_ueberschreitungen(db: AsyncSession) -> list[Schwellenwe
     return ergebnis
 
 
-async def dashboard_daten(db: AsyncSession) -> DashboardOut:
+async def dashboard_daten(db: AsyncSession, gruppenfuehrer: Person) -> DashboardOut:
     return DashboardOut(
         einsaetze_pro_monat=await _einsaetze_pro_monat(db),
         vab_faelle_anzahl=await _vab_faelle_anzahl(db),
         offene_buchungen_anzahl=await _offene_buchungen_anzahl(db),
         schwellenwert_ueberschreitungen=await _schwellenwert_ueberschreitungen(db),
+        migration_hinweis=bool(gruppenfuehrer.gruppenfuehrer_rolle) and not gruppenfuehrer.vorname,
     )

@@ -1,13 +1,11 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
-from app.core.security import hash_secret
 from app.models.fahrzeug import Fahrzeug
-from app.models.person import Person
-from app.schemas.setup import SetupRequest
+from app.schemas.person import PersonCreate
+from app.schemas.setup import SetupBasis, SetupRequest
 from app.schemas.stammdaten import FahrzeugCreate
-from app.services import feature_modul_service, stammdaten_service
+from app.services import feature_modul_service, gruppenfuehrer_service, stammdaten_service
 from app.services.config_service import config_service
 from app.services.notifier.webpush import generiere_vapid_schluessel
 
@@ -20,10 +18,9 @@ async def ist_eingerichtet(db: AsyncSession) -> bool:
     return bool(await config_service.get(db, "setup_abgeschlossen", False))
 
 
-async def setup_durchfuehren(db: AsyncSession, daten: SetupRequest) -> None:
-    """Legt die **initiale Admin-Person** an (Name = `admin_username`, mit Passwort)
-    und befüllt app_config. First-Run oder erneut über den authentifizierten
-    Gruppenführer-Bereich."""
+async def _basis_konfigurieren(db: AsyncSession, daten: SetupBasis) -> None:
+    """Branding/Module/Benachrichtigungen – gemeinsamer Teil von First-Run und
+    „erneut ausführen"."""
     await config_service.ensure_defaults(db)
     await config_service.set_many(
         db,
@@ -35,30 +32,41 @@ async def setup_durchfuehren(db: AsyncSession, daten: SetupRequest) -> None:
             "setup_abgeschlossen": True,
         },
     )
-
-    name = settings.admin_username
-    person = (
-        await db.execute(select(Person).where(Person.name == name))
-    ).scalar_one_or_none()
-    if person is None:
-        person = Person(
-            name=name,
-            gruppenfuehrer_rolle="admin",
-            passwort_hash=hash_secret(daten.admin_passwort),
-        )
-        db.add(person)
-    else:
-        person.gruppenfuehrer_rolle = "admin"
-        person.passwort_hash = hash_secret(daten.admin_passwort)
-    await db.commit()
-
     await _fahrzeuge_anlegen(db, daten)
     for key, aktiv in daten.module_aktiv.items():
         await feature_modul_service.set_flag(db, key, "aktiv", aktiv)
     await _notifier_konfigurieren(db, daten)
 
 
-async def _fahrzeuge_anlegen(db: AsyncSession, daten: SetupRequest) -> None:
+async def setup_durchfuehren(db: AsyncSession, daten: SetupRequest) -> None:
+    """First-Run: befüllt app_config (siehe `_basis_konfigurieren`) und legt die
+    **erste Person als Admin** an – mit echtem Namen/E-Mail aus dem Wizard statt
+    eines anonymen Platzhalter-Accounts, damit später in Personal keine zweite,
+    „doppelte" Person für dieselbe E-Mail nötig ist. Nutzt denselben Weg
+    (`gruppenfuehrer_service.person_elevieren`) wie „Erhöhter Zugang" in
+    Personal – ein einziger Mechanismus für Zugangsvergabe."""
+    await _basis_konfigurieren(db, daten)
+
+    person = await stammdaten_service.person_anlegen(
+        db,
+        PersonCreate(
+            vorname=daten.admin_vorname,
+            nachname=daten.admin_nachname,
+            email=daten.admin_email,
+        ),
+    )
+    await gruppenfuehrer_service.person_elevieren(db, person, "admin", daten.admin_passwort)
+
+
+async def setup_erneut_durchfuehren(db: AsyncSession, daten: SetupBasis) -> None:
+    """„Setup erneut ausführen" (Einstellungen, für bereits eingerichtete
+    Instanzen): nur Branding/Module/Benachrichtigungen. Zugangsverwaltung
+    (Passwort ändern etc.) läuft ausschließlich über „Erhöhter Zugang" in
+    Personal – bewusst NICHT hier, um genau einen Ort dafür zu haben."""
+    await _basis_konfigurieren(db, daten)
+
+
+async def _fahrzeuge_anlegen(db: AsyncSession, daten: SetupBasis) -> None:
     """Legt die im Wizard erfassten Fahrzeuge an. Nur per Name auf Duplikate
     geprüft, damit ein erneutes Ausführen des Setups (/setup/erneut-ausfuehren)
     keine doppelten Fahrzeuge erzeugt."""
@@ -74,7 +82,7 @@ async def _fahrzeuge_anlegen(db: AsyncSession, daten: SetupRequest) -> None:
         vorhandene_namen.add(fahrzeug.name)
 
 
-async def _notifier_konfigurieren(db: AsyncSession, daten: SetupRequest) -> None:
+async def _notifier_konfigurieren(db: AsyncSession, daten: SetupBasis) -> None:
     """Schreibt die im Wizard gewählte Basis-Benachrichtigungskonfiguration.
     VAPID-Schlüssel werden nur erzeugt, wenn noch keine existieren – ein
     erneutes Ausführen des Setups darf aktive Push-Abonnements nicht durch

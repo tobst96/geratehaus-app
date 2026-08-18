@@ -364,6 +364,11 @@ export const texte = {
     keine_ueberschreitungen: "Keine Überschreitungen.",
     einsaetze_pro_monat: "Einsätze pro Monat",
     keine_daten: "Keine Daten.",
+    migration_hinweis_text:
+      "Bei deinem erhöhten Zugang ist noch kein Vorname hinterlegt (z. B. Altlast aus einer " +
+      "früheren Setup-Wizard-Version oder ein reiner Import). Bitte in Personal Vor-/Nachname " +
+      "und E-Mail ergänzen – Achtung: danach ändert sich dein Login-Name (Passwort bleibt gleich).",
+    migration_hinweis_link: "Jetzt in Personal ergänzen",
   },
   gruppenfuehrer_nav: {
     organisation_fallback: "Gruppenführer",
@@ -677,9 +682,9 @@ export const texte = {
     einsaetze: "Einsätze",
     dienstbuecher: "Dienstbücher",
     setup_erneut_bestaetigen:
-      "Den Setup-Wizard mit den aktuellen Werten erneut ausführen? Admin-Passwort und " +
-      "Grunddaten werden überschrieben.",
-    setup_passwort_prompt: "Neues Admin-Passwort (mind. 8 Zeichen):",
+      "Den Setup-Wizard mit den aktuellen Werten erneut ausführen? Grunddaten (Organisation, " +
+      "Farben, Module, Benachrichtigungen) werden überschrieben. Admin-Zugänge sind hiervon " +
+      "nicht betroffen – die verwaltest du über „Erhöhter Zugang“ bei der jeweiligen Person in Personal.",
     setup_erfolg: "Setup erneut durchgeführt.",
     fehler_laden: "Einstellungen konnten nicht geladen werden.",
     fehler_speichern: "Einstellungen konnten nicht gespeichert werden.",

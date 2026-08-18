@@ -471,6 +471,11 @@ tr.zeile-hervorgehoben,
   color: #b00020;
 }
 
+.banner-hinweis {
+  background: #fff4e0;
+  color: #8a5a00;
+}
+
 .karte {
   background: var(--farbe-oberflaeche);
   border-radius: var(--radius);

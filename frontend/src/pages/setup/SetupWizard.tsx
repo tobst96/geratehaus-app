@@ -15,7 +15,7 @@ const SCHRITTE = [
   "Organisation",
   "Logo",
   "Farben",
-  "Admin-Passwort",
+  "Administrator",
   "Fahrzeuge",
   "Module",
   "Benachrichtigungen",
@@ -32,6 +32,9 @@ export function SetupWizard() {
   const [logoLadevorgang, setLogoLadevorgang] = useState(false);
   const [farbePrimaer, setFarbePrimaer] = useState("#FFA633");
   const [farbeAkzent, setFarbeAkzent] = useState("#1A1A1A");
+  const [adminVorname, setAdminVorname] = useState("");
+  const [adminNachname, setAdminNachname] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
   const [adminPasswort, setAdminPasswort] = useState("");
   const [adminPasswortWiederholung, setAdminPasswortWiederholung] = useState("");
   const [fahrzeugName, setFahrzeugName] = useState("");
@@ -91,7 +94,12 @@ export function SetupWizard() {
       case 0:
         return organisationName.trim().length > 0;
       case 3:
-        return adminPasswort.length >= 8 && adminPasswort === adminPasswortWiederholung;
+        return (
+          adminVorname.trim().length > 0 &&
+          adminNachname.trim().length > 0 &&
+          adminPasswort.length >= 8 &&
+          adminPasswort === adminPasswortWiederholung
+        );
       default:
         return true;
     }
@@ -105,6 +113,9 @@ export function SetupWizard() {
         organisation_name: organisationName,
         farbe_primaer: farbePrimaer,
         farbe_akzent: farbeAkzent,
+        admin_vorname: adminVorname.trim(),
+        admin_nachname: adminNachname.trim(),
+        admin_email: adminEmail.trim() || undefined,
         admin_passwort: adminPasswort,
         fehlerberichte_aktiv: fehlerberichteAktiv,
         fahrzeuge: fahrzeugNamen.map((name) => ({ name })),
@@ -206,6 +217,40 @@ export function SetupWizard() {
 
         {schritt === 3 && (
           <>
+            <p className="text-mute">
+              Diese Person wird als Admin angelegt – mit echtem Namen statt eines anonymen
+              Zugangs, damit sie später in „Personal" nicht doppelt auftaucht.
+            </p>
+            <div className="formular-feld">
+              <label htmlFor="admin-vorname">Vorname</label>
+              <input
+                id="admin-vorname"
+                value={adminVorname}
+                onChange={(e) => setAdminVorname(e.target.value)}
+                autoComplete="given-name"
+                required
+              />
+            </div>
+            <div className="formular-feld">
+              <label htmlFor="admin-nachname">Nachname</label>
+              <input
+                id="admin-nachname"
+                value={adminNachname}
+                onChange={(e) => setAdminNachname(e.target.value)}
+                autoComplete="family-name"
+                required
+              />
+            </div>
+            <div className="formular-feld">
+              <label htmlFor="admin-email">E-Mail (optional)</label>
+              <input
+                id="admin-email"
+                type="email"
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                autoComplete="email"
+              />
+            </div>
             <div className="formular-feld">
               <label htmlFor="admin-passwort">Admin-Passwort (mind. 8 Zeichen)</label>
               <input

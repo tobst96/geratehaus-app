@@ -25,11 +25,16 @@ class SetupNotifier(BaseModel):
     push_aktiv: bool = False
 
 
-class SetupRequest(BaseModel):
+class SetupBasis(BaseModel):
+    """Gemeinsame Felder für Erst-Einrichtung UND „erneut ausführen" – Branding/
+    Module/Benachrichtigungen. Die Admin-Person wird bewusst NICHT hier
+    verwaltet (siehe SetupRequest) – das passiert ausschließlich einmalig beim
+    First-Run; danach läuft Zugangsverwaltung (Passwort ändern etc.)
+    ausschließlich über „Erhöhter Zugang" in Personal (ein einziger Ort)."""
+
     organisation_name: str = Field(min_length=1, max_length=255)
     farbe_primaer: str = Field(default="#FFA633", pattern=r"^#[0-9A-Fa-f]{6}$")
     farbe_akzent: str = Field(default="#1A1A1A", pattern=r"^#[0-9A-Fa-f]{6}$")
-    admin_passwort: str = Field(min_length=8)
     fehlerberichte_aktiv: bool = False
     # Alle drei folgenden Felder sind bewusst optional mit neutralem Default –
     # der Wizard bleibt schlank, diese Zusatzschritte sind überspringbar
@@ -37,3 +42,15 @@ class SetupRequest(BaseModel):
     fahrzeuge: list[SetupFahrzeug] = []
     module_aktiv: dict[str, bool] = {}
     notifier: SetupNotifier | None = None
+
+
+class SetupRequest(SetupBasis):
+    """Nur für den First-Run (POST /setup): legt zusätzlich die erste Person als
+    Admin an – mit echtem Namen statt eines anonymen Platzhalter-Accounts, damit
+    später in Personal keine zweite, „doppelte" Person für dieselbe E-Mail
+    nötig ist."""
+
+    admin_vorname: str = Field(min_length=1, max_length=128)
+    admin_nachname: str = Field(min_length=1, max_length=128)
+    admin_email: str | None = Field(default=None, max_length=255)
+    admin_passwort: str = Field(min_length=8)

@@ -23,15 +23,25 @@ export interface SetupModul {
   aktiv: boolean;
 }
 
-export interface SetupRequest {
+export interface SetupBasis {
   organisation_name: string;
   farbe_primaer: string;
   farbe_akzent: string;
-  admin_passwort: string;
   fehlerberichte_aktiv?: boolean;
   fahrzeuge?: SetupFahrzeug[];
   module_aktiv?: Record<string, boolean>;
   notifier?: SetupNotifier;
+}
+
+/** Nur für den First-Run (POST /setup) – legt zusätzlich die erste Person als
+ * Admin an. „Setup erneut ausführen" nutzt SetupBasis ohne diese Felder;
+ * Zugangsverwaltung (Passwort ändern etc.) läuft danach nur noch über
+ * „Erhöhter Zugang" in Personal. */
+export interface SetupRequest extends SetupBasis {
+  admin_vorname: string;
+  admin_nachname: string;
+  admin_email?: string;
+  admin_passwort: string;
 }
 
 export const holeSetupStatus = () => apiGet<SetupStatus>("/setup/status");
@@ -57,5 +67,5 @@ export const setupAusfuehren = (daten: SetupRequest) => apiPost<void>("/setup", 
 export const setupLogoHochladen = (datei: File) =>
   apiUpload<{ logo_url: string }>("/setup/logo", datei, "datei");
 
-export const setupErneutAusfuehren = (daten: SetupRequest) =>
+export const setupErneutAusfuehren = (daten: SetupBasis) =>
   apiPost<void>("/setup/erneut-ausfuehren", daten);
