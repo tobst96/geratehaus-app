@@ -82,6 +82,16 @@ export async function anfrage<T>(pfad: string, optionen: RequestOptions = {}): P
     } catch {
       // kein JSON-Body
     }
+    if (response.status === 401 && headers["Authorization"]) {
+      // Das gespeicherte Gruppenführer-Token wird vom Server abgelehnt (abgelaufen,
+      // durch einen Deploy entwertet, o. Ä.) - lokalen Stand aufräumen und die
+      // Auth-Seite benachrichtigen, statt die Person mit wiederholten
+      // "Nicht angemeldet."-Fehlern hängen zu lassen. Sie landet dadurch auf
+      // /gruppenfuehrer/login, was bei noch gültiger Mitglied-Session automatisch
+      // per Step-up neu anmeldet (kein erneutes Passwort nötig).
+      setGruppenfuehrerToken(null);
+      window.dispatchEvent(new Event("gruppenfuehrer-session-abgelaufen"));
+    }
     throw new ApiError(response.status, detail);
   }
 
