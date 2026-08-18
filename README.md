@@ -89,7 +89,9 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
   ihrem persönlichen PIN. Hat sie noch keinen PIN, fordert sie über einen Knopf einen **Self-Service-Link
   per E-Mail** an; ist keine E-Mail hinterlegt, geht stattdessen eine **Freigabe-Mail an die Gruppenführer**
   (Ja/Nein), die dann E-Mail und optional den PIN setzen. Personen ohne PIN werden zusätzlich in einem
-  einstellbaren Intervall automatisch per E-Mail erinnert (Modul Personal).
+  einstellbaren Intervall automatisch per E-Mail erinnert (Modul Personal). Die Identifikation
+  selbst bleibt auch ohne gesetzten PIN möglich – der Vorgang wird dann als „ohne PIN" markiert
+  (Liste/PDF, rot hervorgehoben) und in der Personen-Timeline vermerkt.
 - **Modul „Barcode" (optional)** – ist es aktiv, identifizieren sich Mitglieder stattdessen per echtem
   **Code128-Strichcode** pro Person (konfigurierbare Gültigkeit); beim Scannen wird das Profilbild groß
   zur Bestätigung angezeigt, **Scan-Töne** geben sofortiges akustisches Feedback. Bestehende Instanzen
@@ -100,8 +102,9 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
   Klick **ohne erneute Passworteingabe** in den entsprechenden Bereich (die 2FA-Pflicht bleibt als
   Schutzschicht bestehen). Namensauswahl + PIN bzw. Barcode bleiben ausschließlich dem Kiosk vorbehalten.
 - **„Barcode vergessen"** (bei aktivem Barcode-Modul) – erzeugt im Scan-Dialog einen QR-Code für genau
-  diese Aktion; die Person scannt ihn mit dem eigenen Handy und trägt sich ohne Barcode ein (kurzlebiger,
-  einmalig gültiger Token). Solche Eintragungen sind in Listen und PDF als „ohne Barcode" markiert.
+  diese Aktion; die Person scannt ihn mit dem eigenen Handy und trägt sich mit Name + PIN ohne Barcode
+  ein (kurzlebiger, einmalig gültiger Token). Solche Eintragungen sind in Listen und PDF als „ohne
+  Barcode" markiert, fehlt zusätzlich der PIN, zusätzlich als „ohne PIN".
 
 ### 🧩 Module
 

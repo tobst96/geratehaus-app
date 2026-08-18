@@ -7,7 +7,8 @@ Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Login).
 
 - Offenes Dienstbuch auswählen und sich per **Barcode** oder **Name + PIN**
   eintragen. Gruppe wird bei der Personenauswahl automatisch vorgewählt.
-- „Barcode vergessen": Eintragung per Handy-QR-Code (Name + PIN erforderlich).
+- „Barcode vergessen": Eintragung per Handy-QR-Code (Name + PIN). Ohne gesetzten
+  PIN bleibt die Eintragung möglich, wird aber als „ohne PIN" markiert.
 
 ## Gruppenführer (Liste/Detail)
 

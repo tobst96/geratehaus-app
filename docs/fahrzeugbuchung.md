@@ -7,7 +7,8 @@ Gruppenführer-Freigabe. Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Log
 
 - Nach **Barcode** oder **Name + PIN**: buchbares Fahrzeug wählen, Von/Bis und Zweck
   angeben und eine **Buchungsanfrage** stellen.
-- „Barcode vergessen": Anfrage per Handy-QR-Code (Name + PIN erforderlich).
+- „Barcode vergessen": Anfrage per Handy-QR-Code (Name + PIN). Ohne gesetzten
+  PIN bleibt die Anfrage möglich, wird aber als „ohne PIN" markiert.
 - Buchbar sind nur die im Modul [Fahrzeuge](fahrzeuge.md) als **„buchbar"**
   markierten Fahrzeuge.
 

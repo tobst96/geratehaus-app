@@ -58,6 +58,11 @@ export function Datenschutz() {
           Erinnerung zum Setzen des PINs versendet werden.
         </p>
         <p>
+          Die Identifikation selbst bleibt auch ohne gesetzten PIN möglich – der Vorgang wird dann in
+          den betroffenen Listen/PDFs sowie in deinem Verlauf (sichtbar für Gruppenführer) als „ohne
+          PIN" vermerkt.
+        </p>
+        <p>
           Alternativ kann deine Organisation die Identifikation per persönlichem <strong>Barcode</strong>
           aktivieren; in diesem Fall identifizierst du dich am Kiosk durch Scannen deines Barcodes
           statt per Name und PIN.
