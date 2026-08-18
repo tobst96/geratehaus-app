@@ -5,7 +5,7 @@ from app.services import berechtigungs_service, modul_service
 
 async def _gruppenfuehrer(client, db):
     await modul_service.ensure_module(db)
-    gf = Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer")
+    gf = Person(name="gf", email="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer")
     db.add(gf)
     await db.commit()
     await db.refresh(gf)

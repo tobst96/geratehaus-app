@@ -97,15 +97,15 @@ export const pinSetzenInfo = (token: string) =>
 export const pinSetzen = (token: string, pin: string) =>
   apiPost<void>(`/pin-setzen/${encodeURIComponent(token)}`, { pin });
 
-/** Persönlicher Mitglieder-Login per Name + Passwort (Handy/App). Setzt bei Erfolg
+/** Persönlicher Mitglieder-Login per E-Mail + Passwort (Handy/App). Setzt bei Erfolg
  * das Mitglieder-Identitäts-Cookie serverseitig und liefert den Namen. */
-export const mitgliedPasswortLogin = (name: string, passwort: string) =>
-  apiPost<BarcodeIdentitaet>("/auth/mitglied-login", { name, passwort });
+export const mitgliedPasswortLogin = (email: string, passwort: string) =>
+  apiPost<BarcodeIdentitaet>("/auth/mitglied-login", { email, passwort });
 
-/** Fordert einen „Passwort setzen"-Link an die zur Person hinterlegte E-Mail an.
+/** Fordert einen „Passwort setzen"-Link an die angegebene E-Mail an.
  * Antwortet immer gleich (kein Enumeration-Leak). */
-export const passwortAnfordern = (name: string) =>
-  apiPost<{ status: string }>("/auth/mitglied-passwort-anfordern", { name });
+export const passwortAnfordern = (email: string) =>
+  apiPost<{ status: string }>("/auth/mitglied-passwort-anfordern", { email });
 
 export const passwortSetzenInfo = (token: string) =>
   apiGet<PinTokenInfo>(`/passwort-setzen/${encodeURIComponent(token)}`);

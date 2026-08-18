@@ -13,6 +13,7 @@ async def _minimaler_frontend_payload() -> dict:
         "farbe_akzent": "#1A1A1A",
         "admin_vorname": "Max",
         "admin_nachname": "Mustermann",
+        "admin_email": "max@example.org",
         "admin_passwort": "geheim123",
         "fehlerberichte_aktiv": False,
     }
@@ -49,7 +50,7 @@ async def test_setup_login_funktioniert_nach_einrichtung(client):
     # mit dem alten anonymen Platzhalter "admin".
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login",
-        data={"username": "Max Mustermann", "password": "geheim123"},
+        data={"username": "max@example.org", "password": "geheim123"},
     )
     assert login.status_code == 200
 
@@ -133,7 +134,7 @@ async def test_setup_mit_fahrzeugen_erneut_ausgefuehrt_dupliziert_nicht(client):
 
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login",
-        data={"username": "Max Mustermann", "password": payload["admin_passwort"]},
+        data={"username": "max@example.org", "password": payload["admin_passwort"]},
     )
     token = login.json()["access_token"]
 
@@ -247,7 +248,7 @@ async def test_setup_push_erneut_ausgefuehrt_ueberschreibt_vapid_schluessel_nich
 
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login",
-        data={"username": "Max Mustermann", "password": payload["admin_passwort"]},
+        data={"username": "max@example.org", "password": payload["admin_passwort"]},
     )
     token = login.json()["access_token"]
 

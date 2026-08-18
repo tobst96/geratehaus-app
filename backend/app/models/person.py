@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -15,9 +15,23 @@ class Person(Base, TimestampMixin):
     `name` ist der vollständige Anzeigename und bleibt die Identität für
     Cookie/Barcode-Auflösung (historisch gewachsen, von vielen Stellen
     referenziert). Bei gruppenfuehrer-gepflegten Personen wird er aus
-    vorname/zwischenname/nachname zusammengesetzt und synchron gehalten."""
+    vorname/zwischenname/nachname zusammengesetzt und synchron gehalten.
+
+    Login (Gruppenführerbereich wie Mitglied-Passwort-Login) läuft dagegen über
+    `email` statt `name` (siehe `gruppenfuehrer_service.login_pruefen`) – daher
+    der partielle Unique-Index unten: eindeutig nur unter Personen mit
+    gesetztem Passwort, damit reine Mitglieder ohne Login weiterhin dieselbe
+    Benachrichtigungs-E-Mail teilen dürfen (siehe Migration 0070)."""
 
     __tablename__ = "personen"
+    __table_args__ = (
+        Index(
+            "ix_personen_email_login_unique",
+            text("lower(email)"),
+            unique=True,
+            postgresql_where=text("passwort_hash IS NOT NULL AND email IS NOT NULL"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)

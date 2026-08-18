@@ -33,7 +33,7 @@ async def test_login_pflicht_ohne_2fa_verlangt_einrichtung(client, db):
     await _smtp_konfigurieren(db)
     await _gf(db)
     r = await client.post(
-        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod@example.org", "password": "geheim123"}
     )
     assert r.status_code == 200
     body = r.json()
@@ -52,7 +52,7 @@ async def test_login_pflicht_ohne_smtp_liefert_token_direkt(client, db):
     await _pflicht(db, True)
     await _gf(db)  # SMTP bewusst NICHT konfiguriert (Default: leer)
     r = await client.post(
-        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod@example.org", "password": "geheim123"}
     )
     assert r.status_code == 200
     body = r.json()
@@ -112,7 +112,7 @@ async def test_login_pflicht_aus_liefert_token_direkt(client, db):
     await _pflicht(db, False)
     await _gf(db)
     r = await client.post(
-        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod@example.org", "password": "geheim123"}
     )
     assert r.status_code == 200
     assert r.json()["access_token"]
@@ -126,7 +126,7 @@ async def test_login_mit_aktivem_2fa_unveraendert(client, db):
     m.zwei_faktor_aktiv = True
     await db.commit()
     r = await client.post(
-        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod@example.org", "password": "geheim123"}
     )
     body = r.json()
     assert body["access_token"] is None

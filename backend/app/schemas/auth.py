@@ -60,12 +60,12 @@ class PinTokenInfo(BaseModel):
 
 
 class MitgliedPasswortLogin(BaseModel):
-    name: str
+    email: str
     passwort: str
 
 
 class PasswortAnfordern(BaseModel):
-    name: str
+    email: str
 
 
 class PasswortSetzen(BaseModel):

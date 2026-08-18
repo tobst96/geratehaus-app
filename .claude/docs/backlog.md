@@ -12,6 +12,83 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe Z – Mitglied-Hub: „Meine Dienststunden" nur mit Stunden > 0 anzeigen
+
+### Funktionen ohne geleistete Stunden nicht in der eigenen Übersicht auflisten
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / Backend
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Im Mitglied-Hub (`MitgliedHub.tsx`, Abschnitt „Meine
+  Dienststunden", ca. Zeile 69-90) werden alle Einträge aus
+  `uebersicht.dienststunden` gezeigt – auch Funktionen, für die die Person
+  noch **0 Stunden** hat (`summe_stunden === 0`). Gewünscht: nur Funktionen
+  mit `summe_stunden > 0` anzeigen.
+- Akzeptanzkriterien: Funktionen ohne geleistete Stunden erscheinen nicht
+  mehr in „Meine Dienststunden"; hat eine Person überall 0 Stunden, greift
+  weiterhin die bestehende Leer-Prüfung (aktuell `dienststunden.length > 0`
+  fürs ganze Kartenelement).
+- Notizen: Filterung reicht vermutlich rein im Frontend
+  (`uebersicht.dienststunden.filter(d => d.summe_stunden > 0)` vor dem
+  `.map(...)`); alternativ direkt in `dienststunden_service.eigene_summen`
+  (Backend) filtern, falls die ungefilterten Summen sonst nirgends gebraucht
+  werden – kurz prüfen, ob `eigene_summen` noch anderswo (z. B.
+  Gruppenführer-Auswertung) mit den Nullwerten verwendet wird.
+
+---
+
+## Etappe Y – Formulare: E-Mail-Empfänger als Personen-Auswahl statt Freitext
+
+### Bei neuer Einreichung Person(en) auswählen statt E-Mail-Adresse einzutippen
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: In der Formular-Modul-Unterseite (`FormularModul.tsx`, ca.
+  Zeile 258-267) ist „E-Mail-Empfänger bei neuer Einreichung" ein reines
+  Freitext-`<input type="email">`-Feld (sogar nur eine einzelne Adresse). Die
+  E-Mail-Adressen der Personen sind aber bereits in Stammdaten hinterlegt.
+  Gewünscht: Statt der Adresse selbst tippt man die/den Empfänger als Personen
+  aus, ausgewählt aus der bestehenden Personenliste (die hinterlegte E-Mail
+  wird dann intern genutzt).
+- Akzeptanzkriterien: Personen-Auswahl (z. B. Mehrfachauswahl/Autocomplete wie
+  an anderen Stellen im Projekt) statt Freitext; nur Personen mit hinterlegter
+  E-Mail wählbar bzw. Hinweis, wenn keine E-Mail vorhanden; bestehende
+  Freitext-Werte migrationsfrei nutzbar oder klar migriert (klären: reicht
+  Weiterversand an die alte Adresse, bis jemand umstellt?).
+- Notizen: Prüfen, ob `email_empfaenger` weiterhin ein reiner String bleibt
+  (kommagetrennt bei Mehrfachauswahl) oder ob eine Relation/JSON-Liste
+  sinnvoller ist – ggf. Migration nötig, je nach gewählter Umsetzung.
+
+---
+
+## Etappe X – Personal: Tabs „Zugang" und „Erhöhter Zugang" zusammenlegen
+
+### Kiosk-Zugang (PIN/Barcode) und Erhöhter Zugang (Admin/Gruppenführer-Passwort) in einem Tab
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend
+- Skills: geraetehaus-patterns, review
+- Beschreibung: In der Personal-Detailansicht (`Personal.tsx`) gibt es zwei
+  separate Tabs: **„Zugang"** (Zeile ~1117-1201: PIN setzen/entsperren,
+  Barcode erzeugen/per Mail senden – Kiosk-Identifikation) und **„Erhöhter
+  Zugang"** (Zeile ~1286ff: Admin-/Gruppenführer-Rolle, Passwort setzen,
+  2FA-Reset). Gewünscht: beide zu einem Tab zusammenlegen, damit „wie
+  identifiziert/meldet sich diese Person an" an einer Stelle steht statt auf
+  zwei Tabs verteilt.
+- Akzeptanzkriterien: Ein gemeinsamer Tab zeigt PIN-Verwaltung,
+  Barcode-Verwaltung (nur wenn Modul aktiv) UND Erhöhter-Zugang-Verwaltung
+  untereinander; keine Funktionalität geht verloren; bestehende Tests für
+  beide Bereiche bleiben grün (ggf. Selektoren anpassen).
+- Notizen: Rein UI – keine Backend-/API-Änderung nötig. Auf sinnvolle
+  Abschnittsgliederung/Überschriften innerhalb des zusammengelegten Tabs
+  achten, da inhaltlich schon jetzt beide Bereiche recht umfangreich sind.
+
+---
+
 ## Etappe W – Person anlegen: alles in einem Formular statt mehrerer Schritte
 
 ### Beim Anlegen einer Person direkt PIN, E-Mail, Passwort, Benachrichtigungen mit einstellen können

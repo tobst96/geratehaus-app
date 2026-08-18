@@ -88,7 +88,7 @@ async def test_dienststunden_pdf_hebt_ohne_pin_zeile_hervor(client, db):
         db, person.id, DienststundenErfassen(funktion_id=f.id, stunden=1, datum="2026-06-03", ohne_pin=True)
     )
 
-    admin = Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
+    admin = Person(name="admin", email="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
     db.add(admin)
     await db.commit()
     login = await client.post(
@@ -173,7 +173,7 @@ async def test_einsatz_pdf_hebt_ohne_pin_zeile_hervor(client, db):
         db, einsatz, person.id, TeilnahmeAnlegen(nur_geraetehaus=True, ohne_pin=True)
     )
 
-    admin = Person(name="admin-et", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
+    admin = Person(name="admin-et", email="admin-et", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
     db.add(admin)
     await db.commit()
     login = await client.post(
@@ -252,7 +252,7 @@ async def test_buchungen_pdf_hebt_ohne_pin_zeile_hervor(client, db):
         db, person.id, BuchungAnfrage(fahrzeug_id=fahrzeug.id, von=von, bis=bis, zweck="Übung", ohne_pin=True)
     )
 
-    admin = Person(name="admin-fb", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
+    admin = Person(name="admin-fb", email="admin-fb", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
     db.add(admin)
     await db.commit()
     login = await client.post(
@@ -313,7 +313,7 @@ async def test_dienstbuch_pdf_hebt_ohne_pin_zeile_hervor(client, db):
     person = await _person(db, "Ohne Pin Dienstbuch PDF")
     await dienstbuch_service.teilnehmer_eintragen(db, dienstbuch, person.id, TeilnehmerAnlegen(ohne_pin=True))
 
-    admin = Person(name="admin-db", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
+    admin = Person(name="admin-db", email="admin-db", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
     db.add(admin)
     await db.commit()
     login = await client.post(

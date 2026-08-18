@@ -28,7 +28,7 @@ BEREICHE = [
 
 
 async def _token(client, db, username="admin", rolle="admin"):
-    m = Person(name=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle)
+    m = Person(name=username, email=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle)
     db.add(m)
     await db.commit()
     await db.refresh(m)
@@ -89,8 +89,8 @@ async def test_anti_aussperr_seed(client, db):
     # Bildet die Migration 0059 nach: bestehende Gruppenführer bekommen genau die
     # vier Arbeitsbereichs-Rechte, Admins nichts (die brauchen den Bypass).
     await modul_service.ensure_module(db)
-    gf = Person(name="alt-gf", passwort_hash=hash_secret("x"), gruppenfuehrer_rolle="gruppenfuehrer")
-    admin = Person(name="alt-admin", passwort_hash=hash_secret("x"), gruppenfuehrer_rolle="admin")
+    gf = Person(name="alt-gf", email="alt-gf", passwort_hash=hash_secret("x"), gruppenfuehrer_rolle="gruppenfuehrer")
+    admin = Person(name="alt-admin", email="alt-admin", passwort_hash=hash_secret("x"), gruppenfuehrer_rolle="admin")
     db.add_all([gf, admin])
     await db.commit()
     await db.refresh(gf)

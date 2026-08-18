@@ -96,7 +96,7 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
   **Code128-Strichcode** pro Person (konfigurierbare Gültigkeit); beim Scannen wird das Profilbild groß
   zur Bestätigung angezeigt, **Scan-Töne** geben sofortiges akustisches Feedback. Bestehende Instanzen
   behalten den Barcode-Login bei einem Update automatisch.
-- **Ein Login für alle** – die persönliche Anmeldung (`/mitglied/login`, Name + Passwort) führt immer
+- **Ein Login für alle** – die persönliche Anmeldung (`/mitglied/login`, E-Mail + Passwort) führt immer
   in den eigenen Mitgliederbereich mit Zugriff auf alle für den Außenzugriff freigeschalteten Module,
   Abmelden jederzeit möglich. Wer zusätzlich Gruppenführer- oder Admin-Rechte hat, wechselt von dort per
   Klick **ohne erneute Passworteingabe** in den entsprechenden Bereich (eine optionale, in

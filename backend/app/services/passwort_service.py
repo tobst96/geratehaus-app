@@ -8,7 +8,7 @@ einmaligen, ablaufenden Link, über den sie ihr Passwort ohne Login setzt.
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.person import Person
@@ -90,17 +90,20 @@ async def setzen_per_token(db: AsyncSession, token: PasswortSetzenToken, passwor
     return person
 
 
-async def anfordern_per_name(db: AsyncSession, name: str) -> str:
-    """Sucht die Person per Name und schickt – falls möglich – den Set-Link.
-    Rückgabe: "mail" (versendet), "keine_email" (Person ohne E-Mail) oder
+async def anfordern_per_email(db: AsyncSession, email: str) -> str:
+    """Sucht die Person per E-Mail (case-insensitiv) und schickt – falls möglich –
+    den Set-Link. Rückgabe: "mail" (versendet), "keine_email" (leere Eingabe) oder
     "unbekannt" (kein Treffer). Der Aufrufer antwortet bewusst immer gleich
     (kein Enumeration-Leak)."""
+    email_normalisiert = email.strip()
+    if not email_normalisiert:
+        return "keine_email"
     person = (
-        await db.execute(select(Person).where(Person.name == name.strip()))
+        await db.execute(
+            select(Person).where(func.lower(Person.email) == email_normalisiert.lower())
+        )
     ).scalar_one_or_none()
     if person is None:
         return "unbekannt"
-    if not person.email:
-        return "keine_email"
     versendet = await setz_mail_senden(db, person)
     return "mail" if versendet else "keine_email"

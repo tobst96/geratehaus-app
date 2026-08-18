@@ -11,7 +11,7 @@ from app.services.config_service import config_service
 
 
 async def _admin(client, db):
-    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
+    db.add(Person(name="admin", email="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     r = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}

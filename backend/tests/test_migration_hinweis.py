@@ -13,6 +13,7 @@ from app.models.person import Person
 async def _person(db, name, rolle=None, vorname=None, passwort="geheim123"):
     p = Person(
         name=name,
+        email=name,
         vorname=vorname,
         gruppenfuehrer_rolle=rolle,
         passwort_hash=hash_secret(passwort) if passwort else None,

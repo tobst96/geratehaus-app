@@ -12,7 +12,7 @@ from app.services import modul_service
 
 
 async def _admin(client, db):
-    m = Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
+    m = Person(name="admin", email="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
     db.add(m)
     await db.commit()
     r = await client.post(
@@ -86,7 +86,7 @@ async def test_csv_import_komma_getrennt(client, db):
 @pytest.mark.asyncio
 async def test_csv_import_gf_ohne_personal_403(client, db):
     await modul_service.ensure_module(db)
-    m = Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer")
+    m = Person(name="gf", email="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer")
     db.add(m)
     await db.commit()
     r = await client.post(

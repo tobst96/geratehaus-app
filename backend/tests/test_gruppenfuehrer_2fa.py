@@ -21,9 +21,9 @@ async def _gruppenfuehrer(db, username="mod", rolle="admin", email="mod@example.
     return m
 
 
-async def _login_headers(client, username="mod", passwort="geheim123"):
+async def _login_headers(client, email="mod@example.org", passwort="geheim123"):
     r = await client.post(
-        "/api/v1/auth/gruppenfuehrer/login", data={"username": username, "password": passwort}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": email, "password": passwort}
     )
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
@@ -39,7 +39,9 @@ async def _otp_setzen(db, gruppenfuehrer, code="123456"):
 @pytest.mark.asyncio
 async def test_login_ohne_2fa_liefert_token(client, db):
     await _gruppenfuehrer(db)
-    r = await client.post("/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"})
+    r = await client.post(
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod@example.org", "password": "geheim123"}
+    )
     assert r.status_code == 200
     assert r.json()["access_token"]
     assert r.json()["zwei_faktor_erforderlich"] is False
@@ -59,8 +61,12 @@ async def test_2fa_aktivieren_liefert_recovery_codes(client, db):
 
 @pytest.mark.asyncio
 async def test_2fa_aktivieren_ohne_email_400(client, db):
-    await _gruppenfuehrer(db, email=None)
-    h = await _login_headers(client)
+    # Ohne E-Mail ist auch kein Passwort-Login mehr möglich (läuft über E-Mail) -
+    # Token direkt erzeugen, um isoliert das 2FA-Aktivieren-Verhalten zu prüfen.
+    from app.services.gruppenfuehrer_service import gruppenfuehrer_token
+
+    m = await _gruppenfuehrer(db, email=None)
+    h = {"Authorization": f"Bearer {gruppenfuehrer_token(m)}"}
     r = await client.post("/api/v1/gruppenfuehrer/konto/2fa/aktivieren", headers=h)
     assert r.status_code == 400
 
@@ -70,7 +76,9 @@ async def test_login_mit_2fa_verlangt_code(client, db):
     m = await _gruppenfuehrer(db)
     m.zwei_faktor_aktiv = True
     await db.commit()
-    r = await client.post("/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"})
+    r = await client.post(
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod@example.org", "password": "geheim123"}
+    )
     assert r.status_code == 200
     body = r.json()
     assert body["access_token"] is None
@@ -131,7 +139,7 @@ async def test_trusted_device_ueberspringt_2fa(client, db):
     assert r.status_code == 200
     # Erneuter Login: dank Trusted-Device direkt ein Token, kein 2FA nötig.
     r2 = await client.post(
-        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod@example.org", "password": "geheim123"}
     )
     assert r2.json()["access_token"]
     assert r2.json()["zwei_faktor_erforderlich"] is False
@@ -142,7 +150,7 @@ async def test_admin_reset_2fa(client, db):
     admin = await _gruppenfuehrer(db, username="admin", email="a@example.org")
     ziel = await _gruppenfuehrer(db, username="kollege", email="k@example.org")
     await zwei_faktor_service.aktivieren(db, ziel)
-    h = await _login_headers(client, "admin")
+    h = await _login_headers(client, "a@example.org")
 
     r = await client.post(
         f"/api/v1/gruppenfuehrer/stammdaten/personen/{ziel.id}/2fa-zuruecksetzen", headers=h

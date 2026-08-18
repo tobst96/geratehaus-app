@@ -16,7 +16,7 @@ from app.schemas.formular import FormularCreate, FormularFeldCreate, FormularUpd
 
 async def _token(client, db, rolle="admin", username=None):
     username = username or rolle
-    db.add(Person(name=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle))
+    db.add(Person(name=username, email=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": username, "password": "geheim123"}

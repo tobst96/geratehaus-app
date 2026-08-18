@@ -40,7 +40,7 @@ export interface SetupBasis {
 export interface SetupRequest extends SetupBasis {
   admin_vorname: string;
   admin_nachname: string;
-  admin_email?: string;
+  admin_email: string;
   admin_passwort: string;
 }
 
