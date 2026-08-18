@@ -12,6 +12,34 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe W – Person anlegen: alles in einem Formular statt mehrerer Schritte
+
+### Beim Anlegen einer Person direkt PIN, E-Mail, Passwort, Benachrichtigungen mit einstellen können
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Das „Person anlegen"-Formular in `Personal.tsx` (`anlegen()`,
+  Zeile ~383-399) fragt aktuell nur Vorname/Zwischenname/Nachname ab. Danach
+  muss man erst in die Detailansicht wechseln und dort über mehrere separate
+  Tabs (Stammdaten für E-Mail/Gruppe/Funktion, PIN, „Erhöhter Zugang" für
+  Passwort, Benachrichtigungskanäle/-Abos) alles einzeln nachtragen.
+  Gewünscht: Direkt beim Anlegen alles auf einmal einstellbar – E-Mail,
+  PIN, Passwort (falls erhöhter Zugang gewünscht), Benachrichtigungen.
+- Akzeptanzkriterien: Erweiterte Anlegen-Maske (oder optionale
+  „Mehr Einstellungen"-Sektion direkt im Anlegen-Dialog) für E-Mail, PIN,
+  Benachrichtigungskanäle; kein Zwang, alles auszufüllen (Felder bleiben
+  optional wie bisher in den Einzeltabs). Test für „Person mit allen Feldern
+  in einem Rutsch angelegt".
+- Notizen: Rein additiv – bestehende Einzel-Tabs (Stammdaten/PIN/Erhöhter
+  Zugang/Benachrichtigungen) bleiben für spätere Änderungen bestehen, nur die
+  Ersteinrichtung wird gebündelt. Vor Umsetzung prüfen, ob ein einzelnes
+  großes Formular oder ein mehrstufiger Dialog (analog Setup-Wizard) die
+  bessere UX ist – Personal-Liste ist ohnehin schon recht dicht.
+
+---
+
 ## Etappe V – Zwei-Faktor-Pflicht standardmäßig aus
 
 ### 2FA nicht mehr verpflichtend – Aussperrungsrisiko vermeiden
