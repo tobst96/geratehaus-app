@@ -13,7 +13,7 @@ from app.services import einsatz_service
 
 
 async def _admin_token(client, db):
-    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
+    db.add(Person(name="admin", email="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}

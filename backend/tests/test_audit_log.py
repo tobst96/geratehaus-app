@@ -13,7 +13,7 @@ from app.services.config_service import config_service
 
 
 async def _token(client, db, username="admin", rolle="admin"):
-    db.add(Person(name=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle))
+    db.add(Person(name=username, email=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle))
     await db.commit()
     r = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": username, "password": "geheim123"}
@@ -43,7 +43,7 @@ async def test_person_loeschen_wird_protokolliert(client, db):
 async def test_berechtigung_setzen_wird_protokolliert(client, db):
     await modul_service.ensure_module(db)
     h = await _token(client, db)
-    gf = Person(name="gf", passwort_hash=hash_secret("x"), gruppenfuehrer_rolle="gruppenfuehrer")
+    gf = Person(name="gf", email="gf", passwort_hash=hash_secret("x"), gruppenfuehrer_rolle="gruppenfuehrer")
     db.add(gf)
     await db.commit()
     await db.refresh(gf)
@@ -78,7 +78,7 @@ async def test_audit_endpunkt_nur_admin(client, db):
 @pytest.mark.asyncio
 async def test_person_elevieren_wird_protokolliert(client, db):
     h = await _token(client, db)
-    ziel = Person(name="neuer_gf")
+    ziel = Person(name="neuer_gf", email="neuer_gf@example.org")
     db.add(ziel)
     await db.commit()
     await db.refresh(ziel)
@@ -99,7 +99,7 @@ async def test_person_elevieren_wird_protokolliert(client, db):
 @pytest.mark.asyncio
 async def test_person_passwort_setzen_wird_protokolliert(client, db):
     h = await _token(client, db)
-    ziel = Person(name="ziel", passwort_hash=hash_secret("alt12345"), gruppenfuehrer_rolle="gruppenfuehrer")
+    ziel = Person(name="ziel", email="ziel", passwort_hash=hash_secret("alt12345"), gruppenfuehrer_rolle="gruppenfuehrer")
     db.add(ziel)
     await db.commit()
     await db.refresh(ziel)
@@ -119,7 +119,7 @@ async def test_person_passwort_setzen_wird_protokolliert(client, db):
 @pytest.mark.asyncio
 async def test_person_de_elevieren_wird_protokolliert(client, db):
     h = await _token(client, db)
-    ziel = Person(name="wegzu", passwort_hash=hash_secret("x12345678"), gruppenfuehrer_rolle="gruppenfuehrer")
+    ziel = Person(name="wegzu", email="wegzu", passwort_hash=hash_secret("x12345678"), gruppenfuehrer_rolle="gruppenfuehrer")
     db.add(ziel)
     await db.commit()
     await db.refresh(ziel)

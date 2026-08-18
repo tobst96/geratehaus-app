@@ -48,9 +48,10 @@ class SetupRequest(SetupBasis):
     """Nur für den First-Run (POST /setup): legt zusätzlich die erste Person als
     Admin an – mit echtem Namen statt eines anonymen Platzhalter-Accounts, damit
     später in Personal keine zweite, „doppelte" Person für dieselbe E-Mail
-    nötig ist."""
+    nötig ist. E-Mail ist Pflicht, da Login (Gruppenführer- wie Mitgliederbereich)
+    über E-Mail statt Name läuft."""
 
     admin_vorname: str = Field(min_length=1, max_length=128)
     admin_nachname: str = Field(min_length=1, max_length=128)
-    admin_email: str | None = Field(default=None, max_length=255)
+    admin_email: str = Field(min_length=1, max_length=255)
     admin_passwort: str = Field(min_length=8)

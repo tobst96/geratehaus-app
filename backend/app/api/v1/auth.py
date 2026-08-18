@@ -290,12 +290,12 @@ async def pin_anfordern(db: DbSession, daten: PinAnfordern) -> dict[str, str]:
 async def mitglied_passwort_login(
     db: DbSession, response: Response, daten: MitgliedPasswortLogin
 ) -> BarcodeIdentitaet:
-    """Persönlicher Mitglieder-Login per Name + Passwort (Handy/App). Nutzt die
+    """Persönlicher Mitglieder-Login per E-Mail + Passwort (Handy/App). Nutzt die
     generische Passwortprüfung mit Brute-Force-Schutz und setzt bei Erfolg das
     Mitglieder-Identitäts-Cookie (wie der Barcode-/Name+PIN-Login). Der Kiosk nutzt
     weiterhin Barcode/PIN."""
     try:
-        person = await gruppenfuehrer_service.login_pruefen(db, daten.name, daten.passwort)
+        person = await gruppenfuehrer_service.login_pruefen(db, daten.email, daten.passwort)
     except gruppenfuehrer_service.GruppenfuehrerGesperrtError as sperre:
         minuten = max(1, round(sperre.verbleibend_sekunden / 60))
         raise HTTPException(
@@ -303,7 +303,7 @@ async def mitglied_passwort_login(
             detail=f"Zu viele Fehlversuche. Login für {minuten} Minute(n) gesperrt.",
         )
     if person is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Name oder Passwort falsch.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="E-Mail oder Passwort falsch.")
     _setze_namens_cookie(response, person.name)
     return BarcodeIdentitaet(name=person.name)
 
@@ -316,7 +316,7 @@ async def mitglied_passwort_login(
 async def mitglied_passwort_anfordern(db: DbSession, daten: PasswortAnfordern) -> dict[str, str]:
     """Schickt – falls möglich – einen „Passwort setzen"-Link an die zur Person
     hinterlegte E-Mail. Antwortet bewusst immer gleich (kein Enumeration-Leak)."""
-    await passwort_service.anfordern_per_name(db, daten.name)
+    await passwort_service.anfordern_per_email(db, daten.email)
     return {"status": "ok"}
 
 
@@ -330,6 +330,9 @@ async def gruppenfuehrer_login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     gruppenfuehrer_trusted_device: Annotated[str | None, Cookie()] = None,
 ) -> GruppenfuehrerLoginErgebnis:
+    """Login per E-Mail + Passwort. Das Formularfeld heißt weiterhin `username`
+    (OAuth2-Password-Grant-Konvention), der übertragene Wert ist aber die E-Mail
+    der Person – siehe `gruppenfuehrer_service.login_pruefen`."""
     try:
         person = await gruppenfuehrer_service.login_pruefen(db, form_data.username, form_data.password)
     except gruppenfuehrer_service.GruppenfuehrerGesperrtError as sperre:
@@ -341,7 +344,7 @@ async def gruppenfuehrer_login(
     if person is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Name oder Passwort falsch.",
+            detail="E-Mail oder Passwort falsch.",
         )
     return await gruppenfuehrer_service.zugang_entscheiden(db, person, gruppenfuehrer_trusted_device)
 

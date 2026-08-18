@@ -12,10 +12,218 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AC – Profilbilder komprimieren + im Kiosk cachen (Ladezeit)
+
+### Bilder beim Upload verkleinern; Kiosk-Anzeige möglichst aus dem Cache
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Backend / Frontend / Performance
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Zwei zusammenhängende Punkte für schnelleres Laden der
+  Profilbilder (v. a. im Kiosk mit vielen Kacheln/Personen):
+  1. **Komprimierung beim Upload fehlt.** `_bild_verarbeiten`
+     (`backend/app/services/stammdaten_service.py:486-511`) kodiert Bilder zwar
+     neu (EXIF weg, JPEG `quality=88`), **skaliert sie aber nicht herunter** –
+     ein per Handy hochgeladenes Foto (bis 5 MB, ggf. mehrere Tausend Pixel
+     Kantenlänge) wird in voller Auflösung gespeichert und ausgeliefert, obwohl
+     es nur klein angezeigt wird (Kiosk-Kachel, Personal-Avatar, ~200 px).
+     Gewünscht: beim Upload auf eine sinnvolle Maximalkantenlänge (z. B.
+     400-600 px) herunterskalieren, bevor gespeichert wird.
+  2. **Kiosk-Bilder werden nicht wirksam gecacht.** Die `location /uploads/`
+     in `frontend/nginx.conf:35-37` setzt **keinen** `Cache-Control`-Header;
+     zusätzlich läuft die Auslieferung über `GeschuetzteUploads`
+     (`backend/app/main.py:167-182`) mit einem **signierten `?token=`** pro
+     Aufruf – falls sich dieser Token zwischen Aufrufen ändert, verhindert das
+     zusätzlich jede URL-basierte Browser-Cache-Wiederverwendung, selbst wenn
+     ein `Cache-Control`-Header gesetzt würde.
+- Akzeptanzkriterien: Neu hochgeladene Profilbilder sind spürbar kleiner
+  (Ziel-Kantenlänge definieren, bestehende Bilder unangetastet/keine
+  Rückwirkende Migration nötig); Kiosk lädt ein einmal gesehenes Profilbild
+  bei erneuter Anzeige merklich schneller (aus Cache statt erneutem Download).
+  Tests für die Skalierung (Downscale bei großen Bildern, kleine Bilder
+  bleiben unangetastet).
+- Notizen: Vor Umsetzung klären, ob der `?token=` bei `GeschuetzteUploads`
+  pro Person/Zeitraum stabil ist (dann reicht ein normaler
+  `Cache-Control`-Header) oder sich bei jedem Aufruf ändert (dann bräuchte es
+  z. B. eine kiosk-seitige Runtime-Cache-Strategie im Service Worker statt
+  reinem HTTP-Caching). Skalierung mit Pillow (`Image.thumbnail(...)`, bereits
+  Projektabhängigkeit) direkt in `_bild_verarbeiten` ergänzen.
+
+---
+
+## Etappe AB – Profilbild per QR-Upload: Galerie-Auswahl statt nur Kamera
+
+### `capture="environment"` verhindert Foto-Auswahl aus der Galerie auf dem Handy
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Bug / Frontend
+- Skills: bugfix, review
+- Beschreibung: Auf der mobilen Profilbild-Upload-Seite (nach QR-Scan,
+  `frontend/src/pages/PersonBildHochladen.tsx`, Zeile 128-135) hat das
+  `<input type="file">` das Attribut `capture="environment"` gesetzt. Das
+  zwingt mobile Browser dazu, **direkt die Kamera** zu öffnen, statt die
+  native Dateiauswahl (mit Option „Aus Galerie wählen") anzuzeigen – ein
+  bereits vorhandenes Foto kann so nicht hochgeladen werden, nur ein frisch
+  aufgenommenes.
+- Akzeptanzkriterien: Auf dem Handy lässt sich beim Profilbild-Upload sowohl
+  ein neues Foto aufnehmen **als auch** ein vorhandenes Bild aus der Galerie
+  wählen (native Auswahl des Betriebssystems).
+- Notizen: Vermutlich reicht das Entfernen von `capture="environment"` (dann
+  bietet das native Auswahl-Dialogfeld i. d. R. sowohl Kamera als auch Galerie
+  an); kurz auf iOS **und** Android prüfen, da sich das Verhalten je Browser/
+  OS unterscheiden kann. Button-Text „Foto aufnehmen" (`t.foto_aufnehmen`)
+  ggf. anpassen, falls er dann nicht mehr exakt passt.
+
+---
+
+## Etappe AA – Zwei-Faktor-Anmeldung wieder verpflichtend, mit Druck-Fallback statt Mail
+
+### 2FA-Pflicht reaktivieren; bei SMTP-Ausfall Code über Netzwerkdrucker statt E-Mail
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Backend / Sicherheit / Feature
+- Skills: planner, geraetehaus-patterns, tests, review
+- Beschreibung: Revidiert [[Etappe V]] (2FA-Pflicht wurde dort standardmäßig
+  **deaktiviert**, weil ein SMTP-Ausfall sonst zum kompletten Login-Ausschluss
+  führen konnte). Nutzerwunsch jetzt: 2FA soll **immer aktiv/verpflichtend**
+  sein – aber statt bei SMTP-Problemen einfach auszusperren, soll der
+  Anmelde-Code alternativ **ausgedruckt** werden, wenn der Mailversand nicht
+  funktioniert (vermutlich über denselben Netzwerkdrucker/IPP-Mechanismus, der
+  bereits für den PDF-Druck-Fallback existiert, siehe [[Etappe K]] –
+  `drucker_service`/IPP-Integration dort als Ausgangspunkt prüfen).
+- Akzeptanzkriterien: `zwei_faktor_pflicht`-Default wieder `true` (Gegenteil von
+  Etappe V); schlägt der Mailversand des OTP-Codes fehl (oder ist SMTP gar nicht
+  konfiguriert), wird der Code stattdessen an einen konfigurierten Netzwerk-
+  drucker geschickt, sodass der Login trotzdem gelingt; ist weder SMTP noch
+  Drucker verfügbar, bleiben die bereits vorhandenen Recovery-Codes
+  (`zwei_faktor_service.recovery_codes_erzeugen`) als letzter Ausweg; Tests für
+  beide Fallback-Pfade (Druck bei SMTP-Fehler, Recovery-Code ganz ohne beides).
+- Notizen: Vor Umsetzung klären – (1) wie erkennt der Service zuverlässig
+  „SMTP schlägt fehl" (Exception beim Versand direkt abfangen ist robuster als
+  der in Etappe V verworfene Verifizierungs-Config-Key); (2) ist immer ein
+  Drucker vorhanden/konfiguriert, oder ist der Druck-Fallback selbst optional
+  (dann bräuchte es eine klare Priorität Mail → Druck → Recovery-Code); (3)
+  Sicherheitsaspekt: ein am Gerätehaus-Drucker ausgeworfener Code ist für alle
+  physisch Anwesenden sichtbar – prüfen, ob das für den Anwendungsfall
+  akzeptabel ist oder der Ausdruck z. B. automatisch eingezogen/kurzlebig sein
+  muss. Größerer, sicherheitsrelevanter Umbau → eigener Feature-Branch + PR.
+
+---
+
+## Etappe Z – Mitglied-Hub: „Meine Dienststunden" nur mit Stunden > 0 anzeigen
+
+### Funktionen ohne geleistete Stunden nicht in der eigenen Übersicht auflisten
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / Backend
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Im Mitglied-Hub (`MitgliedHub.tsx`, Abschnitt „Meine
+  Dienststunden", ca. Zeile 69-90) werden alle Einträge aus
+  `uebersicht.dienststunden` gezeigt – auch Funktionen, für die die Person
+  noch **0 Stunden** hat (`summe_stunden === 0`). Gewünscht: nur Funktionen
+  mit `summe_stunden > 0` anzeigen.
+- Akzeptanzkriterien: Funktionen ohne geleistete Stunden erscheinen nicht
+  mehr in „Meine Dienststunden"; hat eine Person überall 0 Stunden, greift
+  weiterhin die bestehende Leer-Prüfung (aktuell `dienststunden.length > 0`
+  fürs ganze Kartenelement).
+- Notizen: Filterung reicht vermutlich rein im Frontend
+  (`uebersicht.dienststunden.filter(d => d.summe_stunden > 0)` vor dem
+  `.map(...)`); alternativ direkt in `dienststunden_service.eigene_summen`
+  (Backend) filtern, falls die ungefilterten Summen sonst nirgends gebraucht
+  werden – kurz prüfen, ob `eigene_summen` noch anderswo (z. B.
+  Gruppenführer-Auswertung) mit den Nullwerten verwendet wird.
+
+---
+
+## Etappe Y – Formulare: E-Mail-Empfänger als Personen-Auswahl statt Freitext
+
+### Bei neuer Einreichung Person(en) auswählen statt E-Mail-Adresse einzutippen
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: In der Formular-Modul-Unterseite (`FormularModul.tsx`, ca.
+  Zeile 258-267) ist „E-Mail-Empfänger bei neuer Einreichung" ein reines
+  Freitext-`<input type="email">`-Feld (sogar nur eine einzelne Adresse). Die
+  E-Mail-Adressen der Personen sind aber bereits in Stammdaten hinterlegt.
+  Gewünscht: Statt der Adresse selbst tippt man die/den Empfänger als Personen
+  aus, ausgewählt aus der bestehenden Personenliste (die hinterlegte E-Mail
+  wird dann intern genutzt).
+- Akzeptanzkriterien: Personen-Auswahl (z. B. Mehrfachauswahl/Autocomplete wie
+  an anderen Stellen im Projekt) statt Freitext; nur Personen mit hinterlegter
+  E-Mail wählbar bzw. Hinweis, wenn keine E-Mail vorhanden; bestehende
+  Freitext-Werte migrationsfrei nutzbar oder klar migriert (klären: reicht
+  Weiterversand an die alte Adresse, bis jemand umstellt?).
+- Notizen: Prüfen, ob `email_empfaenger` weiterhin ein reiner String bleibt
+  (kommagetrennt bei Mehrfachauswahl) oder ob eine Relation/JSON-Liste
+  sinnvoller ist – ggf. Migration nötig, je nach gewählter Umsetzung.
+
+---
+
+## Etappe X – Personal: Tabs „Zugang" und „Erhöhter Zugang" zusammenlegen
+
+### Kiosk-Zugang (PIN/Barcode) und Erhöhter Zugang (Admin/Gruppenführer-Passwort) in einem Tab
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend
+- Skills: geraetehaus-patterns, review
+- Beschreibung: In der Personal-Detailansicht (`Personal.tsx`) gibt es zwei
+  separate Tabs: **„Zugang"** (Zeile ~1117-1201: PIN setzen/entsperren,
+  Barcode erzeugen/per Mail senden – Kiosk-Identifikation) und **„Erhöhter
+  Zugang"** (Zeile ~1286ff: Admin-/Gruppenführer-Rolle, Passwort setzen,
+  2FA-Reset). Gewünscht: beide zu einem Tab zusammenlegen, damit „wie
+  identifiziert/meldet sich diese Person an" an einer Stelle steht statt auf
+  zwei Tabs verteilt.
+- Akzeptanzkriterien: Ein gemeinsamer Tab zeigt PIN-Verwaltung,
+  Barcode-Verwaltung (nur wenn Modul aktiv) UND Erhöhter-Zugang-Verwaltung
+  untereinander; keine Funktionalität geht verloren; bestehende Tests für
+  beide Bereiche bleiben grün (ggf. Selektoren anpassen).
+- Notizen: Rein UI – keine Backend-/API-Änderung nötig. Auf sinnvolle
+  Abschnittsgliederung/Überschriften innerhalb des zusammengelegten Tabs
+  achten, da inhaltlich schon jetzt beide Bereiche recht umfangreich sind.
+
+---
+
+## Etappe W – Person anlegen: alles in einem Formular statt mehrerer Schritte
+
+### Beim Anlegen einer Person direkt PIN, E-Mail, Passwort, Benachrichtigungen mit einstellen können
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Das „Person anlegen"-Formular in `Personal.tsx` (`anlegen()`,
+  Zeile ~383-399) fragt aktuell nur Vorname/Zwischenname/Nachname ab. Danach
+  muss man erst in die Detailansicht wechseln und dort über mehrere separate
+  Tabs (Stammdaten für E-Mail/Gruppe/Funktion, PIN, „Erhöhter Zugang" für
+  Passwort, Benachrichtigungskanäle/-Abos) alles einzeln nachtragen.
+  Gewünscht: Direkt beim Anlegen alles auf einmal einstellbar – E-Mail,
+  PIN, Passwort (falls erhöhter Zugang gewünscht), Benachrichtigungen.
+- Akzeptanzkriterien: Erweiterte Anlegen-Maske (oder optionale
+  „Mehr Einstellungen"-Sektion direkt im Anlegen-Dialog) für E-Mail, PIN,
+  Benachrichtigungskanäle; kein Zwang, alles auszufüllen (Felder bleiben
+  optional wie bisher in den Einzeltabs). Test für „Person mit allen Feldern
+  in einem Rutsch angelegt".
+- Notizen: Rein additiv – bestehende Einzel-Tabs (Stammdaten/PIN/Erhöhter
+  Zugang/Benachrichtigungen) bleiben für spätere Änderungen bestehen, nur die
+  Ersteinrichtung wird gebündelt. Vor Umsetzung prüfen, ob ein einzelnes
+  großes Formular oder ein mehrstufiger Dialog (analog Setup-Wizard) die
+  bessere UX ist – Personal-Liste ist ohnehin schon recht dicht.
+
+---
+
 ## Etappe V – Zwei-Faktor-Pflicht standardmäßig aus
 
 ### 2FA nicht mehr verpflichtend – Aussperrungsrisiko vermeiden
 
+- **Revidiert durch [[Etappe AA]]** (18.08.2026): Nutzerwunsch jetzt wieder 2FA-Pflicht,
+  aber mit Druck-Fallback statt Mail bei SMTP-Ausfall statt „Pflicht einfach aus".
 - Status: Erledigt (18.08.2026, direkt auf beta)
 - Priorität: Mittel
 - Kategorie: Backend / Sicherheit

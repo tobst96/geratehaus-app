@@ -30,7 +30,7 @@ def test_generiere_vapid_schluessel_format():
 
 @pytest.mark.asyncio
 async def test_vapid_generieren_endpunkt_speichert(client, db):
-    admin = Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
+    admin = Person(name="admin", email="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin")
     db.add(admin)
     await db.commit()
     login = await client.post(

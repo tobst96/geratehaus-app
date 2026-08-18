@@ -13,7 +13,7 @@ from app.services.config_service import config_service
 
 
 async def _gruppenfuehrer(db, username="admin", passwort="richtig123"):
-    m = Person(name=username, passwort_hash=hash_secret(passwort))
+    m = Person(name=username, email=username, passwort_hash=hash_secret(passwort))
     db.add(m)
     await db.commit()
     await db.refresh(m)

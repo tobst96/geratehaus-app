@@ -10,17 +10,17 @@ from app.models.einsatz import Einsatz, EinsatzPerson
 from app.models.person import Person
 
 
-async def _person(db, name="Max Muster"):
-    p = Person(name=name, passwort_hash=hash_secret("geheim123"), email="m@example.org")
+async def _person(db, name="Max Muster", email="m@example.org"):
+    p = Person(name=name, passwort_hash=hash_secret("geheim123"), email=email)
     db.add(p)
     await db.commit()
     await db.refresh(p)
     return p
 
 
-async def _login(client, name="Max Muster"):
+async def _login(client, email="m@example.org"):
     r = await client.post(
-        "/api/v1/auth/mitglied-login", json={"name": name, "passwort": "geheim123"}
+        "/api/v1/auth/mitglied-login", json={"email": email, "passwort": "geheim123"}
     )
     assert r.status_code == 200
 
@@ -39,7 +39,7 @@ async def _einsatz_mit_teilnahme(db, person_id, titel="B2 Zimmerbrand", jahr=Non
 @pytest.mark.asyncio
 async def test_uebersicht_zaehlt_nur_eigene_daten(client, db):
     ich = await _person(db)
-    anderer = await _person(db, name="Erika Anders")
+    anderer = await _person(db, name="Erika Anders", email="erika@example.org")
     await _einsatz_mit_teilnahme(db, ich.id, "Mein Einsatz")
     await _einsatz_mit_teilnahme(db, anderer.id, "Fremder Einsatz")
     # Dienst dieses Jahr

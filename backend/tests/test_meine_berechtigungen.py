@@ -10,7 +10,7 @@ from app.services import berechtigungs_service, modul_service
 
 
 async def _gruppenfuehrer(db, username, rolle, passwort="geheim123"):
-    mod = Person(name=username, passwort_hash=hash_secret(passwort), gruppenfuehrer_rolle=rolle)
+    mod = Person(name=username, email=username, passwort_hash=hash_secret(passwort), gruppenfuehrer_rolle=rolle)
     db.add(mod)
     await db.commit()
     await db.refresh(mod)

@@ -87,6 +87,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Nur einmal beim Mount – räumt ein bereits abgelaufenes Token weg.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Der API-Client meldet hierüber ein vom Server abgelehntes Token (client.ts hat
+  // es bereits aus dem localStorage entfernt) – React-Status nachziehen, damit
+  // GruppenfuehrerRoute sofort zu /gruppenfuehrer/login umleitet, statt die Person
+  // mit wiederholten "Nicht angemeldet."-Fehlern hängen zu lassen.
+  useEffect(() => {
+    function sessionAbgelaufen() {
+      setGruppenfuehrerAngemeldet(false);
+      setGruppenfuehrerRolle(null);
+    }
+    window.addEventListener("gruppenfuehrer-session-abgelaufen", sessionAbgelaufen);
+    return () => window.removeEventListener("gruppenfuehrer-session-abgelaufen", sessionAbgelaufen);
+  }, []);
   // Eigene Modul-Rechte (Keys). null = noch nicht geladen. Admins bekommen vom
   // Backend alle Keys, sodass hatModulZugriff für sie stets true ist.
   const [modulRechte, setModulRechte] = useState<Set<string> | null>(null);

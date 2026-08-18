@@ -20,9 +20,11 @@ async def get_current_gruppenfuehrer(
     db: DbSession, token: Annotated[str | None, Depends(_oauth2_scheme)] = None
 ) -> Person:
     """Der/die im Gruppenführerbereich angemeldete **Person** (Konto). Das JWT trägt
-    im `sub` den eindeutigen `Person.name`; zusätzlich muss die Person „elevated"
-    sein (`gruppenfuehrer_rolle` gesetzt), sonst 401 – eine normale Person ohne erhöhte
-    Rechte kommt so nicht in den Gruppenführerbereich."""
+    im `sub` die stabile `Person.id` (nicht den Namen - der ändert sich bei
+    Stammdaten-Bearbeitung und würde ein gültiges Token sonst sofort entwerten);
+    zusätzlich muss die Person „elevated" sein (`gruppenfuehrer_rolle` gesetzt), sonst
+    401 – eine normale Person ohne erhöhte Rechte kommt so nicht in den
+    Gruppenführerbereich."""
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Nicht angemeldet.",
@@ -33,7 +35,11 @@ async def get_current_gruppenfuehrer(
     payload = decode_access_token(token)
     if payload is None or "sub" not in payload:
         raise credentials_error
-    result = await db.execute(select(Person).where(Person.name == payload["sub"]))
+    try:
+        person_id = int(payload["sub"])
+    except (TypeError, ValueError):
+        raise credentials_error
+    result = await db.execute(select(Person).where(Person.id == person_id))
     person = result.scalar_one_or_none()
     if person is None or person.gruppenfuehrer_rolle is None:
         raise credentials_error
