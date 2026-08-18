@@ -394,9 +394,14 @@ export interface UpdateStatus {
   kanal: "stable" | "beta";
   installierte_version: string;
   verfuegbare_version: string | null;
+  ziel_tag: string | null;
   veroeffentlicht_am: string | null;
   release_url: string | null;
+  /** Nur true, wenn die verfügbare Version echt neuer ist (kein automatischer Downgrade-Vorschlag). */
   update_verfuegbar: boolean;
+  /** True, sobald sich verfuegbare_version von installierte_version unterscheidet – auch bei
+   * einem Kanalwechsel auf eine ältere Version (dann lässt sich trotzdem gezielt installieren). */
+  installierbar: boolean;
   fehler: string | null;
 }
 export interface UpdateAusloesenErgebnis {
