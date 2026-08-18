@@ -12,6 +12,46 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AC – Profilbilder komprimieren + im Kiosk cachen (Ladezeit)
+
+### Bilder beim Upload verkleinern; Kiosk-Anzeige möglichst aus dem Cache
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Backend / Frontend / Performance
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Zwei zusammenhängende Punkte für schnelleres Laden der
+  Profilbilder (v. a. im Kiosk mit vielen Kacheln/Personen):
+  1. **Komprimierung beim Upload fehlt.** `_bild_verarbeiten`
+     (`backend/app/services/stammdaten_service.py:486-511`) kodiert Bilder zwar
+     neu (EXIF weg, JPEG `quality=88`), **skaliert sie aber nicht herunter** –
+     ein per Handy hochgeladenes Foto (bis 5 MB, ggf. mehrere Tausend Pixel
+     Kantenlänge) wird in voller Auflösung gespeichert und ausgeliefert, obwohl
+     es nur klein angezeigt wird (Kiosk-Kachel, Personal-Avatar, ~200 px).
+     Gewünscht: beim Upload auf eine sinnvolle Maximalkantenlänge (z. B.
+     400-600 px) herunterskalieren, bevor gespeichert wird.
+  2. **Kiosk-Bilder werden nicht wirksam gecacht.** Die `location /uploads/`
+     in `frontend/nginx.conf:35-37` setzt **keinen** `Cache-Control`-Header;
+     zusätzlich läuft die Auslieferung über `GeschuetzteUploads`
+     (`backend/app/main.py:167-182`) mit einem **signierten `?token=`** pro
+     Aufruf – falls sich dieser Token zwischen Aufrufen ändert, verhindert das
+     zusätzlich jede URL-basierte Browser-Cache-Wiederverwendung, selbst wenn
+     ein `Cache-Control`-Header gesetzt würde.
+- Akzeptanzkriterien: Neu hochgeladene Profilbilder sind spürbar kleiner
+  (Ziel-Kantenlänge definieren, bestehende Bilder unangetastet/keine
+  Rückwirkende Migration nötig); Kiosk lädt ein einmal gesehenes Profilbild
+  bei erneuter Anzeige merklich schneller (aus Cache statt erneutem Download).
+  Tests für die Skalierung (Downscale bei großen Bildern, kleine Bilder
+  bleiben unangetastet).
+- Notizen: Vor Umsetzung klären, ob der `?token=` bei `GeschuetzteUploads`
+  pro Person/Zeitraum stabil ist (dann reicht ein normaler
+  `Cache-Control`-Header) oder sich bei jedem Aufruf ändert (dann bräuchte es
+  z. B. eine kiosk-seitige Runtime-Cache-Strategie im Service Worker statt
+  reinem HTTP-Caching). Skalierung mit Pillow (`Image.thumbnail(...)`, bereits
+  Projektabhängigkeit) direkt in `_bild_verarbeiten` ergänzen.
+
+---
+
 ## Etappe AB – Profilbild per QR-Upload: Galerie-Auswahl statt nur Kamera
 
 ### `capture="environment"` verhindert Foto-Auswahl aus der Galerie auf dem Handy
