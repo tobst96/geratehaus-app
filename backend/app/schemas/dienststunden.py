@@ -7,6 +7,7 @@ class DienststundenErfassen(BaseModel):
     funktion_id: int
     stunden: float = Field(gt=0)
     datum: date
+    ohne_pin: bool = False
 
 
 class DienststundenEintragOut(BaseModel):
@@ -17,6 +18,7 @@ class DienststundenEintragOut(BaseModel):
     funktion_name: str
     stunden: float
     datum: date
+    ohne_pin: bool
 
 
 class DienststundenStempelInfo(BaseModel):

@@ -40,6 +40,9 @@ class DienstbuchPerson(Base, TimestampMixin):
     person_id: Mapped[int] = mapped_column(ForeignKey("personen.id", ondelete="CASCADE"), nullable=False)
     gruppe_id: Mapped[int | None] = mapped_column(ForeignKey("gruppen.id"), nullable=True)
     atemschutzminuten: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # Kein PIN bei der Person gesetzt – Eintragung war trotzdem möglich, wird
+    # aber in Listen/PDF hervorgehoben markiert.
+    ohne_pin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     dienstbuch: Mapped["Dienstbuch"] = relationship(back_populates="teilnehmer")
     person: Mapped["Person"] = relationship(viewonly=True)

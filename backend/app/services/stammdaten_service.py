@@ -704,23 +704,32 @@ async def pin_sperre_aufheben(db: AsyncSession, person: Person) -> Person:
     return person
 
 
-async def pin_login_erzwingen(db: AsyncSession, person: Person, pin: str | None, kontext: str) -> None:
-    """Selbstidentifikation am eigenen Handy („Barcode vergessen"): verlangt einen
-    GESETZTEN und korrekten PIN, bevor Vorschau/Bilder freigegeben werden. Ohne
-    gesetzten PIN wird der Zugriff verweigert und in der Personen-Timeline
-    vermerkt. Wirft PermissionError bei Verweigerung (Endpunkt → 403)."""
+async def person_ohne_pin_vermerken(db: AsyncSession, person: Person, kontext: str) -> None:
+    """Protokolliert in der Personen-Timeline, dass eine Identifikation ohne
+    gesetzten PIN erfolgt ist (Eintragung selbst bleibt möglich, wird aber in
+    Listen/PDF gekennzeichnet – siehe ohne_pin-Spalten)."""
+    await person_ereignis_protokollieren(
+        db,
+        person.id,
+        "ohne_pin_eingetragen",
+        f"Ohne gesetzten PIN identifiziert und eingetragen ({kontext}).",
+    )
+    await db.commit()
+
+
+async def pin_login_erzwingen(db: AsyncSession, person: Person, pin: str | None, kontext: str) -> bool:
+    """Selbstidentifikation am eigenen Handy („Barcode vergessen"). Ohne
+    gesetzten PIN bleibt die Eintragung möglich (wird in der Timeline und
+    später in Listen/PDF als „ohne PIN" vermerkt) – ist ein PIN gesetzt, muss
+    er korrekt sein. Rückgabe: True = ohne PIN identifiziert, False = mit
+    korrektem PIN. Wirft PermissionError nur noch bei falschem PIN
+    (Endpunkt → 401/403)."""
     if not person.pin_gesetzt:
-        await person_ereignis_protokollieren(
-            db,
-            person.id,
-            "pin_zugriff_verweigert",
-            f"Zugriff über Barcode-vergessen verweigert – kein PIN gesetzt ({kontext}).",
-        )
-        # Audit-Eintrag festschreiben, auch wenn der Request danach mit 403 endet.
-        await db.commit()
-        raise PermissionError("Für diese Person ist kein PIN gesetzt. Bitte zuerst einen PIN setzen.")
+        await person_ohne_pin_vermerken(db, person, kontext)
+        return True
     if not person_pin_korrekt(person, pin):
         raise PermissionError("PIN falsch.")
+    return False
 
 
 # --- Personen-Inaktivität ---------------------------------------------------

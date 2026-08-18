@@ -160,14 +160,16 @@ export function Fahrzeugbuchung() {
     setFehler(null);
     setLaeuft(true);
     try {
+      let ohnePin = false;
       if (!mitgliedModus.aktiv) {
-        await identRef.current!.identifiziere();
+        ({ ohnePin } = await identRef.current!.identifiziere());
       }
       const ergebnis = await buchungAnfrage({
         fahrzeug_id: Number(fahrzeugId),
         von: new Date(von).toISOString(),
         bis: new Date(bis).toISOString(),
         zweck: zweck.trim(),
+        ohne_pin: ohnePin,
       });
       setHinweis(
         ergebnis.konflikt_hinweis

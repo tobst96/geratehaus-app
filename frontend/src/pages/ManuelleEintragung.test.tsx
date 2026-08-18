@@ -56,7 +56,7 @@ describe("ManuelleEintragung (Ohne Barcode eintragen)", () => {
     );
   });
 
-  it("blockiert Personen ohne gesetzten PIN", async () => {
+  it("trägt Personen ohne gesetzten PIN trotzdem ein (nur gekennzeichnet)", async () => {
     holeReservierungPersonen.mockResolvedValue([{ id: 6, name: "Ohne Pin", pin_gesetzt: false }]);
     const user = userEvent.setup();
     render(<ManuelleEintragung />);
@@ -67,5 +67,14 @@ describe("ManuelleEintragung (Ohne Barcode eintragen)", () => {
 
     expect(screen.getByText(/kein PIN hinterlegt/i)).toBeInTheDocument();
     expect(screen.queryByLabelText("Dein PIN")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Eintragen" }));
+
+    expect(await screen.findByText("Eingetragen!")).toBeInTheDocument();
+    expect(reservierungVorschauSetzen).toHaveBeenCalledWith("abc", 6, "");
+    expect(reservierungEinloesen).toHaveBeenCalledWith(
+      "abc",
+      expect.objectContaining({ person_id: 6 })
+    );
   });
 });

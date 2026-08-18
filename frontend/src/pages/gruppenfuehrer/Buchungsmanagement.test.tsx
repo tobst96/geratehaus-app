@@ -28,6 +28,7 @@ const BUCHUNG: BuchungOut = {
   status: "ausstehend",
   ablehnungsgrund: null,
   hat_konflikt: false,
+  ohne_pin: false,
 };
 
 describe("Buchungsmanagement (Anfragen genehmigen/ablehnen)", () => {

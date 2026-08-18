@@ -49,23 +49,51 @@
             <th>Fahrzeug</th>
             <th>Funktion</th>
             <th>VAB</th>
-            <th>Atemschutz (min)</th>
-            <th>Ohne Barcode</th>
+            <th>PA (min)</th>
+            {% if zeige_ohne_barcode %}<th>Ohne Barcode</th>{% endif %}
+            <th>Ohne PIN</th>
             <th>Bemerkung</th>
         </tr>
     </thead>
     <tbody>
-        {% for t in einsatz.teilnahmen %}
-        <tr>
-            <td>{{ t.person.name }}</td>
-            <td>{%- if t.fahrzeug %}{{ t.fahrzeug.name }}{% elif t.nur_geraetehaus %}Nur Gerätehaus{% elif t.auf_anfahrt %}Auf Anfahrt{% endif -%}</td>
-            <td>{{ t.funktion.name if t.funktion else "" }}</td>
-            <td>{{ "Ja" if t.vab else "" }}</td>
+        {% for t in teilnahmen %}
+        <tr class="{{ 'zeile-hervorgehoben' if t.ohne_pin else '' }}">
+            <td class="pdf-nowrap">{% if t.person.nachname %}{{ t.person.nachname }}, {{ t.person.vorname or "" }}{% else %}{{ t.person.name }}{% endif %}</td>
+            <td class="pdf-nowrap">{%- if t.fahrzeug %}{{ t.fahrzeug.name }}{% elif t.nur_geraetehaus %}Nur Gerätehaus{% elif t.auf_anfahrt %}Auf Anfahrt{% endif -%}</td>
+            <td class="pdf-nowrap">{{ t.funktion.name if t.funktion else "" }}</td>
+            <td>{{ "X" if t.vab else "" }}</td>
             <td>{{ t.atemschutzminuten if t.atemschutzminuten else "" }}</td>
-            <td>{{ "Ja" if t.ohne_barcode else "" }}</td>
+            {% if zeige_ohne_barcode %}<td>{{ "X" if t.ohne_barcode else "" }}</td>{% endif %}
+            <td>{{ "X" if t.ohne_pin else "" }}</td>
             <td>{{ t.bemerkung or "" }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+{% if bemerkungen %}
+<h2 class="pdf-abschnitt">Bemerkungen</h2>
+<table>
+    <tbody>
+        {% for b in bemerkungen %}
+        <tr>
+            <td class="pdf-nowrap" style="width: 25%;"><strong>{{ b.person }}</strong></td>
+            <td>{{ b.bemerkung }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% if funktionen_gruppen %}
+<h2 class="pdf-abschnitt">Teilnehmer nach Funktion</h2>
+<table>
+    <tbody>
+        {% for g in funktionen_gruppen %}
+        <tr>
+            <td class="pdf-nowrap" style="width: 25%;"><strong>{{ g.funktion }}</strong></td>
+            <td>{{ g.personen }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
 {% endblock %}

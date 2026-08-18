@@ -17,6 +17,7 @@ class TeilnahmeAnlegen(BaseModel):
     nur_geraetehaus: bool = False
     auf_anfahrt: bool = False
     ohne_barcode: bool = False
+    ohne_pin: bool = False
     bemerkung: str | None = None
 
 
@@ -36,6 +37,7 @@ class TeilnahmeOut(BaseModel):
     nur_geraetehaus: bool
     auf_anfahrt: bool
     ohne_barcode: bool
+    ohne_pin: bool
     eintragung_ip: str | None
     eintragung_user_agent: str | None
     bemerkung: str | None

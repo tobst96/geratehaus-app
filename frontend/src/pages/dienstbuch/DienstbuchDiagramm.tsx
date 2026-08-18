@@ -138,14 +138,16 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
     setLaeuft(true);
     setFehler(null);
     try {
+      let ohnePin = false;
       if (!mitgliedModus.aktiv) {
-        await identRef.current!.identifiziere();
+        ({ ohnePin } = await identRef.current!.identifiziere());
       }
       await teilnehmerEintragen(dienstbuch.id, {
         gruppe_id: gruppeId,
         // Atemschutzminuten stehen erst nach dem Dienst fest und werden
         // daher nicht beim Scannen abgefragt, sondern später in der Liste nachgetragen.
         atemschutzminuten: 0,
+        ohne_pin: ohnePin,
       });
       await onAktualisiert();
       zuruecksetzen();

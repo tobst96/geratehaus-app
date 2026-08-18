@@ -221,7 +221,7 @@ export function DienstbuchManuelleEintragung() {
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <Fehlertext>{t.kein_pin}</Fehlertext>
+            <p className="text-mute">{t.kein_pin}</p>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
@@ -257,7 +257,7 @@ export function DienstbuchManuelleEintragung() {
 
           <button
             type="submit"
-            disabled={laeuft || !ausgewaehltePerson || !ausgewaehltePerson.pin_gesetzt || !pin}
+            disabled={laeuft || !ausgewaehltePerson || (ausgewaehltePerson.pin_gesetzt && !pin)}
           >
             {laeuft ? t.speichern_laeuft : t.eintragen}
           </button>

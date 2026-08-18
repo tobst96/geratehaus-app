@@ -67,11 +67,12 @@ export function Buchungsmanagement() {
 
       {buchungen.length === 0 && <p>{t.keine_ausstehenden}</p>}
       {buchungen.map((b) => (
-        <div key={b.id} className="karte">
+        <div key={b.id} className={`karte${b.ohne_pin ? " zeile-hervorgehoben" : ""}`}>
           <strong>{b.fahrzeug_name}</strong> · {formatiereDatumZeit(b.von)} –{" "}
           {formatiereDatumZeit(b.bis)}
           <div>{t.zweck} {b.zweck}</div>
           <div>{t.verantwortlich} {b.verantwortliche_person_name}</div>
+          {b.ohne_pin && <div>{t.ohne_pin_hinweis}</div>}
 
           {konflikte[b.id]?.length > 0 && (
             <div className="fehlertext" style={{ marginTop: 8 }}>

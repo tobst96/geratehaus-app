@@ -72,7 +72,13 @@ async def reservierung_einloesen(
     buchung, _konflikt = await buchung_service.anfrage_erstellen(
         db,
         daten.person_id,
-        BuchungAnfrage(fahrzeug_id=daten.fahrzeug_id, von=daten.von, bis=daten.bis, zweck=daten.zweck),
+        BuchungAnfrage(
+            fahrzeug_id=daten.fahrzeug_id,
+            von=daten.von,
+            bis=daten.bis,
+            zweck=daten.zweck,
+            ohne_pin=not person.pin_gesetzt,
+        ),
     )
 
     reservierung.eingeloest = True

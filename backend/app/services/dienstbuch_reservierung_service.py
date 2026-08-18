@@ -66,7 +66,9 @@ async def reservierung_einloesen(
     if dienstbuch is None:
         raise ValueError("Dienstbuch nicht gefunden.")
 
-    teilnehmer_daten = TeilnehmerAnlegen(gruppe_id=daten.gruppe_id, atemschutzminuten=0)
+    teilnehmer_daten = TeilnehmerAnlegen(
+        gruppe_id=daten.gruppe_id, atemschutzminuten=0, ohne_pin=not person.pin_gesetzt
+    )
     ergebnis = await dienstbuch_service.teilnehmer_eintragen(db, dienstbuch, person.id, teilnehmer_daten)
 
     reservierung.eingeloest = True

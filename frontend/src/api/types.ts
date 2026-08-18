@@ -116,6 +116,7 @@ export interface TeilnahmeOut {
   nur_geraetehaus: boolean;
   auf_anfahrt: boolean;
   ohne_barcode: boolean;
+  ohne_pin: boolean;
   eintragung_ip: string | null;
   eintragung_user_agent: string | null;
   bemerkung: string | null;
@@ -194,6 +195,7 @@ export interface TeilnehmerOut {
   gruppe_id: number | null;
   gruppe_name: string | null;
   atemschutzminuten: number;
+  ohne_pin: boolean;
 }
 
 export interface DienstbuchFeldDefinition {
@@ -244,4 +246,5 @@ export interface BuchungOut {
   status: "ausstehend" | "genehmigt" | "abgelehnt" | "zurueckgezogen";
   ablehnungsgrund: string | null;
   hat_konflikt: boolean;
+  ohne_pin: boolean;
 }

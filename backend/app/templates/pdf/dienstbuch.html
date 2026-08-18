@@ -25,14 +25,16 @@
             <th>Name</th>
             <th>Gruppe</th>
             <th>Atemschutz (min)</th>
+            <th>Ohne PIN</th>
         </tr>
     </thead>
     <tbody>
         {% for t in dienstbuch.teilnehmer %}
-        <tr>
+        <tr class="{{ 'zeile-hervorgehoben' if t.ohne_pin else '' }}">
             <td>{{ t.person.name }}</td>
             <td>{{ t.gruppe.name if t.gruppe else "" }}</td>
             <td>{{ t.atemschutzminuten if t.atemschutzminuten else "" }}</td>
+            <td>{{ "Ja" if t.ohne_pin else "" }}</td>
         </tr>
         {% endfor %}
     </tbody>

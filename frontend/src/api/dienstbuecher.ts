@@ -33,7 +33,7 @@ export const dienstbuchReservierungAnlegen = (dienstbuchId: number) =>
 
 export const teilnehmerEintragen = (
   dienstbuchId: number,
-  daten: { gruppe_id: number | null; atemschutzminuten: number }
+  daten: { gruppe_id: number | null; atemschutzminuten: number; ohne_pin?: boolean }
 ) => apiPost<TeilnehmerOut>(`/dienstbuecher/${dienstbuchId}/teilnehmer`, daten);
 
 export const teilnehmerAktualisieren = (

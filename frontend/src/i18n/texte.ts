@@ -136,7 +136,7 @@ export const texte = {
     keine_person:
       "Keine Person gefunden. Bitte am Gerätehaus in den Personen-Stammdaten anlegen lassen.",
     kein_pin:
-      "Für dich ist kein PIN hinterlegt. Eine Selbst-Eintragung ohne PIN ist nicht möglich – bitte im Gerätehaus einen persönlichen PIN setzen (lassen).",
+      "Für dich ist noch kein PIN hinterlegt. Die Eintragung ist trotzdem möglich, wird aber als „ohne PIN“ vermerkt.",
     dein_pin: "Dein PIN",
     vab: "Verdienstausfallbescheinigung",
     atemschutz_angelegt: "Atemschutz angelegt",
@@ -170,7 +170,7 @@ export const texte = {
     angefragt_titel: "Anfrage gestellt!",
     angefragt_text: "Deine Fahrzeugbuchung wurde angefragt. Du kannst diese Seite jetzt schließen.",
     kein_pin:
-      "Für dich ist kein PIN hinterlegt. Eine Selbst-Buchung ohne PIN ist nicht möglich – bitte im Gerätehaus einen persönlichen PIN setzen (lassen).",
+      "Für dich ist noch kein PIN hinterlegt. Die Anfrage ist trotzdem möglich, wird aber als „ohne PIN“ vermerkt.",
     fahrzeug: "Fahrzeug",
     von: "Von",
     bis: "Bis",
@@ -270,6 +270,7 @@ export const texte = {
     th_name: "Name",
     th_gruppe: "Gruppe",
     th_atemschutz: "Atemschutz (min)",
+    th_ohne_pin: "Ohne PIN",
     keine_teilnehmer: "Keine Teilnehmer eingetragen.",
   },
   berechtigungen: {
@@ -330,6 +331,7 @@ export const texte = {
     ladefehler: "Buchungen konnten nicht geladen werden.",
     genehmigen_fehler: "Genehmigen fehlgeschlagen.",
     ablehnen_fehler: "Ablehnen fehlgeschlagen.",
+    ohne_pin_hinweis: "Ohne PIN eingetragen",
   },
   formular_zusammenfassung: {
     einreichung_singular: "Einreichung",
@@ -597,6 +599,7 @@ export const texte = {
     th_nur_geraetehaus: "Nur Gerätehaus",
     th_auf_anfahrt: "Auf Anfahrt",
     th_ohne_barcode: "Ohne Barcode",
+    th_ohne_pin: "Ohne PIN",
     th_ip_browser: "IP / Browser",
     th_bemerkung: "Bemerkung",
     // Bestätigungsdialoge: Einsatztitel wird dynamisch zwischen Prefix/Suffix gesetzt.
@@ -769,6 +772,7 @@ export const texte = {
     th_funktion: "Funktion",
     th_stunden: "Stunden",
     th_datum: "Datum",
+    th_ohne_pin: "Ohne PIN",
     // Dienstbücher
     status_alle: "Alle Status",
     status_offen: "Nur offene",

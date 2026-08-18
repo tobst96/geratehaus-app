@@ -17,6 +17,7 @@ class ZusatzfelderSetzen(BaseModel):
 class TeilnehmerAnlegen(BaseModel):
     gruppe_id: int | None = None
     atemschutzminuten: int = Field(default=0, ge=0)
+    ohne_pin: bool = False
 
 
 class TeilnehmerAktualisieren(BaseModel):
@@ -56,6 +57,7 @@ class TeilnehmerOut(BaseModel):
     gruppe_id: int | None
     gruppe_name: str | None
     atemschutzminuten: int
+    ohne_pin: bool
 
 
 class DienstbuchOut(BaseModel):
