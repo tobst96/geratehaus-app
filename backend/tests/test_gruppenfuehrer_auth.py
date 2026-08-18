@@ -59,3 +59,27 @@ async def test_moderator_route_mit_gruppenfuehrer_rolle_kein_admin_zugriff(clien
         "/api/v1/gruppenfuehrer/einstellungen", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == 403
+
+
+async def test_token_bleibt_gueltig_nach_namensaenderung(client, db):
+    """Regressionstest: das JWT trägt die stabile Person.id als sub, nicht den
+    Namen - sonst würde das eigene Umbenennen (Vorname/Nachname in Personal) das
+    noch gültige Token sofort entwerten und die Person ausloggen."""
+    admin = await _moderator_anlegen(db, "Alte Nachname", "geheim123")
+    login = await client.post(
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "Alte Nachname", "password": "geheim123"}
+    )
+    token = login.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = await client.put(
+        f"/api/v1/gruppenfuehrer/stammdaten/personen/{admin.id}",
+        json={"vorname": "Neue", "nachname": "Nachname"},
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert response.json()["name"] != "Alte Nachname"
+
+    # dasselbe, alte Token muss weiterhin funktionieren
+    response = await client.get("/api/v1/gruppenfuehrer/einstellungen", headers=headers)
+    assert response.status_code == 200

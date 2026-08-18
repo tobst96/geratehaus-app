@@ -195,7 +195,11 @@ async def person_de_elevieren(db: AsyncSession, person: Person) -> Person:
 
 
 def gruppenfuehrer_token(person: Person) -> str:
-    return create_access_token(subject=person.name, extra_claims={"rolle": person.gruppenfuehrer_rolle})
+    """`sub` ist die stabile `Person.id`, nicht der Name - der Name kann sich jederzeit
+    ändern (Stammdaten-Bearbeitung setzt ihn aus Vorname/Zwischenname/Nachname neu
+    zusammen), was ein bereits ausgestelltes Token sonst sofort ungültig machen würde
+    (Admin bearbeitet den eigenen Namen -> wird ausgeloggt)."""
+    return create_access_token(subject=str(person.id), extra_claims={"rolle": person.gruppenfuehrer_rolle})
 
 
 async def zugang_entscheiden(
