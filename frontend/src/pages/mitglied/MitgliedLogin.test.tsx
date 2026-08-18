@@ -29,20 +29,20 @@ describe("MitgliedLogin – Passwort-Login", () => {
     mitgliedPasswortLogin.mockReset().mockResolvedValue({ name: "Max Muster" });
   });
 
-  it("meldet per Name + Passwort an, merkt die Identität und navigiert zum Hub", async () => {
+  it("meldet per E-Mail + Passwort an, merkt die Identität und navigiert zum Hub", async () => {
     const user = userEvent.setup();
     render(<MitgliedLogin />);
 
-    await user.type(screen.getByLabelText("Name"), "Max Muster");
+    await user.type(screen.getByLabelText("E-Mail"), "max@example.org");
     await user.type(screen.getByLabelText("Passwort"), "geheim123");
     await user.click(screen.getByRole("button", { name: "Anmelden" }));
 
-    expect(mitgliedPasswortLogin).toHaveBeenCalledWith("Max Muster", "geheim123");
+    expect(mitgliedPasswortLogin).toHaveBeenCalledWith("max@example.org", "geheim123");
     await waitFor(() => expect(identitaetSpeichern).toHaveBeenCalledWith("Max Muster"));
     expect(navigate).toHaveBeenCalledWith("/mitglied");
   });
 
-  it("bietet weder Barcode- noch PIN-Anmeldung an – Name+Passwort ist die einzige Option", () => {
+  it("bietet weder Barcode- noch PIN-Anmeldung an – E-Mail+Passwort ist die einzige Option", () => {
     render(<MitgliedLogin />);
     expect(screen.queryByLabelText(/barcode/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/pin/i)).not.toBeInTheDocument();

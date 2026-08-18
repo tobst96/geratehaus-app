@@ -457,15 +457,15 @@ export const texte = {
     titel: "Mitglieder-Login",
     // Persönlicher Passwort-Login – einzige Anmeldemöglichkeit auf dieser Seite
     // (Barcode/PIN sind bewusst nicht mehr verfügbar, nur noch am Kiosk).
-    pw_name_label: "Name",
+    pw_name_label: "E-Mail",
     pw_passwort_label: "Passwort",
     pw_anmelden: "Anmelden",
     pw_anmelden_laeuft: "Wird angemeldet…",
-    pw_fehler: "Name oder Passwort falsch.",
-    pw_name_fehlt: "Bitte zuerst deinen Namen eingeben.",
+    pw_fehler: "E-Mail oder Passwort falsch.",
+    pw_name_fehlt: "Bitte zuerst deine E-Mail eingeben.",
     pw_link_anfordern: "Passwort vergessen oder erstmalig setzen?",
     pw_link_gesendet:
-      "Falls für diesen Namen eine E-Mail hinterlegt ist, wurde ein Link zum Setzen des Passworts gesendet.",
+      "Falls diese E-Mail hinterlegt ist, wurde ein Link zum Setzen des Passworts gesendet.",
   },
   kiosk_geraete: {
     titel: "Kiosk-Geräte",

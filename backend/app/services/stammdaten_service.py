@@ -393,6 +393,22 @@ async def person_aktualisieren(db: AsyncSession, person: Person, daten: PersonUp
     aenderungen = daten.model_dump(exclude_unset=True)
     alte_werte = {feld: getattr(person, feld) for feld in aenderungen}
 
+    # Login läuft über E-Mail (siehe gruppenfuehrer_service.login_pruefen) – bei
+    # Personen mit gesetztem Passwort muss sie daher eindeutig bleiben (Migration
+    # 0070 sichert das zusätzlich per DB-Unique-Index ab; diese Prüfung liefert
+    # nur die saubere 409 statt eines rohen DB-Fehlers).
+    neue_email = aenderungen.get("email")
+    if person.passwort_hash and neue_email:
+        from app.services import gruppenfuehrer_service
+
+        if await gruppenfuehrer_service.email_bereits_fuer_login_vergeben(
+            db, neue_email, ausser_person_id=person.id
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Diese E-Mail wird bereits für einen anderen Login-Zugang verwendet.",
+            )
+
     for feld, wert in aenderungen.items():
         setattr(person, feld, wert)
     person.name = _voller_name(

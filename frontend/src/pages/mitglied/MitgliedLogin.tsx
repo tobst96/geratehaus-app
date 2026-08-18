@@ -13,7 +13,7 @@ export function MitgliedLogin() {
 
   // Persönlicher Passwort-Login – einzige Anmeldemöglichkeit auf dieser Seite.
   // Barcode/PIN sind bewusst nicht mehr verfügbar (nur noch am Kiosk).
-  const [pwName, setPwName] = useState("");
+  const [pwEmail, setPwEmail] = useState("");
   const [pwPasswort, setPwPasswort] = useState("");
   const [pwLaeuft, setPwLaeuft] = useState(false);
   const [pwFehler, setPwFehler] = useState<string | null>(null);
@@ -24,7 +24,7 @@ export function MitgliedLogin() {
     setPwFehler(null);
     setPwLaeuft(true);
     try {
-      const identitaet = await mitgliedPasswortLogin(pwName.trim(), pwPasswort);
+      const identitaet = await mitgliedPasswortLogin(pwEmail.trim(), pwPasswort);
       identitaetSpeichern(identitaet.name);
       navigate("/mitglied");
     } catch (err) {
@@ -36,12 +36,12 @@ export function MitgliedLogin() {
 
   async function passwortLinkAnfordern() {
     setPwFehler(null);
-    if (!pwName.trim()) {
+    if (!pwEmail.trim()) {
       setPwFehler(t.pw_name_fehlt);
       return;
     }
     try {
-      await passwortAnfordern(pwName.trim());
+      await passwortAnfordern(pwEmail.trim());
     } catch {
       /* Bewusst kein Fehler nach außen (kein Enumeration-Leak). */
     }
@@ -57,9 +57,10 @@ export function MitgliedLogin() {
             <label htmlFor="pw-name">{t.pw_name_label}</label>
             <input
               id="pw-name"
-              value={pwName}
-              onChange={(e) => setPwName(e.target.value)}
-              autoComplete="username"
+              type="email"
+              value={pwEmail}
+              onChange={(e) => setPwEmail(e.target.value)}
+              autoComplete="email"
               required
             />
           </div>

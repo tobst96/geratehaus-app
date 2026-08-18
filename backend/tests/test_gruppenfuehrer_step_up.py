@@ -26,8 +26,8 @@ async def _pflicht(db, an: bool) -> None:
     await config_service.set(db, "zwei_faktor_pflicht", an)
 
 
-async def _mitglied_einloggen(client, name: str, passwort: str) -> None:
-    r = await client.post("/api/v1/auth/mitglied-login", json={"name": name, "passwort": passwort})
+async def _mitglied_einloggen(client, email: str, passwort: str) -> None:
+    r = await client.post("/api/v1/auth/mitglied-login", json={"email": email, "passwort": passwort})
     assert r.status_code == 200
 
 
@@ -35,7 +35,7 @@ async def _mitglied_einloggen(client, name: str, passwort: str) -> None:
 async def test_step_up_ohne_2fa_pflicht_liefert_token(client, db):
     await _pflicht(db, False)
     await _person(db, rolle="admin")
-    await _mitglied_einloggen(client, "Max Muster", "geheim123")
+    await _mitglied_einloggen(client, "max@example.org", "geheim123")
 
     r = await client.post("/api/v1/auth/gruppenfuehrer/step-up")
     assert r.status_code == 200
@@ -46,7 +46,7 @@ async def test_step_up_ohne_2fa_pflicht_liefert_token(client, db):
 async def test_step_up_ohne_erhoehten_zugang_403(client, db):
     await _pflicht(db, False)
     await _person(db, rolle=None)  # normales Mitglied, kein Gruppenführer
-    await _mitglied_einloggen(client, "Max Muster", "geheim123")
+    await _mitglied_einloggen(client, "max@example.org", "geheim123")
 
     r = await client.post("/api/v1/auth/gruppenfuehrer/step-up")
     assert r.status_code == 403
@@ -63,7 +63,7 @@ async def test_step_up_mit_2fa_pflicht_liefert_einrichtung(client, db):
     await _pflicht(db, True)
     await config_service.set(db, "notifier_email_smtp_host", "smtp.example.org")
     await _person(db, rolle="gruppenfuehrer")
-    await _mitglied_einloggen(client, "Max Muster", "geheim123")
+    await _mitglied_einloggen(client, "max@example.org", "geheim123")
 
     r = await client.post("/api/v1/auth/gruppenfuehrer/step-up")
     assert r.status_code == 200
@@ -80,7 +80,7 @@ async def test_step_up_ohne_smtp_liefert_token_statt_einrichtung(client, db):
     Pflicht-Einrichtung hängen bleiben (Anmelde-Code käme nie an)."""
     await _pflicht(db, True)
     await _person(db, rolle="admin")  # SMTP bewusst NICHT konfiguriert
-    await _mitglied_einloggen(client, "Max Muster", "geheim123")
+    await _mitglied_einloggen(client, "max@example.org", "geheim123")
 
     r = await client.post("/api/v1/auth/gruppenfuehrer/step-up")
     assert r.status_code == 200
@@ -96,7 +96,7 @@ async def test_step_up_mit_aktivem_2fa_verlangt_otp(client, db):
     from app.services import zwei_faktor_service
 
     await zwei_faktor_service.aktivieren(db, p)
-    await _mitglied_einloggen(client, "Max Muster", "geheim123")
+    await _mitglied_einloggen(client, "max@example.org", "geheim123")
 
     r = await client.post("/api/v1/auth/gruppenfuehrer/step-up")
     assert r.status_code == 200
@@ -121,7 +121,7 @@ async def test_step_up_trusted_device_ueberspringt_2fa(client, db):
     await _pflicht(db, False)
     p = await _person(db, rolle="admin")
     await _otp_setzen(db, p, "222222")
-    await _mitglied_einloggen(client, "Max Muster", "geheim123")
+    await _mitglied_einloggen(client, "max@example.org", "geheim123")
 
     challenge = gruppenfuehrer_2fa_session.signiere_challenge(p.id)
     r = await client.post(
@@ -140,7 +140,7 @@ async def test_step_up_trusted_device_ueberspringt_2fa(client, db):
 async def test_step_up_wird_rate_limitiert(client, db):
     await _pflicht(db, False)
     await _person(db, rolle="admin")
-    await _mitglied_einloggen(client, "Max Muster", "geheim123")
+    await _mitglied_einloggen(client, "max@example.org", "geheim123")
 
     antworten = [await client.post("/api/v1/auth/gruppenfuehrer/step-up") for _ in range(11)]
     assert antworten[-1].status_code == 429
@@ -149,13 +149,13 @@ async def test_step_up_wird_rate_limitiert(client, db):
 
 @pytest.mark.asyncio
 async def test_mein_profil_liefert_gruppenfuehrer_rolle(client, db):
-    await _person(db, name="Normalo", rolle=None)
-    await _person(db, name="Chefin", rolle="admin")
+    await _person(db, name="Normalo", rolle=None, email="normalo@example.org")
+    await _person(db, name="Chefin", rolle="admin", email="chefin@example.org")
 
-    await _mitglied_einloggen(client, "Normalo", "geheim123")
+    await _mitglied_einloggen(client, "normalo@example.org", "geheim123")
     r = await client.get("/api/v1/auth/mein-profil")
     assert r.json()["gruppenfuehrer_rolle"] is None
 
-    await _mitglied_einloggen(client, "Chefin", "geheim123")
+    await _mitglied_einloggen(client, "chefin@example.org", "geheim123")
     r2 = await client.get("/api/v1/auth/mein-profil")
     assert r2.json()["gruppenfuehrer_rolle"] == "admin"

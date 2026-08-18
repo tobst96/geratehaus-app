@@ -12,7 +12,7 @@ from app.services import modul_service
 
 
 async def _token(client, db, username="admin", rolle="admin"):
-    db.add(Person(name=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle))
+    db.add(Person(name=username, email=username, passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle=rolle))
     await db.commit()
     r = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": username, "password": "geheim123"}

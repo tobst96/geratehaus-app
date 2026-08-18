@@ -97,6 +97,7 @@ export function SetupWizard() {
         return (
           adminVorname.trim().length > 0 &&
           adminNachname.trim().length > 0 &&
+          adminEmail.trim().length > 0 &&
           adminPasswort.length >= 8 &&
           adminPasswort === adminPasswortWiederholung
         );
@@ -115,7 +116,7 @@ export function SetupWizard() {
         farbe_akzent: farbeAkzent,
         admin_vorname: adminVorname.trim(),
         admin_nachname: adminNachname.trim(),
-        admin_email: adminEmail.trim() || undefined,
+        admin_email: adminEmail.trim(),
         admin_passwort: adminPasswort,
         fehlerberichte_aktiv: fehlerberichteAktiv,
         fahrzeuge: fahrzeugNamen.map((name) => ({ name })),
@@ -242,13 +243,14 @@ export function SetupWizard() {
               />
             </div>
             <div className="formular-feld">
-              <label htmlFor="admin-email">E-Mail (optional)</label>
+              <label htmlFor="admin-email">E-Mail</label>
               <input
                 id="admin-email"
                 type="email"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
                 autoComplete="email"
+                required
               />
             </div>
             <div className="formular-feld">

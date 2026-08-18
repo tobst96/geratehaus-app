@@ -21,7 +21,7 @@ async def _person(db, name="Max Muster", passwort=None, email="max@example.org")
 async def test_login_mit_passwort_setzt_cookie(client, db):
     await _person(db, passwort="geheim123")
     r = await client.post(
-        "/api/v1/auth/mitglied-login", json={"name": "Max Muster", "passwort": "geheim123"}
+        "/api/v1/auth/mitglied-login", json={"email": "max@example.org", "passwort": "geheim123"}
     )
     assert r.status_code == 200
     assert r.json()["name"] == "Max Muster"
@@ -32,7 +32,7 @@ async def test_login_mit_passwort_setzt_cookie(client, db):
 async def test_login_falsches_passwort_401(client, db):
     await _person(db, passwort="geheim123")
     r = await client.post(
-        "/api/v1/auth/mitglied-login", json={"name": "Max Muster", "passwort": "falsch"}
+        "/api/v1/auth/mitglied-login", json={"email": "max@example.org", "passwort": "falsch"}
     )
     assert r.status_code == 401
 
@@ -41,7 +41,7 @@ async def test_login_falsches_passwort_401(client, db):
 async def test_login_ohne_gesetztes_passwort_401(client, db):
     await _person(db, passwort=None)
     r = await client.post(
-        "/api/v1/auth/mitglied-login", json={"name": "Max Muster", "passwort": "irgendwas"}
+        "/api/v1/auth/mitglied-login", json={"email": "max@example.org", "passwort": "irgendwas"}
     )
     assert r.status_code == 401
 
@@ -61,7 +61,7 @@ async def test_passwort_setzen_per_link_dann_login(client, db):
     assert r.status_code == 204
 
     login = await client.post(
-        "/api/v1/auth/mitglied-login", json={"name": "Max Muster", "passwort": "neuesGeheim1"}
+        "/api/v1/auth/mitglied-login", json={"email": "max@example.org", "passwort": "neuesGeheim1"}
     )
     assert login.status_code == 200
 
@@ -87,8 +87,8 @@ async def test_passwort_zu_kurz_422(client, db):
 
 @pytest.mark.asyncio
 async def test_passwort_anfordern_immer_202(client, db):
-    # Unbekannter Name → trotzdem 202 (kein Enumeration-Leak).
+    # Unbekannte E-Mail → trotzdem 202 (kein Enumeration-Leak).
     r = await client.post(
-        "/api/v1/auth/mitglied-passwort-anfordern", json={"name": "Gibt Es Nicht"}
+        "/api/v1/auth/mitglied-passwort-anfordern", json={"email": "gibt-es-nicht@example.org"}
     )
     assert r.status_code == 202

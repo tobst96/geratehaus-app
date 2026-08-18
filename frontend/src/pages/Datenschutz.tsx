@@ -36,14 +36,14 @@ export function Datenschutz() {
       </div>
 
       <div className="karte">
-        <h2>Anmeldung per Name, PIN &amp; Passwort</h2>
+        <h2>Anmeldung per Name/E-Mail, PIN &amp; Passwort</h2>
         <p>
           Am Kiosk-Tablet im Gerätehaus identifizierst du dich über die Auswahl deines Namens und
           deinen persönlichen PIN (oder per Barcode). Für den persönlichen Login auf deinem eigenen
-          Gerät (Handy/App) meldest du dich mit deinem Namen und einem persönlichen Passwort an. PIN
-          und Passwort werden ausschließlich als Hash (nicht im Klartext) in der Datenbank
-          gespeichert und dienen dazu, dir deine Eintragungen und den Zugriff auf freigegebene
-          Module (z. B. Fahrzeugkalender, eigene Dienststunden) eindeutig zuzuordnen.
+          Gerät (Handy/App) meldest du dich mit deiner E-Mail-Adresse und einem persönlichen
+          Passwort an. PIN und Passwort werden ausschließlich als Hash (nicht im Klartext) in der
+          Datenbank gespeichert und dienen dazu, dir deine Eintragungen und den Zugriff auf
+          freigegebene Module (z. B. Fahrzeugkalender, eigene Dienststunden) eindeutig zuzuordnen.
         </p>
         <p>
           Dein Passwort legst du über einen Link fest, den du dir an deine hinterlegte
@@ -68,15 +68,17 @@ export function Datenschutz() {
           statt per Name und PIN.
         </p>
         <p>
-          Für Gruppenführer- und Admin-Zugänge ist eine <strong>Zwei-Faktor-Authentisierung</strong>
-          vorgesehen (standardmäßig verpflichtend): Beim Login wird zusätzlich zum Passwort ein
-          einmaliger Anmelde-Code an die hinterlegte E-Mail-Adresse geschickt. Bei der Einrichtung
-          werden zudem einmalig <strong>Recovery-Codes</strong> angezeigt (als Hash gespeichert), die
-          bei fehlendem E-Mail-Zugriff als Ersatzcode dienen. Auf Wunsch kann ein Gerät für 30 Tage als
+          Für Gruppenführer- und Admin-Zugänge steht optional eine
+          <strong> Zwei-Faktor-Authentisierung</strong> zur Verfügung (in Einstellungen aktivierbar,
+          standardmäßig aus): Beim Login wird zusätzlich zum Passwort ein einmaliger Anmelde-Code an
+          die hinterlegte E-Mail-Adresse geschickt. Bei der Einrichtung werden zudem einmalig
+          <strong> Recovery-Codes</strong> angezeigt (als Hash gespeichert), die bei fehlendem
+          E-Mail-Zugriff als Ersatzcode dienen. Auf Wunsch kann ein Gerät für 30 Tage als
           vertrauenswürdig markiert werden, sodass dort kein erneuter Code nötig ist (technische
-          Kennung in einem Cookie). Von einem bereits per Name+Passwort angemeldeten Mitglied mit
+          Kennung in einem Cookie). Von einem bereits per E-Mail+Passwort angemeldeten Mitglied mit
           Gruppenführer-/Admin-Rechten aus ist der Wechsel in den entsprechenden Bereich ohne erneute
-          Passworteingabe möglich – die Zwei-Faktor-Prüfung bleibt dabei unverändert bestehen.
+          Passworteingabe möglich – eine aktivierte Zwei-Faktor-Prüfung bleibt dabei unverändert
+          bestehen.
         </p>
       </div>
 

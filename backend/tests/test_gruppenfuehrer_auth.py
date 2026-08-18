@@ -3,7 +3,7 @@ from app.models.person import Person
 
 
 async def _moderator_anlegen(db, username="admin", passwort="geheim123", rolle="admin"):
-    gruppenfuehrer = Person(name=username, passwort_hash=hash_secret(passwort), gruppenfuehrer_rolle=rolle)
+    gruppenfuehrer = Person(name=username, email=username, passwort_hash=hash_secret(passwort), gruppenfuehrer_rolle=rolle)
     db.add(gruppenfuehrer)
     await db.commit()
     await db.refresh(gruppenfuehrer)

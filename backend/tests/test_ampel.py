@@ -176,7 +176,7 @@ async def test_benachrichtigung_reset_bei_neuer_aktivitaet(db, monkeypatch):
 @pytest.mark.asyncio
 async def test_ampel_endpunkt(client, db):
     await _schwellen(db)
-    db.add(Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer"))
+    db.add(Person(name="gf", email="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer"))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": "gf", "password": "geheim123"}
@@ -197,7 +197,7 @@ async def test_ampel_endpunkt(client, db):
 
 @pytest.mark.asyncio
 async def test_person_inaktiv_persistiert(client, db):
-    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
+    db.add(Person(name="admin", email="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}

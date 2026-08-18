@@ -105,7 +105,7 @@ async def test_api_sperre_liefert_429_und_moderator_entsperrt(client, db):
     assert r.status_code == 429
 
     # Gruppenführer (Gruppenführer) entsperrt manuell.
-    db.add(Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer"))
+    db.add(Person(name="gf", email="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer"))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": "gf", "password": "geheim123"}

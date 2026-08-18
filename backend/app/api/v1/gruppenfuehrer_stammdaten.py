@@ -571,6 +571,19 @@ async def person_elevieren(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Für den erhöhten Zugang muss ein Passwort gesetzt werden.",
         )
+    # Login läuft über E-Mail – ohne die käme die Person nie mehr rein.
+    if daten.passwort and not person.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Für den erhöhten Zugang muss zuerst eine E-Mail hinterlegt sein (Login läuft über E-Mail).",
+        )
+    if daten.passwort and person.email and await gruppenfuehrer_service.email_bereits_fuer_login_vergeben(
+        db, person.email, ausser_person_id=person.id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Diese E-Mail wird bereits für einen anderen Login-Zugang verwendet.",
+        )
     person = await gruppenfuehrer_service.person_elevieren(db, person, daten.rolle, daten.passwort)
     await audit_service.protokolliere(
         db, admin.name, "person_eleviert", "person", person_id, f"Rolle {daten.rolle}"

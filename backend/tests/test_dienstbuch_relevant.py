@@ -14,7 +14,7 @@ from app.services import berechtigungs_service, dienstbuch_service, modul_servic
 async def _moderator_token(client, db):
     # Dienstbuch-Gruppenführer-Endpunkte sind granular geschützt (require_modul_zugriff);
     # der Test-Gruppenführer bekommt daher das „dienstbuch"-Recht.
-    gf = Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer")
+    gf = Person(name="gf", email="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer")
     db.add(gf)
     await db.commit()
     await db.refresh(gf)

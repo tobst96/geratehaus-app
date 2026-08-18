@@ -1,8 +1,16 @@
 """Login + Verwaltung des erhöhten Zugangs (Person = Konto).
 
 Eine „elevated" Person (`gruppenfuehrer_rolle` gesetzt: admin/gruppenfuehrer) meldet sich
-am Gruppenführerbereich mit Name + Passwort (+2FA) an; ihr PIN bleibt für Kiosk/Mitglied.
-Die Verwaltung (elevieren/de-elevieren/Passwort) läuft über Personal.
+am Gruppenführerbereich mit E-Mail + Passwort (+2FA) an; ihr PIN bleibt für Kiosk/Mitglied.
+Der Mitglieder-Passwort-Login (`/auth/mitglied-login`) nutzt denselben Mechanismus. Die
+Verwaltung (elevieren/de-elevieren/Passwort) läuft über Personal.
+
+Login läuft bewusst über E-Mail statt Name: der `name` bleibt intern der stabile
+Identifikator (JWT-`sub`, Kiosk/PIN-Anzeige), aber für den Login ist eine
+E-Mail-Adresse der natürlichere, eindeutigere Login-Name. E-Mail ist daher unter den
+Personen mit gesetztem Passwort eindeutig (siehe Migration 0070 – partieller
+Unique-Index nur für passwort_hash IS NOT NULL, damit reine Mitglieder ohne Login
+weiterhin dieselbe Benachrichtigungs-E-Mail teilen dürfen, z. B. ein Familien-Postfach).
 """
 
 from datetime import datetime, timedelta, timezone
@@ -30,19 +38,26 @@ def _als_utc(dt: datetime) -> datetime:
     return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
 
 
-async def login_pruefen(db: AsyncSession, name: str, passwort: str) -> Person | None:
-    """Prüft die Anmeldedaten einer **Person** am Gruppenführerbereich (Name + Passwort)
-    mit Brute-Force-Schutz. Login gelingt nur, wenn die Person ein Passwort gesetzt
-    hat; die Elevated-Prüfung (`gruppenfuehrer_rolle`) macht das Gate in deps.
+async def login_pruefen(db: AsyncSession, email: str, passwort: str) -> Person | None:
+    """Prüft die Anmeldedaten einer **Person** am Gruppenführerbereich/Mitglied-Login
+    (E-Mail + Passwort) mit Brute-Force-Schutz. Login gelingt nur, wenn die Person ein
+    Passwort gesetzt hat; die Elevated-Prüfung (`gruppenfuehrer_rolle`) macht das Gate
+    für den Gruppenführerbereich in deps.
 
-    - Person existiert nicht / hat kein Passwort → None (401, ohne Enumeration/Sperre).
+    - Keine/leere E-Mail, kein Treffer oder kein gesetztes Passwort → None (401, ohne
+      Enumeration/Sperre).
     - Gesperrt (`login_gesperrt_bis` in der Zukunft) → `GruppenfuehrerGesperrtError`.
     - Passwort korrekt → Zähler/Sperre zurücksetzen, Person zurückgeben.
     - Passwort falsch → Fehlversuchszähler erhöhen; ab `gruppenfuehrer_login_max_fehlversuche`
       wird der Zugang für `gruppenfuehrer_login_sperre_minuten` gesperrt → None.
     """
+    email_normalisiert = _email_normalisieren(email)
+    if email_normalisiert is None:
+        return None
     person = (
-        await db.execute(select(Person).where(Person.name == name))
+        await db.execute(
+            select(Person).where(func.lower(Person.email) == email_normalisiert.lower())
+        )
     ).scalar_one_or_none()
     if person is None or not person.passwort_hash:
         return None
@@ -126,6 +141,23 @@ async def anzahl_admins(db: AsyncSession) -> int:
             select(func.count()).select_from(Person).where(Person.gruppenfuehrer_rolle == "admin")
         )
     ).scalar_one()
+
+
+async def email_bereits_fuer_login_vergeben(
+    db: AsyncSession, email: str, ausser_person_id: int | None = None
+) -> bool:
+    """True, wenn eine ANDERE Person mit gesetztem Passwort bereits dieselbe
+    E-Mail (case-insensitiv) trägt – Login läuft über E-Mail, die muss also
+    unter Login-fähigen Personen eindeutig sein (siehe Migration 0070, die
+    das zusätzlich als partiellen DB-Unique-Index absichert)."""
+    stmt = select(func.count()).select_from(Person).where(
+        func.lower(Person.email) == email.strip().lower(),
+        Person.passwort_hash.is_not(None),
+    )
+    if ausser_person_id is not None:
+        stmt = stmt.where(Person.id != ausser_person_id)
+    anzahl = (await db.execute(stmt)).scalar_one()
+    return anzahl > 0
 
 
 async def person_elevieren(

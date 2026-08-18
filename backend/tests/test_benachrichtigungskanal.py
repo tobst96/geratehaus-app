@@ -12,7 +12,7 @@ async def _person(db, name="Kanal Person"):
 
 
 async def _admin_token(client, db):
-    db.add(Person(name="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
+    db.add(Person(name="admin", email="admin", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="admin"))
     await db.commit()
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
@@ -101,7 +101,7 @@ async def test_enforcement_personal_modul(client, db):
     from app.services import berechtigungs_service, modul_service
 
     await modul_service.ensure_module(db)
-    gf = Person(name="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer")
+    gf = Person(name="gf", email="gf", passwort_hash=hash_secret("geheim123"), gruppenfuehrer_rolle="gruppenfuehrer")
     db.add(gf)
     await db.commit()
     await db.refresh(gf)
