@@ -12,6 +12,32 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AB – Profilbild per QR-Upload: Galerie-Auswahl statt nur Kamera
+
+### `capture="environment"` verhindert Foto-Auswahl aus der Galerie auf dem Handy
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Bug / Frontend
+- Skills: bugfix, review
+- Beschreibung: Auf der mobilen Profilbild-Upload-Seite (nach QR-Scan,
+  `frontend/src/pages/PersonBildHochladen.tsx`, Zeile 128-135) hat das
+  `<input type="file">` das Attribut `capture="environment"` gesetzt. Das
+  zwingt mobile Browser dazu, **direkt die Kamera** zu öffnen, statt die
+  native Dateiauswahl (mit Option „Aus Galerie wählen") anzuzeigen – ein
+  bereits vorhandenes Foto kann so nicht hochgeladen werden, nur ein frisch
+  aufgenommenes.
+- Akzeptanzkriterien: Auf dem Handy lässt sich beim Profilbild-Upload sowohl
+  ein neues Foto aufnehmen **als auch** ein vorhandenes Bild aus der Galerie
+  wählen (native Auswahl des Betriebssystems).
+- Notizen: Vermutlich reicht das Entfernen von `capture="environment"` (dann
+  bietet das native Auswahl-Dialogfeld i. d. R. sowohl Kamera als auch Galerie
+  an); kurz auf iOS **und** Android prüfen, da sich das Verhalten je Browser/
+  OS unterscheiden kann. Button-Text „Foto aufnehmen" (`t.foto_aufnehmen`)
+  ggf. anpassen, falls er dann nicht mehr exakt passt.
+
+---
+
 ## Etappe AA – Zwei-Faktor-Anmeldung wieder verpflichtend, mit Druck-Fallback statt Mail
 
 ### 2FA-Pflicht reaktivieren; bei SMTP-Ausfall Code über Netzwerkdrucker statt E-Mail
