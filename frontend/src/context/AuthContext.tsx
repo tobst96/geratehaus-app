@@ -31,8 +31,8 @@ function rolleAusToken(token: string | null): string | null {
 interface AuthContextValue {
   angezeigterName: string | null;
   barcodeEinscannen: (token: string) => Promise<string>;
-  barcodeEinscannenEinmalig: (token: string) => Promise<string>;
-  nameLoginEinmalig: (personId: number, pin: string) => Promise<string>;
+  barcodeEinscannenEinmalig: (token: string) => Promise<{ name: string; ohnePin: boolean }>;
+  nameLoginEinmalig: (personId: number, pin: string) => Promise<{ name: string; ohnePin: boolean }>;
   /** Merkt eine bereits serverseitig gesetzte Identität lokal (Anzeige/Persistenz),
    * z. B. nach einem Namen+PIN-Login im Mitgliederbereich. */
   identitaetSpeichern: (name: string) => void;
@@ -129,17 +129,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * über CurrentPerson liest), OHNE die Identität dauerhaft zu speichern
    * (kein localStorage/angezeigterName). So bleibt auf dem öffentlich
    * stehenden Kiosk niemand eingeloggt – es ist reine Bestätigung. */
-  async function barcodeEinscannenEinmalig(token: string): Promise<string> {
+  async function barcodeEinscannenEinmalig(token: string): Promise<{ name: string; ohnePin: boolean }> {
     const identitaet = await barcodeEinscannenApi(token);
-    return identitaet.name;
+    return { name: identitaet.name, ohnePin: false };
   }
 
   /** Kiosk-Variante für den Namen+PIN-Login (Barcode-Modul AUS): identifiziert
    * die Person für genau EINE Eintragung (setzt den Namens-Cookie serverseitig),
-   * ohne die Identität dauerhaft zu speichern. */
-  async function nameLoginEinmalig(personId: number, pin: string): Promise<string> {
+   * ohne die Identität dauerhaft zu speichern. `ohnePin` meldet, ob die Person
+   * keinen PIN gesetzt hatte (Eintragung bleibt möglich, wird aber vermerkt). */
+  async function nameLoginEinmalig(
+    personId: number,
+    pin: string
+  ): Promise<{ name: string; ohnePin: boolean }> {
     const identitaet = await namePinLogin(personId, pin);
-    return identitaet.name;
+    return { name: identitaet.name, ohnePin: identitaet.ohne_pin };
   }
 
   function identitaetSpeichern(name: string): void {

@@ -142,12 +142,13 @@ export function EinsatzDetail() {
             <th>Nur Gerätehaus</th>
             <th>Auf Anfahrt</th>
             <th>Ohne Barcode</th>
+            <th>Ohne PIN</th>
             <th>Bemerkung</th>
           </tr>
         </thead>
         <tbody>
           {einsatz.teilnahmen.map((t) => (
-            <tr key={t.id}>
+            <tr key={t.id} className={t.ohne_pin ? "zeile-hervorgehoben" : undefined}>
               <td>{t.person_name}</td>
               <td>{t.fahrzeug_name ?? ""}</td>
               <td>{t.funktion_name ?? ""}</td>
@@ -156,6 +157,7 @@ export function EinsatzDetail() {
               <td>{t.nur_geraetehaus ? "Ja" : ""}</td>
               <td>{t.auf_anfahrt ? "Ja" : ""}</td>
               <td>{t.ohne_barcode ? "Ja" : ""}</td>
+              <td>{t.ohne_pin ? "Ja" : ""}</td>
               <td>{t.bemerkung ?? ""}</td>
             </tr>
           ))}

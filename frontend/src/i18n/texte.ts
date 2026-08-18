@@ -270,6 +270,7 @@ export const texte = {
     th_name: "Name",
     th_gruppe: "Gruppe",
     th_atemschutz: "Atemschutz (min)",
+    th_ohne_pin: "Ohne PIN",
     keine_teilnehmer: "Keine Teilnehmer eingetragen.",
   },
   berechtigungen: {
@@ -330,6 +331,7 @@ export const texte = {
     ladefehler: "Buchungen konnten nicht geladen werden.",
     genehmigen_fehler: "Genehmigen fehlgeschlagen.",
     ablehnen_fehler: "Ablehnen fehlgeschlagen.",
+    ohne_pin_hinweis: "Ohne PIN eingetragen",
   },
   formular_zusammenfassung: {
     einreichung_singular: "Einreichung",
@@ -597,6 +599,7 @@ export const texte = {
     th_nur_geraetehaus: "Nur Gerätehaus",
     th_auf_anfahrt: "Auf Anfahrt",
     th_ohne_barcode: "Ohne Barcode",
+    th_ohne_pin: "Ohne PIN",
     th_ip_browser: "IP / Browser",
     th_bemerkung: "Bemerkung",
     // Bestätigungsdialoge: Einsatztitel wird dynamisch zwischen Prefix/Suffix gesetzt.
@@ -769,6 +772,7 @@ export const texte = {
     th_funktion: "Funktion",
     th_stunden: "Stunden",
     th_datum: "Datum",
+    th_ohne_pin: "Ohne PIN",
     // Dienstbücher
     status_alle: "Alle Status",
     status_offen: "Nur offene",

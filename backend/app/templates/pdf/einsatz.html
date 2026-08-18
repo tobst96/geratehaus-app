@@ -51,18 +51,20 @@
             <th>VAB</th>
             <th>Atemschutz (min)</th>
             <th>Ohne Barcode</th>
+            <th>Ohne PIN</th>
             <th>Bemerkung</th>
         </tr>
     </thead>
     <tbody>
         {% for t in einsatz.teilnahmen %}
-        <tr>
+        <tr class="{{ 'zeile-hervorgehoben' if t.ohne_pin else '' }}">
             <td>{{ t.person.name }}</td>
             <td>{%- if t.fahrzeug %}{{ t.fahrzeug.name }}{% elif t.nur_geraetehaus %}Nur Gerätehaus{% elif t.auf_anfahrt %}Auf Anfahrt{% endif -%}</td>
             <td>{{ t.funktion.name if t.funktion else "" }}</td>
             <td>{{ "Ja" if t.vab else "" }}</td>
             <td>{{ t.atemschutzminuten if t.atemschutzminuten else "" }}</td>
             <td>{{ "Ja" if t.ohne_barcode else "" }}</td>
+            <td>{{ "Ja" if t.ohne_pin else "" }}</td>
             <td>{{ t.bemerkung or "" }}</td>
         </tr>
         {% endfor %}

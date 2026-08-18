@@ -285,15 +285,17 @@ function DienststundenTab() {
               <th>{t.th_funktion}</th>
               <th>{t.th_stunden}</th>
               <th>{t.th_datum}</th>
+              <th>{t.th_ohne_pin}</th>
             </tr>
           </thead>
           <tbody>
             {daten.map((d) => (
-              <tr key={d.id}>
+              <tr key={d.id} className={d.ohne_pin ? "zeile-hervorgehoben" : undefined}>
                 <td>{d.person_name}</td>
                 <td>{d.funktion_name}</td>
                 <td>{d.stunden}</td>
                 <td>{d.datum}</td>
+                <td>{d.ohne_pin ? t.ja : ""}</td>
               </tr>
             ))}
           </tbody>
@@ -451,17 +453,19 @@ function BuchungenTab() {
               <th>{t.th_zweck}</th>
               <th>{t.th_verantwortlich}</th>
               <th>{t.th_status}</th>
+              <th>{t.th_ohne_pin}</th>
             </tr>
           </thead>
           <tbody>
             {daten.map((b) => (
-              <tr key={b.id}>
+              <tr key={b.id} className={b.ohne_pin ? "zeile-hervorgehoben" : undefined}>
                 <td>{b.fahrzeug_name}</td>
                 <td>{formatiereDatumZeit(b.von)}</td>
                 <td>{formatiereDatumZeit(b.bis)}</td>
                 <td>{b.zweck}</td>
                 <td>{b.verantwortliche_person_name}</td>
                 <td>{b.status}</td>
+                <td>{b.ohne_pin ? t.ja : ""}</td>
               </tr>
             ))}
           </tbody>

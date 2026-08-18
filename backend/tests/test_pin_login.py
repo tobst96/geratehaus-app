@@ -104,10 +104,17 @@ async def test_name_pin_pruefen_ohne_cookie(client, db):
 
 @pytest.mark.asyncio
 async def test_name_pin_ohne_pin_gesetzt(client, db):
+    """Kein gesetzter PIN blockiert die Eintragung nicht mehr – die Person wird
+    trotzdem eingeloggt, die Antwort meldet ohne_pin=True zur Kennzeichnung."""
     person = await _person(db, "Cem Test")  # kein PIN
     r = await client.post("/api/v1/auth/name-pin", json={"person_id": person.id, "pin": None})
-    assert r.status_code == 428
-    assert r.json()["detail"] == "kein_pin"
+    assert r.status_code == 200
+    assert r.json()["name"] == "Cem Test"
+    assert r.json()["ohne_pin"] is True
+    assert "geraetehaus_name" in r.cookies
+
+    ereignisse = await stammdaten_service.liste_person_ereignisse(db, person.id)
+    assert any(e.typ == "ohne_pin_eingetragen" for e in ereignisse)
 
 
 # --- PIN anfordern (Self-Service vs. Freigabe) ------------------------------

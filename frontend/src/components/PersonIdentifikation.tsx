@@ -28,10 +28,19 @@ export interface PersonInfo {
   bild_url: string | null;
 }
 
+export interface IdentifiziertePerson {
+  name: string;
+  /** True, wenn die Person keinen PIN gesetzt hatte und die Identifikation
+   * deshalb ohne PIN-Prüfung erfolgte (Eintragung bleibt möglich, wird aber
+   * in Listen/PDF gekennzeichnet). Bei Barcode-Login immer false. */
+  ohnePin: boolean;
+}
+
 export interface PersonIdentifikationHandle {
   /** Identifiziert die Person für genau eine Aktion (setzt den Namens-Cookie
-   * serverseitig) und liefert den Namen. Wirft bei fehlender/ungültiger Eingabe. */
-  identifiziere: () => Promise<string>;
+   * serverseitig) und liefert Name + ob es ohne PIN geschah. Wirft bei
+   * fehlender Eingabe oder falschem PIN. */
+  identifiziere: () => Promise<IdentifiziertePerson>;
   zuruecksetzen: () => void;
 }
 
@@ -216,8 +225,7 @@ function PersonIdentifikationImpl(
       if (barcodeModus) {
         const wert = barcode.trim();
         if (!wert) throw new ApiError(400, "Barcode erforderlich.");
-        const name = await barcodeEinscannenEinmalig(wert);
-        return name;
+        return await barcodeEinscannenEinmalig(wert);
       }
       if (!kioskModus) {
         throw new ApiError(
@@ -226,9 +234,6 @@ function PersonIdentifikationImpl(
         );
       }
       if (!gewaehlt) throw new ApiError(400, "Bitte zuerst eine Person auswählen.");
-      if (!gewaehlt.pin_gesetzt) {
-        throw new ApiError(428, "Für diese Person ist noch kein PIN gesetzt.");
-      }
       try {
         return await nameLoginEinmalig(gewaehlt.id, pin);
       } catch (err) {
@@ -343,10 +348,11 @@ function PersonIdentifikationImpl(
       {gewaehlt && !gewaehlt.pin_gesetzt && (
         <div style={{ marginTop: 8 }}>
           <p className="text-mute">
-            Für <strong>{gewaehlt.name}</strong> ist noch kein PIN gesetzt.
+            Für <strong>{gewaehlt.name}</strong> ist noch kein PIN gesetzt. Die Eintragung ist trotzdem
+            möglich, wird aber als „ohne PIN" vermerkt.
           </p>
           <button type="button" className="sekundaer" onClick={pinLinkAnfordern} disabled={anfordernLaeuft}>
-            {anfordernLaeuft ? "Wird angefordert…" : "PIN anfordern"}
+            {anfordernLaeuft ? "Wird angefordert…" : "PIN für später anfordern"}
           </button>
         </div>
       )}

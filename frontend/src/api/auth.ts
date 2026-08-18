@@ -24,6 +24,8 @@ export interface Gruppenfuehrer2FAEinrichtenErgebnis {
 
 export interface BarcodeIdentitaet {
   name: string;
+  /** True nur bei Name+PIN-Login ohne gesetzten PIN (Barcode/Passwort: immer false). */
+  ohne_pin: boolean;
 }
 
 export interface BarcodeVorschau {

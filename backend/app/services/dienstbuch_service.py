@@ -165,6 +165,7 @@ async def teilnehmer_eintragen(
 
     teilnehmer.gruppe_id = daten.gruppe_id
     teilnehmer.atemschutzminuten = daten.atemschutzminuten
+    teilnehmer.ohne_pin = daten.ohne_pin
     await db.commit()
 
     geladen = await db.execute(

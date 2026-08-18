@@ -55,8 +55,8 @@ export function DienststundenStempel() {
     setLaeuft(true);
     setFehler(null);
     try {
-      const name = await identRef.current!.identifiziere();
-      await stundenErfassen(info.funktion_id, stunden, heuteAlsDatum());
+      const { name, ohnePin } = await identRef.current!.identifiziere();
+      await stundenErfassen(info.funktion_id, stunden, heuteAlsDatum(), ohnePin);
       // Bestätigungsfoto (bei Kiosk-Scan) mind. 5s stehen lassen, bevor die
       // Erfolgsseite die Identifikation ersetzt.
       await identVorschau.warten();

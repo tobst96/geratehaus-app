@@ -9,10 +9,21 @@ export interface DienststundenEintragOut {
   funktion_name: string;
   stunden: number;
   datum: string;
+  ohne_pin: boolean;
 }
 
-export const stundenErfassen = (funktionId: number, stunden: number, datum: string) =>
-  apiPost<DienststundenEintragOut>("/dienststunden", { funktion_id: funktionId, stunden, datum });
+export const stundenErfassen = (
+  funktionId: number,
+  stunden: number,
+  datum: string,
+  ohnePin = false
+) =>
+  apiPost<DienststundenEintragOut>("/dienststunden", {
+    funktion_id: funktionId,
+    stunden,
+    datum,
+    ohne_pin: ohnePin,
+  });
 
 export const holeMeineSummen = () =>
   apiGet<DienststundenSummeOut[]>("/dienststunden/meine");

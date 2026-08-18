@@ -36,6 +36,7 @@ export interface TeilnahmeAnlegen {
   atemschutzminuten: number;
   nur_geraetehaus: boolean;
   auf_anfahrt: boolean;
+  ohne_pin?: boolean;
   bemerkung: string | null;
 }
 

@@ -62,6 +62,14 @@
     tr:nth-child(even) {
         background-color: #f7f7f7;
     }
+    /* Kennzeichnet Zeilen mit einer Besonderheit, z. B. Eintragung ohne
+       gesetzten PIN (siehe ohne_pin-Spalten) – Farbe wie .fehlertext im
+       Frontend (#b00020), damit konsistent mit dem restlichen Produkt. */
+    tr.zeile-hervorgehoben, tr.zeile-hervorgehoben:nth-child(even) {
+        background-color: #fdecea;
+        color: #b00020;
+        font-weight: 600;
+    }
 </style>
 </head>
 <body>

@@ -154,10 +154,10 @@ export function Dienststunden() {
     setLaeuft(true);
     setFehler(null);
     try {
-      const name = mitgliedModus.aktiv
-        ? mitgliedModus.name
+      const { name, ohnePin } = mitgliedModus.aktiv
+        ? { name: mitgliedModus.name, ohnePin: false }
         : await identRef.current!.identifiziere();
-      await stundenErfassen(Number(funktionId), stunden, datum);
+      await stundenErfassen(Number(funktionId), stunden, datum, ohnePin);
       const summen = await holeMeineSummen();
       const funktionName = funktionen.find((f) => String(f.id) === funktionId)?.name ?? "";
       setLetzteBuchung({ name, funktionName, stundenText: stundenAnzeige(stunden), datum });

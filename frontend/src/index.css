@@ -255,6 +255,14 @@ button.karte:focus-visible {
   font-weight: 600;
 }
 
+/* Markiert Tabellenzeilen/Karten ohne gesetzten PIN (analog PDF-Listen). */
+tr.zeile-hervorgehoben,
+.karte.zeile-hervorgehoben {
+  background-color: #fdecea;
+  color: #b00020;
+  font-weight: 600;
+}
+
 /* Gedämpfte Textfarbe (Utility) – ersetzt das ~77-fach kopierte Inline-
    `style={{ color: "var(--farbe-text-mute)" }}` (nur Farbe, keine Größe). */
 .text-mute {

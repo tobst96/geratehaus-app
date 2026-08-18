@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import Date, Float, ForeignKey
+from sqlalchemy import Boolean, Date, Float, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -19,6 +19,9 @@ class Dienststunden(Base, TimestampMixin):
     )
     stunden: Mapped[float] = mapped_column(Float, nullable=False)
     datum: Mapped[date] = mapped_column(Date, nullable=False)
+    # Kein PIN bei der Person gesetzt – Eintragung war trotzdem möglich, wird
+    # aber in Listen/PDF hervorgehoben markiert.
+    ohne_pin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     person: Mapped["Person"] = relationship(viewonly=True)
     funktion: Mapped["FunktionDienststunden"] = relationship(viewonly=True)

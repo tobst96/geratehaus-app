@@ -89,6 +89,7 @@ async def reservierung_einloesen(
         nur_geraetehaus=reservierung.nur_geraetehaus,
         auf_anfahrt=reservierung.auf_anfahrt,
         ohne_barcode=True,
+        ohne_pin=not person.pin_gesetzt,
         bemerkung=daten.bemerkung,
     )
     ergebnis = await einsatz_service.teilnahme_eintragen(db, einsatz, person.id, teilnahme_daten)

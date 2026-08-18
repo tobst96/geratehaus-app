@@ -248,13 +248,17 @@ async def name_pin_pruefen(db: DbSession, daten: NamePinLogin) -> NamePinVorscha
 async def name_pin_login(db: DbSession, response: Response, daten: NamePinLogin) -> BarcodeIdentitaet:
     """Identifiziert eine Person per Auswahl + persönlichem PIN (Standard, wenn das
     Barcode-Modul AUS ist) und setzt den Namens-Cookie wie /auth/barcode. Ohne
-    gesetzten PIN wird bewusst nicht eingeloggt (428) – das Frontend zeigt dann
-    den Button „PIN anfordern"."""
+    gesetzten PIN wird die Person trotzdem eingeloggt (kein Blocker mehr) – die
+    Antwort meldet `ohne_pin=True`, damit der Aufrufer die Eintragung in Listen/
+    PDF entsprechend kennzeichnen kann; zusätzlich wird es in der Personen-
+    Timeline vermerkt (siehe `person_ohne_pin_vermerken`)."""
     person = await stammdaten_service.get_person(db, daten.person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
     if not person.pin_gesetzt:
-        raise HTTPException(status_code=status.HTTP_428_PRECONDITION_REQUIRED, detail="kein_pin")
+        await stammdaten_service.person_ohne_pin_vermerken(db, person, "Kiosk-Login")
+        _setze_namens_cookie(response, person.name)
+        return BarcodeIdentitaet(name=person.name, ohne_pin=True)
     try:
         korrekt = await stammdaten_service.pin_login_versuch(db, person, daten.pin)
     except stammdaten_service.PinGesperrtError as sperre:

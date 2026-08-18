@@ -66,7 +66,12 @@ async def reservierung_einloesen(
     eintrag = await dienststunden_service.erfassen(
         db,
         daten.person_id,
-        DienststundenErfassen(funktion_id=daten.funktion_id, stunden=daten.stunden, datum=daten.datum),
+        DienststundenErfassen(
+            funktion_id=daten.funktion_id,
+            stunden=daten.stunden,
+            datum=daten.datum,
+            ohne_pin=not person.pin_gesetzt,
+        ),
     )
 
     reservierung.eingeloest = True

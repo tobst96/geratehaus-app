@@ -287,8 +287,9 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     setLaeuft(true);
     setFehler(null);
     try {
+      let ohnePin = false;
       if (!mitgliedModus.aktiv) {
-        await identRef.current!.identifiziere();
+        ({ ohnePin } = await identRef.current!.identifiziere());
       }
       await teilnahmeEintragen(einsatz.id, {
         fahrzeug_id: ausgewaehlteAktion.fahrzeug?.id ?? null,
@@ -298,6 +299,7 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         atemschutzminuten: atemschutzAktiv ? atemschutzminuten : 0,
         nur_geraetehaus: ausgewaehlteAktion.nurGeraetehaus,
         auf_anfahrt: ausgewaehlteAktion.aufAnfahrt,
+        ohne_pin: ohnePin,
         bemerkung: bemerkung.trim() || null,
       });
       // Bestätigungsfoto (bei Kiosk-Scan) mind. 5s stehen lassen, bevor das
