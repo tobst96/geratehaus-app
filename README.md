@@ -99,8 +99,9 @@ Schwellenwerte, offene Buchungen und Einsätze pro Monat auf einen Blick.
 - **Ein Login für alle** – die persönliche Anmeldung (`/mitglied/login`, Name + Passwort) führt immer
   in den eigenen Mitgliederbereich mit Zugriff auf alle für den Außenzugriff freigeschalteten Module,
   Abmelden jederzeit möglich. Wer zusätzlich Gruppenführer- oder Admin-Rechte hat, wechselt von dort per
-  Klick **ohne erneute Passworteingabe** in den entsprechenden Bereich (die 2FA-Pflicht bleibt als
-  Schutzschicht bestehen). Namensauswahl + PIN bzw. Barcode bleiben ausschließlich dem Kiosk vorbehalten.
+  Klick **ohne erneute Passworteingabe** in den entsprechenden Bereich (eine optionale, in
+  Einstellungen aktivierbare 2FA-Pflicht bleibt dabei als Schutzschicht bestehen). Namensauswahl +
+  PIN bzw. Barcode bleiben ausschließlich dem Kiosk vorbehalten.
 - **„Barcode vergessen"** (bei aktivem Barcode-Modul) – erzeugt im Scan-Dialog einen QR-Code für genau
   diese Aktion; die Person scannt ihn mit dem eigenen Handy und trägt sich mit Name + PIN ohne Barcode
   ein (kurzlebiger, einmalig gültiger Token). Solche Eintragungen sind in Listen und PDF als „ohne

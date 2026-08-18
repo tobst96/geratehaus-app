@@ -129,8 +129,12 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("gruppenfuehrer_login_sperre_minuten", "15", ConfigTyp.INT, "Gruppenführer-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
     # Ist die Pflicht aktiv, müssen erhöhte Konten (Admin/Gruppenführer) ohne
     # aktives 2FA es beim nächsten Login erzwungen einrichten (E-Mail +
-    # Recovery-Codes), bevor ein Token ausgestellt wird. Abschaltbar durch Admins.
-    ConfigDefault("zwei_faktor_pflicht", "true", ConfigTyp.BOOL, "2FA für erhöhte Konten (Admin/Gruppenführer) verpflichtend"),
+    # Recovery-Codes), bevor ein Token ausgestellt wird. Standardmäßig AUS
+    # (opt-in über Einstellungen) - Zwangs-Einrichtung kann bei SMTP-Problemen
+    # oder fehlendem Internet auf dem einzigen Admin-Zugang zur Aussperrung
+    # führen; Recovery-Codes federn das zwar ab, aber wer 2FA aktiv nutzen will,
+    # kann es weiterhin gezielt einschalten.
+    ConfigDefault("zwei_faktor_pflicht", "false", ConfigTyp.BOOL, "2FA für erhöhte Konten (Admin/Gruppenführer) verpflichtend"),
     # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
     # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
     # anhand der Registry ergänzt bzw. ignoriert.

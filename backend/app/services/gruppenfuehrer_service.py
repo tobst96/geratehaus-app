@@ -179,7 +179,7 @@ async def zugang_entscheiden(
     # (z. B. auf einer frisch eingerichteten Instanz) je in den Gruppenführer-/
     # Admin-Bereich, um SMTP überhaupt erst einzurichten.
     if not person.zwei_faktor_aktiv:
-        pflicht = bool(await config_service.get(db, "zwei_faktor_pflicht", True))
+        pflicht = bool(await config_service.get(db, "zwei_faktor_pflicht", False))
         mail_konfiguriert = bool(await config_service.get(db, "notifier_email_smtp_host", ""))
         if pflicht and mail_konfiguriert:
             return GruppenfuehrerLoginErgebnis(
