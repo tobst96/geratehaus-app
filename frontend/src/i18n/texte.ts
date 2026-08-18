@@ -184,7 +184,11 @@ export const texte = {
     ausloesen_fehler: "Update konnte nicht angestoßen werden.",
     kanal_fehler: "Kanal konnte nicht geändert werden.",
     installieren_confirm:
-      "Update jetzt installieren? Der Server aktualisiert sich und startet dabei kurz neu.",
+      "Update jetzt installieren? Vorher wird automatisch ein Backup erstellt, danach " +
+      "aktualisiert sich der Server und startet dabei kurz neu.",
+    wechseln_confirm:
+      "Auf diese Version wechseln? Vorher wird automatisch ein Backup erstellt, danach " +
+      "aktualisiert sich der Server und startet dabei kurz neu.",
     kanal_titel: "Update-Kanal",
     stable: "Stable",
     beta: "Beta",
@@ -193,9 +197,12 @@ export const texte = {
     verfuegbare_version: "Verfügbare Version", // gefolgt von (Kanal)
     veroeffentlicht_am: "Veröffentlicht am",
     neue_version_verfuegbar: "🆕 Es ist eine neue Version verfügbar.",
+    // Beim Kanalwechsel auf eine ältere Version (z. B. Beta → Stable) verfügbar.
+    andere_version_verfuegbar: "Für den Kanal ist eine andere Version verfügbar.",
     release_hinweise: "Release-Hinweise ansehen",
     installieren: "Update installieren",
-    installieren_laeuft: "Update wird angestoßen …",
+    wechseln: "Version wechseln",
+    installieren_laeuft: "Backup wird erstellt, Update wird angestoßen …",
     aktuell: "Du bist auf dem neuesten Stand.",
     erneut_pruefen: "Erneut prüfen",
   },
