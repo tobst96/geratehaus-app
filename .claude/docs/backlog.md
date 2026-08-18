@@ -12,6 +12,44 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe V – Zwei-Faktor-Pflicht standardmäßig aus
+
+### 2FA nicht mehr verpflichtend – Aussperrungsrisiko vermeiden
+
+- Status: Erledigt (18.08.2026, direkt auf beta)
+- Priorität: Mittel
+- Kategorie: Backend / Sicherheit
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Ursprünglich sollte 2FA erst greifen, wenn SMTP nachweislich
+  funktioniert (nicht nur konfiguriert) – siehe Analyse unten. Nutzer-Entscheidung
+  nach Rücksprache: einfacher als die SMTP-Verifizierung nachzurüsten ist, die
+  2FA-**Pflicht** einfach nicht mehr standardmäßig zu erzwingen. Grund: ein
+  Backup-Code für den Fall „2FA/Internet geht nicht" wurde gewünscht – existiert
+  aber **bereits** (`zwei_faktor_service.recovery_codes_erzeugen`, werden bei
+  jeder 2FA-Einrichtung angezeigt, README erwähnt sie). Der Rest-Risiko-Fall
+  (SMTP fehlerhaft UND Pflicht aktiv UND keine Recovery-Codes gesichert) ist
+  damit selten genug, dass „Pflicht standardmäßig aus, opt-in" die pragmatischere
+  Lösung ist als die SMTP-Verifizierungs-Logik zu bauen.
+- Umsetzung: `zwei_faktor_pflicht`-Default in `config_defaults.py` und der
+  Fallback in `gruppenfuehrer_service.zugang_entscheiden` von `true` auf
+  `false` geändert; Frontend-Fallback in `Einstellungen.tsx` ebenso. 2FA bleibt
+  vollständig nutzbar und in Einstellungen weiterhin **aktivierbar** – nur nicht
+  mehr der Default. Bestehende Instanzen, die den Wert bereits explizit
+  gespeichert haben (jeder Einstellungen-Save schreibt ihn), sind unberührt
+  (`ensure_defaults` nutzt `ON CONFLICT DO NOTHING`). README-Stelle „2FA-Pflicht
+  bleibt als Schutzschicht bestehen" auf „optional, in Einstellungen
+  aktivierbar" korrigiert.
+- Ursprüngliche Analyse (Ist-Zustand vor der Änderung, zur Doku): In
+  `gruppenfuehrer_service.zugang_entscheiden` gab es bereits eine Kopplung an
+  SMTP-**Konfiguration** (`notifier_email_smtp_host` nicht leer) – aber keine
+  Prüfung, ob SMTP tatsächlich **funktioniert** (falsche Zugangsdaten hätten die
+  Pflicht trotzdem ausgelöst, der Anmelde-Code wäre nie angekommen). Dieser Weg
+  (neuer Config-Key `notifier_email_smtp_verifiziert_am`, gesetzt bei
+  erfolgreichem Mail-/Testmail-Versand) bleibt als Option bestehen, falls die
+  Pflicht später doch wieder standardmäßig aktiv sein soll.
+
+---
+
 ## Etappe U – Personal-Liste: Filter „Ohne PIN"
 
 ### Filtermöglichkeit für Personen ohne gesetzten PIN

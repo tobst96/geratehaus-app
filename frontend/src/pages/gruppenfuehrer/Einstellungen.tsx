@@ -143,7 +143,7 @@ export function Einstellungen() {
       setFarbeAkzent(String(w.farbe_akzent ?? "#1A1A1A"));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
       setFehlerberichteAktiv(Boolean(w.fehlerberichte_aktiv));
-      setZweiFaktorPflicht(Boolean(w.zwei_faktor_pflicht ?? true));
+      setZweiFaktorPflicht(Boolean(w.zwei_faktor_pflicht ?? false));
       setGeladen(true);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_laden);
