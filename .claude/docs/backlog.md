@@ -12,6 +12,150 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AF – Rechtliches/Datenschutz-Compliance für externen Betrieb (18.08.2026)
+
+> Aus einer Rückfrage des Nutzers (18.08.2026): „Ist Betrieb in Deutschland
+> auf einem lokalen Server mit externem Zugriff möglich, passt rechtlich
+> alles, was ist datenschutzmäßig zu beachten?" Technisch ist die App genau
+> dafür gebaut (Kiosk lokal + öffentlicher Mitglieder-Login); die
+> `Datenschutz.tsx`-Seite deckt bereits die meisten Verarbeitungen gut ab.
+> Diese Etappe sammelt die dabei gefundenen **rechtlichen/organisatorischen
+> Lücken** – die meisten sind keine reinen Code-Aufgaben, sondern brauchen
+> eine Entscheidung/Prüfung durch die verantwortliche Stelle bzw. einen
+> echten Datenschutzbeauftragten (keine Rechtsberatung durch Claude).
+
+### Impressum-Seite fehlt komplett
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Frontend
+- Skills: geraetehaus-patterns, review
+- Beschreibung: Es existiert keine Impressum-Route/-Seite im Frontend (nur
+  `/datenschutz`, siehe `frontend/src/App.tsx:58`). Bei einer über das
+  Internet erreichbaren Anwendung mit personenbezogenen Daten ist eine
+  Anbieterkennzeichnung nach **§ 5 DDG** (früher TMG § 5) praktisch Pflicht.
+- Akzeptanzkriterien: Neue Seite `/impressum` (analog `Datenschutz.tsx`
+  organisationsspezifisch über `config`/Setup-Wizard befüllbar, keine
+  hart kodierten Werte laut oberster CLAUDE.md-Regel), im Footer/Login-
+  Bereich verlinkt.
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Felder
+  (verantwortliche Person, Anschrift, Kontakt) vermutlich analog zu
+  `organisation_name` in `app_config` ablegen.
+
+### TLS/Reverse-Proxy vor der App ist nicht dokumentiert
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Dokumentation
+- Skills: knowledge-management, review
+- Beschreibung: `frontend/nginx.conf` terminiert **kein** TLS selbst („HSTS
+  bewusst weiterhin nicht [gesetzt], da TLS im Reverse-Proxy terminiert
+  wird" laut Backlog-Notiz in Etappe P). Das README beschreibt aber keinen
+  Schritt, wie ein Betreiber einen vorgeschalteten Reverse-Proxy mit
+  Zertifikat (z. B. Caddy/Traefik + Let's Encrypt) aufsetzt. Für externen
+  Zugriff mit personenbezogenen Daten ist HTTPS nach Art. 32 DSGVO
+  praktisch Pflicht – ein Betreiber könnte die App sonst versehentlich nur
+  über HTTP exponieren.
+- Akzeptanzkriterien: README-Abschnitt „Externer Zugriff/Deployment" ergänzt
+  einen empfohlenen Reverse-Proxy-Aufbau (Beispiel-Compose-Snippet oder
+  klare Doku-Verlinkung) inkl. Hinweis, dass HTTP-only für Produktivbetrieb
+  ungeeignet ist.
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Reine Doku-
+  Aufgabe, keine Code-Änderung an der App selbst nötig.
+
+### Telegram-Kanal: Drittlandtransfer ohne dokumentierte Rechtsgrundlage
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Dokumentation
+- Skills: knowledge-management, review
+- Beschreibung: `Datenschutz.tsx` erwähnt die Telegram-Chat-ID-Übermittlung
+  nur als „Übermittlung an Telegram als externen Dienst". Telegram FZ-LLC
+  sitzt außerhalb der EU – das ist ein Drittlandtransfer (Art. 44 ff.
+  DSGVO), der eine explizite Rechtsgrundlage braucht (z. B. Standard-
+  vertragsklauseln oder Einwilligung), die aktuell nirgends benannt ist.
+- Akzeptanzkriterien: Rechtliche Prüfung durch die verantwortliche
+  Stelle/DSB, ob/wie der Telegram-Kanal weiter angeboten werden darf;
+  Ergebnis in `Datenschutz.tsx` präzisieren (Rechtsgrundlage benennen)
+  oder Kanal ggf. nur mit gesonderter Einwilligung anbieten.
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Keine reine
+  Code-Aufgabe – Entscheidung liegt bei der Organisation, Umsetzung danach
+  ggf. klein (Text-/Consent-Anpassung).
+
+### AVVs für extern angebundene Dienste prüfen/abschließen
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Dokumentation
+- Skills: knowledge-management, review
+- Beschreibung: Je nach Konfiguration der Organisation verarbeiten externe
+  Dienste Daten im Auftrag (Auftragsverarbeitung, Art. 28 DSGVO): Sentry
+  (falls „Fehlerberichte" aktiviert), Divera 24/7 (falls angebunden),
+  externes Backup-Ziel (WebDAV/Nextcloud/S3/SFTP, falls konfiguriert),
+  externer S3/MinIO-Anbieter (falls nicht selbst gehostet). Für jeden
+  tatsächlich genutzten Dienst braucht es einen abgeschlossenen AVV.
+- Akzeptanzkriterien: Checkliste/Doku, welche AVVs je nach genutzter
+  Konfiguration nötig sind (z. B. als Abschnitt in `docs/backup.md` /
+  `docs/minio.md` / `docs/divera.md` ergänzt, damit Betreiber es beim
+  Aktivieren des jeweiligen Moduls sehen).
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Rein lokal
+  gehostet ohne externes Backup-Ziel und mit Sentry aus entfällt der
+  Großteil automatisch – Hinweis sollte das klarstellen.
+
+### DSB-Pflicht als öffentliche Stelle klären
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Dokumentation
+- Skills: knowledge-management
+- Beschreibung: Anders als bei privaten Unternehmen (BDSG-Schwelle: 20
+  Personen) müssen **öffentliche Stellen** nach den meisten Landes-
+  datenschutzgesetzen unabhängig von der Größe einen Datenschutz-
+  beauftragten benennen. Da Freiwillige Feuerwehren im Regelfall
+  rechtlich Teil der Gemeinde sind (öffentliche Stelle), nicht ein
+  eingetragener Verein, ist diese Pflicht wahrscheinlich einschlägig –
+  muss aber organisationsspezifisch geklärt werden (Trägerschaft prüfen).
+- Akzeptanzkriterien: Klärung durch die Organisation (nicht durch Claude
+  entscheidbar); Ergebnis ggf. als Hinweis im Setup-Wizard/README
+  festhalten („vor Produktivbetrieb: DSB-Benennung + Freigabe prüfen").
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Reine
+  Organisationsaufgabe, kein Code.
+
+### Verzeichnis von Verarbeitungstätigkeiten (Art. 30 DSGVO) fehlt formal
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Dokumentation
+- Skills: knowledge-management
+- Beschreibung: `Datenschutz.tsx` beschreibt die Verarbeitungen bereits
+  inhaltlich sehr gründlich, ersetzt aber kein formales Verzeichnis von
+  Verarbeitungstätigkeiten nach Art. 30 DSGVO, das die verantwortliche
+  Stelle führen muss.
+- Akzeptanzkriterien: Vorlage/Muster-Verzeichnis (kann sich eng an
+  `Datenschutz.tsx`-Abschnitten orientieren) für Betreiber bereitstellen,
+  z. B. als `docs/`-Vorlage, die pro Instanz ausgefüllt wird.
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026.
+
+### Künftiges Tauglichkeiten-Modul verarbeitet Gesundheitsdaten (Art. 9 DSGVO)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Neues Modul / Dokumentation
+- Skills: planner, knowledge-management
+- Beschreibung: Laut Vorhaben ist ein Tauglichkeiten-Modul geplant
+  (medizinische Eignung, z. B. G26-Untersuchungen). Das sind
+  **Gesundheitsdaten nach Art. 9 DSGVO** (besondere Kategorie) – deutlich
+  höhere Anforderungen als die bisherigen Module: eigene Rechtsgrundlage
+  (Art. 9 Abs. 2), ggf. Datenschutz-Folgenabschätzung (Art. 35), strengere
+  Zugriffsbeschränkung/Protokollierung als beim übrigen Personal-Modul.
+- Akzeptanzkriterien: Vor Implementierungsbeginn Rechtsgrundlage +ggf.
+  DSFA-Bedarf mit der Organisation klären; erst danach technische
+  Umsetzung planen (Skill `planner`).
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Bewusst **vor**
+  Beginn der Implementierung einplanen, nicht nachträglich nachrüsten.
+
+---
+
 ## Etappe AE – Frontend-Performance/Modernisierung (Audit 18.08.2026)
 
 > Aus einer Gesamtanalyse der App (Sicherheit + Frontend-Performance,
