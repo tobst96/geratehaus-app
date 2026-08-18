@@ -12,6 +12,46 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe T – Personen-Verlauf: Benachrichtigungs-/Kanal-Änderungen protokollieren
+
+### Änderungen an Benachrichtigungen/Kanälen einer Person landen nicht im Verlauf
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Bug / Datenbank / Backend
+- Skills: planner, geraetehaus-patterns, tests, review
+- Beschreibung: Ändert ein Gruppenführer/Admin bei einer Person die
+  Benachrichtigungskanäle (z. B. `PersonKanaele.tsx`) oder die Ereignis-Abos
+  (welche Ereignisse pro Modul zugestellt werden), wird das aktuell **nicht**
+  in der Personen-Timeline (`PersonEreignis`) protokolliert – anders als z. B.
+  Stammdaten-Änderungen (`person_aktualisieren` → `stammdaten_geaendert`,
+  loggt bereits ein lesbares Diff). Betroffen: `benachrichtigungskanal_service.py`
+  (`setzen`, `loeschen`, `set_abo`) sowie deren Router
+  `gruppenfuehrer_person_kanaele.py` – keine Stelle ruft dort
+  `person_ereignis_protokollieren` auf.
+  - Gewünscht: Protokollieren, **was** geändert wurde (z. B. „E-Mail-Kanal
+    aktiviert", „Abo für Ereignis X deaktiviert") **und wer** es geändert hat.
+  - **Wichtiger Befund bei der Analyse:** `PersonEreignis` /
+    `person_ereignis_protokollieren(db, person_id, typ, beschreibung)` hat
+    aktuell **gar kein Akteurs-Feld** – „wer" wird nirgends im bestehenden
+    Audit-Mechanismus gespeichert, auch nicht bei den schon protokollierten
+    Stammdaten-/PIN-/Bild-Änderungen. Das „wer" nachzurüsten ist daher keine
+    Kleinigkeit nur für Benachrichtigungen, sondern eine Erweiterung des
+    gesamten `PersonEreignis`-Mechanismus (neue Spalte, z. B. `akteur_id`/
+    `akteur_name`, Migration, Model, und Übergabe der aufrufenden Identität
+    an `person_ereignis_protokollieren` an allen bestehenden Aufrufstellen).
+- Akzeptanzkriterien: Jede Änderung an Benachrichtigungskanälen/Ereignis-Abos
+  einer Person erzeugt einen `PersonEreignis`-Eintrag mit lesbarem Diff (was
+  geändert wurde) und dem handelnden Gruppenführer/Admin (wer). Migration für
+  das neue Akteurs-Feld; bestehende Einträge ohne Akteur bleiben gültig
+  (Feld nullable, alte Einträge zeigen „unbekannt"/leer). Regressionstest.
+- Notizen: Vor Umsetzung klären, ob das Akteurs-Feld gleich für **alle**
+  `PersonEreignis`-Aufrufstellen nachgerüstet wird (konsistent) oder erstmal
+  nur für die neuen Benachrichtigungs-Einträge – erstere Variante ist
+  sauberer, aber größerer Umbau (DB-weit → eigener Feature-Branch + PR).
+
+---
+
 ## Etappe S – Neues Modul „ELW" (Einsatzleitwagen-Upload)
 
 ### Modul „ELW": bei Einsatz-Anlage Login-losen MinIO-Upload-Link per Mail
