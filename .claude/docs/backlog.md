@@ -12,6 +12,31 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe U – Personal-Liste: Filter „Ohne PIN"
+
+### Filtermöglichkeit für Personen ohne gesetzten PIN
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Auf der Personal-Seite (`frontend/src/pages/gruppenfuehrer/Personal.tsx`)
+  gibt es bereits ein Filter-Panel mit mehreren Toggle-Filtern (`filterKeineMail`,
+  `filterKeinBild`, `filterBenachrichtigung`, `filterAbo` – ca. Zeile 193–616).
+  Ergänzend soll ein Filter „Ohne PIN" hinzukommen, der nur Personen ohne
+  gesetzten PIN zeigt (praktisch z. B. um vor einem Einsatz gezielt zu sehen,
+  wer noch keinen PIN hat und ggf. einen Freigabe-Link anzustoßen).
+  `pin_gesetzt` ist im `PersonOut`-Typ (`frontend/src/api/types.ts`) bereits
+  vorhanden – keine Backend-Änderung nötig, reine Frontend-Ergänzung analog zu
+  `filterKeinBild` (`if (filterKeinBild && p.bild_url) return false;`).
+- Akzeptanzkriterien: Neuer Toggle-Filter „Ohne PIN" im Filter-Panel; aktiv
+  gesetzt zeigt die Liste nur Personen mit `pin_gesetzt === false`; zählt in
+  `aktiveFilter` mit; wird von „Filter zurücksetzen" mit zurückgesetzt.
+- Notizen: Passt thematisch zur ohne-PIN-Kennzeichnung (v0.6.1) – Kontext dazu
+  in `docs/personal.md` / `docs/barcode.md`.
+
+---
+
 ## Etappe T – Personen-Verlauf: Benachrichtigungs-/Kanal-Änderungen protokollieren
 
 ### Änderungen an Benachrichtigungen/Kanälen einer Person landen nicht im Verlauf
