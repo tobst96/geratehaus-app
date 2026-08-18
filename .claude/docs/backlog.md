@@ -12,6 +12,41 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AA – Zwei-Faktor-Anmeldung wieder verpflichtend, mit Druck-Fallback statt Mail
+
+### 2FA-Pflicht reaktivieren; bei SMTP-Ausfall Code über Netzwerkdrucker statt E-Mail
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Backend / Sicherheit / Feature
+- Skills: planner, geraetehaus-patterns, tests, review
+- Beschreibung: Revidiert [[Etappe V]] (2FA-Pflicht wurde dort standardmäßig
+  **deaktiviert**, weil ein SMTP-Ausfall sonst zum kompletten Login-Ausschluss
+  führen konnte). Nutzerwunsch jetzt: 2FA soll **immer aktiv/verpflichtend**
+  sein – aber statt bei SMTP-Problemen einfach auszusperren, soll der
+  Anmelde-Code alternativ **ausgedruckt** werden, wenn der Mailversand nicht
+  funktioniert (vermutlich über denselben Netzwerkdrucker/IPP-Mechanismus, der
+  bereits für den PDF-Druck-Fallback existiert, siehe [[Etappe K]] –
+  `drucker_service`/IPP-Integration dort als Ausgangspunkt prüfen).
+- Akzeptanzkriterien: `zwei_faktor_pflicht`-Default wieder `true` (Gegenteil von
+  Etappe V); schlägt der Mailversand des OTP-Codes fehl (oder ist SMTP gar nicht
+  konfiguriert), wird der Code stattdessen an einen konfigurierten Netzwerk-
+  drucker geschickt, sodass der Login trotzdem gelingt; ist weder SMTP noch
+  Drucker verfügbar, bleiben die bereits vorhandenen Recovery-Codes
+  (`zwei_faktor_service.recovery_codes_erzeugen`) als letzter Ausweg; Tests für
+  beide Fallback-Pfade (Druck bei SMTP-Fehler, Recovery-Code ganz ohne beides).
+- Notizen: Vor Umsetzung klären – (1) wie erkennt der Service zuverlässig
+  „SMTP schlägt fehl" (Exception beim Versand direkt abfangen ist robuster als
+  der in Etappe V verworfene Verifizierungs-Config-Key); (2) ist immer ein
+  Drucker vorhanden/konfiguriert, oder ist der Druck-Fallback selbst optional
+  (dann bräuchte es eine klare Priorität Mail → Druck → Recovery-Code); (3)
+  Sicherheitsaspekt: ein am Gerätehaus-Drucker ausgeworfener Code ist für alle
+  physisch Anwesenden sichtbar – prüfen, ob das für den Anwendungsfall
+  akzeptabel ist oder der Ausdruck z. B. automatisch eingezogen/kurzlebig sein
+  muss. Größerer, sicherheitsrelevanter Umbau → eigener Feature-Branch + PR.
+
+---
+
 ## Etappe Z – Mitglied-Hub: „Meine Dienststunden" nur mit Stunden > 0 anzeigen
 
 ### Funktionen ohne geleistete Stunden nicht in der eigenen Übersicht auflisten
@@ -121,6 +156,8 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### 2FA nicht mehr verpflichtend – Aussperrungsrisiko vermeiden
 
+- **Revidiert durch [[Etappe AA]]** (18.08.2026): Nutzerwunsch jetzt wieder 2FA-Pflicht,
+  aber mit Druck-Fallback statt Mail bei SMTP-Ausfall statt „Pflicht einfach aus".
 - Status: Erledigt (18.08.2026, direkt auf beta)
 - Priorität: Mittel
 - Kategorie: Backend / Sicherheit
