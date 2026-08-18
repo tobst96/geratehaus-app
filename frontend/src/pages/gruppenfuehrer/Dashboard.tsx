@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { holeDashboard, type DashboardOut } from "../../api/gruppenfuehrer";
 import { ApiError } from "../../api/client";
+import { Banner } from "../../components/Banner";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { texte } from "../../i18n/texte";
 
@@ -33,6 +34,13 @@ export function Dashboard() {
   return (
     <div>
       <h1>{t.titel}</h1>
+
+      {daten.migration_hinweis && (
+        <Banner art="hinweis">
+          {t.migration_hinweis_text}{" "}
+          <a href="/gruppenfuehrer/personal">{t.migration_hinweis_link}</a>
+        </Banner>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
         <div

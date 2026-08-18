@@ -116,6 +116,9 @@ export interface DashboardOut {
   vab_faelle_anzahl: number;
   offene_buchungen_anzahl: number;
   schwellenwert_ueberschreitungen: SchwellenwertUeberschreitung[];
+  /** True nur für den eingeloggten erhöhten Zugang ohne gepflegten Vornamen
+   * (Alt-Instanzen mit dem anonymen Platzhalter-Admin). */
+  migration_hinweis: boolean;
 }
 
 export const holeDashboard = () => apiGet<DashboardOut>("/gruppenfuehrer/dashboard");

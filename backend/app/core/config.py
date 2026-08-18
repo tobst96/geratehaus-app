@@ -26,7 +26,6 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 480
     cookie_secret_key: str = "change-me-to-another-random-secret"
-    admin_username: str = "admin"
 
     # Gültigkeit der signierten Freischalt-Token für geschützte Upload-Dateien
     # (Profilbilder, `/uploads/personen/…`). Technischer Parameter: lang genug,

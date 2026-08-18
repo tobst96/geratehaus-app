@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geratehaus-app"
-version = "0.6.2"
+version = "0.6.3"
 description = "Gerätehaus.app – selbst hostbare PWA für Feuerwehren"
 requires-python = ">=3.12"
 dependencies = [

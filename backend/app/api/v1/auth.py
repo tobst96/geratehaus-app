@@ -82,6 +82,7 @@ def _mein_profil_out(person) -> MeinProfil:
         benachrichtigungen_aktiv=person.benachrichtigungen_aktiv,
         passwort_gesetzt=bool(person.passwort_hash),
         gruppenfuehrer_rolle=person.gruppenfuehrer_rolle,
+        migration_hinweis=bool(person.gruppenfuehrer_rolle) and not person.vorname,
     )
 
 

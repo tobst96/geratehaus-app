@@ -20,3 +20,7 @@ class DashboardOut(BaseModel):
     vab_faelle_anzahl: int
     offene_buchungen_anzahl: int
     schwellenwert_ueberschreitungen: list[SchwellenwertUeberschreitung]
+    # True nur für den eingeloggten erhöhten Zugang, wenn dort noch kein Vorname
+    # gepflegt ist (Alt-Instanzen mit dem anonymen Platzhalter-Admin aus
+    # früheren Setup-Wizard-Versionen) – Signal für den Migrations-Hinweis.
+    migration_hinweis: bool = False

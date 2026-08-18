@@ -11,7 +11,20 @@ async def _minimaler_frontend_payload() -> dict:
         "organisation_name": "Freiwillige Feuerwehr Test",
         "farbe_primaer": "#FFA633",
         "farbe_akzent": "#1A1A1A",
+        "admin_vorname": "Max",
+        "admin_nachname": "Mustermann",
         "admin_passwort": "geheim123",
+        "fehlerberichte_aktiv": False,
+    }
+
+
+async def _erneut_payload() -> dict:
+    """Payload für POST /setup/erneut-ausfuehren – ohne admin_*-Felder, siehe
+    SetupBasis (Zugangsverwaltung läuft über „Erhöhter Zugang" in Personal)."""
+    return {
+        "organisation_name": "Freiwillige Feuerwehr Test",
+        "farbe_primaer": "#FFA633",
+        "farbe_akzent": "#1A1A1A",
         "fehlerberichte_aktiv": False,
     }
 
@@ -32,10 +45,39 @@ async def test_setup_mit_frontend_payload_erfolgreich(client):
 
 async def test_setup_login_funktioniert_nach_einrichtung(client):
     await client.post("/api/v1/setup", json=await _minimaler_frontend_payload())
+    # Login mit dem echten Namen (Vorname + Nachname aus dem Wizard), nicht mehr
+    # mit dem alten anonymen Platzhalter "admin".
     login = await client.post(
-        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
+        "/api/v1/auth/gruppenfuehrer/login",
+        data={"username": "Max Mustermann", "password": "geheim123"},
     )
     assert login.status_code == 200
+
+
+async def test_setup_legt_admin_mit_echtem_namen_und_email_an(client):
+    """Regression: keine anonyme "admin"-Platzhalterperson mehr – die erste
+    Person trägt echten Namen/E-Mail und ist über person_elevieren zum Admin
+    geworden (derselbe Weg wie "Erhöhter Zugang" in Personal)."""
+    payload = await _minimaler_frontend_payload()
+    payload["admin_email"] = "max@example.org"
+    response = await client.post("/api/v1/setup", json=payload)
+    assert response.status_code == 204
+
+    from sqlalchemy import select
+
+    from app.db.session import AsyncSessionLocal
+    from app.models.person import Person
+
+    async with AsyncSessionLocal() as db:
+        personen = (await db.execute(select(Person))).scalars().all()
+
+    assert len(personen) == 1
+    person = personen[0]
+    assert person.vorname == "Max"
+    assert person.nachname == "Mustermann"
+    assert person.email == "max@example.org"
+    assert person.gruppenfuehrer_rolle == "admin"
+    assert person.name != "admin"
 
 
 async def test_setup_kann_nicht_zweimal_ausgefuehrt_werden(client):
@@ -91,13 +133,15 @@ async def test_setup_mit_fahrzeugen_erneut_ausgefuehrt_dupliziert_nicht(client):
 
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login",
-        data={"username": "admin", "password": payload["admin_passwort"]},
+        data={"username": "Max Mustermann", "password": payload["admin_passwort"]},
     )
     token = login.json()["access_token"]
 
+    erneut_payload = await _erneut_payload()
+    erneut_payload["fahrzeuge"] = [{"name": "HLF 20"}]
     erneut = await client.post(
         "/api/v1/setup/erneut-ausfuehren",
-        json=payload,
+        json=erneut_payload,
         headers={"Authorization": f"Bearer {token}"},
     )
     assert erneut.status_code == 204
@@ -203,13 +247,15 @@ async def test_setup_push_erneut_ausgefuehrt_ueberschreibt_vapid_schluessel_nich
 
     login = await client.post(
         "/api/v1/auth/gruppenfuehrer/login",
-        data={"username": "admin", "password": payload["admin_passwort"]},
+        data={"username": "Max Mustermann", "password": payload["admin_passwort"]},
     )
     token = login.json()["access_token"]
 
+    erneut_payload = await _erneut_payload()
+    erneut_payload["notifier"] = notifier
     erneut = await client.post(
         "/api/v1/setup/erneut-ausfuehren",
-        json=payload,
+        json=erneut_payload,
         headers={"Authorization": f"Bearer {token}"},
     )
     assert erneut.status_code == 204
