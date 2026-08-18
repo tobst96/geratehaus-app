@@ -8,6 +8,7 @@ class BuchungAnfrage(BaseModel):
     von: datetime
     bis: datetime
     zweck: str = Field(min_length=1)
+    ohne_pin: bool = False
 
     @model_validator(mode="after")
     def _validiere_zeitraum(self) -> "BuchungAnfrage":
@@ -30,6 +31,7 @@ class BuchungOut(BaseModel):
     status: str
     ablehnungsgrund: str | None
     hat_konflikt: bool
+    ohne_pin: bool
 
 
 class BuchungAnfrageErgebnis(BaseModel):

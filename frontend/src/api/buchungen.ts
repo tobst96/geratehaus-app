@@ -6,6 +6,7 @@ export interface BuchungAnfrage {
   von: string;
   bis: string;
   zweck: string;
+  ohne_pin?: boolean;
 }
 
 export interface BuchungAnfrageErgebnis {

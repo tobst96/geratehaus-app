@@ -11,6 +11,9 @@ class BarcodeEinscannen(BaseModel):
 
 class BarcodeIdentitaet(BaseModel):
     name: str
+    # True nur, wenn die Identifikation per Name+PIN ohne gesetzten PIN erfolgte
+    # (Barcode-/Passwort-Login setzen es nie).
+    ohne_pin: bool = False
 
 
 class BarcodeVorschau(BaseModel):

@@ -24,6 +24,9 @@ class FahrzeugBuchung(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(32), default="ausstehend", nullable=False)
     ablehnungsgrund: Mapped[str | None] = mapped_column(Text, nullable=True)
     hat_konflikt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Kein PIN bei der Person gesetzt – Anfrage war trotzdem möglich, wird
+    # aber in Listen/PDF hervorgehoben markiert.
+    ohne_pin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     fahrzeug: Mapped["Fahrzeug"] = relationship(viewonly=True)
     verantwortliche_person: Mapped["Person"] = relationship(viewonly=True)

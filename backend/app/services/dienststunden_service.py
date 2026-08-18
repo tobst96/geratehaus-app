@@ -48,6 +48,7 @@ async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfasse
         funktion_id=daten.funktion_id,
         stunden=daten.stunden,
         datum=daten.datum,
+        ohne_pin=daten.ohne_pin,
     )
     db.add(eintrag)
     await _funktion_in_stammdaten_abgleichen(db, person_id, daten.funktion_id)
@@ -79,6 +80,7 @@ async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfasse
         funktion_name=funktion.name if funktion else "?",
         stunden=eintrag.stunden,
         datum=eintrag.datum,
+        ohne_pin=eintrag.ohne_pin,
     )
 
 

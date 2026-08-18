@@ -8,7 +8,9 @@ Einsatzbericht als PDF. Mitgliederseitiges Modul (Kiosk-Kachel + Mitglieder-Logi
 - **Garage-Ansicht**: Fahrzeuge als Kacheln, dahinter der **Sitzplan** (aus dem
   Modul Fahrzeuge). Freie Sitzplätze antippen, um sich einzutragen.
 - **Identifikation**: Barcode-Scan (wenn Barcode-Modul aktiv) **oder** Name + PIN.
-  Das **Profilbild** erscheint erst nach korrektem PIN.
+  Das **Profilbild** erscheint erst nach korrektem PIN – hat die Person noch keinen
+  PIN gesetzt, entfällt die Prüfung (Bild sofort sichtbar) und die Eintragung bleibt
+  möglich, wird aber als „ohne PIN" markiert (Liste/PDF, rot hervorgehoben).
 - Optionen je Eintrag: **Verdienstausfallbescheinigung**, **Atemschutz angelegt**
   (+ Minuten), Funktion, Bemerkung. Zusätzlich „Einsatzbereit im Feuerwehrhaus" und
   „Auf Anfahrt gewesen".

@@ -103,6 +103,7 @@ async def dienststunden_liste(
             funktion_name=r.funktion.name,
             stunden=r.stunden,
             datum=r.datum,
+            ohne_pin=r.ohne_pin,
         )
         for r in rows
     ]

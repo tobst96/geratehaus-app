@@ -32,5 +32,6 @@ Schulungsraum.
 
 ## Sicherheit
 
-Barcode-vergessen/Name+PIN-Abläufe verlangen zur Identifikation den persönlichen PIN.
+Barcode-vergessen/Name+PIN-Abläufe fragen zur Identifikation den persönlichen PIN ab;
+ist keiner gesetzt, bleibt die Eintragung möglich, wird aber als „ohne PIN" markiert.
 Das Tablet ist ansonsten „anonym" (kein dauerhafter Login).

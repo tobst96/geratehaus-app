@@ -128,21 +128,23 @@ export function DienstbuchDetailGruppenfuehrer() {
             <th>{txt.th_name}</th>
             <th>{txt.th_gruppe}</th>
             <th>{txt.th_atemschutz}</th>
+            <th>{txt.th_ohne_pin}</th>
           </tr>
         </thead>
         <tbody>
           {dienstbuch.teilnehmer.length === 0 && (
             <tr>
-              <td colSpan={3} className="text-mute">
+              <td colSpan={4} className="text-mute">
                 {txt.keine_teilnehmer}
               </td>
             </tr>
           )}
           {dienstbuch.teilnehmer.map((t) => (
-            <tr key={t.id}>
+            <tr key={t.id} className={t.ohne_pin ? "zeile-hervorgehoben" : undefined}>
               <td>{t.person_name}</td>
               <td>{t.gruppe_name ?? ""}</td>
               <td>{t.atemschutzminuten || ""}</td>
+              <td>{t.ohne_pin ? "Ja" : ""}</td>
             </tr>
           ))}
         </tbody>

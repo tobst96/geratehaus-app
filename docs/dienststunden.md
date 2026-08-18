@@ -7,7 +7,8 @@ Erfassung geleisteter Dienststunden je Person und Funktion. Mitgliederseitiges M
 
 - Nach **Barcode** oder **Name + PIN**: Funktion wählen, Stunden über
   Schnellauswahl-Chips oder Stepper (viertelstundengenau) und Datum eintragen.
-- „Barcode vergessen": Erfassung per Handy-QR-Code (Name + PIN erforderlich).
+- „Barcode vergessen": Erfassung per Handy-QR-Code (Name + PIN). Ohne gesetzten
+  PIN bleibt die Erfassung möglich, wird aber als „ohne PIN" markiert.
 
 ## Gruppenführer (Liste/Detail)
 

@@ -64,7 +64,59 @@ async def _archiviere(db: AsyncSession, schluessel: str, pdf_bytes: bytes) -> No
     await backup_service.archiviere_pdf(db, schluessel, pdf_bytes)
 
 
+def _nachname_sortierschluessel(person: Any) -> tuple[str, str]:
+    """Sortiert Personen ohne gepflegte vorname/nachname-Felder (z. B. reine
+    Divera-Importe) über eine Heuristik: letztes Wort im Anzeigenamen als
+    Nachname angenommen."""
+    nachname = (person.nachname or "").strip()
+    vorname = (person.vorname or "").strip()
+    if not nachname:
+        teile = person.name.strip().split()
+        nachname = teile[-1] if teile else person.name
+        vorname = " ".join(teile[:-1])
+    return (nachname.lower(), vorname.lower())
+
+
+def _person_anzeige(person: Any) -> str:
+    """„Nachname, Vorname" – fällt auf den vollen Anzeigenamen zurück, wenn
+    vorname/nachname nicht gepflegt sind (z. B. reine Divera-Importe)."""
+    if person.nachname:
+        return f"{person.nachname}, {person.vorname or ''}".rstrip(", ")
+    return person.name
+
+
+def _einsatz_teilnahmen_kontext(einsatz: Any) -> dict[str, Any]:
+    """Teilnahmen nach Nachname sortiert + zwei Zusatzblöcke fürs PDF-Ende:
+    „Bemerkungen" (nur Personen, die tatsächlich eine Bemerkung eingetragen
+    haben) und „nach Funktion" gruppiert (Personen ohne Funktion werden dort
+    nicht extra aufgelistet) – z. B. damit auf einen Blick sichtbar ist, wer
+    welche Funktion (etwa Gruppenführer) innehatte. Reine Funktion aus
+    ORM-Daten, ohne DB-Zugriff – auch direkt in Tests nutzbar."""
+    teilnahmen = sorted(einsatz.teilnahmen, key=lambda t: _nachname_sortierschluessel(t.person))
+
+    bemerkungen = [
+        {"person": _person_anzeige(t.person), "bemerkung": t.bemerkung}
+        for t in teilnahmen
+        if t.bemerkung
+    ]
+
+    nach_funktion: dict[str, list[Any]] = {}
+    for t in teilnahmen:
+        if t.funktion is None:
+            continue
+        nach_funktion.setdefault(t.funktion.name, []).append(t.person)
+    funktionen_gruppen = [
+        {"funktion": label, "personen": ", ".join(_person_anzeige(p) for p in personen)}
+        for label, personen in nach_funktion.items()
+    ]
+    funktionen_gruppen.sort(key=lambda g: g["funktion"].lower())
+
+    return {"teilnahmen": teilnahmen, "bemerkungen": bemerkungen, "funktionen_gruppen": funktionen_gruppen}
+
+
 async def einsatz_pdf(db: AsyncSession, einsatz: Any) -> bytes:
+    from app.services import feature_modul_service
+
     felder = await stammdaten_service.liste_einsatz_felder(db, nur_aktive=True)
     zusatzfelder_anzeige = []
     for f in felder:
@@ -72,7 +124,19 @@ async def einsatz_pdf(db: AsyncSession, einsatz: Any) -> bytes:
         if wert in (None, "", False):
             continue
         zusatzfelder_anzeige.append({"label": f.label, "wert": "Ja" if wert is True else wert})
-    pdf = await _rendern(db, "einsatz.html", einsatz=einsatz, zusatzfelder_anzeige=zusatzfelder_anzeige)
+
+    barcode_aktiv = await feature_modul_service.ist_aktiv(db, "barcode")
+
+    pdf = await _rendern(
+        db,
+        "einsatz.html",
+        einsatz=einsatz,
+        zusatzfelder_anzeige=zusatzfelder_anzeige,
+        # „Ohne Barcode" ist nur relevant, wenn das Barcode-Modul überhaupt aktiv ist –
+        # sonst ist Name+PIN ohnehin der Normalfall und die Spalte bedeutungslos.
+        zeige_ohne_barcode=barcode_aktiv,
+        **_einsatz_teilnahmen_kontext(einsatz),
+    )
     await _archiviere(db, f"einsaetze/einsatz-{getattr(einsatz, 'id', 'x')}.pdf", pdf)
     # MinIO-Modul: Ordner je Einsatz mit aktueller JSON + Bericht-PDF.
     from app.services import minio_service

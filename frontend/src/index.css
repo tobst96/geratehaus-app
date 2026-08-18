@@ -255,6 +255,14 @@ button.karte:focus-visible {
   font-weight: 600;
 }
 
+/* Markiert Tabellenzeilen/Karten ohne gesetzten PIN (analog PDF-Listen). */
+tr.zeile-hervorgehoben,
+.karte.zeile-hervorgehoben {
+  background-color: #fdecea;
+  color: #b00020;
+  font-weight: 600;
+}
+
 /* Gedämpfte Textfarbe (Utility) – ersetzt das ~77-fach kopierte Inline-
    `style={{ color: "var(--farbe-text-mute)" }}` (nur Farbe, keine Größe). */
 .text-mute {
@@ -364,6 +372,25 @@ button.karte:focus-visible {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Lenkt Aufmerksamkeit auf eine Aktion, die noch nicht wahrgenommen wurde
+   (z. B. ein Button zu ungesehenen, ausfüllbaren Zusatzfeldern). */
+@keyframes pulsieren {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--farbe-primaer) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--farbe-primaer) 0%, transparent);
+  }
+}
+.pulsieren {
+  animation: pulsieren 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulsieren {
+    animation: none;
   }
 }
 

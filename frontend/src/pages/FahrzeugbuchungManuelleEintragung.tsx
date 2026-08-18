@@ -214,7 +214,7 @@ export function FahrzeugbuchungManuelleEintragung() {
           </div>
 
           {ausgewaehltePerson && !ausgewaehltePerson.pin_gesetzt && (
-            <Fehlertext>{t2.kein_pin}</Fehlertext>
+            <p className="text-mute">{t2.kein_pin}</p>
           )}
           {ausgewaehltePerson && ausgewaehltePerson.pin_gesetzt && (
             <div className="formular-feld">
@@ -277,7 +277,7 @@ export function FahrzeugbuchungManuelleEintragung() {
 
           <button
             type="submit"
-            disabled={laeuft || !ausgewaehltePerson || !ausgewaehltePerson.pin_gesetzt || !pin}
+            disabled={laeuft || !ausgewaehltePerson || (ausgewaehltePerson.pin_gesetzt && !pin)}
           >
             {laeuft ? t2.stellen_laeuft : t2.anfrage_stellen}
           </button>

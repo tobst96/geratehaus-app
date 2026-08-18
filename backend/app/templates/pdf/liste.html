@@ -10,7 +10,7 @@
     </thead>
     <tbody>
         {% for zeile in zeilen %}
-        <tr>
+        <tr class="{{ zeile.get('_klasse', '') }}">
             {% for spalte in spalten %}<td>{{ zeile.get(spalte.key, "") }}</td>{% endfor %}
         </tr>
         {% endfor %}

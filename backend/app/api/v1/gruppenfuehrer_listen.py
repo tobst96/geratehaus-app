@@ -180,6 +180,7 @@ async def dienststunden_pdf(
         {"key": "funktion", "label": "Funktion"},
         {"key": "stunden", "label": "Stunden"},
         {"key": "datum", "label": "Datum"},
+        {"key": "ohne_pin", "label": "Ohne PIN"},
     ]
     zeilen = [
         {
@@ -187,6 +188,8 @@ async def dienststunden_pdf(
             "funktion": d.funktion_name,
             "stunden": d.stunden,
             "datum": d.datum.strftime("%d.%m.%Y"),
+            "ohne_pin": "Ja" if d.ohne_pin else "",
+            "_klasse": "zeile-hervorgehoben" if d.ohne_pin else "",
         }
         for d in rows
     ]
@@ -214,6 +217,7 @@ async def buchungen_pdf(
         {"key": "zweck", "label": "Zweck"},
         {"key": "verantwortlich", "label": "Verantwortlich"},
         {"key": "status", "label": "Status"},
+        {"key": "ohne_pin", "label": "Ohne PIN"},
     ]
     zeilen = [
         {
@@ -223,6 +227,8 @@ async def buchungen_pdf(
             "zweck": b.zweck,
             "verantwortlich": b.verantwortliche_person.name,
             "status": b.status,
+            "ohne_pin": "Ja" if b.ohne_pin else "",
+            "_klasse": "zeile-hervorgehoben" if b.ohne_pin else "",
         }
         for b in rows
     ]

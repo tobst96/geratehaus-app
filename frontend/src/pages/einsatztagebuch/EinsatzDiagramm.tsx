@@ -18,6 +18,7 @@ import {
   PersonIdentifikation,
   type PersonIdentifikationHandle,
 } from "../../components/PersonIdentifikation";
+import { useMindestwartezeit } from "../../hooks/useMindestwartezeit";
 import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import type { EinsatzFeldDefinition, EinsatzOut, Fahrzeug, FunktionEinsatz, TeilnahmeOut } from "../../api/types";
 import { formatiereZeit } from "../../utils/datum";
@@ -89,11 +90,15 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   const [alleEingetragenFehler, setAlleEingetragenFehler] = useState<string | null>(null);
 
   // Im Scan-Popup identifizierte Person (Name+PIN oder Barcode) – für die große
-  // Bildvorschau links.
+  // Bildvorschau links. Bleibt nach dem Absenden mind. 5s sichtbar (Kiosk-UX),
+  // bevor das Popup schließt (siehe eintragen()).
   const [identPerson, setIdentPerson] = useState<{ name: string; bildUrl: string | null } | null>(null);
+  const identVorschau = useMindestwartezeit();
   // Beim Öffnen/Schließen eines Sitzplatz-Popups die Bildvorschau zurücksetzen.
   useEffect(() => {
     setIdentPerson(null);
+    identVorschau.zuruecksetzen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ausgewaehlteAktion]);
 
   // Passt die Übersicht nicht auf den Bildschirm (Scrollbalken), werden nur die
@@ -101,9 +106,13 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   const uebersichtRef = useRef<HTMLDivElement>(null);
   const [detailsAlsPopup, setDetailsAlsPopup] = useState(false);
   const [detailsOffen, setDetailsOffen] = useState(false);
+  // Einmal geöffnet reicht als Wahrnehmung, auch wenn danach wieder
+  // geschlossen wird – steuert, ob der "Einsatzdetails"-Button noch pulsiert.
+  const [detailsGesehen, setDetailsGesehen] = useState(false);
   useEffect(() => {
     setDetailsAlsPopup(false);
     setDetailsOffen(false);
+    setDetailsGesehen(false);
   }, [einsatz.id]);
 
   const [felder, setFelder] = useState<EinsatzFeldDefinition[] | null>(null);
@@ -278,8 +287,9 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
     setLaeuft(true);
     setFehler(null);
     try {
+      let ohnePin = false;
       if (!mitgliedModus.aktiv) {
-        await identRef.current!.identifiziere();
+        ({ ohnePin } = await identRef.current!.identifiziere());
       }
       await teilnahmeEintragen(einsatz.id, {
         fahrzeug_id: ausgewaehlteAktion.fahrzeug?.id ?? null,
@@ -289,8 +299,12 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         atemschutzminuten: atemschutzAktiv ? atemschutzminuten : 0,
         nur_geraetehaus: ausgewaehlteAktion.nurGeraetehaus,
         auf_anfahrt: ausgewaehlteAktion.aufAnfahrt,
+        ohne_pin: ohnePin,
         bemerkung: bemerkung.trim() || null,
       });
+      // Bestätigungsfoto (bei Kiosk-Scan) mind. 5s stehen lassen, bevor das
+      // Popup schließt.
+      await identVorschau.warten();
       await onAktualisiert();
       setAusgewaehlteAktion(null);
       setAktivesFahrzeugId(null);
@@ -393,6 +407,17 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
   const aktiveFahrzeuge = fahrzeuge.filter((f) => f.aktiv);
   const aktivesFahrzeug = aktiveFahrzeuge.find((f) => f.id === aktivesFahrzeugId) ?? null;
   const hatLinkeSpalte = (felder && felder.length > 0) || geraetehausTeilnehmer.length > 0;
+  // Noch kein Zusatzfeld ausgefüllt – Button pulsiert, bis entweder etwas
+  // eingetragen oder das Popup mindestens einmal geöffnet wurde.
+  const detailsUnbefuellt = Boolean(
+    felder &&
+      felder.length > 0 &&
+      felder.every((f) => {
+        const wert = feldWerte[f.schluessel];
+        return f.typ === "checkbox" ? !wert : !String(wert ?? "").trim();
+      })
+  );
+  const detailsPulsiert = detailsUnbefuellt && !detailsGesehen;
 
   useEffect(() => {
     if (aktivesFahrzeug || detailsAlsPopup || !hatLinkeSpalte) return;
@@ -473,7 +498,13 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
         <h2 style={{ margin: 0, fontWeight: 800, fontSize: "1.9rem" }}>{einsatz.titel}</h2>
         <div className="einsatz-kopf-aktionen">
           {!aktivesFahrzeug && detailsAlsPopup && hatLinkeSpalte && (
-            <button className="sekundaer" onClick={() => setDetailsOffen(true)}>
+            <button
+              className={`sekundaer${detailsPulsiert ? " pulsieren" : ""}`}
+              onClick={() => {
+                setDetailsOffen(true);
+                setDetailsGesehen(true);
+              }}
+            >
               Einsatzdetails
             </button>
           )}
@@ -666,9 +697,15 @@ export function EinsatzDiagramm({ einsatz, fahrzeuge, funktionen, onAktualisiert
                         onPersonInfo={(info) => {
                           if (info?.funktion_id) setFunktionId(info.funktion_id);
                         }}
-                        onVorschau={(p) =>
-                          setIdentPerson(p ? { name: p.name, bildUrl: p.bild_url } : null)
-                        }
+                        onVorschau={(p) => {
+                          if (p) {
+                            identVorschau.start();
+                            setIdentPerson({ name: p.name, bildUrl: p.bild_url });
+                          } else {
+                            identVorschau.zuruecksetzen();
+                            setIdentPerson(null);
+                          }
+                        }}
                       />
                     )}
                   </div>

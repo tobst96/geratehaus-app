@@ -231,6 +231,7 @@ export function EinsatzDetailGruppenfuehrer() {
             <th>{t.th_nur_geraetehaus}</th>
             <th>{t.th_auf_anfahrt}</th>
             <th>{t.th_ohne_barcode}</th>
+            <th>{t.th_ohne_pin}</th>
             <th>{t.th_ip_browser}</th>
             <th>{t.th_bemerkung}</th>
           </tr>
@@ -238,13 +239,13 @@ export function EinsatzDetailGruppenfuehrer() {
         <tbody>
           {einsatz.teilnahmen.length === 0 && (
             <tr>
-              <td colSpan={11} className="text-mute">
+              <td colSpan={12} className="text-mute">
                 {t.keine_teilnehmer}
               </td>
             </tr>
           )}
           {einsatz.teilnahmen.map((teilnahme) => (
-            <tr key={teilnahme.id}>
+            <tr key={teilnahme.id} className={teilnahme.ohne_pin ? "zeile-hervorgehoben" : undefined}>
               <td>{teilnahme.person_name}</td>
               <td>{teilnahme.fahrzeug_name ?? ""}</td>
               <td>{sitzplatzBezeichnung(teilnahme.fahrzeug_id, teilnahme.sitzplatz_id)}</td>
@@ -254,6 +255,7 @@ export function EinsatzDetailGruppenfuehrer() {
               <td>{teilnahme.nur_geraetehaus ? t.ja : ""}</td>
               <td>{teilnahme.auf_anfahrt ? t.ja : ""}</td>
               <td>{teilnahme.ohne_barcode ? t.ja : ""}</td>
+              <td>{teilnahme.ohne_pin ? t.ja : ""}</td>
               <td title={teilnahme.eintragung_user_agent ?? ""} className="hinweis-klein">
                 {teilnahme.eintragung_ip ?? ""}
               </td>

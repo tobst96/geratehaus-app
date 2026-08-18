@@ -11,13 +11,13 @@ import {
   namePinPruefen,
   personenAuswahl,
   pinAnfordern,
-  type BarcodeVorschau,
   type PersonAuswahl,
 } from "../api/auth";
 import { ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useConfig } from "../context/ConfigContext";
 import { useBarcodeSound } from "../hooks/useBarcodeSound";
+import { useGehaltenePerson } from "../hooks/useGehaltenePerson";
 import { istKioskModus } from "../utils/kiosk";
 import { BarcodeEingabe } from "./BarcodeEingabe";
 
@@ -28,10 +28,19 @@ export interface PersonInfo {
   bild_url: string | null;
 }
 
+export interface IdentifiziertePerson {
+  name: string;
+  /** True, wenn die Person keinen PIN gesetzt hatte und die Identifikation
+   * deshalb ohne PIN-Prüfung erfolgte (Eintragung bleibt möglich, wird aber
+   * in Listen/PDF gekennzeichnet). Bei Barcode-Login immer false. */
+  ohnePin: boolean;
+}
+
 export interface PersonIdentifikationHandle {
   /** Identifiziert die Person für genau eine Aktion (setzt den Namens-Cookie
-   * serverseitig) und liefert den Namen. Wirft bei fehlender/ungültiger Eingabe. */
-  identifiziere: () => Promise<string>;
+   * serverseitig) und liefert Name + ob es ohne PIN geschah. Wirft bei
+   * fehlender Eingabe oder falschem PIN. */
+  identifiziere: () => Promise<IdentifiziertePerson>;
   zuruecksetzen: () => void;
 }
 
@@ -73,7 +82,6 @@ function PersonIdentifikationImpl(
 
   // --- Barcode-Modus ---
   const [barcode, setBarcode] = useState("");
-  const [vorschau, setVorschau] = useState<BarcodeVorschau | null>(null);
 
   // --- Namen+PIN-Modus ---
   const [suche, setSuche] = useState("");
@@ -82,17 +90,17 @@ function PersonIdentifikationImpl(
   const [pin, setPin] = useState("");
   const [meldung, setMeldung] = useState<string | null>(null);
   const [anfordernLaeuft, setAnfordernLaeuft] = useState(false);
-  // Erst nach korrektem PIN bestätigte Person (für die Bildvorschau).
-  const [pinBestaetigt, setPinBestaetigt] = useState<{ name: string; bild_url: string | null } | null>(
-    null
-  );
+  // Angezeigte (gehaltene) Bestätigungsperson – bleibt mind. 5s sichtbar,
+  // auch wenn ein Formular-Reset (zuruecksetzen) schneller kommt.
+  const { gehalten, zeigen: gehalteneZeigen, graceClear: gehalteneGraceClear, forceClear: gehalteneForceClear } =
+    useGehaltenePerson();
 
   // Barcode-Live-Vorschau
   useEffect(() => {
     if (!barcodeModus) return;
     const wert = barcode.trim();
     if (!wert) {
-      setVorschau(null);
+      gehalteneGraceClear();
       onPersonInfo?.(null);
       onVorschau?.(null);
       return;
@@ -100,14 +108,14 @@ function PersonIdentifikationImpl(
     const timeout = setTimeout(() => {
       barcodeVorschau(wert)
         .then((v) => {
-          setVorschau(v);
+          gehalteneZeigen({ name: v.name, bild_url: v.bild_url });
           onPersonInfo?.({ name: v.name, funktion_id: v.funktion_id, gruppe_id: v.gruppe_id, bild_url: v.bild_url });
           // Barcode selbst ist der Nachweis – Bildvorschau direkt melden.
           onVorschau?.({ name: v.name, bild_url: v.bild_url });
           spieleErkannt();
         })
         .catch(() => {
-          setVorschau(null);
+          gehalteneGraceClear();
           onPersonInfo?.(null);
           onVorschau?.(null);
           spieleFehler();
@@ -143,10 +151,15 @@ function PersonIdentifikationImpl(
   }, [gewaehlt, barcodeModus, kioskModus]);
 
   // Live-PIN-Prüfung: das Profilbild erscheint erst, wenn der korrekte PIN
-  // eingegeben wurde (nicht schon bei der Namensauswahl).
+  // eingegeben wurde (nicht schon bei der Namensauswahl). Ohne gesetzten PIN
+  // gibt es nichts zu prüfen – die Vorschau wurde bereits bei der Auswahl
+  // gesetzt (siehe personWaehlen) und darf hier nicht wieder gelöscht werden.
   useEffect(() => {
-    if (barcodeModus || !kioskModus || !gewaehlt || !gewaehlt.pin_gesetzt || !pin) {
-      setPinBestaetigt(null);
+    if (barcodeModus || !kioskModus || !gewaehlt || !gewaehlt.pin_gesetzt) {
+      return;
+    }
+    if (!pin) {
+      gehalteneGraceClear();
       onVorschau?.(null);
       return;
     }
@@ -155,11 +168,11 @@ function PersonIdentifikationImpl(
     const timeout = setTimeout(() => {
       namePinPruefen(person.id, eingabe)
         .then((v) => {
-          setPinBestaetigt(v);
+          gehalteneZeigen(v);
           onVorschau?.(v);
         })
         .catch(() => {
-          setPinBestaetigt(null);
+          gehalteneGraceClear();
           onVorschau?.(null);
         });
     }, 400);
@@ -169,13 +182,15 @@ function PersonIdentifikationImpl(
 
   function zuruecksetzen() {
     setBarcode("");
-    setVorschau(null);
     setSuche("");
     setTreffer([]);
     setGewaehlt(null);
     setPin("");
     setMeldung(null);
-    setPinBestaetigt(null);
+    // Ein Reset nach erfolgreicher Eintragung kommt oft schneller als ein
+    // Mensch das Bestätigungsfoto lesen kann – daher gehalten statt sofort
+    // gelöscht (siehe useGehaltenePerson).
+    gehalteneGraceClear();
     onVorschau?.(null);
   }
 
@@ -185,10 +200,17 @@ function PersonIdentifikationImpl(
     setSuche(p.name);
     setPin("");
     setMeldung(null);
-    setPinBestaetigt(null);
-    onVorschau?.(null);
-    // Gruppe/Funktion sofort vorwählen (Bild kommt erst nach korrektem PIN).
+    // Aktive neue Auswahl durch den Bediener – kein Warten nötig.
+    gehalteneForceClear();
+    // Gruppe/Funktion sofort vorwählen (Bild bei gesetztem PIN erst nach dessen
+    // korrekter Eingabe – ohne PIN gibt es nichts zu prüfen, daher sofort).
     onPersonInfo?.({ name: p.name, funktion_id: p.funktion_id, gruppe_id: p.gruppe_id, bild_url: p.bild_url });
+    if (p.pin_gesetzt) {
+      onVorschau?.(null);
+    } else {
+      gehalteneZeigen({ name: p.name, bild_url: p.bild_url });
+      onVorschau?.({ name: p.name, bild_url: p.bild_url });
+    }
   }
 
   async function pinLinkAnfordern() {
@@ -214,8 +236,7 @@ function PersonIdentifikationImpl(
       if (barcodeModus) {
         const wert = barcode.trim();
         if (!wert) throw new ApiError(400, "Barcode erforderlich.");
-        const name = await barcodeEinscannenEinmalig(wert);
-        return name;
+        return await barcodeEinscannenEinmalig(wert);
       }
       if (!kioskModus) {
         throw new ApiError(
@@ -224,9 +245,6 @@ function PersonIdentifikationImpl(
         );
       }
       if (!gewaehlt) throw new ApiError(400, "Bitte zuerst eine Person auswählen.");
-      if (!gewaehlt.pin_gesetzt) {
-        throw new ApiError(428, "Für diese Person ist noch kein PIN gesetzt.");
-      }
       try {
         return await nameLoginEinmalig(gewaehlt.id, pin);
       } catch (err) {
@@ -242,14 +260,14 @@ function PersonIdentifikationImpl(
   if (barcodeModus) {
     return (
       <div className="person-ident">
-        {vorschau && !ohneVorschau && (
+        {gehalten && !ohneVorschau && (
           <div className="person-ident-vorschau">
-            {vorschau.bild_url ? (
-              <img src={vorschau.bild_url} alt={vorschau.name} className="person-ident-bild" />
+            {gehalten.bild_url ? (
+              <img src={gehalten.bild_url} alt={gehalten.name} className="person-ident-bild" />
             ) : (
-              <div className="person-ident-initialen">{initialen(vorschau.name)}</div>
+              <div className="person-ident-initialen">{initialen(gehalten.name)}</div>
             )}
-            <div className="person-ident-name">{vorschau.name}</div>
+            <div className="person-ident-name">{gehalten.name}</div>
           </div>
         )}
         <label htmlFor="ident-barcode">Barcode einscannen</label>
@@ -291,7 +309,7 @@ function PersonIdentifikationImpl(
             setGewaehlt(null);
             setPin("");
             setMeldung(null);
-            setPinBestaetigt(null);
+            gehalteneForceClear();
             onPersonInfo?.(null);
             onVorschau?.(null);
           }
@@ -312,14 +330,14 @@ function PersonIdentifikationImpl(
         </ul>
       )}
 
-      {pinBestaetigt && !ohneVorschau && (
+      {gehalten && !ohneVorschau && (
         <div className="person-ident-vorschau">
-          {pinBestaetigt.bild_url ? (
-            <img src={pinBestaetigt.bild_url} alt={pinBestaetigt.name} className="person-ident-bild" />
+          {gehalten.bild_url ? (
+            <img src={gehalten.bild_url} alt={gehalten.name} className="person-ident-bild" />
           ) : (
-            <div className="person-ident-initialen">{initialen(pinBestaetigt.name)}</div>
+            <div className="person-ident-initialen">{initialen(gehalten.name)}</div>
           )}
-          <div className="person-ident-name">{pinBestaetigt.name}</div>
+          <div className="person-ident-name">{gehalten.name}</div>
         </div>
       )}
 
@@ -341,10 +359,11 @@ function PersonIdentifikationImpl(
       {gewaehlt && !gewaehlt.pin_gesetzt && (
         <div style={{ marginTop: 8 }}>
           <p className="text-mute">
-            Für <strong>{gewaehlt.name}</strong> ist noch kein PIN gesetzt.
+            Für <strong>{gewaehlt.name}</strong> ist noch kein PIN gesetzt. Die Eintragung ist trotzdem
+            möglich, wird aber als „ohne PIN" vermerkt.
           </p>
           <button type="button" className="sekundaer" onClick={pinLinkAnfordern} disabled={anfordernLaeuft}>
-            {anfordernLaeuft ? "Wird angefordert…" : "PIN anfordern"}
+            {anfordernLaeuft ? "Wird angefordert…" : "PIN für später anfordern"}
           </button>
         </div>
       )}

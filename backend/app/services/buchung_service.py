@@ -83,6 +83,7 @@ async def anfrage_erstellen(
         verantwortliche_person_id=person_id,
         status="ausstehend",
         hat_konflikt=konflikt,
+        ohne_pin=daten.ohne_pin,
     )
     db.add(buchung)
     await db.commit()

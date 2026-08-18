@@ -7,7 +7,9 @@ Modul (Standard: **aus**). Zu finden unter **Module → Barcode**.
 
 - **Barcode-Modul AUS (Standard)**: Identifikation per **Namenssuche + persönlichem
   PIN**. Personen ohne PIN können sich einen Link zum Setzen schicken lassen bzw.
-  lösen (ohne E-Mail) eine Gruppenführer-Freigabe aus.
+  lösen (ohne E-Mail) eine Gruppenführer-Freigabe aus – die Eintragung selbst bleibt
+  auch ohne PIN möglich, wird aber als „ohne PIN" markiert (Liste/PDF, rot
+  hervorgehoben) und in der Personen-Timeline vermerkt.
 - **Barcode-Modul AN**: Identifikation per **Barcode-Scan** am Kiosk. Der Barcode ist
   dann der „Login" für genau eine Aktion.
 
@@ -20,7 +22,8 @@ Modul (Standard: **aus**). Zu finden unter **Module → Barcode**.
 
 ## Wenn inaktiv (Namen + PIN)
 
-- Das **Profilbild** erscheint erst nach korrektem PIN.
+- Das **Profilbild** erscheint erst nach korrektem PIN – ohne gesetzten PIN entfällt
+  die Prüfung und das Bild erscheint sofort bei der Auswahl.
 - **PIN-Erinnerung**: Personen ohne PIN (mit E-Mail) werden im eingestellten Intervall
   an das Setzen erinnert (Intervall im Personal-Modul).
 
