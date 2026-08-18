@@ -5,13 +5,16 @@ ohne Login treffen, die sich z. B. ein Familien-Postfach für Benachrichtigungen
 teilen. Daher ein partieller, case-insensitiver Unique-Index nur für
 `passwort_hash IS NOT NULL`.
 
-Vor dem Anlegen des Index werden bestehende Konflikte (mehrere Login-Personen
-mit derselben E-Mail) automatisch aufgelöst: die älteste Person (kleinste id)
-behält die E-Mail, bei den anderen wird sie entfernt (sie können sich künftig
-nicht mehr per Passwort einloggen, bis ein Admin eine neue E-Mail hinterlegt -
-siehe "Erhöhter Zugang" in Personal). Das ist der einzige Weg, ein bestehendes
-Deployment mit Altdaten nicht am fehlschlagenden CREATE UNIQUE INDEX
-abzubrechen; jeder aufgelöste Konflikt wird beim Migrieren geloggt.
+E-Mail war bislang optional - ein Admin/Gruppenführer konnte also ein Passwort
+haben, ohne je eine E-Mail zu hinterlegen, und mehrere Login-Personen könnten
+sich (durch Altdaten/Copy-Paste) zufällig dieselbe E-Mail teilen. Beides würde
+nach dieser Migration zum kompletten, selbsthilfefreien Login-Ausschluss führen
+(Login UND Passwort-Reset brauchen ab jetzt eine eindeutige E-Mail). Die
+Migration prüft daher vorab auf beide Fälle und bricht kontrolliert mit einer
+Liste der betroffenen Personen ab, statt still Daten zu verändern oder jemanden
+auszusperren - der Betreiber muss vor dem erneuten Versuch für jede betroffene
+Person eine eigene, eindeutige E-Mail hinterlegen (z. B. per SQL:
+`UPDATE personen SET email = '...' WHERE id = ...;`).
 
 Revision ID: 0070
 Revises: 0069
@@ -30,7 +33,8 @@ depends_on = None
 
 def upgrade() -> None:
     bind = op.get_bind()
-    konflikte = bind.execute(
+
+    duplikate = bind.execute(
         sa.text(
             """
             SELECT lower(email) AS email_lower, array_agg(id ORDER BY id) AS ids
@@ -41,17 +45,30 @@ def upgrade() -> None:
             """
         )
     ).fetchall()
-    for email_lower, ids in konflikte:
-        behalten, *entfernen = ids
-        bind.execute(
-            sa.text("UPDATE personen SET email = NULL WHERE id = ANY(:ids)"),
-            {"ids": entfernen},
+    fehlende_email = bind.execute(
+        sa.text(
+            """
+            SELECT id, name
+            FROM personen
+            WHERE passwort_hash IS NOT NULL AND email IS NULL
+            ORDER BY id
+            """
         )
-        print(
-            f"[migration 0070] Mehrere Login-Personen teilten sich die E-Mail "
-            f"'{email_lower}' - Person {behalten} behält sie, bei {entfernen} wurde "
-            f"die E-Mail entfernt (Login per Passwort dort erst nach neuer E-Mail "
-            f"über 'Erhöhter Zugang' in Personal wieder möglich)."
+    ).fetchall()
+
+    if duplikate or fehlende_email:
+        probleme = [
+            f"E-Mail '{email_lower}' wird von mehreren Login-Personen geteilt (ids {ids})"
+            for email_lower, ids in duplikate
+        ]
+        if fehlende_email:
+            details = ", ".join(f"{name} (id={id_})" for id_, name in fehlende_email)
+            probleme.append(f"Login-Personen ohne E-Mail: {details}")
+        raise RuntimeError(
+            "[migration 0070] Login per E-Mail nicht möglich, folgende Konflikte zuerst "
+            "manuell beheben (jede Login-Person braucht eine eigene, eindeutige E-Mail, "
+            "z. B. per SQL: UPDATE personen SET email = '...' WHERE id = ...;): "
+            + "; ".join(probleme)
         )
 
     op.create_index(
