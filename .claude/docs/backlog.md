@@ -436,7 +436,15 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Funktionen ohne geleistete Stunden nicht in der eigenen Übersicht auflisten
 
-- Status: Backlog
+- Status: Erledigt (19.08.2026, direkt auf beta)
+- Umsetzung: Frontend-Filterung wie in den Notizen vorgeschlagen –
+  `dienststundenSichtbar = uebersicht.dienststunden.filter(d => d.summe_stunden > 0)`
+  in `StatBereich` (`MitgliedHub.tsx`), sowohl für die Leer-Prüfung als auch
+  das Rendering verwendet. Backend/`eigene_summen` unverändert (Rohdaten
+  bleiben verfügbar, falls anderswo gebraucht). Zwei neue Tests in
+  `MitgliedHub.test.tsx` (nur >0-Funktionen sichtbar; Kartenelement komplett
+  ausgeblendet, wenn alle Funktionen 0 Stunden haben). Volle Vitest-Suite
+  (27 Dateien, 83 Tests) + Build grün.
 - Priorität: Niedrig
 - Kategorie: Frontend / Backend
 - Skills: geraetehaus-patterns, tests, review
