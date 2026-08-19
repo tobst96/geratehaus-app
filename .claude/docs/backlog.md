@@ -581,7 +581,13 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Filtermöglichkeit für Personen ohne gesetzten PIN
 
-- Status: Backlog
+- Status: Erledigt (19.08.2026, direkt auf beta)
+- Umsetzung: Neuer Toggle-Filter „Ohne PIN" analog `filterKeinBild`
+  (`filterOhnePin`/`setFilterOhnePin`, filtert `p.pin_gesetzt`), zählt in
+  `aktiveFilter` mit und wird von „Filter zurücksetzen" mit zurückgesetzt.
+  Kein dedizierter Test ergänzt (Personal.tsx hat wie die drei anderen
+  bestehenden Filter dort keine Testabdeckung – bestehendes Muster der Datei);
+  `npm run build`/Vitest-Gesamtsuite grün.
 - Priorität: Niedrig
 - Kategorie: Frontend
 - Skills: geraetehaus-patterns, tests, review
