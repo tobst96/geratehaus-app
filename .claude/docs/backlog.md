@@ -370,7 +370,12 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### `capture="environment"` verhindert Foto-Auswahl aus der Galerie auf dem Handy
 
-- Status: Backlog
+- Status: Erledigt (19.08.2026, direkt auf beta)
+- Umsetzung: `capture="environment"` aus dem `<input type="file">` in
+  `PersonBildHochladen.tsx` entfernt – Button-Text „Foto aufnehmen oder
+  auswählen" passte bereits. Native Dateiauswahl bietet auf iOS/Android jetzt
+  wieder Kamera **und** Galerie an. Regressionstest (`PersonBildHochladen.test.tsx`),
+  prüft, dass das Input-Element kein `capture`-Attribut mehr trägt.
 - Priorität: Niedrig
 - Kategorie: Bug / Frontend
 - Skills: bugfix, review
