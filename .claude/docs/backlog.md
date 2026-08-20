@@ -250,7 +250,14 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### JWT- und Cookie-Secret ohne Startup-Schutz gegen Default-Werte
 
-- Status: Backlog
+- Status: Erledigt (19.08.2026, direkt auf beta)
+- Umsetzung: `Settings.unsichere_default_secrets` (`config.py`) meldet, welche
+  der beiden Secrets noch den `.env.example`-Platzhalter tragen;
+  `main.py`s `_pruefe_secrets()` bricht den Start mit `RuntimeError` ab,
+  wenn das UND `environment == "production"` zutrifft (Tests/lokale Dev-Umgebungen
+  mit `ENVIRONMENT=test` unberührt). Vor dem Push live geprüft: die tatsächliche
+  `.env` dieser Instanz hat bereits echte Secrets, kein Bruch beim nächsten
+  Neustart. 5 neue Tests (`test_startup_secrets.py`); volle Suite 509 grün.
 - Priorität: Hoch
 - Kategorie: Backend / Sicherheit
 - Skills: geraetehaus-patterns, tests, review

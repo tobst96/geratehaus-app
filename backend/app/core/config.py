@@ -69,6 +69,19 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
+    @property
+    def unsichere_default_secrets(self) -> list[str]:
+        """Namen der sicherheitsrelevanten Settings, die noch den Platzhalter aus
+        .env.example tragen – mit diesem (jedem im Repo bekannten) Wert signierte
+        JWTs/Mitglieder-Session-Cookies ließen sich fälschen. Nur in production
+        relevant; siehe Startup-Check in main.py."""
+        unsicher = []
+        if self.jwt_secret_key == "change-me-to-a-random-secret":
+            unsicher.append("JWT_SECRET_KEY")
+        if self.cookie_secret_key == "change-me-to-another-random-secret":
+            unsicher.append("COOKIE_SECRET_KEY")
+        return unsicher
+
 
 @lru_cache
 def get_settings() -> Settings:

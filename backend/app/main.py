@@ -72,8 +72,22 @@ async def _barcodes_vorhanden(db) -> bool:
     return result.first() is not None
 
 
+def _pruefe_secrets() -> None:
+    """Verhindert, dass eine production-Instanz mit den aus .env.example bekannten
+    Platzhalter-Secrets läuft (jeder könnte damit gültige Admin-/Mitglied-Tokens
+    fälschen) - harter Startup-Fehlschlag statt stillem, unsicherem Weiterlaufen."""
+    if settings.environment == "production" and settings.unsichere_default_secrets:
+        namen = ", ".join(settings.unsichere_default_secrets)
+        raise RuntimeError(
+            f"Unsichere Standard-Secrets aktiv ({namen}). Bitte in .env durch "
+            "zufällige Werte ersetzen (siehe README, Abschnitt Setup) und die "
+            "Instanz neu starten."
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _pruefe_secrets()
     async with AsyncSessionLocal() as db:
         await config_service.ensure_defaults(db)
         await modul_service.ensure_module(db)
