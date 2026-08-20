@@ -12,6 +12,46 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AG – Admin/Gruppenführer: Rückwechsel zur Mitgliederseite ohne Abmelden
+
+### "Zurück zur Mitgliederseite"-Link im Gruppenführer-/Admin-Layout ergänzen
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Aus einer Nutzerrückmeldung (20.08.2026): Aus dem Admin- bzw.
+  Gruppenführerbereich gibt es aktuell keine Möglichkeit, wieder zur
+  Mitgliederseite zu gelangen – nur über „Abmelden" (`gruppenfuehrerAbmelden()`
+  in `AuthContext.tsx:219-223`) und erneutes Anmelden. Der Rückwechsel ist
+  aber unnötig: `gruppenfuehrerAbmelden()` löscht nur das JWT und rührt den
+  separaten Mitglied-Namens-Cookie (`AuthContext.tsx:167-171`) nicht an, d. h.
+  die Mitglied-Identität bleibt in der Regel bestehen. Der Vorwärtswechsel
+  Mitglied → Gruppenführer/Admin existiert bereits als Vorbild:
+  `MitgliedHub.tsx:267-287` (Button „Zum Admin-Bereich"/„Zum
+  Gruppenführer-Bereich", navigiert per `navigate("/gruppenfuehrer")`,
+  sichtbar wenn `profil.gruppenfuehrer_rolle` gesetzt ist). Es gibt kein
+  separates Admin-Layout – Admin ist nur `gruppenfuehrer_rolle === "admin"`
+  innerhalb desselben `GruppenfuehrerLayout.tsx` (`/gruppenfuehrer/*`), der
+  Fix betrifft also nur eine Datei.
+- Akzeptanzkriterien: Im Sidebar-Footer von `GruppenfuehrerLayout.tsx`
+  (neben/oberhalb des bestehenden Abmelden-Buttons, ca. Zeile 259-261) ein
+  neuer Link/Button „Zurück zur Mitgliederseite", der per `navigate("/mitglied")`
+  navigiert, **ohne** `gruppenfuehrerAbmelden()` aufzurufen (JWT bleibt
+  erhalten, falls die Person später wieder in den Gruppenführer-/Admin-Bereich
+  wechselt). Gilt für Gruppenführer- und Admin-Rolle gleichermaßen. Test in
+  `GruppenfuehrerLayout.test.tsx` (Link vorhanden, navigiert zu `/mitglied`,
+  ruft nicht ab).
+- Notizen: Nur sinnvoll sichtbar, wenn die Person tatsächlich eine
+  Mitglied-Identität hat (Mitglied-Namens-Cookie/`angezeigter_name` gesetzt) –
+  sonst würde `/mitglied` eine leere/nicht eingeloggte Seite zeigen. Prüfen,
+  ob das im `AuthContext` schon abfragbar ist (z. B. vorhandener
+  `angezeigterName`-State) oder ob der Link einfach immer sichtbar sein kann,
+  weil `MitgliedHub` bei fehlender Mitglied-Session ohnehin einen sinnvollen
+  Leerzustand zeigt.
+
+---
+
 ## Etappe AF – Rechtliches/Datenschutz-Compliance für externen Betrieb (18.08.2026)
 
 > Aus einer Rückfrage des Nutzers (18.08.2026): „Ist Betrieb in Deutschland
