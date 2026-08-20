@@ -184,6 +184,8 @@ export function Dienststunden() {
 
   if (ladeFehler) return <SeitenFehler nachricht={ladeFehler} />;
 
+  const summenSichtbar = letzteSummen?.filter((s) => s.summe_stunden > 0) ?? [];
+
   return (
     <div>
       <h1>Dienststunden</h1>
@@ -350,7 +352,7 @@ export function Dienststunden() {
         </div>
       )}
 
-      {letzteSummen && (
+      {summenSichtbar.length > 0 && (
         <>
           <h2>Kumulierte Stunden{letztePerson ? ` – ${letztePerson}` : ""}</h2>
           <div className="tabelle-scroll">
@@ -363,7 +365,7 @@ export function Dienststunden() {
               </tr>
             </thead>
             <tbody>
-              {letzteSummen.map((s) => (
+              {summenSichtbar.map((s) => (
                 <tr key={s.funktion_id}>
                   <td>{s.funktion_name}</td>
                   <td
