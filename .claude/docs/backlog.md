@@ -12,6 +12,327 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AF – Rechtliches/Datenschutz-Compliance für externen Betrieb (18.08.2026)
+
+> Aus einer Rückfrage des Nutzers (18.08.2026): „Ist Betrieb in Deutschland
+> auf einem lokalen Server mit externem Zugriff möglich, passt rechtlich
+> alles, was ist datenschutzmäßig zu beachten?" Technisch ist die App genau
+> dafür gebaut (Kiosk lokal + öffentlicher Mitglieder-Login); die
+> `Datenschutz.tsx`-Seite deckt bereits die meisten Verarbeitungen gut ab.
+> Diese Etappe sammelt die dabei gefundenen **rechtlichen/organisatorischen
+> Lücken** – die meisten sind keine reinen Code-Aufgaben, sondern brauchen
+> eine Entscheidung/Prüfung durch die verantwortliche Stelle bzw. einen
+> echten Datenschutzbeauftragten (keine Rechtsberatung durch Claude).
+
+### Impressum-Seite fehlt komplett
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Frontend
+- Skills: geraetehaus-patterns, review
+- Beschreibung: Es existiert keine Impressum-Route/-Seite im Frontend (nur
+  `/datenschutz`, siehe `frontend/src/App.tsx:58`). Bei einer über das
+  Internet erreichbaren Anwendung mit personenbezogenen Daten ist eine
+  Anbieterkennzeichnung nach **§ 5 DDG** (früher TMG § 5) praktisch Pflicht.
+- Akzeptanzkriterien: Neue Seite `/impressum` (analog `Datenschutz.tsx`
+  organisationsspezifisch über `config`/Setup-Wizard befüllbar, keine
+  hart kodierten Werte laut oberster CLAUDE.md-Regel), im Footer/Login-
+  Bereich verlinkt.
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Felder
+  (verantwortliche Person, Anschrift, Kontakt) vermutlich analog zu
+  `organisation_name` in `app_config` ablegen.
+
+### TLS/Reverse-Proxy vor der App ist nicht dokumentiert
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Dokumentation
+- Skills: knowledge-management, review
+- Beschreibung: `frontend/nginx.conf` terminiert **kein** TLS selbst („HSTS
+  bewusst weiterhin nicht [gesetzt], da TLS im Reverse-Proxy terminiert
+  wird" laut Backlog-Notiz in Etappe P). Das README beschreibt aber keinen
+  Schritt, wie ein Betreiber einen vorgeschalteten Reverse-Proxy mit
+  Zertifikat (z. B. Caddy/Traefik + Let's Encrypt) aufsetzt. Für externen
+  Zugriff mit personenbezogenen Daten ist HTTPS nach Art. 32 DSGVO
+  praktisch Pflicht – ein Betreiber könnte die App sonst versehentlich nur
+  über HTTP exponieren.
+- Akzeptanzkriterien: README-Abschnitt „Externer Zugriff/Deployment" ergänzt
+  einen empfohlenen Reverse-Proxy-Aufbau (Beispiel-Compose-Snippet oder
+  klare Doku-Verlinkung) inkl. Hinweis, dass HTTP-only für Produktivbetrieb
+  ungeeignet ist.
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Reine Doku-
+  Aufgabe, keine Code-Änderung an der App selbst nötig.
+
+### Telegram-Kanal: Drittlandtransfer ohne dokumentierte Rechtsgrundlage
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Dokumentation
+- Skills: knowledge-management, review
+- Beschreibung: `Datenschutz.tsx` erwähnt die Telegram-Chat-ID-Übermittlung
+  nur als „Übermittlung an Telegram als externen Dienst". Telegram FZ-LLC
+  sitzt außerhalb der EU – das ist ein Drittlandtransfer (Art. 44 ff.
+  DSGVO), der eine explizite Rechtsgrundlage braucht (z. B. Standard-
+  vertragsklauseln oder Einwilligung), die aktuell nirgends benannt ist.
+- Akzeptanzkriterien: Rechtliche Prüfung durch die verantwortliche
+  Stelle/DSB, ob/wie der Telegram-Kanal weiter angeboten werden darf;
+  Ergebnis in `Datenschutz.tsx` präzisieren (Rechtsgrundlage benennen)
+  oder Kanal ggf. nur mit gesonderter Einwilligung anbieten.
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Keine reine
+  Code-Aufgabe – Entscheidung liegt bei der Organisation, Umsetzung danach
+  ggf. klein (Text-/Consent-Anpassung).
+
+### AVVs für extern angebundene Dienste prüfen/abschließen
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Dokumentation
+- Skills: knowledge-management, review
+- Beschreibung: Je nach Konfiguration der Organisation verarbeiten externe
+  Dienste Daten im Auftrag (Auftragsverarbeitung, Art. 28 DSGVO): Sentry
+  (falls „Fehlerberichte" aktiviert), Divera 24/7 (falls angebunden),
+  externes Backup-Ziel (WebDAV/Nextcloud/S3/SFTP, falls konfiguriert),
+  externer S3/MinIO-Anbieter (falls nicht selbst gehostet). Für jeden
+  tatsächlich genutzten Dienst braucht es einen abgeschlossenen AVV.
+- Akzeptanzkriterien: Checkliste/Doku, welche AVVs je nach genutzter
+  Konfiguration nötig sind (z. B. als Abschnitt in `docs/backup.md` /
+  `docs/minio.md` / `docs/divera.md` ergänzt, damit Betreiber es beim
+  Aktivieren des jeweiligen Moduls sehen).
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Rein lokal
+  gehostet ohne externes Backup-Ziel und mit Sentry aus entfällt der
+  Großteil automatisch – Hinweis sollte das klarstellen.
+
+### DSB-Pflicht als öffentliche Stelle klären
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Dokumentation
+- Skills: knowledge-management
+- Beschreibung: Anders als bei privaten Unternehmen (BDSG-Schwelle: 20
+  Personen) müssen **öffentliche Stellen** nach den meisten Landes-
+  datenschutzgesetzen unabhängig von der Größe einen Datenschutz-
+  beauftragten benennen. Da Freiwillige Feuerwehren im Regelfall
+  rechtlich Teil der Gemeinde sind (öffentliche Stelle), nicht ein
+  eingetragener Verein, ist diese Pflicht wahrscheinlich einschlägig –
+  muss aber organisationsspezifisch geklärt werden (Trägerschaft prüfen).
+- Akzeptanzkriterien: Klärung durch die Organisation (nicht durch Claude
+  entscheidbar); Ergebnis ggf. als Hinweis im Setup-Wizard/README
+  festhalten („vor Produktivbetrieb: DSB-Benennung + Freigabe prüfen").
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Reine
+  Organisationsaufgabe, kein Code.
+
+### Verzeichnis von Verarbeitungstätigkeiten (Art. 30 DSGVO) fehlt formal
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Dokumentation
+- Skills: knowledge-management
+- Beschreibung: `Datenschutz.tsx` beschreibt die Verarbeitungen bereits
+  inhaltlich sehr gründlich, ersetzt aber kein formales Verzeichnis von
+  Verarbeitungstätigkeiten nach Art. 30 DSGVO, das die verantwortliche
+  Stelle führen muss.
+- Akzeptanzkriterien: Vorlage/Muster-Verzeichnis (kann sich eng an
+  `Datenschutz.tsx`-Abschnitten orientieren) für Betreiber bereitstellen,
+  z. B. als `docs/`-Vorlage, die pro Instanz ausgefüllt wird.
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026.
+
+### Künftiges Tauglichkeiten-Modul verarbeitet Gesundheitsdaten (Art. 9 DSGVO)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Neues Modul / Dokumentation
+- Skills: planner, knowledge-management
+- Beschreibung: Laut Vorhaben ist ein Tauglichkeiten-Modul geplant
+  (medizinische Eignung, z. B. G26-Untersuchungen). Das sind
+  **Gesundheitsdaten nach Art. 9 DSGVO** (besondere Kategorie) – deutlich
+  höhere Anforderungen als die bisherigen Module: eigene Rechtsgrundlage
+  (Art. 9 Abs. 2), ggf. Datenschutz-Folgenabschätzung (Art. 35), strengere
+  Zugriffsbeschränkung/Protokollierung als beim übrigen Personal-Modul.
+- Akzeptanzkriterien: Vor Implementierungsbeginn Rechtsgrundlage +ggf.
+  DSFA-Bedarf mit der Organisation klären; erst danach technische
+  Umsetzung planen (Skill `planner`).
+- Notizen: Aus Rechtlich/Datenschutz-Nachfrage 18.08.2026. Bewusst **vor**
+  Beginn der Implementierung einplanen, nicht nachträglich nachrüsten.
+
+---
+
+## Etappe AE – Frontend-Performance/Modernisierung (Audit 18.08.2026)
+
+> Aus einer Gesamtanalyse der App (Sicherheit + Frontend-Performance,
+> 18.08.2026). Vier Einzelpunkte, unabhängig voneinander umsetzbar.
+
+### Kein Code-Splitting – ein einziges Riesen-Bundle
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Frontend / Performance
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: `frontend/src/App.tsx` importiert alle ~30 Seiten (inkl.
+  Setup-Wizard, Kalender/`react-big-calendar`, Karte/`leaflet`+
+  `react-leaflet`, Barcode-Scanner/`@zxing/library`) statisch, kein
+  `React.lazy`/`import()`. `frontend/vite.config.ts` hat kein
+  `manualChunks`. Damit lädt selbst die einfache Kiosk-Startseite
+  Bibliotheken mit, die nur auf einzelnen Unterseiten gebraucht werden –
+  verzögert den ersten Render unnötig, besonders auf dem Kiosk-Tablet/
+  mobilen Netzen.
+- Akzeptanzkriterien: `React.lazy()` + `Suspense` mindestens für die
+  schweren, selten genutzten Routen (Kalender/Buchung, Karte/Fahrzeug,
+  Barcode-Generator/-Scanner, Setup-Wizard, Admin-Unterseiten). Messbare
+  Reduktion der initial geladenen Bundle-Größe (`npm run build`-Output
+  vorher/nachher vergleichen).
+- Notizen: Aus Frontend-Performance-Audit 18.08.2026.
+
+### React-Performance: fehlende Memoisierung (useMemo/useCallback/Context)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / Performance
+- Skills: geraetehaus-patterns, review
+- Beschreibung: Im gesamten Frontend (91+ Komponentendateien) faktisch
+  keine Verwendung von `useMemo`/`useCallback`. Konkret
+  `src/pages/gruppenfuehrer/Personal.tsx` (~1392 Zeilen, ~35 `useState`):
+  die gefilterte Liste wird bei jedem Render neu berechnet, auch bei
+  unabhängigem Modal-/Formular-State. `src/context/ConfigContext.tsx`
+  (Provider-`value`) erzeugt bei jedem Render ein neues Objekt ohne
+  `useMemo` – jeder Consumer würde bei Provider-Rerender mit neu rendern.
+  Bei aktuellen Wehrgrößen (wenige hundert Personen) noch unkritisch, wird
+  aber bei wachsenden Listen spürbar.
+- Akzeptanzkriterien: Teure Berechnungen (Filter/Sort großer Listen) in
+  Kernkomponenten mit `useMemo` versehen, Context-Provider-`value`
+  memoisiert. Kein Verhaltensunterschied, nur Performance.
+- Notizen: Aus Frontend-Performance-Audit 18.08.2026. Hängt inhaltlich mit
+  „Kein ESLint/Prettier-Setup" (unten) zusammen – ein Hooks-Lint hätte das
+  automatisch angezeigt.
+
+### N+1-Fetch bei Buchungs-Konfliktvergleich
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / Backend / Performance
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: `src/pages/gruppenfuehrer/Buchungsmanagement.tsx` lädt den
+  Konfliktvergleich aktuell mit
+  `Promise.all(liste.map(b => holeKonfliktvergleich(b.id)))` – ein eigener
+  Request pro ausstehender Buchung statt eines Batch-Endpunkts. Bei
+  mehreren gleichzeitig offenen Buchungsanfragen unnötig viele Roundtrips.
+- Akzeptanzkriterien: Neuer Backend-Endpunkt für Batch-Konfliktvergleich
+  (mehrere Buchungs-IDs auf einmal), Frontend nutzt ihn statt der
+  Einzel-Requests.
+- Notizen: Aus Frontend-Performance-Audit 18.08.2026.
+
+### Kein ESLint/Prettier-Setup im Frontend
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / DevOps
+- Skills: geraetehaus-patterns, review
+- Beschreibung: Frontend hat ein gutes `tsconfig.json` (`strict`,
+  `noUnusedLocals`), aber kein Lint-Setup. Ein Setup mit
+  `eslint-plugin-react-hooks` würde fehlende Hook-Dependencies und die o. g.
+  Memoisierungs-Lücken automatisch aufzeigen und künftig verhindern.
+- Akzeptanzkriterien: ESLint (+ Prettier oder vorhandene Formatierung) im
+  Frontend eingerichtet, `npm run lint`-Script, CI-Integration optional.
+- Notizen: Aus Frontend-Performance-Audit 18.08.2026. Bereits im Backlog
+  behandelt (nicht hier duplizieren): Profilbilder komprimieren/cachen =
+  [[Etappe AC]]. Fonts/PWA-Caching bereits vorbildlich (self-hosted,
+  `font-display: swap`) – kein Handlungsbedarf.
+
+---
+
+## Etappe AD – Sicherheitsaudit-Funde (18.08.2026)
+
+> Aus einer Gesamtanalyse der App (Sicherheit + Frontend-Performance,
+> 18.08.2026), ergänzend zur bereits weitgehend abgearbeiteten
+> [[Etappe P]] (Sicherheits-Roadmap). Die API selbst ist über
+> docker-compose bereits korrekt abgeschottet (nur der Frontend-Nginx-Port
+> ist nach außen gebunden, Backend/DB nicht öffentlich erreichbar) – kein
+> Finding dazu nötig.
+
+### JWT- und Cookie-Secret ohne Startup-Schutz gegen Default-Werte
+
+- Status: Erledigt (19.08.2026, direkt auf beta)
+- Umsetzung: `Settings.unsichere_default_secrets` (`config.py`) meldet, welche
+  der beiden Secrets noch den `.env.example`-Platzhalter tragen;
+  `main.py`s `_pruefe_secrets()` bricht den Start mit `RuntimeError` ab,
+  wenn das UND `environment == "production"` zutrifft (Tests/lokale Dev-Umgebungen
+  mit `ENVIRONMENT=test` unberührt). Vor dem Push live geprüft: die tatsächliche
+  `.env` dieser Instanz hat bereits echte Secrets, kein Bruch beim nächsten
+  Neustart. 5 neue Tests (`test_startup_secrets.py`); volle Suite 509 grün.
+- Priorität: Hoch
+- Kategorie: Backend / Sicherheit
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: `backend/app/core/config.py:25,28` – `jwt_secret_key` und
+  `cookie_secret_key` haben hart codierte Default-Werte
+  („change-me-to-a-random-secret" / „change-me-to-another-random-secret"),
+  die im öffentlichen Repo stehen. Es gibt keinen Startup-Check (weder in
+  `main.py`s `lifespan`, noch in `docker-entrypoint.sh`), der eine
+  Produktivinstanz mit unverändertem Default verhindert oder wenigstens
+  laut warnt. Vergisst ein Admin beim Setup, `.env` anzupassen, signiert
+  die App JWTs/Mitglieder-Session-Cookies mit einem jedem bekannten
+  Secret – jeder könnte damit gültige Admin-/Gruppenführer-Tokens fälschen.
+- Akzeptanzkriterien: Beim Start (production) wird geprüft, ob
+  `jwt_secret_key`/`cookie_secret_key` noch dem Default entsprechen; falls
+  ja, harter Fehlschlag (oder mindestens sehr auffällige Warnung in Log +
+  Health-Endpoint) statt stillem Weiterlaufen. Test dafür.
+- Notizen: Aus Sicherheitsaudit 18.08.2026.
+
+### Keine Token-Invalidierung bei Passwortänderung/2FA-Reset (Gruppenführer/Admin)
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Backend / Sicherheit
+- Skills: planner, geraetehaus-patterns, tests, review
+- Beschreibung: `app/api/deps.py` (`get_current_gruppenfuehrer`) prüft pro
+  Request nur, ob die Rolle noch gesetzt ist – nicht, ob das JWT nach der
+  letzten Passwortänderung ausgestellt wurde. `gruppenfuehrer_service.
+  person_passwort_setzen` sowie `auth.py`s `mein_passwort_setzen` ändern
+  das Passwort, laufende Tokens bleiben aber bis `exp` (bis zu 480 Min,
+  `jwt_expire_minutes`) gültig. Ein gestohlenes Token überlebt damit eine
+  Passwort-Änderung, die eigentlich als Reaktion auf eine Kompromittierung
+  gedacht ist, bis zu 8 Stunden.
+- Akzeptanzkriterien: Passwortänderung/2FA-Reset invalidiert bestehende
+  Tokens (z. B. `passwort_geaendert_am`-Claim im Token gegen DB-Wert
+  prüfen, oder Token-Version/Revocation-Liste). Regressionstest: altes
+  Token nach Passwortänderung wird abgelehnt.
+- Notizen: Aus Sicherheitsaudit 18.08.2026.
+
+### Langlebige Session-Cookies ohne secure-Flag
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Backend / Sicherheit
+- Skills: bugfix, review
+- Beschreibung: `app/api/v1/auth.py` setzt das Namens-Cookie (5 Jahre
+  Gültigkeit) und das Trusted-Device-Cookie (30 Tage) mit
+  `httponly=True, samesite="lax"`, aber ohne `secure=True`. Bei einer
+  versehentlich per HTTP statt HTTPS erreichbaren Instanz (z. B.
+  Fehlkonfiguration im Reverse-Proxy, lokale Tests) würden diese
+  langlebigen Cookies im Klartext übertragen.
+- Akzeptanzkriterien: `secure=True` für diese Cookies in Produktion (über
+  Setting togglebar, damit lokale HTTP-Entwicklung weiter funktioniert).
+- Notizen: Aus Sicherheitsaudit 18.08.2026.
+
+### Rate-Limit auf lesenden Reservierungs-Token-Endpunkten nachziehen (Konsistenz)
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Backend / Sicherheit
+- Skills: geraetehaus-patterns, review
+- Beschreibung: Die GET-Endpunkte (`GET /{token}`, `GET /{token}/personen`)
+  in `dienststunden_reservierungen.py` und den Analoga (Fahrzeugbuchung,
+  Personenbild) haben – anders als die schreibenden Endpunkte derselben
+  Router – kein `Depends(rate_limit(...))`. Tokens haben zwar 128 Bit
+  Entropie (praktisch nicht brute-forcebar), aber inkonsistent zum sonst
+  durchgängig angewendeten Muster.
+- Akzeptanzkriterien: Auch die GET-Routen der Reservierungs-Token-
+  Endpunkte mit `rate_limit` versehen, analog den POST-Pendants.
+- Notizen: Aus Sicherheitsaudit 18.08.2026. Bewusst nicht erneut gemeldet:
+  Swagger/OpenAPI unter `/api/v1/docs` ist laut [[Etappe P]] Punkt (0)
+  bereits bewusst akzeptiert („ohne offene sensible Daten" ist das
+  eigentliche Kriterium, nicht Abschalten).
+
+---
+
 ## Etappe AC – Profilbilder komprimieren + im Kiosk cachen (Ladezeit)
 
 ### Bilder beim Upload verkleinern; Kiosk-Anzeige möglichst aus dem Cache
@@ -56,7 +377,12 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### `capture="environment"` verhindert Foto-Auswahl aus der Galerie auf dem Handy
 
-- Status: Backlog
+- Status: Erledigt (19.08.2026, direkt auf beta)
+- Umsetzung: `capture="environment"` aus dem `<input type="file">` in
+  `PersonBildHochladen.tsx` entfernt – Button-Text „Foto aufnehmen oder
+  auswählen" passte bereits. Native Dateiauswahl bietet auf iOS/Android jetzt
+  wieder Kamera **und** Galerie an. Regressionstest (`PersonBildHochladen.test.tsx`),
+  prüft, dass das Input-Element kein `capture`-Attribut mehr trägt.
 - Priorität: Niedrig
 - Kategorie: Bug / Frontend
 - Skills: bugfix, review
@@ -117,7 +443,15 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Funktionen ohne geleistete Stunden nicht in der eigenen Übersicht auflisten
 
-- Status: Backlog
+- Status: Erledigt (19.08.2026, direkt auf beta)
+- Umsetzung: Frontend-Filterung wie in den Notizen vorgeschlagen –
+  `dienststundenSichtbar = uebersicht.dienststunden.filter(d => d.summe_stunden > 0)`
+  in `StatBereich` (`MitgliedHub.tsx`), sowohl für die Leer-Prüfung als auch
+  das Rendering verwendet. Backend/`eigene_summen` unverändert (Rohdaten
+  bleiben verfügbar, falls anderswo gebraucht). Zwei neue Tests in
+  `MitgliedHub.test.tsx` (nur >0-Funktionen sichtbar; Kartenelement komplett
+  ausgeblendet, wenn alle Funktionen 0 Stunden haben). Volle Vitest-Suite
+  (27 Dateien, 83 Tests) + Build grün.
 - Priorität: Niedrig
 - Kategorie: Frontend / Backend
 - Skills: geraetehaus-patterns, tests, review
@@ -262,7 +596,13 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Filtermöglichkeit für Personen ohne gesetzten PIN
 
-- Status: Backlog
+- Status: Erledigt (19.08.2026, direkt auf beta)
+- Umsetzung: Neuer Toggle-Filter „Ohne PIN" analog `filterKeinBild`
+  (`filterOhnePin`/`setFilterOhnePin`, filtert `p.pin_gesetzt`), zählt in
+  `aktiveFilter` mit und wird von „Filter zurücksetzen" mit zurückgesetzt.
+  Kein dedizierter Test ergänzt (Personal.tsx hat wie die drei anderen
+  bestehenden Filter dort keine Testabdeckung – bestehendes Muster der Datei);
+  `npm run build`/Vitest-Gesamtsuite grün.
 - Priorität: Niedrig
 - Kategorie: Frontend
 - Skills: geraetehaus-patterns, tests, review

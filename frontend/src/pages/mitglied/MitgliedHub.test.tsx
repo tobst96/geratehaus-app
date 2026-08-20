@@ -57,6 +57,35 @@ describe("MitgliedHub – Dashboard", () => {
     expect(screen.getByText("Mein Profil")).toBeInTheDocument();
   });
 
+  it("zeigt nur Funktionen mit Stunden > 0 unter 'Meine Dienststunden'", async () => {
+    holeMitgliedUebersicht.mockResolvedValue({
+      einsaetze_jahr: 7,
+      dienste_jahr: 3,
+      dienststunden: [
+        { funktion_id: 1, funktion_name: "Aktiv", summe_stunden: 10, schwellenwert_stunden: 20, schwellenwert_ueberschritten: false },
+        { funktion_id: 2, funktion_name: "Jugendfeuerwehr", summe_stunden: 0, schwellenwert_stunden: 20, schwellenwert_ueberschritten: false },
+      ],
+      letzte_einsaetze: [],
+    });
+    render(<MitgliedHub />);
+    expect(await screen.findByText("Aktiv")).toBeInTheDocument();
+    expect(screen.queryByText("Jugendfeuerwehr")).not.toBeInTheDocument();
+  });
+
+  it("blendet 'Meine Dienststunden' ganz aus, wenn alle Funktionen 0 Stunden haben", async () => {
+    holeMitgliedUebersicht.mockResolvedValue({
+      einsaetze_jahr: 7,
+      dienste_jahr: 3,
+      dienststunden: [
+        { funktion_id: 1, funktion_name: "Aktiv", summe_stunden: 0, schwellenwert_stunden: 20, schwellenwert_ueberschritten: false },
+      ],
+      letzte_einsaetze: [],
+    });
+    render(<MitgliedHub />);
+    await screen.findByText("Mein Profil");
+    expect(screen.queryByText("Meine Dienststunden")).not.toBeInTheDocument();
+  });
+
   it("zeigt KEINEN Bereichswechsel-Button ohne gruppenfuehrer_rolle", async () => {
     render(<MitgliedHub />);
     await screen.findByText("Mein Profil");

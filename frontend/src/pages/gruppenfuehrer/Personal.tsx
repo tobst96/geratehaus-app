@@ -193,6 +193,7 @@ export function Personal() {
   const [suche, setSuche] = useState("");
   const [filterKeineMail, setFilterKeineMail] = useState(false);
   const [filterKeinBild, setFilterKeinBild] = useState(false);
+  const [filterOhnePin, setFilterOhnePin] = useState(false);
   const [filterBenachrichtigung, setFilterBenachrichtigung] = useState<"alle" | "an" | "aus">("alle");
   const [ereignisTypen, setEreignisTypen] = useState<EreignisTyp[]>([]);
   const [aboUebersicht, setAboUebersicht] = useState<Record<number, PersonBenachrichtigung>>({});
@@ -595,6 +596,7 @@ export function Personal() {
     if (suchbegriff && !p.name.toLowerCase().includes(suchbegriff)) return false;
     if (filterKeineMail && p.email) return false;
     if (filterKeinBild && p.bild_url) return false;
+    if (filterOhnePin && p.pin_gesetzt) return false;
     if (filterBenachrichtigung === "an" && !p.benachrichtigungen_aktiv) return false;
     if (filterBenachrichtigung === "aus" && p.benachrichtigungen_aktiv) return false;
     if (filterAbo && !(aboUebersicht[p.id]?.ereignisse.includes(filterAbo))) return false;
@@ -604,6 +606,7 @@ export function Personal() {
   const aktiveFilter =
     (filterKeineMail ? 1 : 0) +
     (filterKeinBild ? 1 : 0) +
+    (filterOhnePin ? 1 : 0) +
     (filterBenachrichtigung !== "alle" ? 1 : 0) +
     (filterAbo ? 1 : 0);
   const aboAnzahl = filterAbo
@@ -612,6 +615,7 @@ export function Personal() {
   function filterZuruecksetzen() {
     setFilterKeineMail(false);
     setFilterKeinBild(false);
+    setFilterOhnePin(false);
     setFilterBenachrichtigung("alle");
     setFilterAbo("");
   }
@@ -874,6 +878,14 @@ export function Personal() {
                   onChange={(e) => setFilterKeinBild(e.target.checked)}
                 />
                 {txt.filter_kein_bild}
+              </label>
+              <label className="personal-filter-check">
+                <input
+                  type="checkbox"
+                  checked={filterOhnePin}
+                  onChange={(e) => setFilterOhnePin(e.target.checked)}
+                />
+                {txt.filter_ohne_pin}
               </label>
               <label className="personal-filter-select">
                 <span>{txt.filter_benachrichtigungen}</span>

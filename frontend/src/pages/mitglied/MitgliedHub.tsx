@@ -59,6 +59,7 @@ function StatKachel({ zahl, label }: { zahl: number; label: string }) {
 
 function StatBereich({ uebersicht }: { uebersicht: MitgliedUebersicht }) {
   const jahr = new Date().getFullYear();
+  const dienststundenSichtbar = uebersicht.dienststunden.filter((d) => d.summe_stunden > 0);
   return (
     <>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
@@ -66,10 +67,10 @@ function StatBereich({ uebersicht }: { uebersicht: MitgliedUebersicht }) {
         <StatKachel zahl={uebersicht.dienste_jahr} label={`Dienste ${jahr}`} />
       </div>
 
-      {uebersicht.dienststunden.length > 0 && (
+      {dienststundenSichtbar.length > 0 && (
         <div className="karte">
           <h3 style={{ marginTop: 0 }}>Meine Dienststunden</h3>
-          {uebersicht.dienststunden.map((d) => {
+          {dienststundenSichtbar.map((d) => {
             const anteil =
               d.schwellenwert_stunden > 0
                 ? Math.min(100, (d.summe_stunden / d.schwellenwert_stunden) * 100)

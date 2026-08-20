@@ -31,8 +31,8 @@ bzw. über die Navigation (Admin/Gruppenführer mit Freigabe).
 
 - **Sticky-Kopfleiste** mit Suche und „+ Person hinzufügen" (bleibt beim Scrollen
   erreichbar).
-- Filter: keine E-Mail, kein Profilbild, Benachrichtigungen erlaubt/nicht erlaubt,
-  **Abonniert Ereignis** (zeigt, wer welche Mails bekommt; 📧 = aktiver Mail-Kanal).
+- Filter: keine E-Mail, kein Profilbild, **ohne PIN**, Benachrichtigungen erlaubt/nicht
+  erlaubt, **Abonniert Ereignis** (zeigt, wer welche Mails bekommt; 📧 = aktiver Mail-Kanal).
 - Auf dem Handy: Master-Detail – Personenauswahl blendet die Liste aus und zeigt nur
   die Detailansicht („← Zurück").
 

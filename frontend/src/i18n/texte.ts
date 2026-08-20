@@ -916,6 +916,7 @@ export const texte = {
     zuruecksetzen: "Zurücksetzen",
     filter_keine_mail: "Keine E-Mail hinterlegt",
     filter_kein_bild: "Kein Profilbild",
+    filter_ohne_pin: "Ohne PIN",
     filter_benachrichtigungen: "Benachrichtigungen erlaubt",
     filter_alle: "alle",
     filter_erlaubt: "erlaubt",
