@@ -30,6 +30,7 @@ export function Layout() {
         <button
           type="button"
           onClick={() => navigate(startseite(gruppenfuehrerAngemeldet, angezeigterName))}
+          aria-label={config?.organisation_name ?? "Gerätehaus.app"}
           style={{
             display: "flex",
             alignItems: "center",
@@ -43,8 +44,11 @@ export function Layout() {
             color: "inherit",
           }}
         >
-          {logoQuelle && <img src={logoQuelle} alt="Logo" />}
-          <span className="organisation">{config?.organisation_name ?? "Gerätehaus.app"}</span>
+          {logoQuelle ? (
+            <img src={logoQuelle} alt="" />
+          ) : (
+            <span className="organisation">Gerätehaus.app</span>
+          )}
         </button>
         <button
           type="button"

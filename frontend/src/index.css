@@ -216,6 +216,20 @@ button.karte:focus-visible {
   color: var(--farbe-text);
 }
 
+/* Für Screenreader/Seitenstruktur im DOM lassen, visuell aber ausblenden
+   (z. B. eine <h1>, die bereits durch ein sichtbares Logo abgedeckt ist). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .fusszeile {
   text-align: center;
   padding: var(--abstand);
