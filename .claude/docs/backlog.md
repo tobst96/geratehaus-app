@@ -16,7 +16,14 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### "Zurück zur Mitgliederseite"-Link im Gruppenführer-/Admin-Layout ergänzen
 
-- Status: Backlog
+- Status: Erledigt (22.08.2026, direkt auf beta)
+- Umsetzung: Neuer Button „Zurück zur Mitgliederseite" im Sidebar-Footer von
+  `GruppenfuehrerLayout.tsx` (über dem Abmelden-Button, gleicher `.mod-logout`-
+  Stil), nur sichtbar wenn `angezeigterName` (Mitglied-Identität) gesetzt ist;
+  navigiert per `navigate("/mitglied")` ohne `gruppenfuehrerAbmelden()`
+  aufzurufen. Neue Tests `GruppenfuehrerLayout.test.tsx` (2: Link vorhanden +
+  navigiert ohne Abmelden; Link fehlt ohne Mitglied-Identität). Volle
+  Vitest-Suite (28 Dateien, 86 Tests) + Build grün.
 - Priorität: Niedrig
 - Kategorie: Frontend
 - Skills: geraetehaus-patterns, tests, review

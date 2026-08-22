@@ -96,7 +96,7 @@ const MODUL_ICON: Record<string, string> = {
 
 export function GruppenfuehrerLayout() {
   const t = texte.gruppenfuehrer_nav;
-  const { gruppenfuehrerAbmelden, gruppenfuehrerRolle, hatModulZugriff } = useAuth();
+  const { gruppenfuehrerAbmelden, gruppenfuehrerRolle, hatModulZugriff, angezeigterName } = useAuth();
   const { config, neuLaden } = useConfig();
   const navigate = useNavigate();
   const location = useLocation();
@@ -256,6 +256,11 @@ export function GruppenfuehrerLayout() {
           ))}
         </nav>
 
+        {angezeigterName && (
+          <button type="button" className="mod-logout" onClick={() => navigate("/mitglied")}>
+            {t.zurueck_zur_mitgliederseite}
+          </button>
+        )}
         <button type="button" className="mod-logout" onClick={abmelden}>
           {t.abmelden}
         </button>

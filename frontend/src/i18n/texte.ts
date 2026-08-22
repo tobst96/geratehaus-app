@@ -375,6 +375,7 @@ export const texte = {
     menue_oeffnen: "Menü öffnen",
     menue: "Menü",
     schliessen: "Schließen",
+    zurueck_zur_mitgliederseite: "Zurück zur Mitgliederseite",
     abmelden: "Abmelden",
     // Gruppen-Überschriften
     gruppe_listen: "Listen",
