@@ -10,7 +10,9 @@ from app.services import person_bild_reservierung_service, stammdaten_service
 router = APIRouter(prefix="/person-bild-reservierungen", tags=["person-bild-reservierungen"])
 
 
-@router.get("/{token}", response_model=PersonBildReservierungInfo)
+@router.get(
+    "/{token}", response_model=PersonBildReservierungInfo, dependencies=[Depends(rate_limit(10, 60))]
+)
 async def reservierung_info(db: DbSession, token: str) -> PersonBildReservierungInfo:
     """Kontext für die mobile Foto-Upload-Seite – bewusst ohne Auth, der
     Token selbst ist das Geheimnis (kurzlebig, einmal verwendbar)."""

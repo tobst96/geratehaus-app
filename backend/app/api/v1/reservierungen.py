@@ -15,7 +15,7 @@ from app.services import einsatz_service, reservierung_service, stammdaten_servi
 router = APIRouter(prefix="/reservierungen", tags=["reservierungen"])
 
 
-@router.get("/{token}", response_model=ReservierungInfo)
+@router.get("/{token}", response_model=ReservierungInfo, dependencies=[Depends(rate_limit(15, 60))])
 async def reservierung_info(db: DbSession, token: str) -> ReservierungInfo:
     """Kontext für die mobile Eintragungs-Seite – bewusst ohne Auth, der Token
     selbst ist das Geheimnis (kurzlebig, einmal verwendbar)."""
@@ -75,7 +75,11 @@ async def reservierung_vorschau_setzen(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
-@router.get("/{token}/personen", response_model=list[ReservierungPerson])
+@router.get(
+    "/{token}/personen",
+    response_model=list[ReservierungPerson],
+    dependencies=[Depends(rate_limit(15, 60))],
+)
 async def reservierung_personen(db: DbSession, token: str) -> list[ReservierungPerson]:
     """Personen zur Auswahl auf der mobilen Eintragungs-Seite – der Token
     selbst ist auch hier das Geheimnis, das den Zugriff erlaubt."""

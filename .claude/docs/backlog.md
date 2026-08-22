@@ -361,7 +361,19 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Rate-Limit auf lesenden Reservierungs-Token-Endpunkten nachziehen (Konsistenz)
 
-- Status: Backlog
+- Status: Erledigt (22.08.2026, direkt auf beta)
+- Umsetzung: `Depends(rate_limit(...))` auf die GET-Routen aller fünf
+  Reservierungs-/Token-Router ergänzt (nicht nur die drei explizit genannten,
+  sondern konsistent auf die ganze Familie): `reservierungen.py`,
+  `dienststunden_reservierungen.py`, `dienstbuch_reservierungen.py`,
+  `fahrzeugbuchung_reservierungen.py` (`GET /{token}` + `GET /{token}/personen`,
+  je `rate_limit(15, 60)` analog dem bestehenden `vorschau`-PUT derselben
+  Datei) und `person_bild_reservierungen.py` (`GET /{token}`,
+  `rate_limit(10, 60)` analog dem einzigen POST dort). Keine neuen Tests nötig
+  – folgt demselben Muster wie die bereits rate-limitierten PUT/POST-Routen
+  derselben Dateien, die ebenfalls nicht einzeln endpunktspezifisch getestet
+  sind (`rate_limit` selbst ist generisch in `test_security.py` abgedeckt).
+  Volle Backend-Suite 509 grün.
 - Priorität: Niedrig
 - Kategorie: Backend / Sicherheit
 - Skills: geraetehaus-patterns, review

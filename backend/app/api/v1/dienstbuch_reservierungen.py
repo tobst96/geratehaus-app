@@ -15,7 +15,9 @@ from app.services import dienstbuch_reservierung_service, dienstbuch_service, st
 router = APIRouter(prefix="/dienstbuch-reservierungen", tags=["dienstbuch-reservierungen"])
 
 
-@router.get("/{token}", response_model=DienstbuchReservierungInfo)
+@router.get(
+    "/{token}", response_model=DienstbuchReservierungInfo, dependencies=[Depends(rate_limit(15, 60))]
+)
 async def reservierung_info(db: DbSession, token: str) -> DienstbuchReservierungInfo:
     """Kontext für die mobile Eintragungs-Seite – bewusst ohne Auth, der
     Token selbst ist das Geheimnis (kurzlebig, einmal verwendbar)."""
@@ -65,7 +67,11 @@ async def reservierung_vorschau_setzen(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
-@router.get("/{token}/personen", response_model=list[ReservierungPerson])
+@router.get(
+    "/{token}/personen",
+    response_model=list[ReservierungPerson],
+    dependencies=[Depends(rate_limit(15, 60))],
+)
 async def reservierung_personen(db: DbSession, token: str) -> list[ReservierungPerson]:
     reservierung = await dienstbuch_reservierung_service.get_reservierung_by_token(db, token)
     if reservierung is None:
