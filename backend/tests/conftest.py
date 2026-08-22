@@ -6,17 +6,28 @@ DATABASE_URL überschreibbar.
 
 Env-Variablen werden VOR jedem App-Import gesetzt, da Settings (.env) sonst
 production-nahe Werte laden und main.py beim Import bereits UPLOAD_DIR
-anlegt."""
+anlegt. `DATABASE_URL` bleibt bewusst `setdefault` (CI überschreibt sie
+gezielt) - die übrigen werden erzwungen, siehe WICHTIG unten.
+
+WICHTIG: Die Testsuite läuft (scripts/test-backend.sh) über
+`docker compose run ... backend`, also im selben Service, dessen `env_file`
+die ECHTE `.env` dieser Instanz lädt (u. a. echtes `ENVIRONMENT=production`
++ echte Secrets + echter `UPLOAD_DIR`). Für diese vier Variablen wäre
+`setdefault` daher ein No-op (schon gesetzt) - die Tests liefen dann
+unbemerkt mit Produktions-Environment/-Secrets statt der Test-Werte. Erst
+entdeckt, als ein `environment == "production"`-Check (Cookie-`secure`-Flag)
+mangels echtem HTTPS im Testclient reihenweise 401 statt der erwarteten
+Werte lieferte - daher hier erzwungene direkte Zuweisung statt `setdefault`."""
 
 import os
 
 os.environ.setdefault(
     "DATABASE_URL", "postgresql+asyncpg://localhost:5432/geratehaus_test"
 )
-os.environ.setdefault("UPLOAD_DIR", "/tmp/geratehaus_test_uploads")
-os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key")
-os.environ.setdefault("COOKIE_SECRET_KEY", "test-cookie-secret")
-os.environ.setdefault("ENVIRONMENT", "test")
+os.environ["UPLOAD_DIR"] = "/tmp/geratehaus_test_uploads"
+os.environ["JWT_SECRET_KEY"] = "test-secret-key"
+os.environ["COOKIE_SECRET_KEY"] = "test-cookie-secret"
+os.environ["ENVIRONMENT"] = "test"
 
 from collections.abc import AsyncGenerator  # noqa: E402
 

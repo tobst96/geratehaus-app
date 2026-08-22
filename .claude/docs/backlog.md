@@ -345,7 +345,23 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Langlebige Session-Cookies ohne secure-Flag
 
-- Status: Backlog
+- Status: Erledigt (23.08.2026, direkt auf beta)
+- Umsetzung: `secure=settings.environment == "production"` auf Namens- und
+  Trusted-Device-Cookie in `auth.py` ergänzt. 3 neue Tests
+  (`test_cookie_security.py`).
+  **Nebenfund beim Testen:** `scripts/test-backend.sh` läuft über
+  `docker compose run ... backend` und erbt dadurch die ECHTE `.env` dieser
+  Instanz (inkl. echtem `ENVIRONMENT=production` + echten Secrets + echtem
+  `UPLOAD_DIR`) – `conftest.py`s `os.environ.setdefault(...)` war für genau
+  diese vier Variablen ein No-op, weil sie im Environment schon gesetzt
+  waren. Die Tests liefen dadurch unbemerkt mit Produktions-Environment/
+  -Secrets statt der Test-Werte (harmlos, solange nichts umgebungsabhängig
+  verzweigte) – bis der neue `secure`-Flag mangels echtem HTTPS im
+  Testclient reihenweise 401 statt 200 lieferte (Cookie wurde vom
+  Testclient nicht zurückgesendet). Fix: `conftest.py` erzwingt
+  `ENVIRONMENT`/`JWT_SECRET_KEY`/`COOKIE_SECRET_KEY`/`UPLOAD_DIR` jetzt per
+  direkter Zuweisung statt `setdefault` (nur `DATABASE_URL` bleibt bewusst
+  `setdefault`, CI überschreibt sie gezielt). Volle Suite 512 grün.
 - Priorität: Mittel
 - Kategorie: Backend / Sicherheit
 - Skills: bugfix, review

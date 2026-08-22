@@ -7,6 +7,7 @@ from sqlalchemy import select
 
 from app.api.deps import CurrentPerson, DbSession
 from app.core import datei_token, mitglied_session, gruppenfuehrer_2fa_session
+from app.core.config import settings
 from app.core.rate_limit import rate_limit
 from app.models.barcode_token import BarcodeToken
 from app.models.person import Person
@@ -60,6 +61,12 @@ def _setze_namens_cookie(response: Response, name: str) -> None:
         max_age=NAME_COOKIE_MAX_AGE_SECONDS,
         httponly=True,
         samesite="lax",
+        # In production läuft die App zwingend hinter HTTPS (siehe README) - secure=True
+        # verhindert, dass dieses 5 Jahre gültige Cookie je im Klartext über HTTP
+        # übertragen wird (z. B. bei einer Reverse-Proxy-Fehlkonfiguration). In
+        # lokaler Entwicklung/Tests (kein HTTPS) würde secure=True das Cookie
+        # dagegen unbrauchbar machen, daher nur in production gesetzt.
+        secure=settings.environment == "production",
     )
 
 
@@ -455,5 +462,6 @@ async def moderator_2fa(db: DbSession, response: Response, daten: Gruppenfuehrer
             max_age=TRUSTED_DEVICE_MAX_AGE_SECONDS,
             httponly=True,
             samesite="lax",
+            secure=settings.environment == "production",
         )
     return GruppenfuehrerLoginErgebnis(access_token=gruppenfuehrer_service.gruppenfuehrer_token(person))

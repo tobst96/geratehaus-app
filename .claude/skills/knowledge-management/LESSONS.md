@@ -229,3 +229,41 @@ gar keine Check-ins an, nicht nur zu wenige.
   aktuellen Umgebung tauchen dann wieder auf.
 - Gilt für **alle** Cron-Monitore, die den Umgebungswechsel miterlebt haben
   (divera-polling, formular-ablauf, backup, divera-personal-sync, einsatz-geplanter-abschluss).
+
+## `os.environ.setdefault(...)` in `conftest.py` schützt NICHT vor der echten `.env`
+
+### Problem
+
+`scripts/test-backend.sh` startet die Testsuite über `docker compose run ... backend`
+– also **denselben Service**, dessen `env_file` beim Start ganz normal die **echte**
+`.env` dieser Instanz lädt (echte Secrets, echter `ENVIRONMENT=production`, echter
+`UPLOAD_DIR`). `conftest.py` setzt Test-Werte für genau diese Variablen bislang per
+`os.environ.setdefault(...)` – das greift aber nur, wenn die Variable **noch gar
+nicht** gesetzt ist. Da sie über `env_file` längst gesetzt ist, war `setdefault` für
+`ENVIRONMENT`/`JWT_SECRET_KEY`/`COOKIE_SECRET_KEY`/`UPLOAD_DIR` ein reiner No-op –
+die gesamte Testsuite lief unbemerkt mit **Produktions-Werten** statt der
+beabsichtigten Test-Werte.
+
+### Symptom
+
+Lange harmlos (nichts verzweigte nach `environment`), bis ein `secure`-Flag auf
+Cookies (`secure=settings.environment == "production"`) ergänzt wurde: Der
+Testclient spricht `http://test` (kein TLS), `secure`-Cookies werden vom
+HTTP-Client-Cookiejar dann nicht mehr zurückgesendet → alle Folge-Requests, die
+sich auf das Cookie verlassen, schlagen mit 401 fehl (17 Tests in mehreren
+Dateien, u. a. `test_ohne_pin.py`, `test_mitglied_dashboard.py`). Reproduzierbar
+isoliert nachgewiesen: Fehler bestand auch **ohne** die neue Testdatei, rein durch
+den echten `.env`-Wert von `ENVIRONMENT`.
+
+### Lösung / Prävention
+
+- In `conftest.py` für Variablen, die auch in der echten `.env` gesetzt sein
+  können, **direkte Zuweisung** (`os.environ["X"] = "..."`) statt `setdefault`
+  verwenden – Test-Isolation muss Vorrang vor einem eventuell schon gesetzten
+  Produktionswert haben.
+- Ausnahme bewusst `DATABASE_URL`: bleibt `setdefault`, weil CI diese Variable
+  **gezielt von außen überschreiben** können soll (Kommentar im Code).
+- Bei jedem neuen `environment ==`/`settings.<x>`-basierten Verzweigen im Code
+  kurz prüfen, ob die Testsuite wirklich den Test-Wert sieht, nicht den der
+  echten `.env` dieser Instanz – am einfachsten mit einem gezielten Fehlschlag
+  wie oben (nicht mit einem `print`, das könnte übersehen werden).
