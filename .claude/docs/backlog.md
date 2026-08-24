@@ -759,7 +759,15 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Kiosk-Zugang (PIN/Barcode) und Erhöhter Zugang (Admin/Gruppenführer-Passwort) in einem Tab
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, direkt auf beta)
+- Umsetzung: Die beiden Tab-Objekte im `tabs`-Array (`Personal.tsx`)
+  zusammengelegt – der separate „Erhöhter Zugang"-Tab-Eintrag entfernt,
+  sein Inhalt (Rollen-Auswahl, Passwort, 2FA-Status, Zugang-entziehen) als
+  eigener Abschnitt mit `<h3>`-Zwischenüberschrift ans Ende des „Zugang"-Tabs
+  angehängt, weiterhin nur für Admins sichtbar (`{istAdmin && (...)}` statt
+  des vorherigen `sichtbar: istAdmin` auf Tab-Ebene). Keine Funktionalität
+  entfernt, reine UI-Umgruppierung. `npm run build` + volle Vitest-Suite
+  (29 Dateien, 88 Tests) grün.
 - Priorität: Niedrig
 - Kategorie: Frontend
 - Skills: geraetehaus-patterns, review

@@ -1208,6 +1208,78 @@ export function Personal() {
                             {txt.barcode_deaktiviert}
                           </p>
                         )}
+
+                        {istAdmin &&
+                          (() => {
+                            const eintrag = elevatedMap[person.id];
+                            const rolle = eintrag?.gruppenfuehrer_rolle ?? null;
+                            return (
+                              <>
+                                <h3 style={{ marginTop: 24 }}>{txt.tab_erhoehter_zugang}</h3>
+                                <p className="text-mute">{txt.erhoehter_zugang_hinweis}</p>
+                                <div className="person-felder">
+                                  <select
+                                    value={rolle ?? ""}
+                                    onChange={(e) => {
+                                      const wert = e.target.value;
+                                      if (wert === "") zugangEntziehen(person);
+                                      else zugangSetzen(person, wert as ElevatedRolle);
+                                    }}
+                                  >
+                                    <option value="">{txt.normales_mitglied}</option>
+                                    <option value="gruppenfuehrer">{txt.gruppenfuehrer}</option>
+                                    <option value="admin">{txt.administrator}</option>
+                                  </select>
+                                </div>
+                                {!rolle && (
+                                  <div className="person-felder" style={{ marginTop: 8 }}>
+                                    <input
+                                      type="password"
+                                      placeholder={txt.ph_login_passwort}
+                                      value={zugangPasswort}
+                                      autoComplete="new-password"
+                                      onChange={(e) => setZugangPasswort(e.target.value)}
+                                    />
+                                  </div>
+                                )}
+                                {rolle && (
+                                  <>
+                                    <p className="text-mute" style={{ marginTop: 8 }}>
+                                      {txt.aktuelle_rolle} {rolle === "admin" ? txt.administrator : txt.gruppenfuehrer} ·
+                                      {txt.rolle_2fa} {eintrag?.zwei_faktor_aktiv ? txt.aktiv : txt.inaktiv}
+                                    </p>
+                                    <div className="person-aktionen" style={{ marginTop: 12 }}>
+                                      <button
+                                        type="button"
+                                        className="sekundaer"
+                                        onClick={() => zugangPasswortNeu(person)}
+                                      >
+                                        {txt.passwort_neu}
+                                      </button>
+                                      {eintrag?.zwei_faktor_aktiv && (
+                                        <button
+                                          type="button"
+                                          className="sekundaer"
+                                          onClick={() => zugang2faReset(person)}
+                                        >
+                                          {txt.zwei_fa_reset}
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
+                                        className="sekundaer"
+                                        style={{ color: "#d64545" }}
+                                        onClick={() => zugangEntziehen(person)}
+                                      >
+                                        {txt.zugang_entziehen}
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                                {zugangFehler && <Fehlertext>{zugangFehler}</Fehlertext>}
+                              </>
+                            );
+                          })()}
                       </>
                     ),
                   },
@@ -1293,82 +1365,6 @@ export function Personal() {
                         );
                       })()
                     ),
-                  },
-                  {
-                    key: "erhoehter-zugang",
-                    label: txt.tab_erhoehter_zugang,
-                    sichtbar: istAdmin,
-                    inhalt: (() => {
-                      const eintrag = elevatedMap[person.id];
-                      const rolle = eintrag?.gruppenfuehrer_rolle ?? null;
-                      return (
-                        <>
-                          <p className="text-mute">
-                            {txt.erhoehter_zugang_hinweis}
-                          </p>
-                          <div className="person-felder">
-                            <select
-                              value={rolle ?? ""}
-                              onChange={(e) => {
-                                const wert = e.target.value;
-                                if (wert === "") zugangEntziehen(person);
-                                else zugangSetzen(person, wert as ElevatedRolle);
-                              }}
-                            >
-                              <option value="">{txt.normales_mitglied}</option>
-                              <option value="gruppenfuehrer">{txt.gruppenfuehrer}</option>
-                              <option value="admin">{txt.administrator}</option>
-                            </select>
-                          </div>
-                          {!rolle && (
-                            <div className="person-felder" style={{ marginTop: 8 }}>
-                              <input
-                                type="password"
-                                placeholder={txt.ph_login_passwort}
-                                value={zugangPasswort}
-                                autoComplete="new-password"
-                                onChange={(e) => setZugangPasswort(e.target.value)}
-                              />
-                            </div>
-                          )}
-                          {rolle && (
-                            <>
-                              <p className="text-mute" style={{ marginTop: 8 }}>
-                                {txt.aktuelle_rolle} {rolle === "admin" ? txt.administrator : txt.gruppenfuehrer} ·
-                                {txt.rolle_2fa} {eintrag?.zwei_faktor_aktiv ? txt.aktiv : txt.inaktiv}
-                              </p>
-                              <div className="person-aktionen" style={{ marginTop: 12 }}>
-                                <button
-                                  type="button"
-                                  className="sekundaer"
-                                  onClick={() => zugangPasswortNeu(person)}
-                                >
-                                  {txt.passwort_neu}
-                                </button>
-                                {eintrag?.zwei_faktor_aktiv && (
-                                  <button
-                                    type="button"
-                                    className="sekundaer"
-                                    onClick={() => zugang2faReset(person)}
-                                  >
-                                    {txt.zwei_fa_reset}
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  className="sekundaer"
-                                  style={{ color: "#d64545" }}
-                                  onClick={() => zugangEntziehen(person)}
-                                >
-                                  {txt.zugang_entziehen}
-                                </button>
-                              </div>
-                            </>
-                          )}
-                          {zugangFehler && <Fehlertext>{zugangFehler}</Fehlertext>}
-                        </>
-                      );
-                    })(),
                   },
                 ];
                 const sichtbareTabs = tabs.filter((t) => t.sichtbar !== false);
