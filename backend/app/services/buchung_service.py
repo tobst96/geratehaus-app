@@ -154,6 +154,48 @@ async def konfliktvergleich(db: AsyncSession, buchung: FahrzeugBuchung) -> list[
     return list(result.scalars().all())
 
 
+async def konfliktvergleich_batch(
+    db: AsyncSession, buchung_ids: list[int]
+) -> dict[int, list[FahrzeugBuchung]]:
+    """Wie konfliktvergleich(), aber für mehrere Buchungen auf einmal - zwei
+    Datenbankabfragen statt einer pro Buchung (N+1 vermeiden, siehe Backlog
+    Etappe AE „N+1-Fetch bei Buchungs-Konfliktvergleich"). Unbekannte IDs fehlen
+    einfach im Ergebnis-Dict, statt einen Fehler zu werfen."""
+    if not buchung_ids:
+        return {}
+    ziel_buchungen = list(
+        (
+            await db.execute(select(FahrzeugBuchung).where(FahrzeugBuchung.id.in_(buchung_ids)))
+        ).scalars()
+    )
+    if not ziel_buchungen:
+        return {}
+    fahrzeug_ids = {b.fahrzeug_id for b in ziel_buchungen}
+    kandidaten = list(
+        (
+            await db.execute(
+                select(FahrzeugBuchung)
+                .options(*_DETAILS)
+                .where(
+                    FahrzeugBuchung.fahrzeug_id.in_(fahrzeug_ids),
+                    FahrzeugBuchung.status.in_(AKTIVE_STATUS),
+                )
+            )
+        ).scalars()
+    )
+    return {
+        buchung.id: [
+            k
+            for k in kandidaten
+            if k.id != buchung.id
+            and k.fahrzeug_id == buchung.fahrzeug_id
+            and k.von < buchung.bis
+            and k.bis > buchung.von
+        ]
+        for buchung in ziel_buchungen
+    }
+
+
 async def genehmigen(db: AsyncSession, buchung: FahrzeugBuchung) -> FahrzeugBuchung:
     buchung.status = "genehmigt"
     buchung.ablehnungsgrund = None

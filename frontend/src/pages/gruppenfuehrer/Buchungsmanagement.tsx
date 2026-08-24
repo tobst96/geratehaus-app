@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import {
   holeBuchungenListe,
-  holeKonfliktvergleich,
+  holeKonfliktvergleichBatch,
   buchungGenehmigen,
   buchungAblehnen,
 } from "../../api/gruppenfuehrer";
@@ -24,10 +24,10 @@ export function Buchungsmanagement() {
       const liste = await holeBuchungenListe({ status: "ausstehend" });
       setBuchungen(liste);
       setFehler(null);
-      const ergebnisse = await Promise.all(liste.map((b) => holeKonfliktvergleich(b.id)));
+      const ergebnis = await holeKonfliktvergleichBatch(liste.map((b) => b.id));
       const neueKonflikte: Record<number, BuchungOut[]> = {};
-      liste.forEach((b, i) => {
-        neueKonflikte[b.id] = ergebnisse[i];
+      liste.forEach((b) => {
+        neueKonflikte[b.id] = ergebnis[String(b.id)] ?? [];
       });
       setKonflikte(neueKonflikte);
     } catch (err) {

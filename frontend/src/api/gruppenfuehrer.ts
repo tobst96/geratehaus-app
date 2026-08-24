@@ -461,6 +461,13 @@ export const ladeFunktionStempelPdf = (id: number, name: string) =>
 
 export const holeKonfliktvergleich = (buchungId: number) =>
   apiGet<BuchungOut[]>(`/gruppenfuehrer/buchungen/${buchungId}/konflikte`);
+/** Wie holeKonfliktvergleich, aber für mehrere Buchungen auf einmal (ein Request
+ * statt einem pro ausstehender Buchung) - Schlüssel im Ergebnis sind Buchungs-IDs
+ * als String (JSON-Objektschlüssel sind immer Strings). */
+export const holeKonfliktvergleichBatch = (buchungIds: number[]) =>
+  apiPost<Record<string, BuchungOut[]>>("/gruppenfuehrer/buchungen/konflikte-batch", {
+    buchung_ids: buchungIds,
+  });
 export const buchungGenehmigen = (buchungId: number) =>
   apiPost<BuchungOut>(`/gruppenfuehrer/buchungen/${buchungId}/genehmigen`);
 export const buchungAblehnen = (buchungId: number, grund: string | null) =>

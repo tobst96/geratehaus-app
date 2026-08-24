@@ -43,6 +43,10 @@ class BuchungAblehnen(BaseModel):
     grund: str | None = None
 
 
+class BuchungIds(BaseModel):
+    buchung_ids: list[int]
+
+
 class ExternerTerminOut(BaseModel):
     titel: str
     von: datetime

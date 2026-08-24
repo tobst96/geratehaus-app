@@ -4,12 +4,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BuchungOut } from "../../api/types";
 
 const holeBuchungenListe = vi.fn();
-const holeKonfliktvergleich = vi.fn();
+const holeKonfliktvergleichBatch = vi.fn();
 const buchungGenehmigen = vi.fn();
 const buchungAblehnen = vi.fn();
 vi.mock("../../api/gruppenfuehrer", () => ({
   holeBuchungenListe: (...a: unknown[]) => holeBuchungenListe(...a),
-  holeKonfliktvergleich: (...a: unknown[]) => holeKonfliktvergleich(...a),
+  holeKonfliktvergleichBatch: (...a: unknown[]) => holeKonfliktvergleichBatch(...a),
   buchungGenehmigen: (...a: unknown[]) => buchungGenehmigen(...a),
   buchungAblehnen: (...a: unknown[]) => buchungAblehnen(...a),
 }));
@@ -34,9 +34,16 @@ const BUCHUNG: BuchungOut = {
 describe("Buchungsmanagement (Anfragen genehmigen/ablehnen)", () => {
   beforeEach(() => {
     holeBuchungenListe.mockReset().mockResolvedValue([BUCHUNG]);
-    holeKonfliktvergleich.mockReset().mockResolvedValue([]);
+    holeKonfliktvergleichBatch.mockReset().mockResolvedValue({});
     buchungGenehmigen.mockReset().mockResolvedValue(undefined);
     buchungAblehnen.mockReset().mockResolvedValue(undefined);
+  });
+
+  it("ruft den Konfliktvergleich für alle ausstehenden Buchungen in einem Batch-Request ab", async () => {
+    render(<Buchungsmanagement />);
+    await screen.findByText("LF 20");
+    expect(holeKonfliktvergleichBatch).toHaveBeenCalledTimes(1);
+    expect(holeKonfliktvergleichBatch).toHaveBeenCalledWith([8]);
   });
 
   it("genehmigt eine ausstehende Anfrage", async () => {

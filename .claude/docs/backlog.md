@@ -375,7 +375,23 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### React-Performance: fehlende Memoisierung (useMemo/useCallback/Context)
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, direkt auf beta) – begrenzt auf die zwei
+  konkret genannten Stellen, siehe Notizen
+- Umsetzung: `ConfigContext.tsx` – `neuLaden` per `useCallback` stabilisiert,
+  das Provider-`value`-Objekt per `useMemo` (deps `[config, ladeFehler,
+  neuLaden]`). `Personal.tsx` – die gefilterte Liste (`gefiltert`) ist jetzt
+  `useMemo`-basiert statt bei jedem Render neu berechnet; dafür VOR die
+  Early-Returns (`if (fehler)`/`if (!liste)`) verschoben, da Hooks nicht
+  nach bedingten Returns stehen dürfen (Rules of Hooks) – innerhalb des
+  Memo-Callbacks selbst wird `!liste` weiterhin abgefangen (`[]`). Kein
+  Verhaltensunterschied, volle Vitest-Suite grün.
+- Notizen: Die 16 `eslint`-Warnungen (`react-hooks/exhaustive-deps` u. a.
+  fehlendes `laden` in mehreren `useEffect`s) bewusst NICHT mit angefasst –
+  das sind potenzielle Stale-Closure-Bugs, keine reinen
+  Performance-Fragen, und jede einzelne bräuchte eine eigene
+  Verhaltens-Prüfung (Gefahr von Endlosschleifen bei naivem
+  `useCallback`-Hinzufügen ohne Deps-Analyse). Bleiben als eigener,
+  bewusst abgegrenzter Folge-Punkt.
 - Priorität: Niedrig
 - Kategorie: Frontend / Performance
 - Skills: geraetehaus-patterns, review
@@ -399,9 +415,44 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   Berechtigungen/Buchungsmanagement/Systemstatus/Update/Fahrzeugbuchung) –
   Ausgangspunkt für die Umsetzung dieser Aufgabe, statt neu zu suchen.
 
-### N+1-Fetch bei Buchungs-Konfliktvergleich
+### `useEffect`-Abhängigkeiten: 16 ESLint-Warnungen (react-hooks/exhaustive-deps)
 
 - Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / Bugfix
+- Skills: geraetehaus-patterns, tests, review
+- Beschreibung: Abgetrennt von „React-Performance: fehlende Memoisierung"
+  (24.08.2026) – bewusst nicht im selben Aufwasch miterledigt, da es hier
+  nicht um reine Performance, sondern um potenzielle **Stale-Closure-Bugs**
+  geht (der Effekt „sieht" ggf. eine veraltete Version von `laden`/`t.xxx`).
+  `npm run lint` listet aktuell 16 Fundstellen, größtenteils fehlendes
+  `laden` in `useEffect([], ...)` in `Dashboard.tsx`, `AuditLog.tsx`,
+  `Berechtigungen.tsx`, `Buchungsmanagement.tsx`, `Systemstatus.tsx`,
+  `Update.tsx`, `Fahrzeugbuchung.tsx` (2x), plus vereinzelte `t.xxx`-Fälle
+  und 3 `react-refresh/only-export-components`-Hinweise in den Context-Dateien.
+- Akzeptanzkriterien: Jede Fundstelle einzeln geprüft und behoben (i. d. R.
+  `laden` per `useCallback` stabilisieren und in die Deps aufnehmen statt
+  blind zu ergänzen – sonst Gefahr einer Endlosschleife, wenn `laden` bei
+  jedem Render neu erzeugt wird). `npm run lint` am Ende bei 0 Findings
+  (oder bewusst verbleibende mit Begründung kommentiert).
+- Notizen: Jede Datei einzeln anfassen und danach manuell/per Test prüfen,
+  dass kein Dauer-Reload/keine Endlosschleife entsteht – kein
+  Sammel-Commit über alle 7 Dateien auf einmal.
+
+### N+1-Fetch bei Buchungs-Konfliktvergleich
+
+- Status: Erledigt (24.08.2026, direkt auf beta)
+- Umsetzung: Neuer Batch-Endpunkt `POST /gruppenfuehrer/buchungen/konflikte-batch`
+  (`buchung_ids: list[int]` → `dict[int, list[BuchungOut]]`), neue
+  Service-Funktion `buchung_service.konfliktvergleich_batch` (zwei
+  Datenbankabfragen statt einer pro Buchung: erst die Ziel-Buchungen per
+  `id IN (...)`, dann alle aktiven Kandidaten der betroffenen Fahrzeuge in
+  einem Rutsch, Überschneidung in Python berechnet). Frontend
+  (`Buchungsmanagement.tsx`) nutzt jetzt `holeKonfliktvergleichBatch(ids)`
+  statt `Promise.all(liste.map(holeKonfliktvergleich))`. 5 neue
+  Backend-Tests (`test_buchung_konflikte_batch.py`), bestehender Frontend-Test
+  auf die neue Funktion umgestellt + 1 neuer Test (Batch-Aufruf mit allen
+  IDs). Volle Suiten grün (Backend 526, Frontend 29/89).
 - Priorität: Niedrig
 - Kategorie: Frontend / Backend / Performance
 - Skills: geraetehaus-patterns, tests, review

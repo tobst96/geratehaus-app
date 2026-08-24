@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import DbSession, require_modul_zugriff
 from app.models.person import Person
-from app.schemas.buchung import BuchungAblehnen, BuchungOut
+from app.schemas.buchung import BuchungAblehnen, BuchungIds, BuchungOut
 from app.services import audit_service, buchung_service
 
 router = APIRouter(prefix="/gruppenfuehrer/buchungen", tags=["gruppenfuehrer:buchungen"])
@@ -12,6 +12,15 @@ router = APIRouter(prefix="/gruppenfuehrer/buchungen", tags=["gruppenfuehrer:buc
 # Buchungen genehmigen/ablehnen/vergleichen erfordert das Modul-Recht
 # „fahrzeugbuchung" (Admin-Bypass).
 FahrzeugbuchungZugriff = Annotated[Person, Depends(require_modul_zugriff("fahrzeugbuchung"))]
+
+
+@router.post("/konflikte-batch", response_model=dict[int, list[BuchungOut]])
+async def konfliktvergleich_batch(
+    db: DbSession, _gruppenfuehrer: FahrzeugbuchungZugriff, daten: BuchungIds
+) -> dict[int, list[BuchungOut]]:
+    """Wie GET /{buchung_id}/konflikte, aber für mehrere Buchungen auf einmal -
+    vermeidet einen Request pro ausstehender Buchung (siehe Backlog Etappe AE)."""
+    return await buchung_service.konfliktvergleich_batch(db, daten.buchung_ids)
 
 
 @router.get("/{buchung_id}/konflikte", response_model=list[BuchungOut])

@@ -1,5 +1,5 @@
 import { Fehlertext } from "../../components/Fehlertext";
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { formatiereDatum,formatiereDatumZeit,formatiereZeit } from "../../utils/datum";
 import QRCode from "qrcode";
 import {
@@ -630,20 +630,34 @@ export function Personal() {
     await laden();
   }
 
+  // Vor den Early-Returns (Rules of Hooks) - Liste kann hier noch null sein.
+  const gefiltert = useMemo(() => {
+    if (!liste) return [];
+    const suchbegriff = suche.trim().toLowerCase();
+    return liste.filter((p) => {
+      if (suchbegriff && !p.name.toLowerCase().includes(suchbegriff)) return false;
+      if (filterKeineMail && p.email) return false;
+      if (filterKeinBild && p.bild_url) return false;
+      if (filterOhnePin && p.pin_gesetzt) return false;
+      if (filterBenachrichtigung === "an" && !p.benachrichtigungen_aktiv) return false;
+      if (filterBenachrichtigung === "aus" && p.benachrichtigungen_aktiv) return false;
+      if (filterAbo && !aboUebersicht[p.id]?.ereignisse.includes(filterAbo)) return false;
+      return true;
+    });
+  }, [
+    liste,
+    suche,
+    filterKeineMail,
+    filterKeinBild,
+    filterOhnePin,
+    filterBenachrichtigung,
+    filterAbo,
+    aboUebersicht,
+  ]);
+
   if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!liste) return <Ladeanzeige />;
 
-  const suchbegriff = suche.trim().toLowerCase();
-  const gefiltert = liste.filter((p) => {
-    if (suchbegriff && !p.name.toLowerCase().includes(suchbegriff)) return false;
-    if (filterKeineMail && p.email) return false;
-    if (filterKeinBild && p.bild_url) return false;
-    if (filterOhnePin && p.pin_gesetzt) return false;
-    if (filterBenachrichtigung === "an" && !p.benachrichtigungen_aktiv) return false;
-    if (filterBenachrichtigung === "aus" && p.benachrichtigungen_aktiv) return false;
-    if (filterAbo && !(aboUebersicht[p.id]?.ereignisse.includes(filterAbo))) return false;
-    return true;
-  });
   const ausgewaehltePerson = liste.find((p) => p.id === ausgewaehlteId) ?? null;
   const aktiveFilter =
     (filterKeineMail ? 1 : 0) +

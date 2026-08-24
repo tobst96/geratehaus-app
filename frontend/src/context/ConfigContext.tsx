@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { apiGet } from "../api/client";
 import type { OeffentlicheKonfiguration } from "../api/types";
 import { sentryInitialisieren } from "../sentry";
@@ -101,11 +101,13 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     };
   }, [version]);
 
-  return (
-    <ConfigContext.Provider value={{ config, ladeFehler, neuLaden: () => setVersion((v) => v + 1) }}>
-      {children}
-    </ConfigContext.Provider>
-  );
+  // Stabile Identität für neuLaden (kein neuer Funktionswert bei jedem Render) und
+  // für das Provider-value-Objekt selbst - sonst rendert jeder Consumer bei jedem
+  // Render dieses Providers neu, auch wenn sich config/ladeFehler gar nicht ändern.
+  const neuLaden = useCallback(() => setVersion((v) => v + 1), []);
+  const value = useMemo(() => ({ config, ladeFehler, neuLaden }), [config, ladeFehler, neuLaden]);
+
+  return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>;
 }
 
 export function useConfig(): ConfigContextValue {
