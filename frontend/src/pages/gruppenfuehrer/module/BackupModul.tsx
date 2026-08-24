@@ -88,7 +88,11 @@ export function BackupModul() {
     setEinst((e) => {
       if (!e) return e;
       const set = new Set(e.wochentage);
-      set.has(tag) ? set.delete(tag) : set.add(tag);
+      if (set.has(tag)) {
+        set.delete(tag);
+      } else {
+        set.add(tag);
+      }
       return { ...e, wochentage: [...set].sort() };
     });
   }
@@ -569,7 +573,11 @@ export function BackupModul() {
                   onChange={(e) =>
                     setGewaehlt((s) => {
                       const neu = new Set(s);
-                      e.target.checked ? neu.add(k.key) : neu.delete(k.key);
+                      if (e.target.checked) {
+                        neu.add(k.key);
+                      } else {
+                        neu.delete(k.key);
+                      }
                       return neu;
                     })
                   }

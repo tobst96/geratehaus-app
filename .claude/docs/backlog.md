@@ -248,8 +248,12 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   Kernkomponenten mit `useMemo` versehen, Context-Provider-`value`
   memoisiert. Kein Verhaltensunterschied, nur Performance.
 - Notizen: Aus Frontend-Performance-Audit 18.08.2026. Hängt inhaltlich mit
-  „Kein ESLint/Prettier-Setup" (unten) zusammen – ein Hooks-Lint hätte das
-  automatisch angezeigt.
+  „Kein ESLint/Prettier-Setup" zusammen – seit dessen Umsetzung (24.08.2026)
+  liefert `npm run lint` eine konkrete Fundliste von 16
+  `react-hooks/exhaustive-deps`/`react-refresh`-Warnungen (u. a. mehrere
+  `useEffect` mit fehlendem `laden`-Dependency in Dashboard/AuditLog/
+  Berechtigungen/Buchungsmanagement/Systemstatus/Update/Fahrzeugbuchung) –
+  Ausgangspunkt für die Umsetzung dieser Aufgabe, statt neu zu suchen.
 
 ### N+1-Fetch bei Buchungs-Konfliktvergleich
 
@@ -269,7 +273,25 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Kein ESLint/Prettier-Setup im Frontend
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, direkt auf beta)
+- Umsetzung: ESLint 9 (Flat Config, `frontend/eslint.config.js`) +
+  `typescript-eslint` + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh`;
+  neues `npm run lint`-Script. Erster Lauf zeigte 4 Fehler (alle dasselbe
+  harmlose Muster: Ternary nur für Seiteneffekt statt Wert, z. B.
+  `set.has(x) ? set.delete(x) : set.add(x)` in `BackupModul.tsx` (2x) und
+  `PresseberichtModul.tsx`; plus ein veralteter Triple-Slash-Import in
+  `vite.config.ts`) – alle vier behoben (zu `if/else` bzw. normalem
+  `import`, keine Verhaltensänderung). Zusätzlich 4 inzwischen wirkungslose
+  `eslint-disable-next-line react-hooks/exhaustive-deps`-Kommentare entfernt
+  (ESLint selbst bestätigte „no problems were reported", reine
+  Kommentar-Leichen). **Bewusst nicht behoben:** die verbleibenden 16
+  `react-hooks/exhaustive-deps`/`react-refresh`-Warnungen (Baseline nach
+  Fixes: 0 Fehler, 16 Warnungen, `npm run lint` exit 0) – das ist exakt der
+  Umfang der separaten [[Etappe AE]] „React-Performance: fehlende
+  Memoisierung" und dort jetzt konkret als Fundliste verwertbar. Prettier
+  nicht ergänzt (bestehende Formatierung durchgängig konsistent, deckt sich
+  mit der im Akzeptanzkriterium erlaubten Alternative). Volle Vitest-Suite
+  (28 Dateien, 86 Tests) + Build grün.
 - Priorität: Niedrig
 - Kategorie: Frontend / DevOps
 - Skills: geraetehaus-patterns, review

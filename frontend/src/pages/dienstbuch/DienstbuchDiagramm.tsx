@@ -70,7 +70,6 @@ export function DienstbuchDiagramm({ dienstbuch, gruppen, onAktualisiert, onCanc
         if (profil.gruppe_id !== null) setGruppeId(profil.gruppe_id);
       }).catch(() => undefined);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mitgliedModus.aktiv]);
 
   function zuruecksetzen() {

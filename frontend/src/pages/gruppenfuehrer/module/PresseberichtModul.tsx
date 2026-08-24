@@ -84,7 +84,11 @@ export function PresseberichtModul() {
     setEinst((e) => {
       if (!e) return e;
       const set = new Set(e.zusatzfelder);
-      set.has(schluessel) ? set.delete(schluessel) : set.add(schluessel);
+      if (set.has(schluessel)) {
+        set.delete(schluessel);
+      } else {
+        set.add(schluessel);
+      }
       return { ...e, zusatzfelder: [...set] };
     });
     setGespeichert(false);

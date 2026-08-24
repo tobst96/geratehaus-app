@@ -139,7 +139,6 @@ function PersonIdentifikationImpl(
         .catch(() => setTreffer([]));
     }, 250);
     return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suche, gewaehlt, barcodeModus, kioskModus]);
 
   // Profilbild schon bei der Namensauswahl in den Browser-Cache vorladen, damit

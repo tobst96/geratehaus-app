@@ -152,7 +152,6 @@ export function Einstellungen() {
 
   useEffect(() => {
     laden();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function speichern(e: FormEvent) {

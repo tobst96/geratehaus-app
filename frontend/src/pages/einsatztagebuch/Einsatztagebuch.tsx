@@ -67,7 +67,6 @@ export function Einsatztagebuch() {
     laden();
     const intervall = setInterval(laden, POLL_INTERVALL_MS);
     return () => clearInterval(intervall);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (fehler) return <SeitenFehler nachricht={fehler} onRetry={laden} />;
