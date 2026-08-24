@@ -92,6 +92,7 @@ export interface PersonEreignis {
   zeitpunkt: string;
   typ: string;
   beschreibung: string;
+  akteur_name: string | null;
 }
 
 export interface Gruppe {

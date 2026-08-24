@@ -996,7 +996,31 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Änderungen an Benachrichtigungen/Kanälen einer Person landen nicht im Verlauf
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, direkt auf beta)
+- Umsetzung: Offene Frage aus den Notizen entschieden: Signatur konsistent
+  DB-weit erweitert (`person_ereignis_protokollieren(..., akteur_name=None)`),
+  aber bewusst **nur dort befüllt, wo tatsächlich ein handelnder
+  Gruppenführer/Admin existiert** – Selbst-/Systemereignisse (eigene
+  PIN-Sperre durch Fehlversuche, Kiosk-Selbstidentifikation ohne PIN,
+  nächtlicher Inaktivitäts-Job, Dienststunden-Selbststempeln) bleiben bewusst
+  ohne Akteur (`NULL`), das ist dort semantisch korrekt und kein
+  Kleinerer-Umbau-Kompromiss. Neue nullable Spalte `akteur_name` (Migration
+  0071), Model + `PersonEreignisOut`-Schema erweitert. Akteur wird jetzt
+  protokolliert bei: Stammdaten-Änderung, Profilbild-Upload durch Admin,
+  PIN setzen/entsperren durch Admin, Divera-Vorschlag übernehmen,
+  Dienststunden-Nacherfassung durch Admin – und, als eigentliches Ziel dieser
+  Aufgabe, bei `benachrichtigungskanal_service.setzen/loeschen/set_abo`
+  (neue Ereignistypen `benachrichtigungskanal_geaendert` /
+  `ereignis_abo_geaendert`, mit lesbarem Diff wie "aktiviert"/"deaktiviert"/
+  "Zielwert geändert"/"eingerichtet"/"entfernt"; kein Log bei inhaltlich
+  unverändertem Upsert). Router `gruppenfuehrer_person_kanaele.py` bindet die
+  bereits vorhandene Modul-Berechtigung jetzt zusätzlich als Parameter, um den
+  Namen zu erhalten (FastAPI cached die Dependency pro Request, kein
+  Mehraufwand). Frontend (`Personal.tsx`): neue Icons/Labels für die beiden
+  Ereignistypen, Timeline zeigt bei vorhandenem Akteur "· von {Name}" hinter
+  der Beschreibung. 9 neue Backend-Tests
+  (`test_person_ereignis_akteur.py`); volle Suite 535/535 grün,
+  `tsc --noEmit` sauber.
 - Priorität: Mittel
 - Kategorie: Bug / Datenbank / Backend
 - Skills: planner, geraetehaus-patterns, tests, review

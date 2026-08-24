@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.benachrichtigungskanal import Benachrichtigungskanal
 from app.models.person import Person
 from app.models.person_ereignis_abo import PersonEreignisAbo
+from app.services import stammdaten_service
 from app.services.config_service import config_service
 
 
@@ -31,6 +32,10 @@ KANAL_TYPEN: list[KanalTyp] = [
 ]
 
 _ERLAUBTE_TYPEN = {k.key for k in KANAL_TYPEN}
+
+
+def _kanal_label(typ: str) -> str:
+    return next((k.label for k in KANAL_TYPEN if k.key == typ), typ)
 
 
 @dataclass(frozen=True)
@@ -75,6 +80,10 @@ EREIGNIS_TYPEN: list[EreignisTyp] = [
 _ERLAUBTE_EREIGNISSE = {e.key for e in EREIGNIS_TYPEN}
 
 
+def _ereignis_label(ereignis: str) -> str:
+    return next((e.label for e in EREIGNIS_TYPEN if e.key == ereignis), ereignis)
+
+
 async def verfuegbare_ereignis_typen(db: AsyncSession) -> list[EreignisTyp]:
     """Ereignistypen, die in der Personal-Abo-UI angeboten werden: modulunabhängige
     immer, modulgebundene nur, wenn das zugehörige Modul (`modul_<key>_aktiv`)
@@ -98,7 +107,12 @@ async def liste_fuer_person(db: AsyncSession, person_id: int) -> list[Benachrich
 
 
 async def setzen(
-    db: AsyncSession, person_id: int, typ: str, zielwert: str, aktiv: bool
+    db: AsyncSession,
+    person_id: int,
+    typ: str,
+    zielwert: str,
+    aktiv: bool,
+    akteur_name: str | None = None,
 ) -> Benachrichtigungskanal | None:
     """Upsert eines Kanals (ein Kanal je person+typ). Gibt None bei unbekanntem Typ."""
     if typ not in _ERLAUBTE_TYPEN:
@@ -107,6 +121,7 @@ async def setzen(
     # wird nicht mehr gepflegt (keine doppelte Adresse).
     if typ == "mail":
         zielwert = ""
+    label = _kanal_label(typ)
     vorhanden = (
         await db.execute(
             select(Benachrichtigungskanal).where(
@@ -120,15 +135,37 @@ async def setzen(
             person_id=person_id, typ=typ, zielwert=zielwert, aktiv=aktiv
         )
         db.add(vorhanden)
+        await stammdaten_service.person_ereignis_protokollieren(
+            db,
+            person_id,
+            "benachrichtigungskanal_geaendert",
+            f"Benachrichtigungskanal „{label}“ eingerichtet ({'aktiv' if aktiv else 'inaktiv'}).",
+            akteur_name,
+        )
     else:
+        diff_teile = []
+        if vorhanden.aktiv != aktiv:
+            diff_teile.append("aktiviert" if aktiv else "deaktiviert")
+        if vorhanden.zielwert != zielwert:
+            diff_teile.append("Zielwert geändert")
         vorhanden.zielwert = zielwert
         vorhanden.aktiv = aktiv
+        if diff_teile:
+            await stammdaten_service.person_ereignis_protokollieren(
+                db,
+                person_id,
+                "benachrichtigungskanal_geaendert",
+                f"Benachrichtigungskanal „{label}“: " + ", ".join(diff_teile) + ".",
+                akteur_name,
+            )
     await db.commit()
     await db.refresh(vorhanden)
     return vorhanden
 
 
-async def loeschen(db: AsyncSession, person_id: int, typ: str) -> bool:
+async def loeschen(
+    db: AsyncSession, person_id: int, typ: str, akteur_name: str | None = None
+) -> bool:
     kanal = (
         await db.execute(
             select(Benachrichtigungskanal).where(
@@ -140,6 +177,13 @@ async def loeschen(db: AsyncSession, person_id: int, typ: str) -> bool:
     if kanal is None:
         return False
     await db.delete(kanal)
+    await stammdaten_service.person_ereignis_protokollieren(
+        db,
+        person_id,
+        "benachrichtigungskanal_geaendert",
+        f"Benachrichtigungskanal „{_kanal_label(typ)}“ entfernt.",
+        akteur_name,
+    )
     await db.commit()
     return True
 
@@ -188,7 +232,9 @@ async def abos_fuer_person(db: AsyncSession, person_id: int) -> list[str]:
     return list(result.scalars().all())
 
 
-async def set_abo(db: AsyncSession, person_id: int, ereignis: str, aktiv: bool) -> bool:
+async def set_abo(
+    db: AsyncSession, person_id: int, ereignis: str, aktiv: bool, akteur_name: str | None = None
+) -> bool:
     """Abonniert/deabonniert ein Ereignis für eine Person. False bei unbekanntem
     Ereignistyp."""
     if ereignis not in _ERLAUBTE_EREIGNISSE:
@@ -201,11 +247,26 @@ async def set_abo(db: AsyncSession, person_id: int, ereignis: str, aktiv: bool) 
             )
         )
     ).scalar_one_or_none()
+    label = _ereignis_label(ereignis)
     if aktiv and vorhanden is None:
         db.add(PersonEreignisAbo(person_id=person_id, ereignis=ereignis))
+        await stammdaten_service.person_ereignis_protokollieren(
+            db,
+            person_id,
+            "ereignis_abo_geaendert",
+            f"Benachrichtigungs-Abo „{label}“ aktiviert.",
+            akteur_name,
+        )
         await db.commit()
     elif not aktiv and vorhanden is not None:
         await db.delete(vorhanden)
+        await stammdaten_service.person_ereignis_protokollieren(
+            db,
+            person_id,
+            "ereignis_abo_geaendert",
+            f"Benachrichtigungs-Abo „{label}“ deaktiviert.",
+            akteur_name,
+        )
         await db.commit()
     return True
 

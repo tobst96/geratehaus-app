@@ -843,6 +843,9 @@ export const texte = {
     ereignis_pin_verweigert: "PIN-Zugriff verweigert",
     ereignis_inaktivitaets_warnung: "Inaktivitäts-Warnung",
     ereignis_dienststunden_erfasst: "Dienststunden erfasst",
+    ereignis_benachrichtigungskanal_geaendert: "Benachrichtigungskanal geändert",
+    ereignis_abo_geaendert: "Benachrichtigungs-Abo geändert",
+    verlauf_akteur_praefix: "von",
     // Fehler / Toasts / Prompts / Confirms
     fehler_personen_laden: "Personen konnten nicht geladen werden.",
     fehler_erster_zugang_pw: "Für den ersten Zugang ein Passwort mit mindestens 8 Zeichen setzen.",

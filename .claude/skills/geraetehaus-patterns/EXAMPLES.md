@@ -156,3 +156,39 @@ Trennung ORM ↔ Schema.
 ### Wann wiederverwenden?
 
 In jedem Endpunkt, der Personen zurückgibt.
+
+## PersonEreignis mit optionalem Akteur protokollieren
+
+### Beschreibung
+
+`stammdaten_service.person_ereignis_protokollieren(db, person_id, typ,
+beschreibung, akteur_name=None)` hat ein optionales `akteur_name`-Feld (Backlog
+Etappe T). Nicht jede Aufrufstelle hat einen sinnvollen Akteur: Selbst-/
+Systemereignisse (Kiosk-Selbstidentifikation, automatische PIN-Sperre nach
+Fehlversuchen, nächtlicher Inaktivitäts-Job) bleiben bewusst `None` – das ist
+korrekt und kein technisches Schulden-Kompromiss.
+
+### Backend
+
+- Handelt ein Gruppenführer/Admin für eine andere Person (Stammdaten ändern,
+  PIN setzen, Kanal/Abo ändern, Divera-Vorschlag entscheiden, Dienststunden
+  nacherfassen): den Namen aus der Auth-Dependency (`admin.name` /
+  `gruppenfuehrer.name`) bis zum Service durchreichen und als `akteur_name`
+  übergeben.
+- Router-Parameter dafür nicht mit `_` prefixen (sonst ist der Name nicht
+  greifbar) – auch wenn der Router-Level-`dependencies=[...]`-Eintrag die
+  Berechtigung bereits prüft, kann dieselbe Dependency zusätzlich als Parameter
+  gebunden werden; FastAPI cached sie pro Request (kein doppelter Aufruf).
+- Selbst-/Systemereignisse (Person handelt an sich selbst, Cronjob) lassen
+  `akteur_name` weg (Default `None`) – nicht künstlich befüllen.
+
+### Warum dieses Pattern?
+
+Vermeidet zwei Fehler: (a) das Akteurs-Feld nur für neue Aufrufstellen
+einzuführen und dadurch dauerhaft inkonsistent zu bleiben, (b) es überall
+zwanghaft zu befüllen, auch wo es keinen echten Akteur gibt (irreführend).
+
+### Wann wiederverwenden?
+
+Bei jeder neuen `PersonEreignis`-Aufrufstelle, die durch eine handelnde
+Gruppenführer-/Admin-Aktion ausgelöst wird.

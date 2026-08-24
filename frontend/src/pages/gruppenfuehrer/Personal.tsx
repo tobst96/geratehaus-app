@@ -158,6 +158,8 @@ const PERSON_EREIGNIS_ICON: Record<string, string> = {
   pin_zugriff_verweigert: "🚫",
   inaktivitaets_warnung: "⚠️",
   dienststunden_erfasst: "🕒",
+  benachrichtigungskanal_geaendert: "🔔",
+  ereignis_abo_geaendert: "📨",
 };
 
 // Menschliche Labels für den Verlaufs-Filter; unbekannte Typen zeigen den Rohwert.
@@ -171,6 +173,8 @@ const PERSON_EREIGNIS_LABEL: Record<string, string> = {
   pin_zugriff_verweigert: txt.ereignis_pin_verweigert,
   inaktivitaets_warnung: txt.ereignis_inaktivitaets_warnung,
   dienststunden_erfasst: txt.ereignis_dienststunden_erfasst,
+  benachrichtigungskanal_geaendert: txt.ereignis_benachrichtigungskanal_geaendert,
+  ereignis_abo_geaendert: txt.ereignis_abo_geaendert,
 };
 
 function ereignisLabel(typ: string): string {
@@ -1459,6 +1463,11 @@ export function Personal() {
                                         {formatiereDatumZeit(ereignis.zeitpunkt)}
                                       </span>
                                       <span>{ereignis.beschreibung}</span>
+                                      {ereignis.akteur_name && (
+                                        <span style={{ fontSize: "0.8rem", color: "var(--farbe-text-mute)" }}>
+                                          · {txt.verlauf_akteur_praefix} {ereignis.akteur_name}
+                                        </span>
+                                      )}
                                     </li>
                                   ))}
                               </ul>

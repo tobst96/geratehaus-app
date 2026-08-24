@@ -339,12 +339,12 @@ async def personen_csv_import(
 
 @router.put("/personen/{person_id}", response_model=PersonOut)
 async def person_aktualisieren(
-    db: DbSession, _admin: PersonalZugriff, person_id: int, daten: PersonUpdate
+    db: DbSession, admin: PersonalZugriff, person_id: int, daten: PersonUpdate
 ) -> PersonOut:
     person = await stammdaten_service.get_person(db, person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
-    person = await stammdaten_service.person_aktualisieren(db, person, daten)
+    person = await stammdaten_service.person_aktualisieren(db, person, daten, admin.name)
     return await stammdaten_service.person_zu_out(db, person)
 
 
@@ -362,36 +362,36 @@ async def person_loeschen(db: DbSession, admin: PersonalZugriff, person_id: int)
 
 @router.post("/personen/{person_id}/bild", response_model=PersonOut)
 async def person_bild_hochladen(
-    db: DbSession, _admin: PersonalZugriff, person_id: int, datei: UploadFile = File(...)
+    db: DbSession, admin: PersonalZugriff, person_id: int, datei: UploadFile = File(...)
 ) -> PersonOut:
     person = await stammdaten_service.get_person(db, person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
-    person = await stammdaten_service.person_bild_speichern(db, person, datei)
+    person = await stammdaten_service.person_bild_speichern(db, person, datei, admin.name)
     return await stammdaten_service.person_zu_out(db, person)
 
 
 @router.put("/personen/{person_id}/pin", response_model=PersonOut)
 async def person_pin_setzen(
-    db: DbSession, _admin: PersonalZugriff, person_id: int, daten: PersonPinSetzen
+    db: DbSession, admin: PersonalZugriff, person_id: int, daten: PersonPinSetzen
 ) -> PersonOut:
     person = await stammdaten_service.get_person(db, person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
-    person = await stammdaten_service.person_pin_setzen(db, person, daten.pin)
+    person = await stammdaten_service.person_pin_setzen(db, person, daten.pin, admin.name)
     return await stammdaten_service.person_zu_out(db, person)
 
 
 @router.post("/personen/{person_id}/pin-entsperren", response_model=PersonOut)
 async def person_pin_entsperren(
-    db: DbSession, _gruppenfuehrer: CurrentGruppenfuehrer, person_id: int
+    db: DbSession, gruppenfuehrer: CurrentGruppenfuehrer, person_id: int
 ) -> PersonOut:
     """Hebt eine durch zu viele Fehlversuche entstandene PIN-Sperre manuell auf
     (Gruppenführer/Gruppenführer) und setzt den Fehlversuchszähler zurück."""
     person = await stammdaten_service.get_person(db, person_id)
     if person is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
-    person = await stammdaten_service.pin_sperre_aufheben(db, person)
+    person = await stammdaten_service.pin_sperre_aufheben(db, person, gruppenfuehrer.name)
     return await stammdaten_service.person_zu_out(db, person)
 
 
@@ -475,7 +475,7 @@ async def person_dienststunden_summen(
     status_code=status.HTTP_201_CREATED,
 )
 async def person_dienststunden_erfassen(
-    db: DbSession, _admin: PersonalZugriff, person_id: int, daten: DienststundenErfassen
+    db: DbSession, admin: PersonalZugriff, person_id: int, daten: DienststundenErfassen
 ) -> DienststundenEintragOut:
     person = await stammdaten_service.get_person(db, person_id)
     if person is None:
@@ -485,7 +485,7 @@ async def person_dienststunden_erfassen(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Funktion nicht gefunden oder inaktiv."
         )
     try:
-        return await dienststunden_service.erfassen(db, person_id, daten)
+        return await dienststunden_service.erfassen(db, person_id, daten, admin.name)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
@@ -534,7 +534,7 @@ async def divera_vorschlaege_alle_uebernehmen(
 
 @router.post("/personen/divera-vorschlaege/{vorschlag_id}/entscheiden", response_model=DiveraVorschlagOut)
 async def divera_vorschlag_entscheiden(
-    db: DbSession, _admin: PersonalZugriff, vorschlag_id: int, daten: DiveraVorschlagEntscheidung
+    db: DbSession, admin: PersonalZugriff, vorschlag_id: int, daten: DiveraVorschlagEntscheidung
 ) -> DiveraVorschlagOut:
     vorschlag = await divera_personal_service.get_vorschlag(db, vorschlag_id)
     if vorschlag is None:
@@ -545,7 +545,7 @@ async def divera_vorschlag_entscheiden(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Vorschlag wurde bereits übernommen."
         )
-    return await divera_personal_service.entscheide_vorschlag(db, vorschlag, daten.aktion)
+    return await divera_personal_service.entscheide_vorschlag(db, vorschlag, daten.aktion, admin.name)
 
 
 # --- Erhöhter Zugang (Admin/Gruppenführer) – Verwaltung über Personal ---

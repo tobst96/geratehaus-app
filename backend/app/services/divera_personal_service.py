@@ -175,7 +175,7 @@ async def _neuen_vorschlag_anlegen_oder_verknuepfen(
 
 
 async def entscheide_vorschlag(
-    db: AsyncSession, vorschlag: DiveraVorschlag, aktion: str
+    db: AsyncSession, vorschlag: DiveraVorschlag, aktion: str, akteur_name: str | None = None
 ) -> DiveraVorschlag:
     if aktion == "uebernehmen":
         if vorschlag.art == "neu":
@@ -194,6 +194,7 @@ async def entscheide_vorschlag(
                     person.id,
                     "stammdaten_geaendert",
                     f"E-Mail per Divera-Vorschlag aktualisiert: „{vorschlag.vorschlag_daten.get('alte_email') or '–'}“ → „{vorschlag.vorschlag_daten['neue_email']}“",
+                    akteur_name,
                 )
         vorschlag.status = "uebernommen"
     else:

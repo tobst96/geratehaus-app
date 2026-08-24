@@ -50,6 +50,7 @@ class PersonEreignisOut(BaseModel):
     zeitpunkt: datetime
     typ: str
     beschreibung: str
+    akteur_name: str | None = None
 
 
 class AmpelEintragOut(BaseModel):

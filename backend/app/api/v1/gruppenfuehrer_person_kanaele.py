@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 
@@ -20,6 +22,11 @@ router = APIRouter(
     tags=["gruppenfuehrer:benachrichtigungskanaele"],
     dependencies=[Depends(require_modul_zugriff("personal"))],
 )
+
+# Für die mutierenden Endpunkte zusätzlich gebunden, um den Namen des
+# handelnden Gruppenführers/Admins für die Personen-Timeline zu erhalten
+# (FastAPI cached die Dependency pro Request, kein doppelter Aufruf).
+PersonalZugriff = Annotated[Person, Depends(require_modul_zugriff("personal"))]
 
 
 @router.get("/kanal-typen", response_model=list[KanalTypOut])
@@ -47,18 +54,20 @@ async def kanaele_lesen(db: DbSession, person_id: int) -> list[KanalOut]:
 
 
 @router.put("/personen/{person_id}/kanaele/{typ}", response_model=KanalOut)
-async def kanal_setzen(db: DbSession, person_id: int, typ: str, daten: KanalSetzen) -> KanalOut:
+async def kanal_setzen(
+    db: DbSession, admin: PersonalZugriff, person_id: int, typ: str, daten: KanalSetzen
+) -> KanalOut:
     await _person_oder_404(db, person_id)
-    kanal = await kanal_service.setzen(db, person_id, typ, daten.zielwert, daten.aktiv)
+    kanal = await kanal_service.setzen(db, person_id, typ, daten.zielwert, daten.aktiv, admin.name)
     if kanal is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unbekannter Kanaltyp.")
     return kanal
 
 
 @router.delete("/personen/{person_id}/kanaele/{typ}", status_code=status.HTTP_204_NO_CONTENT)
-async def kanal_loeschen(db: DbSession, person_id: int, typ: str) -> None:
+async def kanal_loeschen(db: DbSession, admin: PersonalZugriff, person_id: int, typ: str) -> None:
     await _person_oder_404(db, person_id)
-    if not await kanal_service.loeschen(db, person_id, typ):
+    if not await kanal_service.loeschen(db, person_id, typ, admin.name):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kanal nicht gefunden.")
 
 
@@ -99,7 +108,9 @@ async def abos_lesen(db: DbSession, person_id: int) -> list[str]:
 
 
 @router.put("/personen/{person_id}/abos/{ereignis}", status_code=status.HTTP_204_NO_CONTENT)
-async def abo_setzen(db: DbSession, person_id: int, ereignis: str, daten: AboSetzen) -> None:
+async def abo_setzen(
+    db: DbSession, admin: PersonalZugriff, person_id: int, ereignis: str, daten: AboSetzen
+) -> None:
     await _person_oder_404(db, person_id)
-    if not await kanal_service.set_abo(db, person_id, ereignis, daten.aktiv):
+    if not await kanal_service.set_abo(db, person_id, ereignis, daten.aktiv, admin.name):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unbekanntes Ereignis.")

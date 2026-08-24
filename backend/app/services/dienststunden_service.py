@@ -32,7 +32,12 @@ async def funktion_existiert_und_aktiv(db: AsyncSession, funktion_id: int) -> bo
     return result.scalar_one_or_none() is not None
 
 
-async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfassen) -> DienststundenEintragOut:
+async def erfassen(
+    db: AsyncSession,
+    person_id: int,
+    daten: DienststundenErfassen,
+    akteur_name: str | None = None,
+) -> DienststundenEintragOut:
     doppelt = await db.execute(
         select(Dienststunden).where(
             Dienststunden.person_id == person_id,
@@ -51,7 +56,7 @@ async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfasse
         ohne_pin=daten.ohne_pin,
     )
     db.add(eintrag)
-    await _funktion_in_stammdaten_abgleichen(db, person_id, daten.funktion_id)
+    await _funktion_in_stammdaten_abgleichen(db, person_id, daten.funktion_id, akteur_name)
     await db.commit()
     await db.refresh(eintrag)
     await _pruefe_schwellenwert(db, person_id, daten.funktion_id, eintrag.stunden)
@@ -66,6 +71,7 @@ async def erfassen(db: AsyncSession, person_id: int, daten: DienststundenErfasse
         person_id,
         "dienststunden_erfasst",
         f"{stunden_str} Stunden als {funktion.name if funktion else '?'} am {daten.datum}",
+        akteur_name,
     )
     await db.commit()
     await _stunden_mail_senden(db, person_id, daten.funktion_id, eintrag.stunden, str(daten.datum))
@@ -119,7 +125,7 @@ async def _stunden_mail_senden(
 
 
 async def _funktion_in_stammdaten_abgleichen(
-    db: AsyncSession, person_id: int, funktion_id: int
+    db: AsyncSession, person_id: int, funktion_id: int, akteur_name: str | None = None
 ) -> None:
     """Übernimmt die bei der Erfassung gewählte Funktion als neue Default-Funktion
     der Person in den Stammdaten, sofern sie abweicht, und protokolliert die
@@ -143,6 +149,7 @@ async def _funktion_in_stammdaten_abgleichen(
             "funktion_geaendert",
             f"Funktion durch Dienststunden-Erfassung geändert auf "
             f"„{neue_funktion.name if neue_funktion else '?'}“",
+            akteur_name,
         )
 
 

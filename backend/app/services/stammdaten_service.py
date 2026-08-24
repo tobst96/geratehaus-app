@@ -389,7 +389,9 @@ async def personen_csv_importieren(
     return angelegt, fehler
 
 
-async def person_aktualisieren(db: AsyncSession, person: Person, daten: PersonUpdate) -> Person:
+async def person_aktualisieren(
+    db: AsyncSession, person: Person, daten: PersonUpdate, akteur_name: str | None = None
+) -> Person:
     aenderungen = daten.model_dump(exclude_unset=True)
     alte_werte = {feld: getattr(person, feld) for feld in aenderungen}
 
@@ -437,7 +439,9 @@ async def person_aktualisieren(db: AsyncSession, person: Person, daten: PersonUp
         typ = "funktion_geaendert" if (
             list(aenderungen.keys()) == ["funktion_id"] and len(diff_teile) == 1
         ) else "stammdaten_geaendert"
-        await person_ereignis_protokollieren(db, person.id, typ, "Geändert: " + "; ".join(diff_teile))
+        await person_ereignis_protokollieren(
+            db, person.id, typ, "Geändert: " + "; ".join(diff_teile), akteur_name
+        )
 
     await db.commit()
     await db.refresh(person)
@@ -463,9 +467,13 @@ async def _gruppe_name(db: AsyncSession, gruppe_id: int | None) -> str:
 
 
 async def person_ereignis_protokollieren(
-    db: AsyncSession, person_id: int, typ: str, beschreibung: str
+    db: AsyncSession, person_id: int, typ: str, beschreibung: str, akteur_name: str | None = None
 ) -> None:
-    db.add(PersonEreignis(person_id=person_id, typ=typ, beschreibung=beschreibung))
+    db.add(
+        PersonEreignis(
+            person_id=person_id, typ=typ, beschreibung=beschreibung, akteur_name=akteur_name
+        )
+    )
 
 
 async def liste_person_ereignisse(db: AsyncSession, person_id: int) -> list[PersonEreignis]:
@@ -530,7 +538,9 @@ def _upload_pfad_aus_url(url: str | None) -> Path | None:
     return Path(settings.upload_dir) / relativ
 
 
-async def person_bild_speichern(db: AsyncSession, person: Person, datei: UploadFile) -> Person:
+async def person_bild_speichern(
+    db: AsyncSession, person: Person, datei: UploadFile, akteur_name: str | None = None
+) -> Person:
     """Speichert das Profilbild einer Person (PNG/JPEG) und aktualisiert bild_url.
 
     Der Dateiname ist ein nicht erratbares Zufallstoken (kein `person-<id>`), damit
@@ -558,7 +568,9 @@ async def person_bild_speichern(db: AsyncSession, person: Person, datei: UploadF
         altes_bild.unlink(missing_ok=True)
 
     person.bild_url = f"/uploads/personen/{dateiname}"
-    await person_ereignis_protokollieren(db, person.id, "bild_geaendert", "Profilbild aktualisiert")
+    await person_ereignis_protokollieren(
+        db, person.id, "bild_geaendert", "Profilbild aktualisiert", akteur_name
+    )
     await db.commit()
     await db.refresh(person)
     return person
@@ -628,10 +640,14 @@ async def person_zu_out(db: AsyncSession, person: Person) -> PersonOut:
 # Rollout, siehe person_pin_korrekt).
 
 
-async def person_pin_setzen(db: AsyncSession, person: Person, pin: str) -> Person:
+async def person_pin_setzen(
+    db: AsyncSession, person: Person, pin: str, akteur_name: str | None = None
+) -> Person:
     person.pin_hash = hash_secret(pin)
     person.pin_gesetzt = True
-    await person_ereignis_protokollieren(db, person.id, "pin_gesetzt", "PIN eingerichtet/geändert")
+    await person_ereignis_protokollieren(
+        db, person.id, "pin_gesetzt", "PIN eingerichtet/geändert", akteur_name
+    )
     await db.commit()
     await db.refresh(person)
     return person
@@ -716,7 +732,9 @@ async def pin_login_versuch(db: AsyncSession, person: Person, pin: str | None) -
     return False
 
 
-async def pin_sperre_aufheben(db: AsyncSession, person: Person) -> Person:
+async def pin_sperre_aufheben(
+    db: AsyncSession, person: Person, akteur_name: str | None = None
+) -> Person:
     """Hebt eine (temporäre) PIN-Sperre manuell auf (Gruppenführer) und setzt den
     Fehlversuchszähler zurück. Wird in der Personen-Timeline vermerkt."""
     war_gesperrt = _pin_gesperrt_bis(person) is not None or bool(person.pin_fehlversuche)
@@ -724,7 +742,7 @@ async def pin_sperre_aufheben(db: AsyncSession, person: Person) -> Person:
     person.pin_fehlversuche = 0
     if war_gesperrt:
         await person_ereignis_protokollieren(
-            db, person.id, "pin_entsperrt", "PIN-Sperre manuell aufgehoben."
+            db, person.id, "pin_entsperrt", "PIN-Sperre manuell aufgehoben.", akteur_name
         )
     await db.commit()
     await db.refresh(person)

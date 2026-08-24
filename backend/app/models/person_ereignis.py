@@ -21,3 +21,7 @@ class PersonEreignis(Base):
     )
     typ: Mapped[str] = mapped_column(String(64), nullable=False)
     beschreibung: Mapped[str] = mapped_column(Text, nullable=False)
+    # Wer die Änderung vorgenommen hat (Gruppenführer-/Admin-Name); NULL bei
+    # Selbst-/Systemereignissen (z. B. eigene PIN-Sperre, nächtlicher Job) und
+    # bei alten, vor Einführung dieses Felds protokollierten Einträgen.
+    akteur_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
