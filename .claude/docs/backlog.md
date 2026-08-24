@@ -12,6 +12,50 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AI – Dienststunden-QR-Stempel verlangt zusätzlichen Login
+
+### Bug: Nach Scan des Dienststunden-QR-Codes muss man sich vor/nach dem Buchen einloggen
+
+- Status: Backlog
+- Priorität: Mittel
+- Kategorie: Bug / Frontend / Backend
+- Skills: bugfix, geraetehaus-patterns, tests, review
+- Beschreibung: Nutzerrückmeldung (24.08.2026): Nach dem Scannen des
+  Dienststunden-QR-Codes muss man sich vor oder nach dem Buchen zusätzlich
+  einloggen, obwohl die Seite dafür eigentlich nicht gedacht ist.
+  Betroffene Seite vermutlich `frontend/src/pages/DienststundenStempel.tsx`
+  (Route `/dienststunden-stempel/:funktionId`, der feste, z. B. ausgedruckte
+  QR-Code für eine Funktion). Die Seite ist als **einstufiger** Ablauf
+  gebaut: `eintragen()` ruft zuerst `identRef.current.identifiziere()`
+  (Name+PIN oder Barcode, über `PersonIdentifikation` →
+  `nameLoginEinmalig`/`barcodeEinscannenEinmalig` in `AuthContext.tsx`, setzt
+  serverseitig das signierte Namens-Cookie) und **danach** `stundenErfassen()`
+  (`POST /api/v1/dienststunden`, hinter `CurrentPerson`/`require_zugriff` in
+  `backend/app/api/v1/dienststunden.py` – braucht genau dieses Cookie). Ein
+  separater Login-Schritt ist im Code nicht vorgesehen; das Formular soll
+  Identifikation und Buchung in einem Rutsch erledigen.
+- **Naheliegender Verdacht (zeitlich passend, noch nicht verifiziert):** Am
+  23.08.2026 wurde das Namens-Cookie serverseitig auf `secure=True` in
+  production umgestellt (Etappe AD, Commit „Secure-Flag auf langlebigen
+  Session-Cookies"). Wird diese Stempel-Seite (oder generell irgendein
+  Zugriffspfad) nicht zuverlässig über HTTPS aufgerufen, würde der Browser
+  das frisch gesetzte Cookie aus Schritt 1 nicht mehr an den
+  `stundenErfassen`-Request in Schritt 2 senden → 401 → aus Nutzersicht
+  „ich muss mich einloggen". **Vor jeder Codeänderung zuerst live
+  reproduzieren und die Netzwerk-Requests/Cookies dieser Seite prüfen**, ob
+  das tatsächlich die Ursache ist, statt blind zu patchen.
+- Akzeptanzkriterien: QR-Scan → Name/PIN oder Barcode eingeben → Stunden
+  wählen → Eintragen funktioniert in einem Rutsch, ohne separaten
+  Login-Screen oder 401 dazwischen. Regressionstest, der den genauen
+  aktuell reproduzierten Fehlerfall abdeckt (abhängig von der gefundenen
+  Ursache).
+- Notizen: Betrifft ggf. auch die anderen QR-/Token-Reservierungsflows
+  (`DienststundenManuelleEintragung.tsx` & Analoga für Einsatz/Dienstbuch/
+  Fahrzeugbuchung/Personenbild), falls die Ursache generisch im
+  Cookie-`secure`-Verhalten liegt statt spezifisch in `DienststundenStempel.tsx`.
+
+---
+
 ## Etappe AH – react-router-dom v6→v7 (CVE-Fix, breaking)
 
 ### `npm audit` meldet react-router (moderate) – Fix erfordert Major-Upgrade
