@@ -12,6 +12,46 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AH – react-router-dom v6→v7 (CVE-Fix, breaking)
+
+### `npm audit` meldet react-router (moderate) – Fix erfordert Major-Upgrade
+
+- Status: Backlog
+- Priorität: Niedrig
+- Kategorie: Frontend / Sicherheit / Wartung
+- Skills: planner, geraetehaus-patterns, tests, review
+- Beschreibung: Beim Einrichten des ESLint-Setups (24.08.2026,
+  `npm install`/Lockfile-Regenerierung) fiel per `npm audit` auf, dass
+  `react-router-dom` (aktuell `^6.26.2`) zwei moderate CVEs hat:
+  GHSA-wrjc-x8rr-h8h6 (Open Redirect via Backslash in `<Link>`/`useNavigate`)
+  und GHSA-337j-9hxr-rhxg (Arbitrary Constructor Injection via
+  `deserializeErrors()` bei SSR-Hydration). `npm audit fix` behebt sie nur
+  über `--force` mit Upgrade auf `react-router-dom@7.18.2` – ein **Breaking
+  Change** (v6→v7 API-Unterschiede), daher nicht ungeprüft im Rahmen des
+  ESLint-Tasks mitgemacht. Vier weitere (High) Advisories in reinen
+  Dev-Dependencies (brace-expansion, fast-uri, nanoid, postcss – alle nur
+  transitiv über ESLint/Vite-Toolchain, nicht im produktiven Bundle) wurden
+  bereits non-breaking per `npm audit fix` behoben.
+- Ersteinschätzung Ausnutzbarkeit (grob, keine Tiefenprüfung): Die App ist
+  eine reine Client-SPA ohne SSR → die Hydration-CVE greift vermutlich gar
+  nicht. Stichprobe der `navigate()`/`<Link to>`-Aufrufe zeigt nur intern
+  konstruierte Pfade (IDs/Modul-Keys aus dem Backend), keine direkte
+  Übernahme von Nutzereingaben/Query-Parametern als Redirect-Ziel – die
+  Open-Redirect-Lücke wirkt daher aktuell nicht offensichtlich ausnutzbar.
+  Trotzdem als echter CVE-Fund dokumentiert statt stillschweigend akzeptiert.
+- Akzeptanzkriterien: `react-router-dom` (+ `react-router`) auf eine Version
+  ohne offene Advisories angehoben; volle App durchgetestet (Routing,
+  verschachtelte Routen/Outlets, `useNavigate`/`useParams`/`useSearchParams`-
+  Nutzung in allen ~30 Seiten), `npm audit` wieder bei 0. Vitest-Suite +
+  `npm run build` grün.
+- Notizen: Größerer, riskanter Umbau (Major-Version einer zentralen
+  Routing-Bibliothek, breite Nutzung) → eigener Feature-Branch + PR laut
+  Projektkonvention, nicht direkt auf beta. Vor Umsetzung React-Router-v7-
+  Migrationsguide gegen die tatsächliche Nutzung in diesem Projekt prüfen
+  (Data-Router-APIs, ggf. geänderte `Outlet`/`useNavigate`-Signaturen).
+
+---
+
 ## Etappe AG – Admin/Gruppenführer: Rückwechsel zur Mitgliederseite ohne Abmelden
 
 ### "Zurück zur Mitgliederseite"-Link im Gruppenführer-/Admin-Layout ergänzen
