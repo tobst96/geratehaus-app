@@ -75,7 +75,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### `npm audit` meldet react-router (moderate) – Fix erfordert Major-Upgrade
 
-- Status: Backlog
+- Status: Erledigt (PR nach beta offen)
 - Priorität: Niedrig
 - Kategorie: Frontend / Sicherheit / Wartung
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -108,6 +108,22 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   Projektkonvention, nicht direkt auf beta. Vor Umsetzung React-Router-v7-
   Migrationsguide gegen die tatsächliche Nutzung in diesem Projekt prüfen
   (Data-Router-APIs, ggf. geänderte `Outlet`/`useNavigate`-Signaturen).
+- Umsetzung (24.08.2026, Branch `feature/react-router-v7`): reines Dependency-
+  Upgrade `react-router-dom` `^6.26.2` → `^7.18.2` (`react-router` wird von
+  `react-router-dom` intern als exakt matchende Version mitgezogen, kein
+  separates Peer-Pinning nötig). Die App nutzt klassisches
+  `<BrowserRouter>`+`<Routes>`+`<Route>` mit `React.lazy`-Code-Splitting und
+  keine Data-Router-APIs (`createBrowserRouter`/Loader/Actions) – dieser Modus
+  bleibt in v7 unverändert unterstützt, daher **keine** Code-Anpassungen
+  nötig: `tsc --noEmit` (Teil von `npm run build` im Docker-Build-Stage) lief
+  ohne Fehler durch, `Outlet`/`NavLink`/`useNavigate`/`useParams`/`Navigate`
+  in `App.tsx`, `GruppenfuehrerLayout.tsx`, `Layout.tsx`, `AdminRoute.tsx`,
+  `BerechtigungRoute.tsx`, `GruppenfuehrerRoute.tsx` sowie allen `:token`/`:id`-
+  Routen kompilieren unverändert. Vitest-Suite (`scripts/test-frontend.sh`):
+  29 Testdateien / 89 Tests grün, keine Anpassung nötig. `npm audit`: vorher 2
+  moderate react-router-CVEs (GHSA-wrjc-x8rr-h8h6, GHSA-337j-9hxr-rhxg) →
+  nachher `found 0 vulnerabilities`. `docker build --target build ./frontend`
+  erfolgreich (Produktions-Build inkl. `vite build`).
 
 ---
 
