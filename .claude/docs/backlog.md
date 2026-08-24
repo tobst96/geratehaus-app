@@ -827,7 +827,26 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Beim Anlegen einer Person direkt PIN, E-Mail, Passwort, Benachrichtigungen mit einstellen können
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, direkt auf beta) – **Passwort/Erhöhter
+  Zugang bewusst nicht mit ins Bündel genommen** (siehe Notizen)
+- Umsetzung: Ein einzelnes, aufklappbares „+ Weitere Angaben"-Feld direkt im
+  bestehenden Anlegen-Dialog (`Personal.tsx`), standardmäßig eingeklappt
+  (Anlegen-Dialog bleibt für den Standardfall genauso schlank wie vorher).
+  Aufgeklappt: E-Mail, PIN (+ Wiederholung, gleiche Validierung wie das
+  bestehende Prompt-basierte PIN-setzen: 4-6 Ziffern, Übereinstimmung),
+  Benachrichtigungen-aktiv-Checkbox (deaktiviert ohne E-Mail, wie überall
+  sonst im Projekt). `personAnlegen` bekommt jetzt auch `email` mit (Backend
+  `PersonCreate` unterstützte das bereits); PIN/Benachrichtigungen laufen
+  als Nacharbeit-Schritte direkt danach (`personPinSetzen`/
+  `personAktualisieren`). Schlägt einer dieser Nacharbeit-Schritte fehl,
+  bleibt die Person trotzdem angelegt (kein Rollback) – nur eine
+  Toast-Meldung informiert, statt den ganzen Vorgang abzubrechen. `npm run
+  build` + volle Vitest-Suite (29 Dateien, 88 Tests) grün.
+- Notizen: Passwort/„Erhöhter Zugang" bewusst NICHT ins Anlege-Bündel
+  aufgenommen – das ist eine seltenere, sicherheitsrelevantere Aktion
+  (Rollenvergabe + Login-Fähigkeit), für die der bestehende dedizierte
+  „Zugang"-Tab (siehe [[Etappe X]]) der passendere, bewusstere Ort bleibt,
+  statt sie in einem "schnell mal alles ausfüllen"-Dialog zu verstecken.
 - Priorität: Niedrig
 - Kategorie: Frontend
 - Skills: geraetehaus-patterns, tests, review

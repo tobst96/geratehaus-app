@@ -213,6 +213,11 @@ export function Personal() {
   const [neuerVorname, setNeuerVorname] = useState("");
   const [neuerZwischenname, setNeuerZwischenname] = useState("");
   const [neuerNachname, setNeuerNachname] = useState("");
+  const [neueEmail, setNeueEmail] = useState("");
+  const [neuerPin, setNeuerPin] = useState("");
+  const [neuerPinWiederholung, setNeuerPinWiederholung] = useState("");
+  const [neueBenachrichtigungenAktiv, setNeueBenachrichtigungenAktiv] = useState(false);
+  const [zeigeWeitereAngaben, setZeigeWeitereAngaben] = useState(false);
   const [anlegenFehler, setAnlegenFehler] = useState<string | null>(null);
   const [neuePerson, setNeuePerson] = useState<Person | null>(null);
   const [bildQr, setBildQr] = useState<BildQr | null>(null);
@@ -362,6 +367,11 @@ export function Personal() {
     setNeuerVorname("");
     setNeuerZwischenname("");
     setNeuerNachname("");
+    setNeueEmail("");
+    setNeuerPin("");
+    setNeuerPinWiederholung("");
+    setNeueBenachrichtigungenAktiv(false);
+    setZeigeWeitereAngaben(false);
     setAnlegenFehler(null);
     setNeuePerson(null);
     setBildQr(null);
@@ -385,14 +395,46 @@ export function Personal() {
     e.preventDefault();
     if (!neuerVorname.trim() || !neuerNachname.trim()) return;
     setAnlegenFehler(null);
+    const pin = neuerPin.trim();
+    if (pin) {
+      if (!/^\d{4,6}$/.test(pin)) {
+        setAnlegenFehler(txt.fehler_pin_format);
+        return;
+      }
+      if (pin !== neuerPinWiederholung.trim()) {
+        setAnlegenFehler(txt.fehler_pin_ungleich);
+        return;
+      }
+    }
     try {
+      const email = neueEmail.trim() || null;
       const person = await personAnlegen({
         vorname: neuerVorname.trim(),
         zwischenname: neuerZwischenname.trim() || null,
         nachname: neuerNachname.trim(),
+        email,
       });
+      // Zusätzliche Angaben sind bewusst optional/nachrangig: schlägt eine davon fehl,
+      // ist die Person trotzdem angelegt (kein Rollback) - nur die Meldung informiert
+      // darüber, statt den ganzen Anlege-Vorgang abzubrechen.
+      const nacharbeitFehler: string[] = [];
+      if (pin) {
+        try {
+          await personPinSetzen(person.id, pin);
+        } catch {
+          nacharbeitFehler.push(txt.fehler_pin_speichern);
+        }
+      }
+      if (neueBenachrichtigungenAktiv && email) {
+        try {
+          await personAktualisieren(person.id, { benachrichtigungen_aktiv: true });
+        } catch {
+          nacharbeitFehler.push(txt.fehler_benachrichtigung_speichern);
+        }
+      }
       await laden();
       setNeuePerson(person);
+      if (nacharbeitFehler.length > 0) toast.fehler(nacharbeitFehler.join(" "));
       setBildQr(await bildQrErzeugen(person.id));
     } catch (err) {
       setAnlegenFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_person_anlegen);
@@ -765,6 +807,52 @@ export function Personal() {
                     value={neuerNachname}
                     onChange={(e) => setNeuerNachname(e.target.value)}
                   />
+                  <button
+                    type="button"
+                    className="sekundaer"
+                    style={{ fontSize: "0.85rem" }}
+                    onClick={() => setZeigeWeitereAngaben((v) => !v)}
+                  >
+                    {zeigeWeitereAngaben ? txt.weitere_angaben_verbergen : txt.weitere_angaben_zeigen}
+                  </button>
+                  {zeigeWeitereAngaben && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, textAlign: "left" }}>
+                      <input
+                        type="email"
+                        placeholder={txt.ph_email_optional}
+                        value={neueEmail}
+                        onChange={(e) => setNeueEmail(e.target.value)}
+                      />
+                      <input
+                        type="password"
+                        inputMode="numeric"
+                        placeholder={txt.ph_pin_optional}
+                        value={neuerPin}
+                        onChange={(e) => setNeuerPin(e.target.value)}
+                      />
+                      {neuerPin && (
+                        <input
+                          type="password"
+                          inputMode="numeric"
+                          placeholder={txt.pin_wiederholung_prompt}
+                          value={neuerPinWiederholung}
+                          onChange={(e) => setNeuerPinWiederholung(e.target.value)}
+                        />
+                      )}
+                      <label
+                        style={{ display: "flex", alignItems: "center", gap: 8 }}
+                        title={!neueEmail.trim() ? txt.benachr_email_noetig_titel : undefined}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={neueBenachrichtigungenAktiv}
+                          disabled={!neueEmail.trim()}
+                          onChange={(e) => setNeueBenachrichtigungenAktiv(e.target.checked)}
+                        />
+                        {txt.benachrichtigungen_aktiv}
+                      </label>
+                    </div>
+                  )}
                   {anlegenFehler && <Fehlertext>{anlegenFehler}</Fehlertext>}
                   <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
                     <button type="button" className="sekundaer" onClick={anlegenModalSchliessen}>
