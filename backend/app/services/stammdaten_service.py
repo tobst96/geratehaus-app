@@ -483,8 +483,16 @@ async def person_loeschen(db: AsyncSession, person: Person) -> None:
     await db.commit()
 
 
+# Profilbilder werden nur klein angezeigt (Kiosk-Kachel/Avatar, ~200px) – ein per
+# Handy hochgeladenes Foto mit mehreren Tausend Pixel Kantenlänge bringt dafür
+# keinen Mehrwert, nur unnötig lange Ladezeiten. 512px deckt auch Retina-Displays
+# bei der aktuell größten Anzeigegröße gut ab.
+_BILD_MAX_KANTENLAENGE = 512
+
+
 def _bild_verarbeiten(inhalt: bytes) -> tuple[bytes, str]:
-    """Validiert die Bytes als echtes PNG/JPEG (nicht nur laut Content-Type-Header)
+    """Validiert die Bytes als echtes PNG/JPEG (nicht nur laut Content-Type-Header),
+    verkleinert es bei Bedarf auf maximal `_BILD_MAX_KANTENLAENGE` Pixel Kantenlänge
     und gibt neu kodierte Bytes OHNE Metadaten (EXIF/GPS entfernt) + Dateiendung
     zurück. Das erneute Kodieren über Pillow verwirft sämtliche EXIF-Daten und wirkt
     zugleich als Magic-Bytes-Prüfung – wer kein gültiges Bild hochlädt, bekommt 415."""
@@ -501,6 +509,9 @@ def _bild_verarbeiten(inhalt: bytes) -> tuple[bytes, str]:
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Bild muss PNG oder JPEG sein.",
         )
+    # Verkleinert nur, wenn nötig (thumbnail() vergrößert nie) - behält das
+    # Seitenverhältnis bei.
+    bild.thumbnail((_BILD_MAX_KANTENLAENGE, _BILD_MAX_KANTENLAENGE), Image.LANCZOS)
     ausgabe = BytesIO()
     if bild.format == "PNG":
         # Alpha erhalten; ohne pnginfo werden Text-/Metadaten-Chunks nicht übernommen.

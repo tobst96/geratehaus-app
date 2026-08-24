@@ -31,6 +31,26 @@ def test_bild_verarbeiten_entfernt_exif():
     assert dict(Image.open(BytesIO(bereinigt)).getexif()) == {}
 
 
+def test_bild_verarbeiten_verkleinert_grosse_bilder():
+    # Ein Profilbild wird nur klein angezeigt - ein hochauflösendes Handyfoto
+    # (hier 2000px) soll auf die konfigurierte Maximalkante herunterskaliert werden.
+    buf = BytesIO()
+    Image.new("RGB", (2000, 1000), "blue").save(buf, format="JPEG")
+    bereinigt, endung = stammdaten_service._bild_verarbeiten(buf.getvalue())
+    assert endung == ".jpg"
+    ergebnis = Image.open(BytesIO(bereinigt))
+    assert max(ergebnis.size) == stammdaten_service._BILD_MAX_KANTENLAENGE
+    assert ergebnis.size == (512, 256)  # Seitenverhältnis 2:1 bleibt erhalten
+
+
+def test_bild_verarbeiten_laesst_kleine_bilder_unangetastet():
+    buf = BytesIO()
+    Image.new("RGB", (100, 80), "green").save(buf, format="PNG")
+    bereinigt, endung = stammdaten_service._bild_verarbeiten(buf.getvalue())
+    assert endung == ".png"
+    assert Image.open(BytesIO(bereinigt)).size == (100, 80)
+
+
 def test_bild_verarbeiten_lehnt_nicht_bild_ab():
     with pytest.raises(HTTPException) as exc:
         stammdaten_service._bild_verarbeiten(b"das ist definitiv kein Bild")

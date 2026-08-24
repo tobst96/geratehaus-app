@@ -57,6 +57,20 @@ def test_formular_wert_text_datei_haengt_token_an():
     assert "/uploads/formulare/beleg.pdf?token=" in txt
 
 
+def test_signiere_pfad_liefert_denselben_token_kurz_hintereinander():
+    # itsdangerous bettet einen Zeitstempel ein - ohne Wiederverwendung wäre
+    # jeder Aufruf ein anderer Token und die Bild-URL nie zwischenspeicherbar.
+    a = datei_token.signiere_pfad("personen/cache-test.jpg")
+    b = datei_token.signiere_pfad("personen/cache-test.jpg")
+    assert a == b
+
+
+def test_signiere_pfad_liefert_unterschiedliche_tokens_fuer_unterschiedliche_pfade():
+    a = datei_token.signiere_pfad("personen/cache-test-a.jpg")
+    b = datei_token.signiere_pfad("personen/cache-test-b.jpg")
+    assert a != b
+
+
 def test_pfad_gueltig_nur_fuer_exakten_pfad():
     token = datei_token.signiere_pfad("personen/abc.jpg")
     assert datei_token.pfad_gueltig(token, "personen/abc.jpg") is True
@@ -87,6 +101,23 @@ async def test_profilbild_mit_gueltigem_token_200(client: AsyncClient):
     resp = await client.get(f"/uploads/personen/token-test-ok.png?token={token}")
     assert resp.status_code == 200
     assert resp.content == _PNG
+
+
+async def test_profilbild_hat_cache_control_header(client: AsyncClient):
+    # Ohne diesen Header (bzw. ohne die stabile URL aus signiere_pfad) würde der
+    # Kiosk dasselbe Profilbild bei jeder Anzeige erneut laden.
+    _schreibe("personen/token-test-cache.png")
+    token = datei_token.signiere_pfad("personen/token-test-cache.png")
+    resp = await client.get(f"/uploads/personen/token-test-cache.png?token={token}")
+    assert resp.headers.get("cache-control") == "private, max-age=3600"
+
+
+async def test_logo_hat_keinen_privaten_cache_control_header(client: AsyncClient):
+    # Nur die geschützten Pfade bekommen den zusätzlichen Header - das öffentliche
+    # Logo ist unverändert (kein personenbezogener Token, der ihn nötig machte).
+    _schreibe("logo-cache-test.png")
+    resp = await client.get("/uploads/logo-cache-test.png")
+    assert resp.headers.get("cache-control") != "private, max-age=3600"
 
 
 async def test_profilbild_mit_fremdem_token_403(client: AsyncClient):

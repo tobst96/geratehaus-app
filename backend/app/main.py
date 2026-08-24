@@ -185,11 +185,20 @@ class GeschuetzteUploads(StaticFiles):
     Antwortpfaden ausgestellt (siehe `app/core/datei_token.py`)."""
 
     async def get_response(self, path: str, scope: Scope) -> Response:
-        if datei_token.ist_geschuetzt(path):
+        geschuetzt = datei_token.ist_geschuetzt(path)
+        if geschuetzt:
             token = Request(scope).query_params.get("token")
             if not datei_token.pfad_gueltig(token, path):
                 return Response(status_code=status.HTTP_403_FORBIDDEN)
-        return await super().get_response(path, scope)
+        response = await super().get_response(path, scope)
+        # `signiere_pfad` liefert denselben Token für denselben Pfad eine Weile
+        # wieder (siehe datei_token.py) - die URL bleibt dadurch stabil genug,
+        # dass dieser Header dem Kiosk tatsächlich wiederholte Downloads erspart
+        # (z. B. Profilbilder in der Personenliste), statt bei jeder Anzeige neu
+        # zu laden. `private`, da der Token personenbezogen/geheim ist.
+        if geschuetzt and response.status_code == 200:
+            response.headers["Cache-Control"] = "private, max-age=3600"
+        return response
 
 
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)

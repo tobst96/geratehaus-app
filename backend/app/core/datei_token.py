@@ -18,6 +18,8 @@ Signatur über `cookie_secret_key` (wie die Mitglieder-Session), damit kein
 neues Secret nötig ist.
 """
 
+import time
+
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
 from app.core.config import settings
@@ -29,6 +31,16 @@ GESCHUETZTE_PRAEFIXE = ("personen/", "formulare/")
 
 _serializer = URLSafeTimedSerializer(settings.cookie_secret_key, salt="datei-token")
 
+# `dumps()` bettet den aktuellen Zeitstempel ein, liefert also bei jedem Aufruf
+# einen ANDEREN Token für denselben Pfad - die volle Bild-URL (inkl. ?token=)
+# ändert sich dadurch bei jeder Anzeige, wodurch der Browser sie nie aus dem
+# Cache bedienen kann (andere URL = anderer Cache-Eintrag), selbst mit
+# Cache-Control-Header. Fix: denselben Token für einen Pfad eine Weile
+# wiederverwenden (weit innerhalb der eigentlichen Gültigkeit), damit die URL
+# stabil bleibt und der Browser sie wirklich cachen kann.
+_TOKEN_CACHE_SEKUNDEN = 3600
+_token_cache: dict[str, tuple[str, float]] = {}
+
 
 def ist_geschuetzt(relativer_pfad: str) -> bool:
     """True, wenn der Pfad (relativ zum Upload-Verzeichnis, ohne führenden
@@ -37,8 +49,16 @@ def ist_geschuetzt(relativer_pfad: str) -> bool:
 
 
 def signiere_pfad(relativer_pfad: str) -> str:
-    """Erzeugt den Token, der genau diesen Pfad freischaltet."""
-    return _serializer.dumps(relativer_pfad)
+    """Erzeugt den Token, der genau diesen Pfad freischaltet - wiederverwendet
+    einen kürzlich ausgestellten Token für denselben Pfad (`_TOKEN_CACHE_SEKUNDEN`),
+    damit die resultierende URL stabil genug für Browser-Caching bleibt."""
+    jetzt = time.time()
+    zwischengespeichert = _token_cache.get(relativer_pfad)
+    if zwischengespeichert is not None and jetzt - zwischengespeichert[1] < _TOKEN_CACHE_SEKUNDEN:
+        return zwischengespeichert[0]
+    token = _serializer.dumps(relativer_pfad)
+    _token_cache[relativer_pfad] = (token, jetzt)
+    return token
 
 
 def pfad_gueltig(token: str | None, relativer_pfad: str) -> bool:

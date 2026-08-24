@@ -593,7 +593,27 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Bilder beim Upload verkleinern; Kiosk-Anzeige möglichst aus dem Cache
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, direkt auf beta)
+- Umsetzung:
+  1. **Komprimierung**: `_bild_verarbeiten` (`stammdaten_service.py`)
+     skaliert jetzt per `Image.thumbnail((512, 512), LANCZOS)` auf maximal
+     512px Kantenlänge herunter (Seitenverhältnis bleibt erhalten, kleinere
+     Bilder unangetastet).
+  2. **Caching-Ursache gefunden und behoben**: Der eigentliche Grund, warum
+     `Cache-Control` allein nie geholfen hätte – `datei_token.signiere_pfad`
+     nutzt `itsdangerous.dumps()`, das den aktuellen Zeitstempel einbettet,
+     also bei **jedem** Aufruf einen anderen Token für denselben Pfad liefert.
+     Jede Anzeige eines Profilbilds erzeugte dadurch eine komplett neue URL
+     (`?token=...`) → für den Browser ein neuer Cache-Eintrag, nie ein
+     Treffer, unabhängig von jedem Header. Fix: `signiere_pfad` cached den
+     zuletzt ausgestellten Token pro Pfad 1h lang und gibt ihn innerhalb
+     dieses Fensters unverändert zurück – die URL bleibt stabil genug für
+     echtes Browser-Caching. Zusätzlich `Cache-Control: private,
+     max-age=3600` auf geschützte Uploads in `GeschuetzteUploads.get_response`
+     (`main.py`) ergänzt (nur für `personen/`/`formulare/`-Pfade, nicht fürs
+     öffentliche Logo).
+  6 neue Tests (`test_person_bild_schutz.py`, `test_datei_token.py`). Volle
+  Suite 520 grün.
 - Priorität: Niedrig
 - Kategorie: Backend / Frontend / Performance
 - Skills: geraetehaus-patterns, tests, review
