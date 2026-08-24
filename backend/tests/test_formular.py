@@ -79,10 +79,10 @@ async def test_ungueltiger_feldtyp_abgelehnt(client, db):
 async def test_einreichung_validierung_und_mail(client, db, monkeypatch):
     gesendet = []
 
-    async def fake_send_an(self, _db, empfaenger, betreff, nachricht):
+    async def fake_send_an_liste(self, _db, empfaenger, betreff, nachricht):
         gesendet.append((empfaenger, betreff, nachricht))
 
-    monkeypatch.setattr(formular_service.EmailNotifier, "send_an", fake_send_an)
+    monkeypatch.setattr(formular_service.EmailNotifier, "send_an_liste", fake_send_an_liste)
     await config_service.set(db, "notifier_email_aktiv", True)
 
     formular = await _formular(db, email_empfaenger="chef@wehr.de")
@@ -115,12 +115,30 @@ async def test_einreichung_validierung_und_mail(client, db, monkeypatch):
         json={"antworten": {str(pflicht.id): "Max", str(sterne.id): 4, str(dd.id): "B"}},
     )
     assert r.status_code == 201
-    assert len(gesendet) == 1 and gesendet[0][0] == "chef@wehr.de"
+    assert len(gesendet) == 1 and gesendet[0][0] == ["chef@wehr.de"]
 
     einreichungen = await formular_service.einreichungen_fuer(db, formular.id)
     assert len(einreichungen) == 1
     werte = {a["label"]: a["wert"] for a in einreichungen[0].antworten}
     assert werte["Name"] == "Max" and werte["Bewertung"] == 4 and werte["Grund"] == "B"
+
+
+@pytest.mark.asyncio
+async def test_email_empfaenger_mehrere_personen_kommagetrennt(client, db, monkeypatch):
+    """email_empfaenger kann mehrere Adressen kommagetrennt enthalten (Frontend
+    schreibt hier die E-Mails der als Empfänger ausgewählten Personen hinein)."""
+    gesendet = []
+
+    async def fake_send_an_liste(self, _db, empfaenger, betreff, nachricht):
+        gesendet.append(empfaenger)
+
+    monkeypatch.setattr(formular_service.EmailNotifier, "send_an_liste", fake_send_an_liste)
+    await config_service.set(db, "notifier_email_aktiv", True)
+
+    formular = await _formular(db, email_empfaenger="chef@wehr.de, schriftfuehrer@wehr.de")
+    r = await client.post(f"/api/v1/formulare/{formular.id}/einreichen", json={"antworten": {}})
+    assert r.status_code == 201
+    assert gesendet == [["chef@wehr.de", "schriftfuehrer@wehr.de"]]
 
 
 @pytest.mark.asyncio
@@ -209,10 +227,10 @@ async def test_zusammenfassung_aggregiert(client, db):
 async def test_ablauf_job_versendet_einmalig(db, monkeypatch):
     gesendet = []
 
-    async def fake_send_an(self, _db, empfaenger, betreff, nachricht):
+    async def fake_send_an_liste(self, _db, empfaenger, betreff, nachricht):
         gesendet.append((empfaenger, betreff, nachricht))
 
-    monkeypatch.setattr(formular_service.EmailNotifier, "send_an", fake_send_an)
+    monkeypatch.setattr(formular_service.EmailNotifier, "send_an_liste", fake_send_an_liste)
     await config_service.set(db, "notifier_email_aktiv", True)
 
     formular = await _formular(
@@ -221,7 +239,7 @@ async def test_ablauf_job_versendet_einmalig(db, monkeypatch):
     await _feld(db, formular.id, label="Note", typ="sterne", max_sterne=5)
 
     assert await formular_service.ablauf_zusammenfassungen_versenden(db) == 1
-    assert gesendet and gesendet[0][0] == "chef@wehr.de"
+    assert gesendet and gesendet[0][0] == ["chef@wehr.de"]
 
     # Zweiter Lauf sendet nicht erneut (bereits markiert)
     gesendet.clear()

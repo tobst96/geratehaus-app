@@ -6,6 +6,8 @@ import { Link } from "react-router-dom";
 import { ApiError } from "../../../api/client";
 import { useConfig } from "../../../context/ConfigContext";
 import { Ladeanzeige } from "../../../components/Ladeanzeige";
+import { holeAllePersonen } from "../../../api/gruppenfuehrer";
+import type { Person } from "../../../api/types";
 import { FormularZusammenfassung } from "../FormularZusammenfassung";
 import {
   feldAktualisieren,
@@ -93,6 +95,7 @@ export function FormularModul() {
   const [einreichungen, setEinreichungen] = useState<Einreichung[] | null>(null);
   const [zusammenfassung, setZusammenfassung] = useState<Zusammenfassung | null>(null);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [personen, setPersonen] = useState<Person[] | null>(null);
 
   const basisUrl = (config?.oeffentliche_basis_url || window.location.origin).replace(/\/$/, "");
 
@@ -106,6 +109,9 @@ export function FormularModul() {
 
   useEffect(() => {
     laden();
+    holeAllePersonen()
+      .then(setPersonen)
+      .catch(() => setPersonen([]));
   }, []);
 
   useEffect(() => {
@@ -256,14 +262,53 @@ export function FormularModul() {
             />
           </div>
           <div className="formular-feld">
-            <label>E-Mail-Empfänger bei neuer Einreichung</label>
-            <input
-              type="email"
-              defaultValue={ausgewaehlt.email_empfaenger ?? ""}
-              key={`mail-${ausgewaehlt.id}`}
-              placeholder="z. B. schriftfuehrer@wehr.de"
-              onBlur={(e) => formularFeldAendern(ausgewaehlt, { email_empfaenger: e.target.value || null })}
-            />
+            <label htmlFor="formular-empfaenger">E-Mail-Empfänger bei neuer Einreichung</label>
+            {(() => {
+              const personenMitMail = (personen ?? [])
+                .filter((p) => p.email)
+                .sort((a, b) => a.name.localeCompare(b.name));
+              const aktuelleAdressen = (ausgewaehlt.email_empfaenger ?? "")
+                .split(",")
+                .map((a) => a.trim().toLowerCase())
+                .filter(Boolean);
+              const ausgewaehlteIds = personenMitMail
+                .filter((p) => aktuelleAdressen.includes((p.email ?? "").toLowerCase()))
+                .map((p) => String(p.id));
+              if (personen === null) return <Ladeanzeige />;
+              if (personenMitMail.length === 0) {
+                return (
+                  <p className="hinweistext">
+                    Keine Person mit hinterlegter E-Mail gefunden – E-Mails lassen sich unter
+                    „Personal" ergänzen.
+                  </p>
+                );
+              }
+              return (
+                <>
+                  <select
+                    id="formular-empfaenger"
+                    multiple
+                    size={Math.min(6, personenMitMail.length)}
+                    value={ausgewaehlteIds}
+                    key={`empfaenger-${ausgewaehlt.id}`}
+                    onChange={(e) => {
+                      const gewaehlteIds = Array.from(e.target.selectedOptions).map((o) => o.value);
+                      const adressen = personenMitMail
+                        .filter((p) => gewaehlteIds.includes(String(p.id)))
+                        .map((p) => p.email as string);
+                      formularFeldAendern(ausgewaehlt, { email_empfaenger: adressen.join(", ") || null });
+                    }}
+                  >
+                    {personenMitMail.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.email})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="hinweistext">Strg/Cmd gedrückt halten für Mehrfachauswahl.</p>
+                </>
+              );
+            })()}
           </div>
           <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input

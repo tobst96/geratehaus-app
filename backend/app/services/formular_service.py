@@ -388,11 +388,21 @@ def _wert_text(typ: str, wert: object) -> str:
     return str(wert)
 
 
+def _empfaenger_liste(formular: Formular) -> list[str]:
+    """`email_empfaenger` ist ein kommagetrennter String (Personen-Auswahl im
+    Frontend schreibt die E-Mails der ausgewählten Personen hinein; alte,
+    freigetippte Einzeladressen bleiben dabei unverändert gültig)."""
+    if not formular.email_empfaenger:
+        return []
+    return [e.strip() for e in formular.email_empfaenger.split(",") if e.strip()]
+
+
 async def _benachrichtige_empfaenger(
     db: AsyncSession, formular: Formular, einreichung: FormularEinreichung
 ) -> None:
-    """Informiert den formularspezifischen Empfänger per Mail (best effort)."""
-    if not formular.email_empfaenger:
+    """Informiert die formularspezifischen Empfänger per Mail (best effort)."""
+    empfaenger = _empfaenger_liste(formular)
+    if not empfaenger:
         return
     if not await config_service.get(db, "notifier_email_aktiv", False):
         return
@@ -408,8 +418,8 @@ async def _benachrichtige_empfaenger(
             + "\n".join(zeilen)
             + (f"\n\nIm System ansehen: {basis}/gruppenfuehrer/module/formular" if basis else "")
         )
-        await EmailNotifier().send_an(
-            db, formular.email_empfaenger, f"Neue Formular-Einreichung: {formular.name}", nachricht
+        await EmailNotifier().send_an_liste(
+            db, empfaenger, f"Neue Formular-Einreichung: {formular.name}", nachricht
         )
     except Exception:  # noqa: BLE001
         logger.warning("formular_benachrichtigung_fehlgeschlagen", formular_id=formular.id, exc_info=True)
@@ -605,13 +615,14 @@ async def ablauf_zusammenfassungen_versenden(db: AsyncSession) -> int:
                 "formular_ablauf_markierung_fehlgeschlagen", formular_id=formular_id, exc_info=True
             )
             continue
-        if not (formular.email_empfaenger and email_aktiv):
+        empfaenger = _empfaenger_liste(formular)
+        if not (empfaenger and email_aktiv):
             continue
         try:
             zus = await zusammenfassung(db, formular)
-            await EmailNotifier().send_an(
+            await EmailNotifier().send_an_liste(
                 db,
-                formular.email_empfaenger,
+                empfaenger,
                 f"Formular abgelaufen – Auswertung: {formular.name}",
                 _zusammenfassung_text(zus),
             )

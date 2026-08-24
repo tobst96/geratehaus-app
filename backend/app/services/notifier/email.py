@@ -116,6 +116,18 @@ class EmailNotifier(Notifier):
         except (aiosmtplib.SMTPException, OSError):
             logger.warning("email_versand_fehlgeschlagen", exc_info=True)
 
+    async def send_an_liste(
+        self, db: AsyncSession, empfaenger_liste: list[str], betreff: str, nachricht: str
+    ) -> None:
+        """Wie send_an(), aber an mehrere individuelle Adressen zugleich (z. B.
+        die als E-Mail-Empfänger ausgewählten Personen eines Formulars)."""
+        if not empfaenger_liste:
+            return
+        try:
+            await self._versenden(db, betreff, nachricht, empfaenger_liste=empfaenger_liste)
+        except (aiosmtplib.SMTPException, OSError):
+            logger.warning("email_versand_fehlgeschlagen", exc_info=True)
+
     async def barcode_mail_versenden(
         self,
         db: AsyncSession,

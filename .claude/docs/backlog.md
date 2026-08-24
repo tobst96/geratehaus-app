@@ -753,7 +753,22 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Bei neuer Einreichung Person(en) auswählen statt E-Mail-Adresse einzutippen
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, direkt auf beta)
+- Umsetzung: `email_empfaenger` bleibt bewusst ein einzelnes, kommagetrenntes
+  String-Feld (keine Migration nötig, bestehende Freitext-Adressen bleiben
+  gültig, bis jemand über die neue Auswahl umstellt – beantwortet die
+  offene Frage aus den Notizen). Frontend (`FormularModul.tsx`) ersetzt das
+  E-Mail-`<input>` durch ein Mehrfachauswahl-`<select multiple>` aller
+  Personen mit hinterlegter E-Mail (sortiert nach Name); vorausgewählt sind
+  die Personen, deren E-Mail bereits im aktuellen Wert vorkommt – alte,
+  nicht zuordenbare Adressen bleiben unverändert im Feld, bis aktiv neu
+  ausgewählt wird. Ohne Personen mit E-Mail zeigt die Seite einen Hinweis
+  auf „Personal". Backend: neue `EmailNotifier.send_an_liste` (analog
+  `send_an`, aber für mehrere Adressen), `formular_service.py`s zwei
+  Versandstellen nutzen jetzt einen `_empfaenger_liste`-Helper (Split am
+  Komma) statt der einzelnen Adresse. 1 neuer Backend-Test (mehrere
+  Adressen), 2 bestehende Tests an die neue Methode angepasst. Volle
+  Suiten grün (Backend 521, Frontend 29/88).
 - Priorität: Niedrig
 - Kategorie: Frontend
 - Skills: geraetehaus-patterns, tests, review
