@@ -85,7 +85,8 @@ export function Layout() {
           Gerätehaus.app
         </a>{" "}
         ·{" "}
-        <Link to="/datenschutz">Datenschutz</Link> · <Link to="/gruppenfuehrer">Team-Login</Link>
+        <Link to="/datenschutz">Datenschutz</Link> · <Link to="/impressum">Impressum</Link> ·{" "}
+        <Link to="/gruppenfuehrer">Team-Login</Link>
       </footer>
     </>
   );

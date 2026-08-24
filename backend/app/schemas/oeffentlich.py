@@ -15,6 +15,12 @@ class OeffentlicheKonfiguration(BaseModel):
     logo_url_dark: str
     farbe_primaer: str
     farbe_akzent: str
+    # Impressum (§ 5 DDG) - vollständig vom Betreiber gepflegt, keine Vorbelegung.
+    impressum_verantwortliche_person: str = ""
+    impressum_anschrift: str = ""
+    impressum_email: str = ""
+    impressum_telefon: str = ""
+    impressum_zusatz: str = ""
     einsatz_countdown_minuten: int
     einsatz_alle_eingetragen_minuten: int
     modul_einsatztagebuch_aktiv: bool

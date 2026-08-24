@@ -40,6 +40,21 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("logo_url_dark", "", ConfigTyp.STR, "Alternatives Logo für den Dark Mode"),
     ConfigDefault("farbe_primaer", "#FFA633", ConfigTyp.STR, "Primärfarbe (Hex)"),
     ConfigDefault("farbe_akzent", "#1A1A1A", ConfigTyp.STR, "Akzentfarbe (Hex)"),
+    # Impressum (§ 5 DDG / früher TMG § 5) – bewusst freie Textfelder statt starrer
+    # Rechtsform-Logik, da Betreiber-Konstellationen stark variieren (Verein,
+    # Gemeinde-Feuerwehr, ...). Inhalt liegt vollständig in der Verantwortung des
+    # Betreibers, keine Rechtsberatung/Vorbelegung durch die App.
+    ConfigDefault(
+        "impressum_verantwortliche_person", "", ConfigTyp.STR,
+        "Impressum: verantwortliche(r)/vertretungsberechtigte(r) Person(en)",
+    ),
+    ConfigDefault("impressum_anschrift", "", ConfigTyp.STR, "Impressum: Anschrift (mehrzeilig)"),
+    ConfigDefault("impressum_email", "", ConfigTyp.STR, "Impressum: Kontakt-E-Mail"),
+    ConfigDefault("impressum_telefon", "", ConfigTyp.STR, "Impressum: Kontakt-Telefon (optional)"),
+    ConfigDefault(
+        "impressum_zusatz", "", ConfigTyp.STR,
+        "Impressum: zusätzliche Angaben (z. B. Vereinsregister, Aufsichtsbehörde) - optional",
+    ),
     # Module
     ConfigDefault("modul_einsatztagebuch_aktiv", "true", ConfigTyp.BOOL, "Einsatztagebuch aktiv"),
     ConfigDefault("modul_dienstbuch_aktiv", "true", ConfigTyp.BOOL, "Dienstbuch aktiv"),

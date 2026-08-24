@@ -123,6 +123,11 @@ export function Einstellungen() {
   const [logoDarkUrl, setLogoDarkUrl] = useState("");
   const [farbePrimaer, setFarbePrimaer] = useState("#FFA633");
   const [farbeAkzent, setFarbeAkzent] = useState("#1A1A1A");
+  const [impressumPerson, setImpressumPerson] = useState("");
+  const [impressumAnschrift, setImpressumAnschrift] = useState("");
+  const [impressumEmail, setImpressumEmail] = useState("");
+  const [impressumTelefon, setImpressumTelefon] = useState("");
+  const [impressumZusatz, setImpressumZusatz] = useState("");
 
   const [archivierungszeitraum, setArchivierungszeitraum] = useState(2);
 
@@ -141,6 +146,11 @@ export function Einstellungen() {
       setLogoDarkUrl(String(w.logo_url_dark ?? ""));
       setFarbePrimaer(String(w.farbe_primaer ?? "#FFA633"));
       setFarbeAkzent(String(w.farbe_akzent ?? "#1A1A1A"));
+      setImpressumPerson(String(w.impressum_verantwortliche_person ?? ""));
+      setImpressumAnschrift(String(w.impressum_anschrift ?? ""));
+      setImpressumEmail(String(w.impressum_email ?? ""));
+      setImpressumTelefon(String(w.impressum_telefon ?? ""));
+      setImpressumZusatz(String(w.impressum_zusatz ?? ""));
       setArchivierungszeitraum(Number(w.archivierungszeitraum_jahre ?? 2));
       setFehlerberichteAktiv(Boolean(w.fehlerberichte_aktiv));
       setZweiFaktorPflicht(Boolean(w.zwei_faktor_pflicht ?? false));
@@ -164,6 +174,11 @@ export function Einstellungen() {
         oeffentliche_basis_url: oeffentlicheBasisUrl,
         farbe_primaer: farbePrimaer,
         farbe_akzent: farbeAkzent,
+        impressum_verantwortliche_person: impressumPerson,
+        impressum_anschrift: impressumAnschrift,
+        impressum_email: impressumEmail,
+        impressum_telefon: impressumTelefon,
+        impressum_zusatz: impressumZusatz,
         archivierungszeitraum_jahre: archivierungszeitraum,
         fehlerberichte_aktiv: fehlerberichteAktiv,
         zwei_faktor_pflicht: zweiFaktorPflicht,
@@ -318,6 +333,60 @@ export function Einstellungen() {
           </div>
         </div>
 
+        <div className="karte">
+          <h2>Impressum</h2>
+          <p className="hinweistext">
+            Angaben für die öffentliche Impressum-Seite (§ 5 DDG) – vollständig in deiner
+            Verantwortung, keine Rechtsberatung durch die App. Bleiben die Felder leer, zeigt die
+            Impressum-Seite einen Hinweis statt Angaben.
+          </p>
+          <div className="formular-feld">
+            <label htmlFor="e-impressum-person">Verantwortliche/vertretungsberechtigte Person(en)</label>
+            <input
+              id="e-impressum-person"
+              value={impressumPerson}
+              onChange={(e) => setImpressumPerson(e.target.value)}
+            />
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-impressum-anschrift">Anschrift</label>
+            <textarea
+              id="e-impressum-anschrift"
+              value={impressumAnschrift}
+              onChange={(e) => setImpressumAnschrift(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <div className="formular-zeile">
+            <div className="formular-feld">
+              <label htmlFor="e-impressum-email">Kontakt-E-Mail</label>
+              <input
+                id="e-impressum-email"
+                type="email"
+                value={impressumEmail}
+                onChange={(e) => setImpressumEmail(e.target.value)}
+              />
+            </div>
+            <div className="formular-feld">
+              <label htmlFor="e-impressum-telefon">Telefon (optional)</label>
+              <input
+                id="e-impressum-telefon"
+                value={impressumTelefon}
+                onChange={(e) => setImpressumTelefon(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="e-impressum-zusatz">Zusätzliche Angaben (optional)</label>
+            <textarea
+              id="e-impressum-zusatz"
+              value={impressumZusatz}
+              onChange={(e) => setImpressumZusatz(e.target.value)}
+              rows={2}
+              placeholder="z. B. Vereinsregister, Aufsichtsbehörde"
+            />
+          </div>
+        </div>
 
         <div className="karte">
           <h2>{t.archivierung}</h2>

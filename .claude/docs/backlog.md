@@ -157,7 +157,20 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Impressum-Seite fehlt komplett
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, direkt auf beta)
+- Umsetzung: Neue Config-Werte `impressum_verantwortliche_person`/
+  `_anschrift`/`_email`/`_telefon`/`_zusatz` (`config_defaults.py`, alle
+  leer/neutral), über `OeffentlicheKonfiguration` öffentlich ausgeliefert
+  (keine Login-Pflicht fürs Impressum). Neue Seite `frontend/src/pages/
+  Impressum.tsx` (Route `/impressum`), zeigt bei leeren Feldern einen
+  Hinweis statt einer leeren Rechtsseite. Admin-Editierung in
+  `Einstellungen.tsx` (neue Karte „Impressum" neben „Organisation &
+  Branding"). Footer-Link in `Layout.tsx` neben Datenschutz/Team-Login.
+  Bewusst freie Textfelder statt starrer Rechtsform-Logik (Verein/Gemeinde-
+  Feuerwehr variieren) - Inhalt liegt vollständig beim Betreiber, keine
+  Rechtsberatung durch die App. 2 neue Backend-Tests
+  (`test_impressum_config.py`) + 2 neue Frontend-Tests
+  (`Impressum.test.tsx`). Volle Suiten grün (Backend 514, Frontend 29/88).
 - Priorität: Hoch
 - Kategorie: Frontend
 - Skills: geraetehaus-patterns, review

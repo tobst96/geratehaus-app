@@ -6,6 +6,11 @@ export interface OeffentlicheKonfiguration {
   logo_url_dark: string;
   farbe_primaer: string;
   farbe_akzent: string;
+  impressum_verantwortliche_person: string;
+  impressum_anschrift: string;
+  impressum_email: string;
+  impressum_telefon: string;
+  impressum_zusatz: string;
   einsatz_countdown_minuten: number;
   einsatz_alle_eingetragen_minuten: number;
   modul_einsatztagebuch_aktiv: boolean;

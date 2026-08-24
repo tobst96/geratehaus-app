@@ -7,6 +7,7 @@ import { SetupGate } from "./components/SetupGate";
 import { KioskGate } from "./components/KioskGate";
 import { LandingPage } from "./pages/LandingPage";
 import { Datenschutz } from "./pages/Datenschutz";
+import { Impressum } from "./pages/Impressum";
 import { NotFound } from "./pages/NotFound";
 import { GruppenfuehrerLogin } from "./pages/gruppenfuehrer/GruppenfuehrerLogin";
 import { GruppenfuehrerLayout } from "./pages/gruppenfuehrer/GruppenfuehrerLayout";
@@ -56,6 +57,7 @@ export function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/kiosk/:token" element={<KioskGate />} />
           <Route path="/datenschutz" element={<Datenschutz />} />
+          <Route path="/impressum" element={<Impressum />} />
           <Route path="/gruppenfuehrer/login" element={<GruppenfuehrerLogin />} />
           <Route path="/mitglied/login" element={<MitgliedLogin />} />
           <Route path="/mitglied" element={<MitgliedHub />} />
