@@ -1,5 +1,7 @@
 """Regressionstest für den `secure`-Flag auf den langlebigen Session-Cookies
-(Sicherheitsaudit-Fund, siehe Backlog Etappe AD)."""
+(Sicherheitsaudit-Fund Etappe AD; per `settings.cookies_secure` statt an
+`environment` gekoppelt - siehe Etappe AI, wo genau diese Kopplung eine
+laufende Instanz ohne HTTPS-Reverse-Proxy ausgesperrt hat)."""
 
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -43,33 +45,32 @@ async def _gruppenfuehrer_mit_2fa(db, code="123456"):
 
 
 @pytest.mark.asyncio
-async def test_namens_cookie_ohne_secure_ausserhalb_production(client, db, monkeypatch):
-    import app.api.v1.auth as auth_modul
-
-    monkeypatch.setattr(auth_modul.settings, "environment", "test")
+async def test_namens_cookie_ohne_secure_per_default(client, db):
+    """Default (cookies_secure=False) - auch wenn environment=production ist,
+    wie es die conftest-Testumgebung nicht extra überschreibt."""
     _, token = await _person_mit_barcode(db)
     r = await client.post("/api/v1/auth/barcode", json={"token": token.token})
     assert "secure" not in r.headers.get("set-cookie", "").lower()
 
 
 @pytest.mark.asyncio
-async def test_namens_cookie_mit_secure_in_production(client, db, monkeypatch):
+async def test_namens_cookie_mit_secure_wenn_explizit_aktiviert(client, db, monkeypatch):
     import app.api.v1.auth as auth_modul
 
-    monkeypatch.setattr(auth_modul.settings, "environment", "production")
+    monkeypatch.setattr(auth_modul.settings, "cookies_secure", True)
     _, token = await _person_mit_barcode(db)
     r = await client.post("/api/v1/auth/barcode", json={"token": token.token})
     assert "secure" in r.headers.get("set-cookie", "").lower()
 
 
 @pytest.mark.asyncio
-async def test_trusted_device_cookie_mit_secure_in_production(client, db, monkeypatch):
+async def test_trusted_device_cookie_mit_secure_wenn_explizit_aktiviert(client, db, monkeypatch):
     import app.api.v1.auth as auth_modul
 
     m = await _gruppenfuehrer_mit_2fa(db)
     challenge = gruppenfuehrer_2fa_session.signiere_challenge(m.id)
 
-    monkeypatch.setattr(auth_modul.settings, "environment", "production")
+    monkeypatch.setattr(auth_modul.settings, "cookies_secure", True)
     r = await client.post(
         "/api/v1/auth/gruppenfuehrer/2fa",
         json={"challenge": challenge, "code": "123456", "angemeldet_bleiben": True},

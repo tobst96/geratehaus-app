@@ -16,7 +16,22 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Bug: Nach Scan des Dienststunden-QR-Codes muss man sich vor/nach dem Buchen einloggen
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, direkt auf beta)
+- **Ursache bestätigt** (live reproduziert statt blind gepatcht, wie oben
+  gefordert): Der Verdacht stimmte. Per curl mit Cookie-Jar nachgestellt –
+  über `localhost` griff der Fix nicht (Browser/curl behandeln `localhost`
+  als "potentially trustworthy" und senden Secure-Cookies dort trotzdem),
+  über einen echten Hostnamen per `--resolve` + `http://` schlug Schritt 2
+  (`stundenErfassen`) reproduzierbar mit 401 fehl – das Cookie aus Schritt 1
+  landete gar nicht erst im Cookie-Jar. `environment=production` bedeutet
+  eben NICHT "läuft nachweislich hinter HTTPS" – diese Instanz lief zum
+  Zeitpunkt des Fixes selbst nicht sicher über HTTPS.
+- Umsetzung: Siehe [[Etappe AD]] („Langlebige Session-Cookies ohne
+  secure-Flag") – dortiger Fix korrigiert (neue dedizierte Einstellung
+  `COOKIES_SECURE`, Default aus, statt an `environment` gekoppelt). Damit
+  ist dieser Bug direkt mitbehoben; kein zusätzlicher Code hier nötig.
+  Betraf nur den einen Zugriffspfad über das Namens-Cookie, nicht die
+  Token-Reservierungsflows (die brauchen kein Cookie).
 - Priorität: Mittel
 - Kategorie: Bug / Frontend / Backend
 - Skills: bugfix, geraetehaus-patterns, tests, review
@@ -496,10 +511,25 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Langlebige Session-Cookies ohne secure-Flag
 
-- Status: Erledigt (23.08.2026, direkt auf beta)
-- Umsetzung: `secure=settings.environment == "production"` auf Namens- und
-  Trusted-Device-Cookie in `auth.py` ergänzt. 3 neue Tests
-  (`test_cookie_security.py`).
+- Status: Erledigt (23.08.2026, direkt auf beta; **korrigiert 24.08.2026**
+  nach echtem Produktionsausfall - siehe [[Etappe AI]])
+- **Korrektur (24.08.2026):** Der ursprüngliche Fix (`secure=settings.
+  environment == "production"`) hat exakt die Instanz ausgesperrt, die er
+  schützen sollte – „production" heißt nur "kein Test-/Dev-Lauf", nicht
+  "läuft nachweislich hinter einem HTTPS-Reverse-Proxy". Diese Instanz lief
+  mit `environment=production`, aber (noch) ohne funktionierendes HTTPS →
+  Namens-Cookie wurde vom Browser nie mehr gesendet → niemand konnte mehr
+  Dienststunden stempeln. Live per curl reproduziert (siehe Etappe AI).
+  Fix: neue dedizierte Einstellung `COOKIES_SECURE` (`.env`, Default
+  **aus**) statt Kopplung an `environment`; `auth.py` nutzt jetzt
+  `settings.cookies_secure`. README-Abschnitt „Externer Zugriff & HTTPS"
+  ergänzt um den Hinweis, `COOKIES_SECURE=true` **erst** nach bestätigt
+  funktionierendem Reverse-Proxy zu setzen. 3 Tests in
+  `test_cookie_security.py` entsprechend angepasst (Default aus statt
+  environment-abhängig). Lehre in `LESSONS.md` festgehalten.
+- Ursprüngliche Umsetzung (23.08.2026, seither korrigiert): `secure=
+  settings.environment == "production"` auf Namens- und Trusted-Device-
+  Cookie in `auth.py` ergänzt. 3 neue Tests (`test_cookie_security.py`).
   **Nebenfund beim Testen:** `scripts/test-backend.sh` läuft über
   `docker compose run ... backend` und erbt dadurch die ECHTE `.env` dieser
   Instanz (inkl. echtem `ENVIRONMENT=production` + echten Secrets + echtem

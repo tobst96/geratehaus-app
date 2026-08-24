@@ -305,3 +305,44 @@ keinen Hinweis darauf, dass es den Container NICHT ersetzt hat.
 - Root Cause nicht abschließend geklärt (evtl. BuildKit-„bake"-Caching-Effekt bei
   `docker compose build`); die Verifikation oben ist die zuverlässige Absicherung,
   unabhängig von der genauen Ursache.
+
+## `environment == "production"` heißt nicht "läuft nachweislich hinter HTTPS"
+
+### Problem
+
+Ein Cookie-`secure`-Flag wurde an `settings.environment == "production"`
+gekoppelt (Annahme: production = HTTPS-Reverse-Proxy davor, wie in
+`test_security_headers_gesetzt` dokumentiert). Diese Annahme war für die
+tatsächlich laufende Instanz falsch – sie lief mit `environment=production`,
+aber (noch) ohne eingerichtetes HTTPS. Das Secure-Cookie wurde vom Browser
+dadurch nie mehr gesetzt/gesendet → **Login/Buchung für alle Nutzer
+lahmgelegt**, bis der Fix live reproduziert und korrigiert wurde (siehe
+Backlog Etappen AD/AI).
+
+### Symptom
+
+„Ich muss mich vor/nach dem Buchen einloggen" – ein zweistufiger
+Identifizieren-dann-Buchen-Ablauf schlug in Schritt 2 mit 401 fehl, weil das
+in Schritt 1 gesetzte Cookie den Browser nie erreichte/verließ.
+
+### Lösung / Prävention
+
+- **Infrastruktur-Annahmen nie aus einem unabhängigen Konfigurationswert
+  ableiten.** `environment` (production/test/development) sagt nichts
+  darüber aus, ob TLS tatsächlich terminiert wird. Ein Verhalten, das ein
+  reales HTTPS-Setup voraussetzt (Secure-Cookies, HSTS, ...), braucht einen
+  **eigenen, explizit vom Betreiber gesetzten Schalter** (hier:
+  `COOKIES_SECURE`, Default aus) – nicht an einen bestehenden, semantisch
+  anderen Wert koppeln, so verlockend die Abkürzung wirkt.
+- Bei sicherheitsrelevanten Verhaltensänderungen, die von der tatsächlichen
+  Netzwerktopologie abhängen (TLS, Reverse-Proxy, Cookie-Flags): vor dem
+  Deploy auf einer echten Instanz **aktiv gegenprüfen**, ob die Annahme
+  dort zutrifft (hier hätte ein einfacher Check „läuft diese Instanz
+  wirklich über HTTPS?" den Ausfall verhindert), statt sich auf eine
+  Doku-Notiz aus einem anderen Kontext zu verlassen.
+- Bei `localhost` zum Reproduzieren solcher Cookie-Bugs vorsichtig sein:
+  Browser (und curl) behandeln `http://localhost` als „potentially
+  trustworthy" und senden Secure-Cookies dort trotzdem – ein Test gegen
+  `localhost` kann einen echten Secure-Cookie-Bug **verdecken**. Mit einem
+  echten (Fantasie-)Hostnamen reproduzieren, z. B. via
+  `curl --resolve name:port:127.0.0.1 http://name:port/...`.

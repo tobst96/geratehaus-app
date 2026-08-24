@@ -289,6 +289,10 @@ Nach der Einrichtung:
   vergessen, Profilbild-Upload usw.) verwendet.
 - Router-seitig nur Port 443 (und ggf. 80 für die ACME-Challenge) nach außen
   weiterleiten, nicht den `HTTP_PORT` von `docker compose` direkt.
+- Erst **jetzt**, mit bestätigt funktionierendem HTTPS, `COOKIES_SECURE=true`
+  in der `.env` setzen und neu starten. Vorher (oder bei reinem LAN-Betrieb
+  ohne HTTPS) unbedingt auf `false` lassen – sonst setzt der Browser das
+  Namens-Cookie nicht mehr und niemand kann sich mehr einloggen.
 
 ## ⚙️ Konfiguration
 

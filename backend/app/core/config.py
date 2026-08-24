@@ -39,6 +39,18 @@ class Settings(BaseSettings):
     cors_origins: str = ""
     upload_dir: str = "/app/uploads"
 
+    # Explizites Opt-in fürs secure-Flag auf den langlebigen Session-Cookies
+    # (Namens-Cookie, Trusted-Device). BEWUSST NICHT an `environment` gekoppelt:
+    # "production" heißt nur "kein Test-/Dev-Lauf", nicht "läuft nachweislich
+    # hinter einem HTTPS-Reverse-Proxy" - reale Instanzen laufen z. B. rein im
+    # Gerätehaus-LAN oder noch ohne eingerichteten Proxy trotz environment=
+    # production. Ein Secure-Cookie über eine solche HTTP-Verbindung würde vom
+    # Browser nie gesetzt/gesendet und den Login lahmlegen (siehe Backlog
+    # Etappe AI - genau das ist einer laufenden Instanz passiert). Default
+    # deshalb aus; erst nach eingerichtetem Reverse-Proxy (README, Abschnitt
+    # "Externer Zugriff & HTTPS") bewusst auf true stellen.
+    cookies_secure: bool = False
+
     # Verzeichnis für das Update-Signal: Schreibt der Admin über die Update-Seite
     # eine Update-Anforderung, landet hier eine Markerdatei. Ein host-seitiges
     # Skript (scripts/updater.sh, per cron/systemd) beobachtet diesen – über einen

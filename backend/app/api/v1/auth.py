@@ -61,12 +61,12 @@ def _setze_namens_cookie(response: Response, name: str) -> None:
         max_age=NAME_COOKIE_MAX_AGE_SECONDS,
         httponly=True,
         samesite="lax",
-        # In production läuft die App zwingend hinter HTTPS (siehe README) - secure=True
-        # verhindert, dass dieses 5 Jahre gültige Cookie je im Klartext über HTTP
-        # übertragen wird (z. B. bei einer Reverse-Proxy-Fehlkonfiguration). In
-        # lokaler Entwicklung/Tests (kein HTTPS) würde secure=True das Cookie
-        # dagegen unbrauchbar machen, daher nur in production gesetzt.
-        secure=settings.environment == "production",
+        # secure=True verhindert, dass dieses 5 Jahre gültige Cookie je im Klartext
+        # über HTTP übertragen wird - aber NUR sinnvoll, wenn tatsächlich ein
+        # HTTPS-Reverse-Proxy davorsteht (siehe settings.cookies_secure). Ohne
+        # echtes HTTPS würde secure=True das Cookie unbrauchbar machen und den
+        # Login lahmlegen, daher per Default aus.
+        secure=settings.cookies_secure,
     )
 
 
@@ -462,6 +462,6 @@ async def moderator_2fa(db: DbSession, response: Response, daten: Gruppenfuehrer
             max_age=TRUSTED_DEVICE_MAX_AGE_SECONDS,
             httponly=True,
             samesite="lax",
-            secure=settings.environment == "production",
+            secure=settings.cookies_secure,
         )
     return GruppenfuehrerLoginErgebnis(access_token=gruppenfuehrer_service.gruppenfuehrer_token(person))
