@@ -116,6 +116,16 @@ class EmailNotifier(Notifier):
         except (aiosmtplib.SMTPException, OSError):
             logger.warning("email_versand_fehlgeschlagen", exc_info=True)
 
+    async def otp_versenden(
+        self, db: AsyncSession, empfaenger: str, betreff: str, nachricht: str, code: str
+    ) -> None:
+        """Wie `send_an()`, wirft Fehler aber weiter statt sie nur zu loggen: der
+        2FA-Login-Fluss (`zwei_faktor_service.otp_erzeugen_und_senden`) muss den
+        tatsächlichen Mailfehler erkennen, um bei SMTP-Ausfall gezielt auf den
+        Netzwerkdrucker-Fallback auszuweichen (Etappe AA) – ein separater
+        „SMTP verifiziert"-Config-Key wäre fehleranfälliger (siehe Etappe V)."""
+        await self._versenden(db, betreff, nachricht, empfaenger_liste=[empfaenger], code=code)
+
     async def send_an_liste(
         self, db: AsyncSession, empfaenger_liste: list[str], betreff: str, nachricht: str
     ) -> None:

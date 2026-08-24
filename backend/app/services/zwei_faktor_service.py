@@ -16,12 +16,15 @@ import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 
+import structlog
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_secret, verify_secret
 from app.models.gruppenfuehrer import GruppenfuehrerRecoveryCode, GruppenfuehrerTrustedDevice
 from app.models.person import Person
+
+logger = structlog.get_logger(__name__)
 
 OTP_GUELTIGKEIT_MINUTEN = 10
 OTP_MAX_VERSUCHE = 5
@@ -45,9 +48,19 @@ def _sha256(wert: str) -> str:
 
 # --- OTP -------------------------------------------------------------------
 
-async def otp_erzeugen_und_senden(db: AsyncSession, person: Person) -> None:
-    """Erzeugt einen neuen 6-stelligen OTP, speichert ihn (gehasht) und schickt
-    ihn an die hinterlegte E-Mail. Wirft ValueError, wenn keine E-Mail gesetzt ist."""
+async def otp_erzeugen_und_senden(db: AsyncSession, person: Person) -> str:
+    """Erzeugt einen neuen 6-stelligen OTP, speichert ihn (gehasht) und versucht
+    ihn zuzustellen – zuerst per E-Mail, bei Mailfehler (SMTP nicht erreichbar/
+    falsch konfiguriert oder gar nicht konfiguriert) über den Netzwerkdrucker-
+    Fallback (IPP, sofern `drucker_aktiv`), sonst gar nicht. Wirft ValueError,
+    wenn keine E-Mail gesetzt ist (Voraussetzung für aktives 2FA, siehe
+    `aktivieren()` – in der Praxis also nur ein Invarianten-Schutz).
+
+    Gibt den tatsächlichen Versandweg zurück: ``"email"``, ``"druck"`` oder
+    ``"keiner"``. Im letzten Fall bleiben die bei der 2FA-Einrichtung
+    ausgegebenen Recovery-Codes der einzige Weg, den zweiten Login-Schritt
+    abzuschließen – das ist bewusst kein Fehlerfall dieser Funktion (kein
+    Login-Ausschluss, siehe Etappe AA), sondern wird nur protokolliert."""
     if not person.email:
         raise ValueError("Für diesen Zugang ist keine E-Mail hinterlegt.")
     code = f"{secrets.randbelow(1_000_000):06d}"
@@ -56,16 +69,31 @@ async def otp_erzeugen_und_senden(db: AsyncSession, person: Person) -> None:
     person.otp_versuche = 0
     await db.commit()
 
+    from app.services import druck_service, pdf_service
     from app.services.notifier.email import EmailNotifier
 
-    await EmailNotifier().send_an(
-        db,
-        person.email,
-        "Dein Login-Code für Gerätehaus.app",
-        f"Dein Anmelde-Code ist {OTP_GUELTIGKEIT_MINUTEN} Minuten gültig. Wenn du dich "
-        f"nicht anmelden wolltest, ignoriere diese E-Mail.",
-        code=code,
-    )
+    try:
+        await EmailNotifier().otp_versenden(
+            db,
+            person.email,
+            "Dein Login-Code für Gerätehaus.app",
+            f"Dein Anmelde-Code ist {OTP_GUELTIGKEIT_MINUTEN} Minuten gültig. Wenn du dich "
+            f"nicht anmelden wolltest, ignoriere diese E-Mail.",
+            code,
+        )
+        return "email"
+    except Exception:
+        logger.warning("2fa_otp_mail_fehlgeschlagen", person_id=person.id, exc_info=True)
+
+    try:
+        pdf_inhalt = await pdf_service.otp_pdf(db, person.name, code, OTP_GUELTIGKEIT_MINUTEN)
+        if await druck_service.drucke_pdf_falls_konfiguriert(db, pdf_inhalt):
+            return "druck"
+    except Exception:
+        logger.warning("2fa_otp_druck_fehlgeschlagen", person_id=person.id, exc_info=True)
+
+    logger.warning("2fa_otp_kein_versandweg", person_id=person.id)
+    return "keiner"
 
 
 async def otp_pruefen(db: AsyncSession, person: Person, code: str) -> bool:

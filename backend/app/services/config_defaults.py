@@ -144,12 +144,18 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("gruppenfuehrer_login_sperre_minuten", "15", ConfigTyp.INT, "Gruppenführer-Login: Sperrdauer in Minuten nach zu vielen Fehlversuchen"),
     # Ist die Pflicht aktiv, müssen erhöhte Konten (Admin/Gruppenführer) ohne
     # aktives 2FA es beim nächsten Login erzwungen einrichten (E-Mail +
-    # Recovery-Codes), bevor ein Token ausgestellt wird. Standardmäßig AUS
-    # (opt-in über Einstellungen) - Zwangs-Einrichtung kann bei SMTP-Problemen
-    # oder fehlendem Internet auf dem einzigen Admin-Zugang zur Aussperrung
-    # führen; Recovery-Codes federn das zwar ab, aber wer 2FA aktiv nutzen will,
-    # kann es weiterhin gezielt einschalten.
-    ConfigDefault("zwei_faktor_pflicht", "false", ConfigTyp.BOOL, "2FA für erhöhte Konten (Admin/Gruppenführer) verpflichtend"),
+    # Recovery-Codes), bevor ein Token ausgestellt wird. Standardmäßig AN
+    # (Etappe AA, revidiert Etappe V): schlägt der Mailversand des Anmelde-Codes
+    # fehl oder ist SMTP gar nicht konfiguriert, weicht `zwei_faktor_service`
+    # auf den Netzwerkdrucker-Fallback (IPP, Etappe K) aus, wenn einer
+    # konfiguriert ist; ist auch kein Drucker vorhanden, bleiben die bei der
+    # Einrichtung ausgegebenen Recovery-Codes der letzte Ausweg – ein
+    # kompletter Login-Ausschluss wie im ursprünglichen SMTP-Ausfall-Vorfall
+    # ist damit ausgeschlossen. Die Zwangs-Einrichtung selbst wird nur
+    # erzwungen, wenn mindestens EIN Versandweg (Mail oder Drucker)
+    # konfiguriert ist (siehe `gruppenfuehrer_service.zugang_entscheiden`) –
+    # sonst käme ein frisch aufgesetztes System nie über die Erst-Einrichtung.
+    ConfigDefault("zwei_faktor_pflicht", "true", ConfigTyp.BOOL, "2FA für erhöhte Konten (Admin/Gruppenführer) verpflichtend"),
     # Reihenfolge der Feature-Module (Kiosk-Kacheln + Modul-Unterseiten), als
     # kommagetrennte Key-Liste. Unbekannte/fehlende Keys werden beim Lesen
     # anhand der Registry ergänzt bzw. ignoriert.
