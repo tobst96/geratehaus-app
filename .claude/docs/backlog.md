@@ -188,7 +188,14 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### TLS/Reverse-Proxy vor der App ist nicht dokumentiert
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, direkt auf beta)
+- Umsetzung: Neuer README-Abschnitt „🌐 Externer Zugriff & HTTPS" (vor
+  „Konfiguration", TOC ergänzt) – Caddy-Beispiel (`Caddyfile`, automatisches
+  Let's-Encrypt-Zertifikat), Traefik/nginx+certbot als Alternative erwähnt,
+  Hinweis dass HTTP-only für Produktivbetrieb ungeeignet ist (Art. 32 DSGVO),
+  plus konkreter Hinweis `oeffentliche_basis_url` nach Einrichtung auf die
+  HTTPS-Domain zu setzen und nur Port 443 nach außen zu routen statt
+  `HTTP_PORT` direkt. Reine Doku-Änderung, keine Tests nötig.
 - Priorität: Hoch
 - Kategorie: Dokumentation
 - Skills: knowledge-management, review

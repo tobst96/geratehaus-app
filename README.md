@@ -33,6 +33,7 @@ nutzen.
 - [Funktionen](#-funktionen)
 - [Tech-Stack](#-tech-stack)
 - [Schnellstart (Docker)](#-schnellstart-docker)
+- [Externer Zugriff & HTTPS](#-externer-zugriff--https)
 - [Konfiguration](#-konfiguration)
 - [Lokale Entwicklung](#-lokale-entwicklung-ohne-docker)
 - [Projektstruktur](#-projektstruktur)
@@ -253,6 +254,41 @@ sondern ausschließlich über „Erhöhter Zugang" bei der jeweiligen Person unt
 2. **Stammdaten → Personen**: Mitglieder anlegen, optional Profilbild hochladen.
 3. **Barcodes**: Barcode pro Person erzeugen und ausdrucken.
 4. **Einstellungen**: Module aktivieren/anzeigen, Divera und Benachrichtigungen konfigurieren.
+
+## 🌐 Externer Zugriff & HTTPS
+
+Der Kiosk-Modus (Tablet im Gerätehaus) läuft auch rein im lokalen Netz ohne
+weitere Schritte. Soll die App aber zusätzlich **von außen** erreichbar sein
+(öffentlicher Mitglieder-Login von unterwegs/zu Hause), braucht sie zwingend
+einen vorgeschalteten **Reverse-Proxy mit TLS-Zertifikat** – die App selbst
+terminiert kein HTTPS und setzt bewusst kein HSTS, weil sie davon ausgeht,
+dass TLS bereits vor ihr endet. **Nur über HTTP exponiert ist die Instanz für
+den Produktivbetrieb ungeeignet**: Barcode-Tokens, PINs, Passwörter und die
+Mitglieder-Session liefen sonst im Klartext über die Leitung – bei
+personenbezogenen Daten ist HTTPS nach Art. 32 DSGVO praktisch Pflicht.
+
+Empfohlen: [Caddy](https://caddyserver.com/) – holt und erneuert
+Let's-Encrypt-Zertifikate automatisch, keine manuelle Zertifikatspflege.
+Minimaler `Caddyfile`-Auszug (auf demselben Host wie `docker compose`, oder
+per eigenem Caddy-Container im selben Docker-Netz):
+
+```caddyfile
+geraetehausapp.feuerwehr-musterstadt.de {
+    reverse_proxy localhost:9112
+}
+```
+
+`9112` ist der Standard-Port aus `HTTP_PORT` in der `.env` (anpassen, falls dort
+geändert). Alternativ eignet sich genauso [Traefik](https://traefik.io/) mit
+seinem ACME-Provider, oder ein bestehender nginx/Apache mit `certbot`.
+
+Nach der Einrichtung:
+
+- `oeffentliche_basis_url` in den Einstellungen (bzw. im Setup-Wizard) auf die
+  **HTTPS**-Domain setzen – sie wird für alle QR-Code-Links (Barcode
+  vergessen, Profilbild-Upload usw.) verwendet.
+- Router-seitig nur Port 443 (und ggf. 80 für die ACME-Challenge) nach außen
+  weiterleiten, nicht den `HTTP_PORT` von `docker compose` direkt.
 
 ## ⚙️ Konfiguration
 
