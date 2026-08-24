@@ -71,6 +71,14 @@ function neueSitzplatzId(): string {
   return `sitz-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 }
 
+// Rasterweite in Prozent der Box - reicht für ein sauber wirkendes Layout, ohne
+// beim Andocken an Presets (die krumme Prozentwerte nutzen) sofort zu verschieben.
+const RASTER_SCHRITT = 5;
+
+function anRasterAusrichten(wert: number): number {
+  return Math.round(wert / RASTER_SCHRITT) * RASTER_SCHRITT;
+}
+
 interface SitzplatzEditorProps {
   fahrzeug: Fahrzeug;
   funktionen: FunktionEinsatz[];
@@ -81,6 +89,7 @@ interface SitzplatzEditorProps {
 export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }: SitzplatzEditorProps) {
   const [sitzplaetze, setSitzplaetze] = useState<Sitzplatz[]>(fahrzeug.sitzplaetze ?? []);
   const [ausgewaehlt, setAusgewaehlt] = useState<string | null>(null);
+  const [rasterAktiv, setRasterAktiv] = useState(false);
   const [speichern, setSpeichern] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -97,8 +106,12 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
 
   function boxKoordinaten(e: { clientX: number; clientY: number }): { x: number; y: number } {
     const rect = boxRef.current!.getBoundingClientRect();
-    const x = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100));
+    let x = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
+    let y = Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100));
+    if (rasterAktiv) {
+      x = Math.min(100, Math.max(0, anRasterAusrichten(x)));
+      y = Math.min(100, Math.max(0, anRasterAusrichten(y)));
+    }
     return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
   }
 
@@ -182,12 +195,20 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
         <h2>{t.titel_prefix} {fahrzeug.name}</h2>
         <p className="hinweistext">{t.hinweis}</p>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: "1rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
           {Object.entries(PRESETS).map(([key, preset]) => (
             <button key={key} type="button" className="sekundaer" onClick={() => preisetAnwenden(key)}>
               {preset.label}
             </button>
           ))}
+          <label style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: "auto" }}>
+            <input
+              type="checkbox"
+              checked={rasterAktiv}
+              onChange={(e) => setRasterAktiv(e.target.checked)}
+            />
+            {t.raster_label}
+          </label>
         </div>
 
         <div
@@ -199,7 +220,17 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
             position: "relative",
             width: "100%",
             aspectRatio: "16 / 10",
-            background: "var(--farbe-oberflaeche-hover)",
+            background: rasterAktiv
+              ? `var(--farbe-oberflaeche-hover)
+                 repeating-linear-gradient(
+                   to right, var(--farbe-rand) 0, var(--farbe-rand) 1px,
+                   transparent 1px, transparent ${RASTER_SCHRITT}%
+                 )
+                 repeating-linear-gradient(
+                   to bottom, var(--farbe-rand) 0, var(--farbe-rand) 1px,
+                   transparent 1px, transparent ${RASTER_SCHRITT}%
+                 )`
+              : "var(--farbe-oberflaeche-hover)",
             border: "2px solid var(--farbe-rand)",
             borderRadius: "var(--radius)",
             cursor: "copy",

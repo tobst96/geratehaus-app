@@ -12,6 +12,39 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AJ – Sitzplan-Editor: Raster-Snap beim Positionieren
+
+### Sitzplätze am Raster ausrichten statt freihändig auf Pixel genau
+
+- Status: Erledigt (25.08.2026, direkt auf beta)
+- Priorität: Mittel
+- Kategorie: Frontend
+- Skills: geraetehaus-patterns, tests
+- Beschreibung: Aus dem Ideen-Backlog (`Vorschlag.md`, „Sitzplan-UX:
+  Raster-Snap/Ausrichten", vom Nutzer am 05.07.2026 ausdrücklich gewählt).
+  Sitzplätze im `SitzplatzEditor.tsx` werden per Ziehen frei auf beliebige
+  Prozent-Koordinaten positioniert – für ein sauber wirkendes, symmetrisches
+  Layout (abseits der vorgefertigten Presets) gibt es keine Ausrichtungshilfe.
+- Umsetzung: Optionale Checkbox „Am Raster ausrichten" oberhalb der
+  Sitzplan-Fläche (Default aus – bestehendes freihändiges Positionieren bleibt
+  unverändert möglich). Aktiv, rundet `boxKoordinaten()` sowohl beim Ziehen
+  bestehender als auch beim Platzieren neuer Sitzplätze auf ein 5%-Raster
+  (`anRasterAusrichten()`); zusätzlich blendet die Fläche bei aktivem Raster
+  ein dezentes Gitternetz (CSS `repeating-linear-gradient`) als visuelles
+  Feedback ein. Presets bleiben von der Rundung unberührt (nur manuelles
+  Ziehen/Platzieren). 2 neue Tests (`SitzplatzEditor.test.tsx`: Platzierung
+  ohne Raster exakt, mit Raster auf 5%-Schritte gerundet).
+- Akzeptanzkriterien: Mit aktiver Checkbox landen neu platzierte und gezogene
+  Sitzplätze auf einem 5%-Raster; ohne Checkbox unverändertes freihändiges
+  Verhalten; Vitest-Suite grün.
+- Notizen: Bewusst kein Mehrfach-Auswahl-„Ausrichten" (mehrere Sitzplätze
+  gemeinsam an einer Achse ausrichten) umgesetzt – der Editor kennt aktuell nur
+  Einzelauswahl (`ausgewaehlt: string | null`); das wäre ein größerer Umbau
+  als im Ideen-Backlog mit Aufwand „S" veranschlagt. Bei Bedarf als eigene
+  Folgeaufgabe aufnehmen.
+
+---
+
 ## Etappe AI – Dienststunden-QR-Stempel verlangt zusätzlichen Login
 
 ### Bug: Nach Scan des Dienststunden-QR-Codes muss man sich vor/nach dem Buchen einloggen
@@ -3308,9 +3341,8 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 - **Fahrzeug-Zusatzdaten & Prüftermine** `⭐⭐ · M` · Prio Mittel · Plan Nein:
   Kennzeichen, Funkrufname (ISSI vorhanden), TÜV/UVV/Beladungsprüfung mit
   **Erinnerung** vor Ablauf (Notifier). Häufiger Wunsch.
-- **Sitzplan-UX: Raster-Snap/Ausrichten** `⭐⭐ · S` · Prio Mittel · Plan Nein ·
-  *gewählt 05.07.2026*. (Sitzplan-PDF/Druck und „Beladung je Sitzplatz" **nicht**
-  gewählt.)
+- **Sitzplan-UX: Raster-Snap/Ausrichten** `⭐⭐ · S` → **siehe Etappe AJ**.
+  (Sitzplan-PDF/Druck und „Beladung je Sitzplatz" **nicht** gewählt.)
 
 ### Einsatztagebuch
 

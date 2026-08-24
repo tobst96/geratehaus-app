@@ -584,6 +584,7 @@ export const texte = {
     speichert: "Speichert …",
     speichern: "Speichern",
     fehler_speichern: "Speichern fehlgeschlagen.",
+    raster_label: "Am Raster ausrichten",
   },
   einsatz_detail: {
     zurueck: "← Zurück zu den Listen",
