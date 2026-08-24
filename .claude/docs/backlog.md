@@ -314,7 +314,32 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Kein Code-Splitting – ein einziges Riesen-Bundle
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, direkt auf beta)
+- Umsetzung: `App.tsx` importiert jetzt nur noch die schlanke Kiosk-/
+  Landing-Startseite eager (`Layout`, Route-Guards, `LandingPage`,
+  `Datenschutz`, `Impressum`, `NotFound`); alle ~28 übrigen Seiten (gesamter
+  `/gruppenfuehrer/*`-Admin-Bereich, Setup-Wizard, alle Kalender-/Barcode-/
+  Token-Formular-Seiten) per `React.lazy(() => import(...).then(m => ({
+  default: m.X })))` – `.then(...)` nötig, da die Seiten benannte statt
+  Default-Exports nutzen. Ein einziger `<Suspense fallback={<Ladeanzeige
+  />}>` um den gesamten `<Routes>`-Baum statt vieler einzelner Boundaries.
+  **Ergebnis (`npm run build`-Output vorher/nachher):** Haupt-Bundle
+  `index-*.js` 1.517,83 kB (gzip 415,82 kB) → **474,80 kB (gzip 152,79 kB)**
+  – **~63 % weniger** im kritischen Erstlade-Pfad. Schwere Bibliotheken
+  landen jetzt in eigenen, erst bei Bedarf geladenen Chunks: Barcode-Scanner
+  (`@zxing`, via `PersonIdentifikation`) 476,63 kB, Kalender
+  (`react-big-calendar`, via `Fahrzeugbuchung`) 227,71 kB,
+  `ModulUnterseite` 118,51 kB, plus ~25 kleine Chunks (1-13 kB) für die
+  restlichen Admin-/Formular-Seiten.
+  **Korrektur zum Audit-Befund:** „Karte/Fahrzeug" (`leaflet`/
+  `react-leaflet`) gibt es im Code aktuell gar nicht – die Pakete stehen
+  zwar noch in `package.json`, werden aber nirgends importiert (waren daher
+  ohnehin nie im Bundle enthalten, kein Lazy-Loading nötig).
+  `vite.config.ts`s `manualChunks` bewusst nicht ergänzt – das routenbasierte
+  Splitting deckt das Ziel (kleines Erstlade-Bundle) bereits vollständig ab,
+  zusätzliches manuelles Chunking hätte nur Komplexität ohne klaren
+  Zusatznutzen gebracht. Volle Vitest-Suite (29 Dateien, 88 Tests) grün, kein
+  Verhaltensunterschied.
 - Priorität: Hoch
 - Kategorie: Frontend / Performance
 - Skills: geraetehaus-patterns, tests, review
