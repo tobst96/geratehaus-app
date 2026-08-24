@@ -267,3 +267,41 @@ den echten `.env`-Wert von `ENVIRONMENT`.
   kurz prüfen, ob die Testsuite wirklich den Test-Wert sieht, nicht den der
   echten `.env` dieser Instanz – am einfachsten mit einem gezielten Fehlschlag
   wie oben (nicht mit einem `print`, das könnte übersehen werden).
+
+## `docker compose up -d --build` kann ein neues Image bauen, ohne den Container neu zu starten
+
+### Problem
+
+`docker compose --profile minio up -d --build` meldete nach einem echten Frontend-
+Codeänderung (mehrere Commits über zwei Tage) für Frontend **und** Backend nur
+„Running" statt „Recreate"/„Recreated" – obwohl `docker build` sichtbar ein neues
+Image erzeugt hatte. `docker inspect <container> --format '{{.Image}}'` vs.
+`docker inspect <image-tag> --format '{{.Id}}'` zeigten danach zwei
+**unterschiedliche** IDs: Der laufende Container nutzte noch ein 1-2 Tage altes
+Image, das frisch gebaute (mit dem Fix drin) lief nie.
+
+### Symptom
+
+Mehrere als „deployed und live verifiziert" gemeldete Fixes liefen in Wahrheit
+weiter mit altem Code – ohne Fehlermeldung, `docker compose up -d --build` gibt
+keinen Hinweis darauf, dass es den Container NICHT ersetzt hat.
+
+### Lösung / Prävention
+
+- Nach **jedem** `docker compose up -d --build` den tatsächlichen Container-Stand
+  gegen das frisch getaggte Image verifizieren, bevor ein Fix als „live" gemeldet
+  wird:
+  ```
+  docker inspect <container> --format '{{.Image}}'
+  docker inspect <image-tag>  --format '{{.Id}}'
+  ```
+  Stimmen beide IDs nicht überein, ist der Container NICHT aktualisiert.
+- Im Zweifel (oder direkt nach einer Deploy-Auffälligkeit) `--force-recreate`
+  zusätzlich zu `--build` anhängen – erzwingt die Neuerstellung unabhängig von
+  Docker Composes eigener Änderungserkennung. Rekreiert dabei auch `db`/`minio`
+  mit (kein Datenverlust bei intaktem Volume, aber kurzer Neustart) – falls das
+  vermieden werden soll, `--force-recreate` nur mit den betroffenen Service-Namen
+  aufrufen (`... up -d --build --force-recreate backend frontend`).
+- Root Cause nicht abschließend geklärt (evtl. BuildKit-„bake"-Caching-Effekt bei
+  `docker compose build`); die Verifikation oben ist die zuverlässige Absicherung,
+  unabhängig von der genauen Ursache.
