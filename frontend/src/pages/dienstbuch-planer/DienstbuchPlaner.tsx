@@ -1,20 +1,31 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Fehlertext } from "../../components/Fehlertext";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
-import { PlanerKalender } from "../../components/PlanerKalender";
+import { PlanerKalender, type TerminVerschiebung } from "../../components/PlanerKalender";
 import { PlanTerminDialog } from "../../components/PlanTerminDialog";
 import { ApiError } from "../../api/client";
 import {
   aktualisiereTermin,
+  holeFeiertage,
   holeKategorien,
   holeTermine,
   holeUeberfaelligeVorlagen,
+  importiereJahr,
+  ladeJahresExport,
   legePlatzhalterAn,
   legeTerminAn,
   stelleJahrSicher,
+  uebertrageAnDivera,
+  type ImportErgebnis,
 } from "../../api/dienstbuchPlaner";
-import type { PlanerKategorieOut, PlanTerminOut, VorlageUeberfaelligOut } from "../../api/types";
+import type {
+  DiveraUebertragungErgebnis,
+  FeiertagOut,
+  PlanerKategorieOut,
+  PlanTerminOut,
+  VorlageUeberfaelligOut,
+} from "../../api/types";
 
 function datumZuIso(d: Date): string {
   const jahr = d.getFullYear();
@@ -24,34 +35,58 @@ function datumZuIso(d: Date): string {
 }
 
 export function DienstbuchPlaner() {
-  const [jahr, setJahr] = useState(new Date().getFullYear());
+  // QR-Codes auf dem Excel-Export öffnen den Planer direkt im passenden
+  // Monat (?jahr=&monat=).
+  const [searchParams] = useSearchParams();
+  // Eine Quelle der Wahrheit für den sichtbaren Zeitraum: die Jahres-Buttons
+  // und die Kalender-Navigation ändern beide dieses Datum; das geladene Jahr
+  // folgt daraus (behebt: "Jahr weiter -> Termine nicht sichtbar", weil der
+  // Kalender vorher auf dem heutigen Monat stehen blieb).
+  const [datum, setDatum] = useState(() => {
+    const jahrParam = Number(searchParams.get("jahr"));
+    const monatParam = Number(searchParams.get("monat"));
+    if (jahrParam >= 2000 && jahrParam <= 2200) {
+      return new Date(jahrParam, monatParam >= 1 && monatParam <= 12 ? monatParam - 1 : 0, 1);
+    }
+    return new Date();
+  });
+  const jahr = datum.getFullYear();
   const [termine, setTermine] = useState<PlanTerminOut[] | null>(null);
   const [kategorien, setKategorien] = useState<PlanerKategorieOut[]>([]);
   const [ueberfaellig, setUeberfaellig] = useState<VorlageUeberfaelligOut[]>([]);
+  const [feiertage, setFeiertage] = useState<FeiertagOut[]>([]);
+  const importDatei = useRef<HTMLInputElement>(null);
+  const [importErgebnis, setImportErgebnis] = useState<ImportErgebnis | null>(null);
+  // Divera-Übertragung: Auswahl per Checkbox in der Terminliste.
+  const [diveraAuswahl, setDiveraAuswahl] = useState<number[]>([]);
+  const [diveraGruppen, setDiveraGruppen] = useState("");
+  const [diveraErinnerung, setDiveraErinnerung] = useState("");
+  const [diveraErgebnisse, setDiveraErgebnisse] = useState<DiveraUebertragungErgebnis[] | null>(null);
+  const [diveraLaeuft, setDiveraLaeuft] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [ausgewaehlterTermin, setAusgewaehlterTermin] = useState<PlanTerminOut | null>(null);
 
   const [neuerPlatzhalterTitel, setNeuerPlatzhalterTitel] = useState("");
-  const [neuerTerminTitel, setNeuerTerminTitel] = useState("");
-  const [neuerTerminDatum, setNeuerTerminDatum] = useState("");
-  const [neuerTerminUhrzeit, setNeuerTerminUhrzeit] = useState("");
   const [gezogenerPlatzhalter, setGezogenerPlatzhalter] = useState<PlanTerminOut | null>(null);
   // Klick auf einen freien Kalendertag: Mini-Dialog zum direkten Anlegen dort.
   const [slotDatum, setSlotDatum] = useState<Date | null>(null);
   const [slotTitel, setSlotTitel] = useState("");
   const [slotUhrzeit, setSlotUhrzeit] = useState("");
+  const [slotEndzeit, setSlotEndzeit] = useState("");
   const [slotSpeichert, setSlotSpeichert] = useState(false);
 
   async function laden() {
     try {
-      const [t, k, u] = await Promise.all([
+      const [t, k, u, f] = await Promise.all([
         holeTermine(jahr),
         holeKategorien(),
         holeUeberfaelligeVorlagen(),
+        holeFeiertage(jahr),
       ]);
       setTermine(t);
       setKategorien(k);
       setUeberfaellig(u);
+      setFeiertage(f);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Daten konnten nicht geladen werden.");
     }
@@ -61,6 +96,12 @@ export function DienstbuchPlaner() {
     laden();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jahr]);
+
+  function jahrWechseln(richtung: number) {
+    // In den Januar des Zieljahres springen, damit die (Entwurfs-)Termine des
+    // Jahres sofort im sichtbaren Kalenderbereich liegen.
+    setDatum(new Date(jahr + richtung, 0, 1));
+  }
 
   async function jahrSicherstellen() {
     await stelleJahrSicher(jahr);
@@ -75,24 +116,6 @@ export function DienstbuchPlaner() {
     await laden();
   }
 
-  async function terminAnlegen(e: FormEvent) {
-    e.preventDefault();
-    if (!neuerTerminTitel.trim() || !neuerTerminDatum) return;
-    try {
-      await legeTerminAn({
-        titel: neuerTerminTitel.trim(),
-        zieldatum: neuerTerminDatum,
-        uhrzeit: neuerTerminUhrzeit || null,
-      });
-      setNeuerTerminTitel("");
-      setNeuerTerminDatum("");
-      setNeuerTerminUhrzeit("");
-      await laden();
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Termin konnte nicht angelegt werden.");
-    }
-  }
-
   function slotAngeklickt(datum: Date) {
     setSlotDatum(datum);
     setSlotTitel("");
@@ -105,6 +128,7 @@ export function DienstbuchPlaner() {
         ? ""
         : `${String(stunden).padStart(2, "0")}:${String(minuten).padStart(2, "0")}`
     );
+    setSlotEndzeit("");
   }
 
   async function slotTerminAnlegen(e: FormEvent) {
@@ -116,6 +140,7 @@ export function DienstbuchPlaner() {
         titel: slotTitel.trim(),
         zieldatum: datumZuIso(slotDatum),
         uhrzeit: slotUhrzeit ? `${slotUhrzeit}:00` : null,
+        endzeit: slotUhrzeit && slotEndzeit ? `${slotEndzeit}:00` : null,
       });
       setSlotDatum(null);
       await laden();
@@ -126,9 +151,14 @@ export function DienstbuchPlaner() {
     }
   }
 
-  async function terminVerschoben(termin: PlanTerminOut, neuesDatum: Date) {
+  async function terminVerschoben(termin: PlanTerminOut, verschiebung: TerminVerschiebung) {
     try {
-      await aktualisiereTermin(termin.id, { zieldatum: datumZuIso(neuesDatum) });
+      await aktualisiereTermin(termin.id, {
+        zieldatum: datumZuIso(verschiebung.zieldatum),
+        ...(verschiebung.zeitenGeaendert
+          ? { uhrzeit: verschiebung.uhrzeit, endzeit: verschiebung.endzeit }
+          : {}),
+      });
       await laden();
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Verschieben fehlgeschlagen.");
@@ -151,6 +181,45 @@ export function DienstbuchPlaner() {
     laden();
   }
 
+  async function importStarten(datei: File) {
+    setImportErgebnis(null);
+    setFehler(null);
+    try {
+      setImportErgebnis(await importiereJahr(jahr, datei));
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Import fehlgeschlagen.");
+    }
+  }
+
+  function diveraAuswahlUmschalten(id: number) {
+    setDiveraAuswahl((vorher) => (vorher.includes(id) ? vorher.filter((x) => x !== id) : [...vorher, id]));
+  }
+
+  async function diveraUebertragen() {
+    if (diveraAuswahl.length === 0) return;
+    setDiveraLaeuft(true);
+    setDiveraErgebnisse(null);
+    try {
+      const gruppen = diveraGruppen
+        .split(",")
+        .map((g) => g.trim())
+        .filter(Boolean);
+      const ergebnisse = await uebertrageAnDivera({
+        termin_ids: diveraAuswahl,
+        gruppen,
+        erinnerung_minuten: diveraErinnerung ? Number(diveraErinnerung) : null,
+      });
+      setDiveraErgebnisse(ergebnisse);
+      if (ergebnisse.every((e) => e.ok)) setDiveraAuswahl([]);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Divera-Übertragung fehlgeschlagen.");
+    } finally {
+      setDiveraLaeuft(false);
+    }
+  }
+
   if (fehler && !termine) return <Fehlertext>{fehler}</Fehlertext>;
   if (!termine) return <Ladeanzeige />;
 
@@ -163,11 +232,11 @@ export function DienstbuchPlaner() {
       {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-        <button className="sekundaer" onClick={() => setJahr((j) => j - 1)}>
+        <button className="sekundaer" onClick={() => jahrWechseln(-1)}>
           ← {jahr - 1}
         </button>
         <strong>{jahr}</strong>
-        <button className="sekundaer" onClick={() => setJahr((j) => j + 1)}>
+        <button className="sekundaer" onClick={() => jahrWechseln(1)}>
           {jahr + 1} →
         </button>
         <span style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -177,11 +246,43 @@ export function DienstbuchPlaner() {
           <button className="sekundaer" onClick={jahrSicherstellen}>
             Termine für {jahr} aus Vorlagen aktualisieren
           </button>
+          <button className="sekundaer" onClick={() => ladeJahresExport(jahr)}>
+            Excel-Export
+          </button>
+          <button className="sekundaer" onClick={() => importDatei.current?.click()}>
+            Excel-Import
+          </button>
+          <input
+            ref={importDatei}
+            type="file"
+            accept=".xlsx"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const datei = e.target.files?.[0];
+              if (datei) importStarten(datei);
+              e.target.value = "";
+            }}
+          />
         </span>
       </div>
 
+      {importErgebnis && (
+        <p className="hinweistext">
+          Import: {importErgebnis.angelegt} angelegt, {importErgebnis.uebersprungen} übersprungen
+          {importErgebnis.fehler.length > 0 && `, ${importErgebnis.fehler.length} Fehler`}
+          {importErgebnis.fehler.slice(0, 5).map((f) => (
+            <span key={`${f.zeile}-${f.fehler}`}>
+              <br />Zeile {f.zeile}: {f.fehler}
+            </span>
+          ))}
+        </p>
+      )}
+
       <PlanerKalender
         termine={geplant}
+        feiertage={feiertage}
+        datum={datum}
+        onDatumWechsel={setDatum}
         onEventKlick={setAusgewaehlterTermin}
         onSlotKlick={slotAngeklickt}
         onTerminVerschoben={terminVerschoben}
@@ -220,14 +321,26 @@ export function DienstbuchPlaner() {
                 placeholder="z. B. Übungsdienst"
               />
             </div>
-            <div className="formular-feld">
-              <label htmlFor="slot-uhrzeit">Uhrzeit (optional)</label>
-              <input
-                id="slot-uhrzeit"
-                type="time"
-                value={slotUhrzeit}
-                onChange={(e) => setSlotUhrzeit(e.target.value)}
-              />
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <div className="formular-feld">
+                <label htmlFor="slot-uhrzeit">Beginn (optional)</label>
+                <input
+                  id="slot-uhrzeit"
+                  type="time"
+                  value={slotUhrzeit}
+                  onChange={(e) => setSlotUhrzeit(e.target.value)}
+                />
+              </div>
+              <div className="formular-feld">
+                <label htmlFor="slot-endzeit">Ende (optional)</label>
+                <input
+                  id="slot-endzeit"
+                  type="time"
+                  value={slotEndzeit}
+                  onChange={(e) => setSlotEndzeit(e.target.value)}
+                  disabled={!slotUhrzeit}
+                />
+              </div>
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               <button type="submit" disabled={slotSpeichert || !slotTitel.trim()}>
@@ -240,31 +353,6 @@ export function DienstbuchPlaner() {
           </form>
         </div>
       )}
-
-      <div className="karte" style={{ marginTop: 16 }}>
-        <h2>Neuer Termin</h2>
-        <form onSubmit={terminAnlegen} style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-          <input
-            placeholder="Titel, z. B. Sondersitzung"
-            value={neuerTerminTitel}
-            onChange={(e) => setNeuerTerminTitel(e.target.value)}
-            style={{ flex: 1, minWidth: 180 }}
-          />
-          <input
-            type="date"
-            value={neuerTerminDatum}
-            onChange={(e) => setNeuerTerminDatum(e.target.value)}
-            aria-label="Datum"
-          />
-          <input
-            type="time"
-            value={neuerTerminUhrzeit}
-            onChange={(e) => setNeuerTerminUhrzeit(e.target.value)}
-            aria-label="Uhrzeit (optional)"
-          />
-          <button type="submit">Anlegen</button>
-        </form>
-      </div>
 
       <div className="karte" style={{ marginTop: 16 }}>
         <h2>Platzhalter</h2>
@@ -298,6 +386,68 @@ export function DienstbuchPlaner() {
               </li>
             ))}
           </ul>
+        )}
+      </div>
+
+      <div className="karte" style={{ marginTop: 16 }}>
+        <h2>An Divera übertragen</h2>
+        <p className="hinweistext">
+          Ausgewählte Termine als Divera-Termine anlegen (mit Rückmelde-Funktion in der Divera-App).
+          Ohne Gruppenangabe geht der Termin an alle des Standorts. Voraussetzung: Divera-Modul mit
+          API-Key konfiguriert.
+        </p>
+        {geplant.filter((t) => t.zieldatum).length === 0 ? (
+          <p className="text-mute">Keine Termine mit Datum in {jahr}.</p>
+        ) : (
+          <>
+            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 12px 0", maxHeight: 220, overflowY: "auto" }}>
+              {geplant
+                .filter((t) => t.zieldatum)
+                .map((t) => (
+                  <li key={t.id} style={{ padding: "2px 0" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <input
+                        type="checkbox"
+                        checked={diveraAuswahl.includes(t.id)}
+                        onChange={() => diveraAuswahlUmschalten(t.id)}
+                      />
+                      {t.zieldatum}
+                      {t.uhrzeit && ` ${t.uhrzeit.slice(0, 5)}`} · {t.titel}
+                      {t.status === "entwurf" && <span className="text-mute"> (Entwurf)</span>}
+                    </label>
+                  </li>
+                ))}
+            </ul>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <input
+                placeholder="Gruppen (Komma-getrennt, leer = alle)"
+                value={diveraGruppen}
+                onChange={(e) => setDiveraGruppen(e.target.value)}
+                style={{ flex: 1, minWidth: 220 }}
+              />
+              <input
+                type="number"
+                min={1}
+                placeholder="Erinnerung (min)"
+                value={diveraErinnerung}
+                onChange={(e) => setDiveraErinnerung(e.target.value)}
+                style={{ width: 140 }}
+              />
+              <button onClick={diveraUebertragen} disabled={diveraLaeuft || diveraAuswahl.length === 0}>
+                {diveraLaeuft ? "Überträgt …" : `${diveraAuswahl.length} Termin(e) übertragen`}
+              </button>
+            </div>
+            {diveraErgebnisse && (
+              <ul style={{ listStyle: "none", padding: 0, margin: "8px 0 0 0", fontSize: "0.85rem" }}>
+                {diveraErgebnisse.map((e) => (
+                  <li key={e.termin_id}>
+                    {e.ok ? "✅" : "❌"} {e.titel || `Termin ${e.termin_id}`}
+                    {!e.ok && ` – ${e.fehler}`}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </div>
 

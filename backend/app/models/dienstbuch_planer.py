@@ -124,9 +124,10 @@ class DienstbuchPlanTermin(Base, TimestampMixin):
 
     # NULL nur bei Platzhaltern (ist_platzhalter=True).
     zieldatum: Mapped[date | None] = mapped_column(Date, nullable=True)
-    # Optionale Uhrzeit zum Zieldatum (z. B. "14:00" für die Sitzung) - nur
-    # relevant, wenn zieldatum gesetzt ist.
+    # Optionale Beginn-/Endzeit zum Zieldatum (z. B. 19:00-21:00) - nur
+    # relevant, wenn zieldatum gesetzt ist; endzeit nur zusammen mit uhrzeit.
     uhrzeit: Mapped[time | None] = mapped_column(Time, nullable=True)
+    endzeit: Mapped[time | None] = mapped_column(Time, nullable=True)
     # Wird aus zieldatum abgeleitet (siehe dienstbuch_planer_service): gesetzt
     # solange kein Zieldatum feststeht. Kein unabhängig vom Client gesetztes
     # Flag mehr, um Inkonsistenzen (Datum gesetzt, aber ist_platzhalter=True)
@@ -155,6 +156,21 @@ class DienstbuchPlanTermin(Base, TimestampMixin):
     ereignisse: Mapped[list["DienstbuchPlanTerminEreignis"]] = relationship(
         back_populates="termin", cascade="all, delete-orphan", order_by="DienstbuchPlanTerminEreignis.zeitpunkt"
     )
+
+
+# --- Feiertage (manuell gepflegt, Phase 2) ------------------------------------
+
+
+class PlanerFeiertag(Base, TimestampMixin):
+    """Manuell in den Modul-Einstellungen ergänzter Feiertag/Blockiertag - wird
+    im Kalender zusätzlich zu den aus `backend/app/data/feiertage_regeln.json`
+    berechneten Feiertagen des konfigurierten Bundeslands eingeblendet."""
+
+    __tablename__ = "planer_feiertage"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    datum: Mapped[date] = mapped_column(Date, nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
 
 
 # --- Audit-/Timeline-Protokoll ------------------------------------------------

@@ -301,6 +301,7 @@ export interface PlanTerminOut {
   beschreibung: string | null;
   zieldatum: string | null;
   uhrzeit: string | null;
+  endzeit: string | null;
   ist_platzhalter: boolean;
   status: PlanTerminStatus;
   dienstbuch_id: number | null;
@@ -321,4 +322,18 @@ export interface VorlageUeberfaelligOut {
   titel: string;
   letztes_zieldatum: string | null;
   tage_ueberfaellig: number;
+}
+
+export interface FeiertagOut {
+  datum: string;
+  name: string;
+  quelle: "regel" | "manuell";
+  id: number | null;
+}
+
+export interface DiveraUebertragungErgebnis {
+  termin_id: number;
+  titel: string;
+  ok: boolean;
+  fehler: string;
 }

@@ -104,6 +104,7 @@ class PlanTerminAnlegen(BaseModel):
     beschreibung: str | None = None
     zieldatum: date
     uhrzeit: time | None = None
+    endzeit: time | None = None
     kategorie_ids: list[int] = []
 
 
@@ -114,6 +115,7 @@ class PlanTerminAktualisieren(BaseModel):
     # Platzhalter (siehe dienstbuch_planer_service.termin_aktualisieren).
     zieldatum: date | None = None
     uhrzeit: time | None = None
+    endzeit: time | None = None
     kategorie_ids: list[int] | None = None
 
 
@@ -150,3 +152,31 @@ class VorlageUeberfaelligOut(BaseModel):
     titel: str
     letztes_zieldatum: date | None
     tage_ueberfaellig: int
+
+
+class FeiertagOut(BaseModel):
+    datum: date
+    name: str
+    quelle: str  # "regel" | "manuell"
+    id: int | None = None  # nur bei manuellen Einträgen (fürs Löschen)
+
+
+class FeiertagAnlegen(BaseModel):
+    datum: date
+    name: str = Field(min_length=1, max_length=255)
+
+
+class DiveraUebertragung(BaseModel):
+    termin_ids: list[int] = Field(min_length=1)
+    # Gruppen-NAMEN (Divera akzeptiert Namen via instructions.group.mapping);
+    # leer = an alle des Standorts.
+    gruppen: list[str] = []
+    erinnerung_minuten: int | None = Field(default=None, ge=1)
+    send_push: bool = True
+
+
+class DiveraUebertragungErgebnis(BaseModel):
+    termin_id: int
+    titel: str
+    ok: bool
+    fehler: str = ""

@@ -16,8 +16,34 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Wiederkehrende Dienstbuch-Termine automatisch statt jährlichem manuellem Kopieren
 
-- Status: Review (PR #75 gegen `beta`, Feature-Branch `feature/dienstbuch-planer`,
-  Phase 1 – nicht gemergt)
+- Status: Erledigt (alle 4 Phasen; Phase 1 via PR #75 gemergt 25.08.2026, Phasen
+  2–4 + Nutzerfeedback direkt auf `beta`, 25.08.2026)
+- Nachträge (25.08.2026, Nutzerfeedback + Phasen 2–4): Planer für ALLE
+  Gruppenführer offen (granulare Rechte-Keys wieder entfernt,
+  `CurrentGruppenfuehrer`); Termine mit optionaler Beginn-/**Endzeit**
+  (Migrationen 0073/0074); Klick auf freien Kalendertag legt Termin an
+  (Mini-Dialog, Datum/Zeit vorbelegt); Platzhalter per **Drag&Drop** auf den
+  Kalender terminierbar, Termine per Ziehen verschiebbar (in Wochen-/
+  Tagesansicht inkl. Uhrzeit-Übernahme – vorher sprang der Termin zurück, weil
+  nur das Datum gespeichert wurde); Jahres-Buttons steuern jetzt auch die
+  Kalenderansicht (vorher blieb der Kalender auf dem heutigen Monat und die
+  Termine des anderen Jahres waren unsichtbar); Kategorien bekommen
+  automatisch eine noch freie Zufallsfarbe; Weiße-Seite-Bug behoben
+  (CJS/ESM-Interop des react-big-calendar-Drag&Drop-Addons, nur im
+  Produktions-Build – siehe LESSONS.md). **Phase 2**: Feiertage pro Bundesland
+  (Regelwerk `backend/app/data/feiertage_regeln.json` im Git editierbar,
+  Gauß-Osterformel, Buß- und Bettag; manuelle Zusatz-Feiertage in den
+  Modul-Einstellungen; rötliches Kalender-Overlay). **Phase 3**: Excel-Export
+  (ein Blatt pro Monat, Branding + QR-Code je Monat auf
+  `?jahr=&monat=`-Deeplink) und -Import (zeilenweise Fehlerliste, Duplikate
+  übersprungen, neue Termine als Entwurf; neue Dependency `openpyxl`).
+  **Phase 4**: Divera-Übertragung über den offiziellen Termine-Webservice
+  (POST /api/v2/events, Spec api.divera247.com/docs/api_v2_event.yaml –
+  Vorab-Recherche erledigt): Mehrfachauswahl per Checkbox, Gruppen per NAME
+  (instructions.group.mapping=title, leer = alle), Erinnerung (Minuten,
+  Default konfigurierbar), Erfolg/Fehler je Termin, Audit-Eintrag
+  `divera_uebertragen`. 9 neue Backend-Tests
+  (`test_dienstbuch_planer_phasen.py`); Suiten 580/580 + 95/95 grün.
 - Priorität: Mittel
 - Kategorie: Neues Modul / Backend / Frontend
 - Skills: planner, geraetehaus-patterns, tests, review

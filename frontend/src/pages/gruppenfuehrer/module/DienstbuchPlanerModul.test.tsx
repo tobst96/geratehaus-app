@@ -18,6 +18,14 @@ vi.mock("../../../api/dienstbuchPlaner", () => ({
   aktualisiereKategorie: (...a: unknown[]) => aktualisiereKategorie(...a),
   aktualisiereVorlage: (...a: unknown[]) => aktualisiereVorlage(...a),
   deaktiviereVorlage: (...a: unknown[]) => deaktiviereVorlage(...a),
+  holeBundeslaender: vi.fn().mockResolvedValue({ BY: "Bayern" }),
+  holeFeiertage: vi.fn().mockResolvedValue([]),
+  legeFeiertagAn: vi.fn(),
+  loescheFeiertag: vi.fn(),
+}));
+vi.mock("../../../api/gruppenfuehrer", () => ({
+  holeEinstellungen: vi.fn().mockResolvedValue({}),
+  schreibeEinstellungen: vi.fn(),
 }));
 
 import { DienstbuchPlanerModul } from "./DienstbuchPlanerModul";
@@ -70,7 +78,8 @@ describe("DienstbuchPlanerModul (Admin-Einstellungen)", () => {
       screen.getByPlaceholderText("Neue Kategorie, z. B. Ausbildung"),
       "Ausbildung",
     );
-    await user.click(screen.getAllByRole("button", { name: "Anlegen" })[0]);
+    // Button-Reihenfolge: [0] Feiertag anlegen, [1] Kategorie, [2] Vorlage.
+    await user.click(screen.getAllByRole("button", { name: "Anlegen" })[1]);
 
     expect(legeKategorieAn).toHaveBeenCalledWith(
       expect.objectContaining({ name: "Ausbildung" }),
@@ -89,7 +98,7 @@ describe("DienstbuchPlanerModul (Admin-Einstellungen)", () => {
     // angeboten/mitgesendet (verhindert widersprüchliche Regeln).
     expect(screen.queryByLabelText("Kalenderwochen-Parität")).not.toBeInTheDocument();
 
-    await user.click(screen.getAllByRole("button", { name: "Anlegen" })[1]);
+    await user.click(screen.getAllByRole("button", { name: "Anlegen" })[2]);
 
     expect(legeVorlageAn).toHaveBeenCalledWith(
       expect.objectContaining({

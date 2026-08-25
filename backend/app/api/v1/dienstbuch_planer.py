@@ -1,9 +1,14 @@
 from datetime import datetime, timezone
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 
 from app.api.deps import CurrentGruppenfuehrer, DbSession, require_modul_aktiv
 from app.schemas.dienstbuch_planer import (
+    DiveraUebertragung,
+    DiveraUebertragungErgebnis,
+    FeiertagAnlegen,
+    FeiertagOut,
     PlanerKategorieAktualisieren,
     PlanerKategorieAnlegen,
     PlanerKategorieOut,
@@ -17,7 +22,10 @@ from app.schemas.dienstbuch_planer import (
     PlanVorlageOut,
     VorlageUeberfaelligOut,
 )
+from app.services import dienstbuch_planer_excel_service as excel_service
 from app.services import dienstbuch_planer_service as service
+from app.services import divera_planer_service, feiertag_service
+from app.services.config_service import config_service
 from app.services.dienstbuch_plan_engine import VorlageValidierungsFehler
 
 router = APIRouter(
@@ -44,6 +52,7 @@ def _termin_zu_out(termin) -> PlanTerminOut:
         beschreibung=termin.beschreibung,
         zieldatum=termin.zieldatum,
         uhrzeit=termin.uhrzeit,
+        endzeit=termin.endzeit,
         ist_platzhalter=termin.ist_platzhalter,
         status=termin.status,
         dienstbuch_id=termin.dienstbuch_id,
@@ -212,3 +221,82 @@ async def ueberfaellige_vorlagen(db: DbSession, _person: PlanerZugriff) -> list[
         )
         for vorlage, letztes, tage in treffer
     ]
+
+
+# --- Feiertage (Phase 2) --------------------------------------------------------
+
+
+@router.get("/feiertage", response_model=list[FeiertagOut])
+async def feiertage_lesen(db: DbSession, _person: PlanerZugriff, jahr: int) -> list[FeiertagOut]:
+    """Berechnete Feiertage (konfiguriertes Bundesland) + manuell gepflegte."""
+    return [
+        FeiertagOut(datum=f.datum, name=f.name, quelle=f.quelle, id=f.id)
+        for f in await feiertag_service.feiertage_fuer_jahr(db, jahr)
+    ]
+
+
+@router.get("/feiertage/bundeslaender", response_model=dict[str, str])
+async def feiertage_bundeslaender(_person: PlanerZugriff) -> dict[str, str]:
+    return feiertag_service.bundeslaender()
+
+
+@router.post("/feiertage", response_model=FeiertagOut, status_code=status.HTTP_201_CREATED)
+async def feiertag_anlegen(db: DbSession, _person: PlanerZugriff, daten: FeiertagAnlegen) -> FeiertagOut:
+    feiertag = await feiertag_service.feiertag_anlegen(db, daten.datum, daten.name)
+    return FeiertagOut(datum=feiertag.datum, name=feiertag.name, quelle="manuell", id=feiertag.id)
+
+
+@router.delete("/feiertage/{feiertag_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def feiertag_loeschen(db: DbSession, _person: PlanerZugriff, feiertag_id: int) -> None:
+    if not await feiertag_service.feiertag_loeschen(db, feiertag_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Feiertag nicht gefunden.")
+
+
+# --- Excel-Export/-Import (Phase 3) ---------------------------------------------
+
+
+@router.get("/export.xlsx")
+async def jahres_export(db: DbSession, _person: PlanerZugriff, jahr: int) -> Response:
+    inhalt = await excel_service.jahres_export_xlsx(db, jahr)
+    return Response(
+        content=inhalt,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="dienstplan-{jahr}.xlsx"'},
+    )
+
+
+# --- Divera-Übertragung (Phase 4) -----------------------------------------------
+
+
+@router.post("/divera-uebertragen", response_model=list[DiveraUebertragungErgebnis])
+async def divera_uebertragen(
+    db: DbSession, person: PlanerZugriff, daten: DiveraUebertragung
+) -> list[DiveraUebertragungErgebnis]:
+    """Überträgt ausgewählte Planer-Termine als Divera-Termine (bewusste
+    Ausnahme vom „nur lesen"-Grundsatz, siehe divera_planer_service)."""
+    erinnerung = daten.erinnerung_minuten
+    if erinnerung is None:
+        standard = int(await config_service.get(db, "dienstbuch_planer_divera_erinnerung_minuten", 0))
+        erinnerung = standard if standard > 0 else None
+    ergebnisse = await divera_planer_service.uebertrage_termine(
+        db, daten.termin_ids, daten.gruppen, erinnerung, daten.send_push, person.name
+    )
+    return [
+        DiveraUebertragungErgebnis(termin_id=e.termin_id, titel=e.titel, ok=e.ok, fehler=e.fehler)
+        for e in ergebnisse
+    ]
+
+
+@router.post("/import")
+async def jahres_import(
+    db: DbSession, person: PlanerZugriff, jahr: int, datei: Annotated[UploadFile, File()]
+) -> dict:
+    inhalt = await datei.read()
+    if not inhalt:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Leere Datei.")
+    ergebnis = await excel_service.jahres_import_xlsx(db, inhalt, jahr, person.name)
+    return {
+        "angelegt": ergebnis.angelegt,
+        "uebersprungen": ergebnis.uebersprungen,
+        "fehler": ergebnis.fehler,
+    }

@@ -85,8 +85,35 @@ handelndem Gruppenführer** protokolliert (sichtbar im Termin-Dialog). Automatis
 System ausgelöste Einträge (Jahres-Generierung, Dienstbuch-Verknüpfung durch den
 Hintergrund-Job) zeigen keinen Akteur.
 
-## Geplante Erweiterungen (spätere Phasen)
+## Feiertage
 
-- Feiertage pro Bundesland im Kalenderhintergrund.
-- Excel-Export/Import für ein komplettes Jahr (mit QR-Code zum passenden Monat).
-- Termine per Divera-API übertragen.
+Unter **Module → Dienstbuch Planer** lässt sich das **Bundesland** wählen – die
+gesetzlichen Feiertage (fest + osterabhängig, aus einem im Git editierbaren
+Regelwerk berechnet) erscheinen dann als rötlich hinterlegte Tage im Kalender.
+Zusätzlich lassen sich **eigene Feiertage/Blockiertage** (z. B. Stadtfest) manuell
+ergänzen und wieder löschen.
+
+## Excel-Export/-Import
+
+- **Export**: Button „Excel-Export" lädt den kompletten Jahresplan als
+  `.xlsx` – ein Tabellenblatt pro Monat, mit Organisationsname,
+  Gerätehaus.app-Hinweis und (bei konfigurierter öffentlicher Basis-URL) einem
+  **QR-Code pro Monat**, der den Planer direkt im passenden Monat öffnet
+  (Login erforderlich).
+- **Import**: Button „Excel-Import" liest dieselbe Tabellenstruktur wieder ein
+  (Spalten Datum/Beginn/Ende/Titel/Beschreibung). Fehlerhafte Zeilen werden
+  einzeln gemeldet statt den Import abzubrechen; bereits vorhandene Termine
+  (gleiches Datum + Titel) werden übersprungen. Importierte Termine starten als
+  **Entwurf**.
+
+## Divera-Übertragung
+
+Im Block „An Divera übertragen" lassen sich Termine per Checkbox auswählen und
+als **Divera-Termine** anlegen (offizieller Termine-Webservice, mit
+Rückmelde-Funktion in der Divera-App). Optionen: **Gruppen** (Namen,
+Komma-getrennt – leer = alle des Standorts) und **Erinnerung** (Minuten vorher,
+Standardwert in den Modul-Einstellungen konfigurierbar). Voraussetzung:
+Divera-Modul mit API-Key. Jede Übertragung wird im Termin-Verlauf protokolliert.
+
+> Hinweis: Das ist die bewusste, dokumentierte Ausnahme vom sonst geltenden
+> Grundsatz „Divera nur lesen".

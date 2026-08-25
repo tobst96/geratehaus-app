@@ -36,6 +36,7 @@ FELD_LABELS: dict[str, str] = {
     "aktiv": "Aktiv",
     "zieldatum": "Zieldatum",
     "uhrzeit": "Uhrzeit",
+    "endzeit": "Endzeit",
     "ist_platzhalter": "Platzhalter",
 }
 
@@ -274,6 +275,7 @@ async def termin_anlegen(
         beschreibung=daten.beschreibung,
         zieldatum=daten.zieldatum,
         uhrzeit=daten.uhrzeit,
+        endzeit=daten.endzeit,
         ist_platzhalter=False,
         status="entwurf",
         kategorien=await _kategorien_laden(db, daten.kategorie_ids),

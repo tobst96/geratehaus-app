@@ -5,14 +5,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const holeTermine = vi.fn();
 const holeKategorien = vi.fn();
 const holeUeberfaelligeVorlagen = vi.fn();
+const holeFeiertage = vi.fn();
 vi.mock("../../api/dienstbuchPlaner", () => ({
   holeTermine: (...a: unknown[]) => holeTermine(...a),
   holeKategorien: (...a: unknown[]) => holeKategorien(...a),
   holeUeberfaelligeVorlagen: (...a: unknown[]) => holeUeberfaelligeVorlagen(...a),
+  holeFeiertage: (...a: unknown[]) => holeFeiertage(...a),
   legePlatzhalterAn: vi.fn(),
   legeTerminAn: vi.fn(),
   stelleJahrSicher: vi.fn(),
   aktualisiereTermin: vi.fn(),
+  importiereJahr: vi.fn(),
+  ladeJahresExport: vi.fn(),
+  uebertrageAnDivera: vi.fn(),
 }));
 
 import { DienstbuchPlaner } from "./DienstbuchPlaner";
@@ -36,6 +41,7 @@ describe("DienstbuchPlaner (Kalenderseite)", () => {
         beschreibung: null,
         zieldatum: heuteIso(),
         uhrzeit: "19:00:00",
+        endzeit: null,
         ist_platzhalter: false,
         status: "entwurf",
         dienstbuch_id: null,
@@ -51,6 +57,7 @@ describe("DienstbuchPlaner (Kalenderseite)", () => {
         beschreibung: null,
         zieldatum: null,
         uhrzeit: null,
+        endzeit: null,
         ist_platzhalter: true,
         status: "entwurf",
         dienstbuch_id: null,
@@ -60,6 +67,7 @@ describe("DienstbuchPlaner (Kalenderseite)", () => {
     ]);
     holeKategorien.mockReset().mockResolvedValue([]);
     holeUeberfaelligeVorlagen.mockReset().mockResolvedValue([]);
+    holeFeiertage.mockReset().mockResolvedValue([]);
   });
 
   it("rendert Kalender, Termin und Platzhalter ohne Absturz", async () => {
@@ -68,7 +76,8 @@ describe("DienstbuchPlaner (Kalenderseite)", () => {
         <DienstbuchPlaner />
       </MemoryRouter>,
     );
-    expect(await screen.findByText(/Unterweisung UVV/)).toBeInTheDocument();
+    // Termin erscheint mehrfach (Kalender + Divera-Auswahlliste).
+    expect((await screen.findAllByText(/Unterweisung UVV/)).length).toBeGreaterThan(0);
     expect(screen.getByText(/Sommerfest/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Dienstbuch Planer" })).toBeInTheDocument();
   });

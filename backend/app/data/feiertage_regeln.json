@@ -1,0 +1,42 @@
+{
+  "_hinweis": "Gesetzliche Feiertage in Deutschland als Regelwerk. Bewegliche Feiertage werden relativ zum Ostersonntag berechnet (offset in Tagen), feste über monat/tag. laender = null heißt bundesweit, sonst Liste von Bundesland-Kürzeln. Regionale Besonderheiten (z. B. Mariä Himmelfahrt nur in überwiegend katholischen bayerischen Gemeinden, Augsburger Friedensfest) hier bei Bedarf anpassen - die Datei liegt bewusst editierbar im Git.",
+  "bundeslaender": {
+    "BW": "Baden-Württemberg",
+    "BY": "Bayern",
+    "BE": "Berlin",
+    "BB": "Brandenburg",
+    "HB": "Bremen",
+    "HH": "Hamburg",
+    "HE": "Hessen",
+    "MV": "Mecklenburg-Vorpommern",
+    "NI": "Niedersachsen",
+    "NW": "Nordrhein-Westfalen",
+    "RP": "Rheinland-Pfalz",
+    "SL": "Saarland",
+    "SN": "Sachsen",
+    "ST": "Sachsen-Anhalt",
+    "SH": "Schleswig-Holstein",
+    "TH": "Thüringen"
+  },
+  "feiertage": [
+    { "name": "Neujahr", "typ": "fest", "monat": 1, "tag": 1, "laender": null },
+    { "name": "Heilige Drei Könige", "typ": "fest", "monat": 1, "tag": 6, "laender": ["BW", "BY", "ST"] },
+    { "name": "Internationaler Frauentag", "typ": "fest", "monat": 3, "tag": 8, "laender": ["BE", "MV"] },
+    { "name": "Karfreitag", "typ": "ostern", "offset": -2, "laender": null },
+    { "name": "Ostersonntag", "typ": "ostern", "offset": 0, "laender": null },
+    { "name": "Ostermontag", "typ": "ostern", "offset": 1, "laender": null },
+    { "name": "Tag der Arbeit", "typ": "fest", "monat": 5, "tag": 1, "laender": null },
+    { "name": "Christi Himmelfahrt", "typ": "ostern", "offset": 39, "laender": null },
+    { "name": "Pfingstsonntag", "typ": "ostern", "offset": 49, "laender": null },
+    { "name": "Pfingstmontag", "typ": "ostern", "offset": 50, "laender": null },
+    { "name": "Fronleichnam", "typ": "ostern", "offset": 60, "laender": ["BW", "BY", "HE", "NW", "RP", "SL"] },
+    { "name": "Mariä Himmelfahrt", "typ": "fest", "monat": 8, "tag": 15, "laender": ["SL", "BY"] },
+    { "name": "Weltkindertag", "typ": "fest", "monat": 9, "tag": 20, "laender": ["TH"] },
+    { "name": "Tag der Deutschen Einheit", "typ": "fest", "monat": 10, "tag": 3, "laender": null },
+    { "name": "Reformationstag", "typ": "fest", "monat": 10, "tag": 31, "laender": ["BB", "HB", "HH", "MV", "NI", "SN", "ST", "SH", "TH"] },
+    { "name": "Allerheiligen", "typ": "fest", "monat": 11, "tag": 1, "laender": ["BW", "BY", "NW", "RP", "SL"] },
+    { "name": "Buß- und Bettag", "typ": "buss_und_bettag", "laender": ["SN"] },
+    { "name": "1. Weihnachtstag", "typ": "fest", "monat": 12, "tag": 25, "laender": null },
+    { "name": "2. Weihnachtstag", "typ": "fest", "monat": 12, "tag": 26, "laender": null }
+  ]
+}

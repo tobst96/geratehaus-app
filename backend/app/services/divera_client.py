@@ -134,3 +134,40 @@ async def hole_personal(api_key: str) -> list[dict]:
             cluster_keys=list(cluster.keys()) if isinstance(cluster, dict) else type(cluster).__name__,
         )
     return personal
+
+
+async def erstelle_termin(api_key: str, event: dict, reminder: dict | None = None) -> tuple[bool, str]:
+    """Erstellt einen Termin in Divera (POST /api/v2/events).
+
+    BEWUSSTE AUSNAHME vom Projekt-Grundsatz „Divera nur lesen, kein Rückkanal"
+    (siehe .claude/docs/backlog.md, Abschnitt „Divera 24/7"): vom Nutzer am
+    25.08.2026 für den Dienstbuch-Planer ausdrücklich so gewünscht. Payload-
+    Format laut offizieller OpenAPI-Spezifikation
+    https://api.divera247.com/docs/api_v2_event.yaml (Termine-Webservice) -
+    `{"Event": {...}, "Reminder": {...}}`, Auth per accesskey-Query-Parameter.
+
+    Gibt (ok, fehlermeldung) zurück - wirft bewusst nicht, damit der Aufrufer
+    Übertragungen pro Termin einzeln als Erfolg/Fehler ausweisen kann."""
+    url = f"{BASIS_URL}/events"
+    payload: dict = {"Event": event}
+    if reminder:
+        payload["Reminder"] = reminder
+    async with httpx.AsyncClient(timeout=15) as client:
+        try:
+            response = await client.post(url, params={"accesskey": api_key}, json=payload)
+        except httpx.HTTPError as exc:
+            logger.warning("divera_termin_erstellen_fehlgeschlagen", exc_info=True)
+            return False, f"Divera nicht erreichbar: {exc.__class__.__name__}"
+
+    if response.status_code == 403:
+        return False, "Divera-Accesskey fehlt oder ist ungültig (403)."
+    if response.status_code >= 400:
+        return False, f"Divera-Fehler (HTTP {response.status_code})."
+    try:
+        daten = response.json()
+    except ValueError:
+        return False, "Unerwartete Divera-Antwort (kein JSON)."
+    if not daten.get("success", False):
+        return False, f"Divera meldet Fehler: {daten.get('message') or daten}"
+    logger.info("divera_termin_erstellt", titel=event.get("title"))
+    return True, ""

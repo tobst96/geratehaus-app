@@ -1,5 +1,7 @@
-import { apiDelete, apiGet, apiPatch, apiPost } from "./client";
+import { apiDelete, apiGet, apiPatch, apiPost, apiUpload } from "./client";
 import type {
+  DiveraUebertragungErgebnis,
+  FeiertagOut,
   PlanerKategorieOut,
   PlanTerminEreignisOut,
   PlanTerminOut,
@@ -77,6 +79,7 @@ export interface PlanTerminAnlegen {
   beschreibung?: string | null;
   zieldatum: string;
   uhrzeit?: string | null;
+  endzeit?: string | null;
   kategorie_ids?: number[];
 }
 
@@ -88,6 +91,7 @@ export interface PlanTerminAktualisieren {
   beschreibung?: string | null;
   zieldatum?: string | null;
   uhrzeit?: string | null;
+  endzeit?: string | null;
   kategorie_ids?: number[];
 }
 
@@ -105,3 +109,52 @@ export const holeTerminEreignisse = (id: number) =>
 
 export const holeUeberfaelligeVorlagen = () =>
   apiGet<VorlageUeberfaelligOut[]>("/dienstbuch-planer/ueberfaellig");
+
+// --- Feiertage (Phase 2) ---------------------------------------------------
+
+export const holeFeiertage = (jahr: number) =>
+  apiGet<FeiertagOut[]>("/dienstbuch-planer/feiertage", { jahr });
+
+export const holeBundeslaender = () =>
+  apiGet<Record<string, string>>("/dienstbuch-planer/feiertage/bundeslaender");
+
+export const legeFeiertagAn = (datum: string, name: string) =>
+  apiPost<FeiertagOut>("/dienstbuch-planer/feiertage", { datum, name });
+
+export const loescheFeiertag = (id: number) =>
+  apiDelete<void>(`/dienstbuch-planer/feiertage/${id}`);
+
+// --- Excel (Phase 3) -------------------------------------------------------
+
+export async function ladeJahresExport(jahr: number): Promise<void> {
+  const blob = await apiGet<Blob>(`/dienstbuch-planer/export.xlsx?jahr=${jahr}`);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `dienstplan-${jahr}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export interface ImportErgebnis {
+  angelegt: number;
+  uebersprungen: number;
+  fehler: { zeile: number; fehler: string }[];
+}
+
+export const importiereJahr = (jahr: number, datei: File) =>
+  apiUpload<ImportErgebnis>(`/dienstbuch-planer/import?jahr=${jahr}`, datei, "datei");
+
+// --- Divera (Phase 4) ------------------------------------------------------
+
+export interface DiveraUebertragung {
+  termin_ids: number[];
+  gruppen?: string[];
+  erinnerung_minuten?: number | null;
+  send_push?: boolean;
+}
+
+export const uebertrageAnDivera = (daten: DiveraUebertragung) =>
+  apiPost<DiveraUebertragungErgebnis[]>("/dienstbuch-planer/divera-uebertragen", daten);

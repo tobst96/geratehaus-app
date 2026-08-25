@@ -7,13 +7,23 @@ import {
   aktualisiereKategorie,
   aktualisiereVorlage,
   deaktiviereVorlage,
+  holeBundeslaender,
+  holeFeiertage,
   holeKategorien,
   holeVorlagen,
+  legeFeiertagAn,
   legeKategorieAn,
   legeVorlageAn,
+  loescheFeiertag,
 } from "../../../api/dienstbuchPlaner";
+import { holeEinstellungen, schreibeEinstellungen } from "../../../api/gruppenfuehrer";
 import { ApiError } from "../../../api/client";
-import type { PlanerKategorieOut, PlanVorlageOut, PlanWiederholungstyp } from "../../../api/types";
+import type {
+  FeiertagOut,
+  PlanerKategorieOut,
+  PlanVorlageOut,
+  PlanWiederholungstyp,
+} from "../../../api/types";
 import { texte } from "../../../i18n/texte";
 
 const t = texte.dienstbuch_planer;
@@ -102,6 +112,16 @@ export function DienstbuchPlanerModul() {
   const [neueKategorieName, setNeueKategorieName] = useState("");
   const [neueKategorieFarbe, setNeueKategorieFarbe] = useState("#3B82F6");
 
+  // Feiertage (Phase 2) + Divera-Standard-Erinnerung (Phase 4)
+  const [bundeslaender, setBundeslaender] = useState<Record<string, string>>({});
+  const [bundesland, setBundesland] = useState("");
+  const [diveraErinnerung, setDiveraErinnerung] = useState(0);
+  const [einstellungenGespeichert, setEinstellungenGespeichert] = useState(false);
+  const [feiertage, setFeiertage] = useState<FeiertagOut[]>([]);
+  const feiertagsJahr = new Date().getFullYear();
+  const [neuerFeiertagDatum, setNeuerFeiertagDatum] = useState("");
+  const [neuerFeiertagName, setNeuerFeiertagName] = useState("");
+
   const [neuTitel, setNeuTitel] = useState("");
   const [neuTyp, setNeuTyp] = useState<PlanWiederholungstyp>("jaehrlich");
   const [neuIntervall, setNeuIntervall] = useState(1);
@@ -130,7 +150,40 @@ export function DienstbuchPlanerModul() {
 
   useEffect(() => {
     laden();
+    holeBundeslaender().then(setBundeslaender).catch(() => setBundeslaender({}));
+    holeFeiertage(feiertagsJahr).then(setFeiertage).catch(() => setFeiertage([]));
+    holeEinstellungen()
+      .then((w) => {
+        setBundesland(String(w.dienstbuch_planer_bundesland ?? ""));
+        setDiveraErinnerung(Number(w.dienstbuch_planer_divera_erinnerung_minuten ?? 0));
+      })
+      .catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function einstellungenSpeichern() {
+    setEinstellungenGespeichert(false);
+    await schreibeEinstellungen({
+      dienstbuch_planer_bundesland: bundesland,
+      dienstbuch_planer_divera_erinnerung_minuten: diveraErinnerung,
+    });
+    setEinstellungenGespeichert(true);
+    setFeiertage(await holeFeiertage(feiertagsJahr));
+  }
+
+  async function feiertagAnlegen(e: FormEvent) {
+    e.preventDefault();
+    if (!neuerFeiertagDatum || !neuerFeiertagName.trim()) return;
+    await legeFeiertagAn(neuerFeiertagDatum, neuerFeiertagName.trim());
+    setNeuerFeiertagDatum("");
+    setNeuerFeiertagName("");
+    setFeiertage(await holeFeiertage(feiertagsJahr));
+  }
+
+  async function feiertagEntfernen(id: number) {
+    await loescheFeiertag(id);
+    setFeiertage(await holeFeiertage(feiertagsJahr));
+  }
 
   async function kategorieAnlegen(e: FormEvent) {
     e.preventDefault();
@@ -204,6 +257,77 @@ export function DienstbuchPlanerModul() {
       </p>
       <h1>{t.titel}</h1>
       {fehler && <Fehlertext>{fehler}</Fehlertext>}
+
+      <div className="karte">
+        <h2>Feiertage &amp; Divera</h2>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div className="formular-feld">
+            <label htmlFor="planer-bundesland">Bundesland (Feiertage im Kalender)</label>
+            <select
+              id="planer-bundesland"
+              value={bundesland}
+              onChange={(e) => setBundesland(e.target.value)}
+            >
+              <option value="">– nur bundesweite Feiertage –</option>
+              {Object.entries(bundeslaender).map(([kuerzel, name]) => (
+                <option key={kuerzel} value={kuerzel}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="formular-feld">
+            <label htmlFor="planer-divera-erinnerung">
+              Divera: Standard-Erinnerung (Minuten vorher, 0 = keine)
+            </label>
+            <input
+              id="planer-divera-erinnerung"
+              type="number"
+              min={0}
+              value={diveraErinnerung}
+              onChange={(e) => setDiveraErinnerung(Number(e.target.value))}
+            />
+          </div>
+          <button onClick={einstellungenSpeichern}>Speichern</button>
+          {einstellungenGespeichert && <span>✓ gespeichert</span>}
+        </div>
+
+        <h3 style={{ marginTop: 16 }}>Eigene Feiertage/Blockiertage</h3>
+        <p className="hinweistext">
+          Zusätzlich zu den gesetzlichen Feiertagen (aus dem Regelwerk, im Git editierbar) - z. B.
+          örtliche Feste. Gesetzliche Feiertage {feiertagsJahr}: siehe Liste unten (nicht löschbar).
+        </p>
+        <form onSubmit={feiertagAnlegen} style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+          <input
+            type="date"
+            value={neuerFeiertagDatum}
+            onChange={(e) => setNeuerFeiertagDatum(e.target.value)}
+            aria-label="Datum des Feiertags"
+          />
+          <input
+            placeholder="Bezeichnung, z. B. Stadtfest"
+            value={neuerFeiertagName}
+            onChange={(e) => setNeuerFeiertagName(e.target.value)}
+            style={{ flex: 1, minWidth: 180 }}
+          />
+          <button type="submit">Anlegen</button>
+        </form>
+        <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: 220, overflowY: "auto" }}>
+          {feiertage.map((f) => (
+            <li key={`${f.datum}-${f.name}`} style={{ display: "flex", gap: 8, alignItems: "center", padding: "2px 0" }}>
+              <span style={{ minWidth: 90 }}>{f.datum}</span>
+              <span style={{ flex: 1 }}>{f.name}</span>
+              {f.quelle === "manuell" && f.id != null ? (
+                <button className="sekundaer" onClick={() => feiertagEntfernen(f.id as number)}>
+                  {t.loeschen}
+                </button>
+              ) : (
+                <span className="text-mute" style={{ fontSize: "0.8rem" }}>gesetzlich</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <div className="karte">
         <h2>{t.kategorien_titel}</h2>

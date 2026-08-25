@@ -59,6 +59,18 @@ DEFAULTS: list[ConfigDefault] = [
     ConfigDefault("modul_einsatztagebuch_aktiv", "true", ConfigTyp.BOOL, "Einsatztagebuch aktiv"),
     ConfigDefault("modul_dienstbuch_aktiv", "true", ConfigTyp.BOOL, "Dienstbuch aktiv"),
     ConfigDefault("modul_dienstbuch_planer_aktiv", "false", ConfigTyp.BOOL, "Dienstbuch Planer aktiv"),
+    ConfigDefault(
+        "dienstbuch_planer_bundesland",
+        "",
+        ConfigTyp.STR,
+        "Bundesland-Kürzel für die Feiertags-Anzeige im Planer (leer = nur bundesweite)",
+    ),
+    ConfigDefault(
+        "dienstbuch_planer_divera_erinnerung_minuten",
+        "0",
+        ConfigTyp.INT,
+        "Standard-Erinnerung (Minuten vorher) beim Übertragen von Planer-Terminen nach Divera (0 = keine)",
+    ),
     ConfigDefault("modul_dienststunden_aktiv", "true", ConfigTyp.BOOL, "Dienststunden aktiv"),
     ConfigDefault("modul_fahrzeugbuchung_aktiv", "true", ConfigTyp.BOOL, "Fahrzeugbuchung aktiv"),
     ConfigDefault("modul_formular_aktiv", "false", ConfigTyp.BOOL, "Formular-Modul aktiv"),
