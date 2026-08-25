@@ -57,6 +57,43 @@ function heuteIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+// Gut unterscheidbare, kräftige Farben für neue Kategorien - bewusst kuratiert
+// statt reinem Zufalls-RGB (das ergibt oft unschöne/schwer lesbare Töne).
+const FARB_PALETTE = [
+  "#3B82F6", // Blau
+  "#EF4444", // Rot
+  "#22C55E", // Grün
+  "#F59E0B", // Orange
+  "#A855F7", // Violett
+  "#06B6D4", // Türkis
+  "#EC4899", // Pink
+  "#84CC16", // Limette
+  "#F97316", // Dunkelorange
+  "#6366F1", // Indigo
+  "#14B8A6", // Teal
+  "#EAB308", // Gelb
+];
+
+function hslZuHex(h: number, s: number, l: number): string {
+  const sPct = s / 100;
+  const lPct = l / 100;
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = sPct * Math.min(lPct, 1 - lPct);
+  const f = (n: number) => lPct - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  const hex = (n: number) => Math.round(f(n) * 255).toString(16).padStart(2, "0");
+  return `#${hex(0)}${hex(8)}${hex(4)}`.toUpperCase();
+}
+
+/** Zufällige Farbe für eine neue Kategorie, die sich von den bereits
+ * vorhandenen unterscheidet - solange die kuratierte Palette reicht daraus,
+ * sonst ein zufälliger, kräftiger HSL-Ton. */
+function zufallsFarbe(vorhandene: string[]): string {
+  const belegt = new Set(vorhandene.map((f) => f.toLowerCase()));
+  const frei = FARB_PALETTE.filter((f) => !belegt.has(f.toLowerCase()));
+  if (frei.length > 0) return frei[Math.floor(Math.random() * frei.length)];
+  return hslZuHex(Math.floor(Math.random() * 360), 65, 50);
+}
+
 export function DienstbuchPlanerModul() {
   const [kategorien, setKategorien] = useState<PlanerKategorieOut[] | null>(null);
   const [vorlagen, setVorlagen] = useState<PlanVorlageOut[] | null>(null);
@@ -83,6 +120,9 @@ export function DienstbuchPlanerModul() {
       const [k, v] = await Promise.all([holeKategorien(), holeVorlagen()]);
       setKategorien(k);
       setVorlagen(v);
+      // Nächste neu angelegte Kategorie bekommt automatisch eine Farbe, die
+      // sich von den bereits vorhandenen unterscheidet.
+      setNeueKategorieFarbe(zufallsFarbe(k.map((kat) => kat.farbe)));
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : t.fehler_laden);
     }
