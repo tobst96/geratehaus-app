@@ -147,7 +147,7 @@ export function Module() {
               </button>
             </div>
 
-            <div style={{ flex: 1 }}>
+            <div className="flex-1">
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <Link
                   to={`/gruppenfuehrer/module/${m.key}`}

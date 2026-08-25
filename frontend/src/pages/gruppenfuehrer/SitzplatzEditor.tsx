@@ -175,16 +175,7 @@ export function SitzplatzEditor({ fahrzeug, funktionen, onClose, onGespeichert }
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.45)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-        padding: "1rem",
-      }}
+      className="modal-overlay modal-overlay--dialog"
       onClick={onClose}
     >
       <div

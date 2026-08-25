@@ -46,18 +46,16 @@ export function Dashboard() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
         <div
-          className="karte"
+          className="karte cursor-pointer"
           onClick={() => navigate("/gruppenfuehrer/buchungen")}
-          style={{ cursor: "pointer" }}
           title={t.zu_buchungen}
         >
           <div style={{ fontSize: "2rem", fontWeight: 700 }}>{daten.offene_buchungen_anzahl}</div>
           <div>{t.offene_buchungen}</div>
         </div>
         <div
-          className="karte"
+          className="karte cursor-pointer"
           onClick={() => navigate("/gruppenfuehrer/listen?tab=Dienststunden")}
-          style={{ cursor: "pointer" }}
           title={t.zu_dienststunden}
         >
           <div style={{ fontSize: "2rem", fontWeight: 700 }}>
@@ -69,7 +67,7 @@ export function Dashboard() {
 
       <h2
         onClick={() => navigate("/gruppenfuehrer/listen?tab=Dienststunden")}
-        style={{ cursor: "pointer" }}
+        className="cursor-pointer"
         title={t.zu_dienststunden}
       >
         {t.schwellenwert_ueberschreitungen}

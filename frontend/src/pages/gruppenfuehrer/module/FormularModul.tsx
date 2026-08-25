@@ -504,9 +504,8 @@ export function FormularModul() {
                     ▼
                   </button>
                   <button
-                    className="sekundaer"
+                    className="sekundaer text-fehler"
                     onClick={() => feldEntfernen(feld)}
-                    style={{ color: "#d64545" }}
                   >
                     Löschen
                   </button>
@@ -622,7 +621,7 @@ export function FormularModul() {
           )}
 
           <div style={{ marginTop: 24, textAlign: "right" }}>
-            <button className="sekundaer" style={{ color: "#d64545" }} onClick={() => loeschen(ausgewaehlt)}>
+            <button className="sekundaer text-fehler" onClick={() => loeschen(ausgewaehlt)}>
               Formular löschen
             </button>
           </div>

@@ -104,7 +104,7 @@ function StatBereich({ uebersicht }: { uebersicht: MitgliedUebersicht }) {
       {uebersicht.letzte_einsaetze.length > 0 && (
         <div className="karte">
           <h3 style={{ marginTop: 0 }}>Letzte Einsätze</h3>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          <ul className="liste-reset">
             {uebersicht.letzte_einsaetze.map((e) => (
               <li key={e.id} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--farbe-rand)" }}>
                 <span>{e.titel}</span>

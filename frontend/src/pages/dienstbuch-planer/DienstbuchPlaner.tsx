@@ -261,7 +261,7 @@ export function DienstbuchPlaner() {
             ref={importDatei}
             type="file"
             accept=".xlsx"
-            style={{ display: "none" }}
+            className="versteckt"
             onChange={(e) => {
               const datei = e.target.files?.[0];
               if (datei) importStarten(datei);
@@ -297,16 +297,7 @@ export function DienstbuchPlaner() {
 
       {slotDatum && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.45)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: "1rem",
-          }}
+          className="modal-overlay modal-overlay--dialog"
           onClick={() => setSlotDatum(null)}
         >
           <form
@@ -370,14 +361,14 @@ export function DienstbuchPlaner() {
             placeholder="Neuer Platzhalter, z. B. Sommerfest"
             value={neuerPlatzhalterTitel}
             onChange={(e) => setNeuerPlatzhalterTitel(e.target.value)}
-            style={{ flex: 1 }}
+            className="flex-1"
           />
           <button type="submit">Anlegen</button>
         </form>
         {platzhalter.length === 0 ? (
           <p className="text-mute">Keine Platzhalter.</p>
         ) : (
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          <ul className="liste-reset">
             {platzhalter.map((p) => (
               <li
                 key={p.id}
@@ -475,7 +466,7 @@ export function DienstbuchPlaner() {
       {ueberfaellig.length > 0 && (
         <div className="karte" style={{ marginTop: 16, borderColor: "#b00020" }}>
           <h2 style={{ color: "#b00020" }}>Überfällig</h2>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          <ul className="liste-reset">
             {ueberfaellig.map((v) => (
               <li key={v.vorlage_id} style={{ padding: "4px 0" }}>
                 <strong>{v.titel}</strong> — {v.tage_ueberfaellig} Tage überfällig

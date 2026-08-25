@@ -161,7 +161,7 @@ export function FormularAusfuellen() {
           <div key={feld.id} className="formular-feld">
             <label>
               {feld.label}
-              {feld.pflicht && <span style={{ color: "#d64545" }}> *</span>}
+              {feld.pflicht && <span className="text-fehler"> *</span>}
             </label>
 
             {feld.typ === "text" && (
