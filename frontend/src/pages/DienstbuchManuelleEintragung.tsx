@@ -168,19 +168,7 @@ export function DienstbuchManuelleEintragung() {
           <label htmlFor="dbme-person">{t.wer_bist_du}</label>
           {ausgewaehltePerson ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
-              <div
-                  style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: "50%",
-                    background: "var(--farbe-primaer, #ffa633)",
-                    color: "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                  }}
-                >
+              <div className="avatar-initialen">
                   {initialenAus(ausgewaehltePerson.name)}
                 </div>
               <strong>{ausgewaehltePerson.name}</strong>
@@ -198,13 +186,12 @@ export function DienstbuchManuelleEintragung() {
                 autoFocus
               />
               {trefferliste.length > 0 && (
-                <ul style={{ listStyle: "none", padding: 0, margin: "0.25rem 0" }}>
+                <ul className="liste-reset-eng">
                   {trefferliste.map((p) => (
                     <li key={p.id}>
                       <button
                         type="button"
-                        className="sekundaer"
-                        style={{ width: "100%", textAlign: "left" }}
+                        className="sekundaer volle-breite-links"
                         onClick={() => personAuswaehlen(p)}
                       >
                         {p.name}
