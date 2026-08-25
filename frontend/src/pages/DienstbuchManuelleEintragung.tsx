@@ -57,7 +57,9 @@ export function DienstbuchManuelleEintragung() {
       .catch((err) =>
         setLadeFehler(err instanceof ApiError ? String(err.detail) : t.reservierung_fehler)
       );
-  }, [token]);
+    // t.reservierung_fehler kommt aus dem statischen texte-Import und ändert sich
+    // nie zur Laufzeit - Aufnahme in die Deps ist sicher (kein Endlosschleifen-Risiko).
+  }, [token, t.reservierung_fehler]);
 
   const trefferliste =
     suche.trim().length === 0

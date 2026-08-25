@@ -1,5 +1,5 @@
 import { Fehlertext } from "../../components/Fehlertext";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { formatiereDatum } from "../../utils/datum";
 import { holeUpdateStatus, updateAusloesen, updateKanalSetzen, type UpdateStatus } from "../../api/gruppenfuehrer";
 import { ApiError } from "../../api/client";
@@ -14,18 +14,21 @@ export function Update() {
   const [installiert, setInstalliert] = useState(false);
   const [installMeldung, setInstallMeldung] = useState<string | null>(null);
 
-  async function laden() {
+  // useCallback stabilisiert laden, sonst würde die Aufnahme in die
+  // useEffect-Deps unten bei jedem Render einen neuen Effektlauf auslösen
+  // (Endlosschleife über setStatus -> Re-Render -> neue laden-Referenz).
+  const laden = useCallback(async () => {
     try {
       setStatus(await holeUpdateStatus());
       setFehler(null);
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : t.ladefehler);
     }
-  }
+  }, [t.ladefehler]);
 
   useEffect(() => {
     laden();
-  }, []);
+  }, [laden]);
 
   async function updateInstallieren(istUpgrade: boolean) {
     if (!confirm(istUpgrade ? t.installieren_confirm : t.wechseln_confirm)) return;

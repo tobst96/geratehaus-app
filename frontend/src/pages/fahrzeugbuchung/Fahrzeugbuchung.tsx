@@ -1,5 +1,5 @@
 import { Fehlertext } from "../../components/Fehlertext";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
@@ -96,6 +96,33 @@ export function Fahrzeugbuchung() {
     }
   }
 
+  // useCallback mit leeren Deps stabilisiert laden dauerhaft, sonst würde die
+  // Aufnahme in die useEffect-Deps unten bei jedem Render einen neuen
+  // Effektlauf auslösen (Endlosschleife über setBuchungen -> Re-Render ->
+  // neue laden-Referenz). Die Default-Fahrzeugauswahl liest den aktuellen
+  // fahrzeugId-Stand daher über die funktionale setFahrzeugId-Form statt über
+  // eine Closure - so muss fahrzeugId nicht in die Deps und laden bleibt stabil.
+  const laden = useCallback(async () => {
+    try {
+      // Fremdtermine für ein breites Fenster um heute (deckt die üblichen
+      // Kalenderansichten ab, ohne bei jeder Navigation neu zu laden).
+      const jetzt = new Date();
+      const von = new Date(jetzt.getTime() - 31 * 24 * 3600 * 1000).toISOString();
+      const bis = new Date(jetzt.getTime() + 92 * 24 * 3600 * 1000).toISOString();
+      const [b, f, ext] = await Promise.all([
+        holeBuchungen(),
+        holeFahrzeuge(),
+        holeExterneTermine(von, bis).catch(() => [] as ExternerTermin[]),
+      ]);
+      setBuchungen(b);
+      setExterneTermine(ext);
+      setFahrzeuge(f.filter((x) => x.buchbar));
+      setFahrzeugId((aktuelle) => (!aktuelle && f.length > 0 ? String(f[0].id) : aktuelle));
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Buchungen konnten nicht geladen werden.");
+    }
+  }, []);
+
   // Solange der QR-Code angezeigt wird, prüfen ob die Person sich auf dem
   // eigenen Handy schon ausgewählt bzw. eingetragen hat. Die Vorschau
   // (Name+Bild) muss mindestens 3 Sekunden sichtbar bleiben.
@@ -126,32 +153,11 @@ export function Fahrzeugbuchung() {
       }
     }, 1500);
     return () => clearInterval(intervall);
-  }, [qrAnsicht]);
-
-  async function laden() {
-    try {
-      // Fremdtermine für ein breites Fenster um heute (deckt die üblichen
-      // Kalenderansichten ab, ohne bei jeder Navigation neu zu laden).
-      const jetzt = new Date();
-      const von = new Date(jetzt.getTime() - 31 * 24 * 3600 * 1000).toISOString();
-      const bis = new Date(jetzt.getTime() + 92 * 24 * 3600 * 1000).toISOString();
-      const [b, f, ext] = await Promise.all([
-        holeBuchungen(),
-        holeFahrzeuge(),
-        holeExterneTermine(von, bis).catch(() => [] as ExternerTermin[]),
-      ]);
-      setBuchungen(b);
-      setExterneTermine(ext);
-      setFahrzeuge(f.filter((x) => x.buchbar));
-      if (!fahrzeugId && f.length > 0) setFahrzeugId(String(f[0].id));
-    } catch (err) {
-      setFehler(err instanceof ApiError ? String(err.detail) : "Buchungen konnten nicht geladen werden.");
-    }
-  }
+  }, [qrAnsicht, laden]);
 
   useEffect(() => {
     laden();
-  }, []);
+  }, [laden]);
 
   async function absenden(e: FormEvent) {
     e.preventDefault();

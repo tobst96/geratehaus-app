@@ -1,5 +1,5 @@
 import { Fehlertext } from "../../components/Fehlertext";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import {
   holeBuchungenListe,
@@ -19,7 +19,10 @@ export function Buchungsmanagement() {
   const [konflikte, setKonflikte] = useState<Record<number, BuchungOut[]>>({});
   const [ablehnungsgrund, setAblehnungsgrund] = useState<Record<number, string>>({});
 
-  async function laden() {
+  // useCallback stabilisiert laden, sonst würde die Aufnahme in die
+  // useEffect-Deps unten bei jedem Render einen neuen Effektlauf auslösen
+  // (Endlosschleife über setBuchungen -> Re-Render -> neue laden-Referenz).
+  const laden = useCallback(async () => {
     try {
       const liste = await holeBuchungenListe({ status: "ausstehend" });
       setBuchungen(liste);
@@ -33,11 +36,11 @@ export function Buchungsmanagement() {
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : t.ladefehler);
     }
-  }
+  }, [t.ladefehler]);
 
   useEffect(() => {
     laden();
-  }, []);
+  }, [laden]);
 
   async function genehmigen(id: number) {
     try {
