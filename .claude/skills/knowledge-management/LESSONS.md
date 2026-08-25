@@ -396,3 +396,44 @@ zurückgesetzt wird.
 
 - Jede zukünftige Migration, die auf einem Feature-Branch entwickelt wird,
   bevor er nach `beta` gemergt ist.
+
+---
+
+## CJS-Default-Importe können NUR im Vite-Produktions-Build brechen
+
+### Problem
+
+Der Dienstbuch-Planer lud im Browser als weiße Seite - aber nur auf der
+deployten Instanz. `tsc`, Vitest (jsdom) und der Vite-Dev-Modus waren
+komplett grün; der jsdom-Smoke-Test der Seite rendert einwandfrei.
+
+### Ursache
+
+`import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop"`
+(ein CJS-Modul) liefert im **Produktions-Build** das Namespace-Objekt
+`{ default: fn }` als Import-Binding, im Dev-/Vitest-Modus dagegen direkt
+die Funktion. Der Aufruf `withDragAndDrop(Calendar)` auf Modulebene warf
+deshalb nur im gebauten Bundle `"(0, x.default) is not a function"` - der
+Lazy-Chunk der Route schlug fehl, React ohne Error-Boundary → weiße Seite.
+
+### Lösung / Prävention
+
+- Bei Default-Importen aus `lib/`-CJS-Pfaden von Paketen, die sonst als ESM
+  eingebunden werden (Haupteinstieg `react-big-calendar` ist ESM, der
+  Addon-Pfad CJS), das Binding defensiv normalisieren:
+  `const fn = (raw as {default?: T}).default ?? raw;`
+- **Verifikation ohne Browser**: den gebauten Chunk direkt in Node
+  evaluieren - `docker run --rm --entrypoint sh geratehaus-frontend-test -c
+  'node --input-type=module -e "import(\"./dist/assets/<Chunk>.js\")..."'`
+  mit gestubbten Browser-Globals (localStorage, document, MutationObserver,
+  matchMedia, *Observer). Modul-Lade-Fehler (und genau die treten bei
+  Interop-Problemen auf, weil Top-Level-Code läuft) reproduzieren so exakt,
+  inkl. Vorher-FAILED/Nachher-OK-Beweis.
+- Grün laufende Tests + Dev-Modus sind KEIN Beleg dafür, dass ein
+  Lazy-Chunk im Produktions-Build lädt - bei neuen Third-Party-Importen aus
+  CJS-Unterpfaden den gebauten Chunk einmal so gegenprüfen.
+
+### Gilt auch für
+
+- Alle weiteren `react-big-calendar`-Addons und generell jeden
+  `paket/lib/...`-Default-Import in diesem Frontend.
