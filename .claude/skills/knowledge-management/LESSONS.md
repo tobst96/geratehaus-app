@@ -346,3 +346,53 @@ in Schritt 1 gesetzte Cookie den Browser nie erreichte/verließ.
   `localhost` kann einen echten Secure-Cookie-Bug **verdecken**. Mit einem
   echten (Fantasie-)Hostnamen reproduzieren, z. B. via
   `curl --resolve name:port:127.0.0.1 http://name:port/...`.
+
+---
+
+## Migration eines Feature-Branches nie gegen die geteilte/live DB testen
+
+### Problem
+
+Nach dem Anlegen von Migration `0072` auf einem Feature-Branch
+(`feature/dienstbuch-planer`) wurde sie zur lokalen Verifikation direkt gegen
+den laufenden `db`-Container ausgeführt (`alembic upgrade head`) – demselben
+Postgres, den auch die **live deployte `beta`-Instanz** nutzt. Ein späterer,
+inhaltlich unabhängiger Deploy von `beta` (nur Backlog/Doku-Änderungen) ließ
+den Backend-Container in eine Crash-Schleife laufen: `ERROR: Can't locate
+revision identified by '0072'` – `beta`s Code kennt nur bis Migration `0071`,
+die DB stand aber (aus dem Feature-Branch-Test) bereits auf `0072`. Die
+Instanz war für mehrere Minuten nicht erreichbar, bis die DB manuell wieder
+auf `0071` zurückgestuft wurde (dafür musste kurz auf den Feature-Branch
+gewechselt werden, weil nur der die Downgrade-Migration kennt).
+
+### Ursache
+
+Es gibt in dieser Umgebung nur **eine** Postgres-Instanz/einen `db`-Container
+für Entwicklung **und** die live deployte `beta`-Instanz – anders als beim
+Backend-Testlauf, der bewusst eine **separate** Test-Datenbank
+(`geratehaus_test`) nutzt. Eine Migration, die nur auf einem Feature-Branch
+existiert, darf diese eine gemeinsame DB nie über den Stand von `beta` hinaus
+verändern, sonst bricht jeder künftige `beta`-Deploy, bis die DB wieder
+zurückgesetzt wird.
+
+### Lösung / Prävention
+
+- Migrationen von Feature-Branches **nicht** gegen den lokalen/gemeinsamen
+  `db`-Container laufen lassen, solange der Branch nicht nach `beta` gemergt
+  ist. Verifikation stattdessen über die Test-Suite (`scripts/test-backend.sh`,
+  läuft gegen die separate `geratehaus_test`-DB und nutzt ohnehin
+  `Base.metadata.create_all` statt Alembic) oder eine eigens dafür isolierte
+  DB/Compose-Projekt.
+- Ist es doch versehentlich passiert: **sofort** `alembic downgrade
+  <letzte-beta-Revision>` gegen dieselbe DB ausführen, bevor der nächste
+  `beta`-Deploy erfolgt (Downgrade-Skript liegt nur auf dem Feature-Branch –
+  kurz dorthin wechseln, downgraden, zurück wechseln).
+- Nach jedem Deploy (siehe bestehende Lesson zu `docker compose up -d
+  --build`) nicht nur den Image-Hash, sondern bei Unhealthy-Status **sofort**
+  `docker compose logs backend` prüfen – der Fehler ist dort eindeutig
+  sichtbar und lässt sich schnell von echten Code-Fehlern unterscheiden.
+
+### Gilt auch für
+
+- Jede zukünftige Migration, die auf einem Feature-Branch entwickelt wird,
+  bevor er nach `beta` gemergt ist.
