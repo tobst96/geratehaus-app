@@ -55,7 +55,13 @@ auf Entwurf zurücksetzen.
 
 **Platzhalter** sind Termine ohne festes Datum („muss dieses Jahr noch stattfinden,
 Zeitpunkt aber noch offen") – sie erscheinen als eigene Liste unterhalb des Kalenders
-und lassen sich später mit einem Zieldatum versehen.
+und lassen sich terminieren, indem man sie **per Drag&Drop auf den Kalender zieht**
+oder im Termin-Dialog ein Zieldatum (+ optionale Uhrzeit) setzt.
+
+**Einzeltermine** ohne Wiederholungsregel lassen sich direkt über „Neuer Termin"
+(Titel + Datum + optionale Uhrzeit) anlegen; bereits geplante Termine lassen sich im
+Kalender per Ziehen auf ein anderes Datum verschieben (solange sie noch nicht mit
+einem Dienstbuch verknüpft sind).
 
 ## Automatische Dienstbuch-Verknüpfung
 
@@ -67,14 +73,9 @@ daran ändert der Planer nichts.
 
 ## Berechtigungen
 
-Zwei getrennte, granulare Rechte (Gruppenführer → Berechtigungen):
-
-- **Dienstbuch Planer (ansehen)** – Kalender einsehen, keine Änderungen möglich.
-- **Dienstbuch Planer (bearbeiten)** – Vorlagen/Kategorien verwalten, Termine anlegen,
-  bearbeiten und bestätigen.
-
-Das Bearbeiten-Recht schließt das Ansehen-Recht **nicht automatisch** mit ein – für
-volle Nutzung beide Rechte vergeben. Admins haben wie überall Vollzugriff.
+Der Planer steht **allen Gruppenführern** offen (ansehen und bearbeiten) – keine
+granularen Einzelrechte nötig. Admins haben wie überall Vollzugriff. Voraussetzung
+ist nur, dass das Modul aktiviert ist.
 
 ## Verlauf
 

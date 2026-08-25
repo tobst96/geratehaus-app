@@ -28,6 +28,7 @@ export function PlanTerminDialog({
   const [titel, setTitel] = useState(termin.titel);
   const [beschreibung, setBeschreibung] = useState(termin.beschreibung ?? "");
   const [zieldatum, setZieldatum] = useState(termin.zieldatum ?? "");
+  const [uhrzeit, setUhrzeit] = useState(termin.uhrzeit?.slice(0, 5) ?? "");
   const [kategorieIds, setKategorieIds] = useState<number[]>(termin.kategorien.map((k) => k.id));
   const [speichert, setSpeichert] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -50,7 +51,10 @@ export function PlanTerminDialog({
       await aktualisiereTermin(termin.id, {
         titel,
         beschreibung: beschreibung || null,
-        zieldatum: termin.ist_platzhalter ? null : zieldatum || null,
+        // Bekommt ein Platzhalter hier ein Datum, wird er serverseitig
+        // automatisch zum normalen Termin.
+        zieldatum: zieldatum || null,
+        uhrzeit: uhrzeit ? `${uhrzeit}:00` : null,
         kategorie_ids: kategorieIds,
       });
       onGeaendert();
@@ -119,18 +123,29 @@ export function PlanTerminDialog({
           />
         </div>
 
-        {!termin.ist_platzhalter && (
-          <div className="formular-feld">
-            <label htmlFor="termin-datum">Zieldatum</label>
-            <input
-              id="termin-datum"
-              type="date"
-              value={zieldatum}
-              onChange={(e) => setZieldatum(e.target.value)}
-              disabled={!kannBearbeiten}
-            />
-          </div>
-        )}
+        <div className="formular-feld">
+          <label htmlFor="termin-datum">
+            {termin.ist_platzhalter ? "Zieldatum (setzen = Platzhalter terminieren)" : "Zieldatum"}
+          </label>
+          <input
+            id="termin-datum"
+            type="date"
+            value={zieldatum}
+            onChange={(e) => setZieldatum(e.target.value)}
+            disabled={!kannBearbeiten}
+          />
+        </div>
+
+        <div className="formular-feld">
+          <label htmlFor="termin-uhrzeit">Uhrzeit (optional)</label>
+          <input
+            id="termin-uhrzeit"
+            type="time"
+            value={uhrzeit}
+            onChange={(e) => setUhrzeit(e.target.value)}
+            disabled={!kannBearbeiten}
+          />
+        </div>
 
         {kategorien.length > 0 && (
           <div style={{ margin: "8px 0" }}>

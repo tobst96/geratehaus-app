@@ -14,7 +14,6 @@ export const GRANTBARE_MODUL_UNTERSEITEN: GrantbareModulUnterseite[] = [
   { key: "fahrzeuge", titel: "Stammdaten", icon: "fahrzeug", perm: "stammdaten" },
   { key: "barcode", titel: "Barcodes", icon: "barcodes", perm: "barcodes" },
   { key: "kiosk", titel: "Kiosk-Geräte", icon: "kiosk", perm: "kiosk-geraete" },
-  { key: "dienstbuch_planer", titel: "Dienstbuch Planer", icon: "dienstbuch", perm: "dienstbuch-planer-bearbeiten" },
 ];
 
 /** Berechtigungs-Key für eine grantbare Modul-Unterseite, sonst null. */

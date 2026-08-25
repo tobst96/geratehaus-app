@@ -161,7 +161,10 @@ export function DienstbuchPlanerModul() {
         intervall: INTERVALL_TYPEN.has(neuTyp) ? neuIntervall : null,
         wochentag: neuWochentag === "" ? null : Number(neuWochentag),
         kalenderwoche: neuTyp === "jaehrlich" && neuKw !== "" ? Number(neuKw) : null,
-        kw_paritaet: neuParitaet === "" ? null : neuParitaet,
+        // Bei "jedes Jahr" legt die Kalenderwoche die Parität bereits eindeutig
+        // fest - eine (womöglich widersprüchliche) Auswahl hier nicht mitsenden,
+        // sonst lehnt der Server die Vorlage mit 400 ab.
+        kw_paritaet: neuTyp === "jaehrlich" || neuParitaet === "" ? null : neuParitaet,
         mindest_intervall_aktiv: neuMindestAktiv,
         mindest_intervall_tage: neuMindestAktiv ? neuMindestTage : null,
         startdatum: neuStart,
@@ -169,6 +172,9 @@ export function DienstbuchPlanerModul() {
         kategorie_ids: neuKategorieIds,
       });
       setNeuTitel("");
+      setNeuKw("");
+      setNeuWochentag("");
+      setNeuParitaet("");
       setNeuKategorieIds([]);
       await laden();
     } catch (err) {
@@ -317,18 +323,23 @@ export function DienstbuchPlanerModul() {
               </div>
             )}
 
-            <div className="formular-feld">
-              <label htmlFor="plan-paritaet">{t.feld_kw_paritaet}</label>
-              <select
-                id="plan-paritaet"
-                value={neuParitaet}
-                onChange={(e) => setNeuParitaet(e.target.value as "" | "gerade" | "ungerade")}
-              >
-                <option value="">{t.feld_kw_paritaet_keine}</option>
-                <option value="gerade">{t.feld_kw_paritaet_gerade}</option>
-                <option value="ungerade">{t.feld_kw_paritaet_ungerade}</option>
-              </select>
-            </div>
+            {/* Bei "jedes Jahr" ist die Parität durch die Kalenderwoche bereits
+                festgelegt (KW 5 ist immer ungerade) - Auswahl dort ausblenden,
+                sonst entstehen widersprüchliche, vom Server abgelehnte Regeln. */}
+            {neuTyp !== "jaehrlich" && (
+              <div className="formular-feld">
+                <label htmlFor="plan-paritaet">{t.feld_kw_paritaet}</label>
+                <select
+                  id="plan-paritaet"
+                  value={neuParitaet}
+                  onChange={(e) => setNeuParitaet(e.target.value as "" | "gerade" | "ungerade")}
+                >
+                  <option value="">{t.feld_kw_paritaet_keine}</option>
+                  <option value="gerade">{t.feld_kw_paritaet_gerade}</option>
+                  <option value="ungerade">{t.feld_kw_paritaet_ungerade}</option>
+                </select>
+              </div>
+            )}
           </div>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>

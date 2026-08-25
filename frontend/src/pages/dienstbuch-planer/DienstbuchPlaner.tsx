@@ -1,23 +1,29 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { Fehlertext } from "../../components/Fehlertext";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { PlanerKalender } from "../../components/PlanerKalender";
 import { PlanTerminDialog } from "../../components/PlanTerminDialog";
-import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/client";
 import {
+  aktualisiereTermin,
   holeKategorien,
   holeTermine,
   holeUeberfaelligeVorlagen,
   legePlatzhalterAn,
+  legeTerminAn,
   stelleJahrSicher,
 } from "../../api/dienstbuchPlaner";
 import type { PlanerKategorieOut, PlanTerminOut, VorlageUeberfaelligOut } from "../../api/types";
 
-export function DienstbuchPlaner() {
-  const { hatModulZugriff } = useAuth();
-  const kannBearbeiten = hatModulZugriff("dienstbuch-planer-bearbeiten");
+function datumZuIso(d: Date): string {
+  const jahr = d.getFullYear();
+  const monat = String(d.getMonth() + 1).padStart(2, "0");
+  const tag = String(d.getDate()).padStart(2, "0");
+  return `${jahr}-${monat}-${tag}`;
+}
 
+export function DienstbuchPlaner() {
   const [jahr, setJahr] = useState(new Date().getFullYear());
   const [termine, setTermine] = useState<PlanTerminOut[] | null>(null);
   const [kategorien, setKategorien] = useState<PlanerKategorieOut[]>([]);
@@ -26,6 +32,10 @@ export function DienstbuchPlaner() {
   const [ausgewaehlterTermin, setAusgewaehlterTermin] = useState<PlanTerminOut | null>(null);
 
   const [neuerPlatzhalterTitel, setNeuerPlatzhalterTitel] = useState("");
+  const [neuerTerminTitel, setNeuerTerminTitel] = useState("");
+  const [neuerTerminDatum, setNeuerTerminDatum] = useState("");
+  const [neuerTerminUhrzeit, setNeuerTerminUhrzeit] = useState("");
+  const [gezogenerPlatzhalter, setGezogenerPlatzhalter] = useState<PlanTerminOut | null>(null);
 
   async function laden() {
     try {
@@ -60,12 +70,50 @@ export function DienstbuchPlaner() {
     await laden();
   }
 
+  async function terminAnlegen(e: FormEvent) {
+    e.preventDefault();
+    if (!neuerTerminTitel.trim() || !neuerTerminDatum) return;
+    try {
+      await legeTerminAn({
+        titel: neuerTerminTitel.trim(),
+        zieldatum: neuerTerminDatum,
+        uhrzeit: neuerTerminUhrzeit || null,
+      });
+      setNeuerTerminTitel("");
+      setNeuerTerminDatum("");
+      setNeuerTerminUhrzeit("");
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Termin konnte nicht angelegt werden.");
+    }
+  }
+
+  async function terminVerschoben(termin: PlanTerminOut, neuesDatum: Date) {
+    try {
+      await aktualisiereTermin(termin.id, { zieldatum: datumZuIso(neuesDatum) });
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Verschieben fehlgeschlagen.");
+    }
+  }
+
+  async function platzhalterAbgelegt(datum: Date) {
+    if (!gezogenerPlatzhalter) return;
+    try {
+      await aktualisiereTermin(gezogenerPlatzhalter.id, { zieldatum: datumZuIso(datum) });
+      setGezogenerPlatzhalter(null);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Terminieren fehlgeschlagen.");
+    }
+  }
+
   function terminGeaendert() {
     setAusgewaehlterTermin(null);
     laden();
   }
 
-  if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
+  if (fehler && !termine) return <Fehlertext>{fehler}</Fehlertext>;
   if (!termine) return <Ladeanzeige />;
 
   const platzhalter = termine.filter((t) => t.ist_platzhalter);
@@ -74,8 +122,9 @@ export function DienstbuchPlaner() {
   return (
     <div>
       <h1>Dienstbuch Planer</h1>
+      {fehler && <Fehlertext>{fehler}</Fehlertext>}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         <button className="sekundaer" onClick={() => setJahr((j) => j - 1)}>
           ← {jahr - 1}
         </button>
@@ -83,36 +132,78 @@ export function DienstbuchPlaner() {
         <button className="sekundaer" onClick={() => setJahr((j) => j + 1)}>
           {jahr + 1} →
         </button>
-        {kannBearbeiten && (
-          <button className="sekundaer" onClick={jahrSicherstellen} style={{ marginLeft: "auto" }}>
+        <span style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Link to="/gruppenfuehrer/module/dienstbuch_planer">
+            <button className="sekundaer" type="button">Vorlagen &amp; Kategorien</button>
+          </Link>
+          <button className="sekundaer" onClick={jahrSicherstellen}>
             Termine für {jahr} aus Vorlagen aktualisieren
           </button>
-        )}
+        </span>
       </div>
 
-      <PlanerKalender termine={geplant} onEventKlick={setAusgewaehlterTermin} />
+      <PlanerKalender
+        termine={geplant}
+        onEventKlick={setAusgewaehlterTermin}
+        onTerminVerschoben={terminVerschoben}
+        onVonAussenAbgelegt={platzhalterAbgelegt}
+        externerDragTitel={gezogenerPlatzhalter?.titel ?? null}
+      />
+
+      <div className="karte" style={{ marginTop: 16 }}>
+        <h2>Neuer Termin</h2>
+        <form onSubmit={terminAnlegen} style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <input
+            placeholder="Titel, z. B. Sondersitzung"
+            value={neuerTerminTitel}
+            onChange={(e) => setNeuerTerminTitel(e.target.value)}
+            style={{ flex: 1, minWidth: 180 }}
+          />
+          <input
+            type="date"
+            value={neuerTerminDatum}
+            onChange={(e) => setNeuerTerminDatum(e.target.value)}
+            aria-label="Datum"
+          />
+          <input
+            type="time"
+            value={neuerTerminUhrzeit}
+            onChange={(e) => setNeuerTerminUhrzeit(e.target.value)}
+            aria-label="Uhrzeit (optional)"
+          />
+          <button type="submit">Anlegen</button>
+        </form>
+      </div>
 
       <div className="karte" style={{ marginTop: 16 }}>
         <h2>Platzhalter</h2>
-        <p className="hinweistext">Termine, die dieses Jahr noch stattfinden müssen, deren Datum aber noch nicht feststeht.</p>
-        {kannBearbeiten && (
-          <form onSubmit={platzhalterAnlegen} style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-            <input
-              placeholder="Neuer Platzhalter, z. B. Sommerfest"
-              value={neuerPlatzhalterTitel}
-              onChange={(e) => setNeuerPlatzhalterTitel(e.target.value)}
-              style={{ flex: 1 }}
-            />
-            <button type="submit">Anlegen</button>
-          </form>
-        )}
+        <p className="hinweistext">
+          Termine, die dieses Jahr noch stattfinden müssen, deren Datum aber noch nicht feststeht.
+          Zum Terminieren einfach auf den Kalender ziehen (oder anklicken und ein Datum setzen).
+        </p>
+        <form onSubmit={platzhalterAnlegen} style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          <input
+            placeholder="Neuer Platzhalter, z. B. Sommerfest"
+            value={neuerPlatzhalterTitel}
+            onChange={(e) => setNeuerPlatzhalterTitel(e.target.value)}
+            style={{ flex: 1 }}
+          />
+          <button type="submit">Anlegen</button>
+        </form>
         {platzhalter.length === 0 ? (
           <p className="text-mute">Keine Platzhalter.</p>
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {platzhalter.map((p) => (
-              <li key={p.id} style={{ padding: "4px 0", cursor: "pointer" }} onClick={() => setAusgewaehlterTermin(p)}>
-                {p.titel}
+              <li
+                key={p.id}
+                draggable
+                onDragStart={() => setGezogenerPlatzhalter(p)}
+                onDragEnd={() => setGezogenerPlatzhalter(null)}
+                onClick={() => setAusgewaehlterTermin(p)}
+                style={{ padding: "6px 8px", cursor: "grab", border: "1px dashed var(--farbe-rand)", borderRadius: 6, marginBottom: 6 }}
+              >
+                📌 {p.titel}
               </li>
             ))}
           </ul>
@@ -137,7 +228,7 @@ export function DienstbuchPlaner() {
         <PlanTerminDialog
           termin={ausgewaehlterTermin}
           kategorien={kategorien}
-          kannBearbeiten={kannBearbeiten}
+          kannBearbeiten={true}
           onClose={() => setAusgewaehlterTermin(null)}
           onGeaendert={terminGeaendert}
         />

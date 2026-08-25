@@ -50,12 +50,12 @@ const NAV_GRUPPEN: NavGruppe[] = [
     items: [
       {
         // Internes Modul (nicht mitgliederseitig) - kein Eintrag in der
-        // öffentlichen Konfiguration, daher kein modulKey (analog Backup/MinIO);
-        // Sichtbarkeit steuert allein das granulare Berechtigungsrecht.
+        // öffentlichen Konfiguration, daher kein modulKey (analog Backup/MinIO).
+        // Bewusst offen für ALLE Gruppenführer (kein berechtigungKey) -
+        // Nutzerentscheid 25.08.2026.
         pfad: "/gruppenfuehrer/dienstbuch-planer",
         titel: texte.dienstbuch_planer.titel,
         icon: "dienstbuch",
-        berechtigungKey: "dienstbuch-planer-ansehen",
       },
     ],
   },
@@ -95,6 +95,7 @@ const LISTEN_UNTERPUNKTE: { tab: string; icon: string; modulKey: ModulKey; perm?
 const MODUL_ICON: Record<string, string> = {
   einsatztagebuch: "einsatz",
   dienstbuch: "dienstbuch",
+  dienstbuch_planer: "dienstbuch",
   dienststunden: "dienststunden",
   fahrzeugbuchung: "fahrzeug",
   formular: "formular",

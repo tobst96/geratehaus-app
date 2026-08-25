@@ -15,6 +15,7 @@ from app.schemas.dienstbuch_planer import (
     PlanerKategorieAktualisieren,
     PlanPlatzhalterAnlegen,
     PlanTerminAktualisieren,
+    PlanTerminAnlegen,
     PlanVorlageAnlegen,
     PlanVorlageAktualisieren,
 )
@@ -34,6 +35,7 @@ FELD_LABELS: dict[str, str] = {
     "enddatum": "Enddatum",
     "aktiv": "Aktiv",
     "zieldatum": "Zieldatum",
+    "uhrzeit": "Uhrzeit",
     "ist_platzhalter": "Platzhalter",
 }
 
@@ -260,6 +262,30 @@ async def platzhalter_anlegen(
     return termin
 
 
+async def termin_anlegen(
+    db: AsyncSession, daten: PlanTerminAnlegen, akteur_name: str | None
+) -> DienstbuchPlanTermin:
+    """Manuell angelegter Einzeltermin mit festem Datum (kein Platzhalter,
+    keine Vorlage)."""
+    termin = DienstbuchPlanTermin(
+        vorlage_id=None,
+        jahr=daten.zieldatum.year,
+        titel=daten.titel,
+        beschreibung=daten.beschreibung,
+        zieldatum=daten.zieldatum,
+        uhrzeit=daten.uhrzeit,
+        ist_platzhalter=False,
+        status="entwurf",
+        kategorien=await _kategorien_laden(db, daten.kategorie_ids),
+    )
+    db.add(termin)
+    await db.flush()
+    await _ereignis_protokollieren(db, termin.id, "angelegt", "Termin manuell angelegt.", akteur_name)
+    await db.commit()
+    await db.refresh(termin, attribute_names=["kategorien"])
+    return termin
+
+
 async def termin_aktualisieren(
     db: AsyncSession, termin: DienstbuchPlanTermin, daten: PlanTerminAktualisieren, akteur_name: str | None
 ) -> DienstbuchPlanTermin:
@@ -272,6 +298,18 @@ async def termin_aktualisieren(
         setattr(termin, feld, neuer_wert)
         if alter_wert != neuer_wert:
             diff_teile.append(f"{FELD_LABELS.get(feld, feld)}: „{alter_wert or '–'}“ → „{neuer_wert or '–'}“")
+
+    # Bekommt ein Platzhalter ein Zieldatum (z. B. per Drag&Drop auf den
+    # Kalender), wird er automatisch zum normalen Termin - und umgekehrt.
+    if "zieldatum" in aenderungen:
+        neu_platzhalter = aenderungen["zieldatum"] is None
+        if termin.ist_platzhalter != neu_platzhalter:
+            termin.ist_platzhalter = neu_platzhalter
+            diff_teile.append(
+                "Platzhalter terminiert" if not neu_platzhalter else "Zu Platzhalter zurückgestuft"
+            )
+        if aenderungen["zieldatum"] is not None:
+            termin.jahr = aenderungen["zieldatum"].year
 
     if daten.kategorie_ids is not None:
         alte_namen = sorted(k.name for k in termin.kategorien)

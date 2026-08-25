@@ -83,9 +83,11 @@ describe("DienstbuchPlanerModul (Admin-Einstellungen)", () => {
     await screen.findByText("Wiederholungsregeln (Vorlagen)");
 
     await user.type(screen.getByLabelText("Titel"), "Unterweisung UVV");
-    await user.selectOptions(screen.getByLabelText("Kalenderwochen-Parität"), "ungerade");
     await user.type(screen.getByLabelText("Kalenderwoche (1–53)"), "5");
     await user.selectOptions(screen.getByLabelText("Wochentag"), "2");
+    // Parität ist bei "jedes Jahr" durch die KW festgelegt und wird nicht
+    // angeboten/mitgesendet (verhindert widersprüchliche Regeln).
+    expect(screen.queryByLabelText("Kalenderwochen-Parität")).not.toBeInTheDocument();
 
     await user.click(screen.getAllByRole("button", { name: "Anlegen" })[1]);
 
@@ -95,7 +97,7 @@ describe("DienstbuchPlanerModul (Admin-Einstellungen)", () => {
         wiederholungstyp: "jaehrlich",
         kalenderwoche: 5,
         wochentag: 2,
-        kw_paritaet: "ungerade",
+        kw_paritaet: null,
       }),
     );
   });

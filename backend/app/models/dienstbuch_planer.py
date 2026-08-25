@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 from sqlalchemy import (
     Boolean,
@@ -10,6 +10,7 @@ from sqlalchemy import (
     String,
     Table,
     Text,
+    Time,
     UniqueConstraint,
     func,
 )
@@ -123,6 +124,13 @@ class DienstbuchPlanTermin(Base, TimestampMixin):
 
     # NULL nur bei Platzhaltern (ist_platzhalter=True).
     zieldatum: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # Optionale Uhrzeit zum Zieldatum (z. B. "14:00" für die Sitzung) - nur
+    # relevant, wenn zieldatum gesetzt ist.
+    uhrzeit: Mapped[time | None] = mapped_column(Time, nullable=True)
+    # Wird aus zieldatum abgeleitet (siehe dienstbuch_planer_service): gesetzt
+    # solange kein Zieldatum feststeht. Kein unabhängig vom Client gesetztes
+    # Flag mehr, um Inkonsistenzen (Datum gesetzt, aber ist_platzhalter=True)
+    # auszuschließen.
     ist_platzhalter: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # "entwurf" | "bestaetigt"

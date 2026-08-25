@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -96,11 +96,24 @@ class PlanPlatzhalterAnlegen(BaseModel):
     kategorie_ids: list[int] = []
 
 
+class PlanTerminAnlegen(BaseModel):
+    """Manuell angelegter Einzeltermin mit festem Datum (kein Platzhalter, keine
+    Vorlage - z. B. per "+ Neuer Termin" oder per Drag&Drop aus dem Kalender)."""
+
+    titel: str = Field(min_length=1, max_length=255)
+    beschreibung: str | None = None
+    zieldatum: date
+    uhrzeit: time | None = None
+    kategorie_ids: list[int] = []
+
+
 class PlanTerminAktualisieren(BaseModel):
     titel: str | None = Field(default=None, min_length=1, max_length=255)
     beschreibung: str | None = None
+    # Wird gesetzt (nicht None) -> Termin gilt automatisch nicht mehr als
+    # Platzhalter (siehe dienstbuch_planer_service.termin_aktualisieren).
     zieldatum: date | None = None
-    ist_platzhalter: bool | None = None
+    uhrzeit: time | None = None
     kategorie_ids: list[int] | None = None
 
 
@@ -114,6 +127,7 @@ class PlanTerminOut(BaseModel):
     titel: str
     beschreibung: str | None
     zieldatum: date | None
+    uhrzeit: time | None
     ist_platzhalter: bool
     status: str
     dienstbuch_id: int | None

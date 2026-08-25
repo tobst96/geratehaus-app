@@ -30,7 +30,9 @@ export function ModulUnterseite() {
   // Recht; alle übrigen Unterseiten (Backup/MinIO/Modul-Einstellungen …) bleiben
   // wie bisher an "einstellungen" gebunden.
   if (!berechtigungenGeladen) return null;
-  if (!istAdmin) {
+  // Dienstbuch Planer ist bewusst für ALLE Gruppenführer offen (Nutzerentscheid
+  // 25.08.2026) - Vorlagen/Kategorien gehören zum Planen dazu.
+  if (!istAdmin && key !== "dienstbuch_planer") {
     const perm = permFuerModulUnterseite(key);
     const erlaubt = perm ? hatModulZugriff(perm) : hatModulZugriff("einstellungen");
     if (!erlaubt) return <Navigate to="/gruppenfuehrer/dashboard" replace />;

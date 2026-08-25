@@ -155,9 +155,9 @@ export function App() {
                 <Route element={<BerechtigungRoute modulKeys={["fahrzeugbuchung"]} />}>
                   <Route path="buchungen" element={<Buchungsmanagement />} />
                 </Route>
-                <Route element={<BerechtigungRoute modulKeys={["dienstbuch-planer-ansehen"]} />}>
-                  <Route path="dienstbuch-planer" element={<DienstbuchPlaner />} />
-                </Route>
+                {/* Bewusst für alle Gruppenführer offen (kein granulares Recht) -
+                    Nutzerentscheid 25.08.2026; Backend nutzt CurrentGruppenfuehrer. */}
+                <Route path="dienstbuch-planer" element={<DienstbuchPlaner />} />
                 {/* Noch admin-only (Backend nutzt CurrentAdmin): Barcodes,
                     Kiosk-Geräte, Benachrichtigungen. */}
                 <Route element={<AdminRoute />}>

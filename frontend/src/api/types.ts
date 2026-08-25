@@ -300,6 +300,7 @@ export interface PlanTerminOut {
   titel: string;
   beschreibung: string | null;
   zieldatum: string | null;
+  uhrzeit: string | null;
   ist_platzhalter: boolean;
   status: PlanTerminStatus;
   dienstbuch_id: number | null;

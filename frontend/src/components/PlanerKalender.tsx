@@ -1,7 +1,12 @@
+import { useMemo } from "react";
 import { Calendar, dateFnsLocalizer, type Event } from "react-big-calendar";
+import withDragAndDrop, {
+  type EventInteractionArgs,
+} from "react-big-calendar/lib/addons/dragAndDrop";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { de } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "./BuchungsKalender.css"; // Gemeinsame Theme-/Dark-Mode-Overrides für react-big-calendar
 import type { PlanTerminOut } from "../api/types";
 
@@ -17,35 +22,61 @@ interface PlanerEvent extends Event {
   termin: PlanTerminOut;
 }
 
+const DnDCalendar = withDragAndDrop<PlanerEvent>(Calendar);
+
 const STANDARD_FARBE = "#6b7280";
+
+function terminStart(t: PlanTerminOut): Date {
+  const basis = new Date(`${t.zieldatum}T${t.uhrzeit ?? "00:00:00"}`);
+  return basis;
+}
 
 interface PlanerKalenderProps {
   termine: PlanTerminOut[];
   onEventKlick: (termin: PlanTerminOut) => void;
+  /** Verschieben eines Termins per Drag&Drop auf ein anderes Datum. */
+  onTerminVerschoben: (termin: PlanTerminOut, neuesDatum: Date) => void;
+  /** Ein von außen (Platzhalter-Liste) gezogenes Element wurde auf dem Kalender
+   * fallen gelassen. */
+  onVonAussenAbgelegt?: (datum: Date) => void;
+  /** Titel des gerade von außen gezogenen Platzhalters (für die Drag-Vorschau). */
+  externerDragTitel?: string | null;
 }
 
-export function PlanerKalender({ termine, onEventKlick }: PlanerKalenderProps) {
-  const events: PlanerEvent[] = termine
-    .filter((t) => t.zieldatum)
-    .map((t) => {
-      const datum = new Date(t.zieldatum as string);
-      return {
-        title: t.titel,
-        start: datum,
-        end: datum,
-        allDay: true,
-        termin: t,
-      };
-    });
+export function PlanerKalender({
+  termine,
+  onEventKlick,
+  onTerminVerschoben,
+  onVonAussenAbgelegt,
+  externerDragTitel,
+}: PlanerKalenderProps) {
+  const events: PlanerEvent[] = useMemo(
+    () =>
+      termine
+        .filter((t) => t.zieldatum)
+        .map((t) => {
+          const start = terminStart(t);
+          const ende = t.uhrzeit ? new Date(start.getTime() + 60 * 60 * 1000) : start;
+          return {
+            title: t.uhrzeit ? `${t.uhrzeit.slice(0, 5)} ${t.titel}` : t.titel,
+            start,
+            end: ende,
+            allDay: !t.uhrzeit,
+            termin: t,
+          };
+        }),
+    [termine]
+  );
 
   return (
     <div style={{ height: 600 }}>
-      <Calendar
+      <DnDCalendar
         localizer={localizer}
         events={events}
         startAccessor="start"
         endAccessor="end"
         culture="de"
+        resizable={false}
         messages={{
           today: "Heute",
           previous: "Zurück",
@@ -69,9 +100,23 @@ export function PlanerKalender({ termine, onEventKlick }: PlanerKalenderProps) {
           };
         }}
         onSelectEvent={(event) => onEventKlick((event as PlanerEvent).termin)}
+        onEventDrop={(args: EventInteractionArgs<PlanerEvent>) => {
+          const start = args.start instanceof Date ? args.start : new Date(args.start);
+          onTerminVerschoben(args.event.termin, start);
+        }}
+        draggableAccessor={(event) => !(event as PlanerEvent).termin.dienstbuch_id}
+        dragFromOutsideItem={
+          externerDragTitel ? () => ({ title: `📌 ${externerDragTitel}` }) as PlanerEvent : undefined
+        }
+        onDropFromOutside={
+          onVonAussenAbgelegt
+            ? ({ start }) => onVonAussenAbgelegt(start instanceof Date ? start : new Date(start))
+            : undefined
+        }
       />
       <p style={{ fontSize: "0.85rem", marginTop: 8 }}>
-        Blass/gestrichelt = Entwurf · Kräftig = Bestätigt · Farbe = Kategorie
+        Blass/gestrichelt = Entwurf · Kräftig = Bestätigt · Farbe = Kategorie · Termine lassen sich per
+        Ziehen verschieben, Platzhalter aus der Liste unten auf den Kalender ziehen
       </p>
     </div>
   );

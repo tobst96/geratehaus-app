@@ -72,11 +72,22 @@ export interface PlanPlatzhalterAnlegen {
 export const legePlatzhalterAn = (daten: PlanPlatzhalterAnlegen) =>
   apiPost<PlanTerminOut>("/dienstbuch-planer/platzhalter", daten);
 
+export interface PlanTerminAnlegen {
+  titel: string;
+  beschreibung?: string | null;
+  zieldatum: string;
+  uhrzeit?: string | null;
+  kategorie_ids?: number[];
+}
+
+export const legeTerminAn = (daten: PlanTerminAnlegen) =>
+  apiPost<PlanTerminOut>("/dienstbuch-planer/termine", daten);
+
 export interface PlanTerminAktualisieren {
   titel?: string;
   beschreibung?: string | null;
   zieldatum?: string | null;
-  ist_platzhalter?: boolean;
+  uhrzeit?: string | null;
   kategorie_ids?: number[];
 }
 

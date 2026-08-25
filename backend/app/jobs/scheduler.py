@@ -280,7 +280,7 @@ async def _dienstbuch_plan_verknuepfung_job() -> None:
             )
             faellige = list((await db.execute(stmt)).scalars().all())
             for termin in faellige:
-                eroeffnet_am = datetime.combine(termin.zieldatum, time(0, 0), tzinfo=tz)
+                eroeffnet_am = datetime.combine(termin.zieldatum, termin.uhrzeit or time(0, 0), tzinfo=tz)
                 dienstbuch = await dienstbuch_service.dienstbuch_anlegen(
                     db, DienstbuchAnlegen(titel=termin.titel, eroeffnet_am=eroeffnet_am)
                 )
