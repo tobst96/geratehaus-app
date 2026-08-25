@@ -11,6 +11,7 @@ from app.api.v1 import (
     buchung_aktionen,
     buchungen,
     csp_report,
+    dienstbuch_planer,
     dienstbuch_reservierungen,
     dienstbuecher,
     dienststunden,
@@ -141,6 +142,7 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(stammdaten.router, prefix="/api/v1")
 app.include_router(einsaetze.router, prefix="/api/v1")
 app.include_router(dienstbuecher.router, prefix="/api/v1")
+app.include_router(dienstbuch_planer.router, prefix="/api/v1")
 app.include_router(dienstbuch_reservierungen.router, prefix="/api/v1")
 app.include_router(dienststunden.router, prefix="/api/v1")
 app.include_router(dienststunden_reservierungen.router, prefix="/api/v1")

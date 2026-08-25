@@ -43,6 +43,8 @@ FEATURE_MODULE: list[FeatureModulDef] = [
     FeatureModulDef("minio", "MinIO", False),
     FeatureModulDef("einsatztagebuch", "Einsatztagebuch", True),
     FeatureModulDef("dienstbuch", "Dienstbuch", True),
+    # Reine Gruppenführer-Funktion (Jahresplanung), kein Kiosk-/Außenzugriff.
+    FeatureModulDef("dienstbuch_planer", "Dienstbuch Planer", False),
     FeatureModulDef("dienststunden", "Dienststunden", True),
     FeatureModulDef("fahrzeugbuchung", "Fahrzeugbuchung", True),
     FeatureModulDef("formular", "Formular", True),

@@ -16,6 +16,7 @@ Version.
 - [Divera 24/7](divera.md) – Alarm-Anbindung & Personal-Abgleich
 - [Pressebericht](pressebericht.md) – konfigurierbarer Einsatz-Pressebericht als PDF-Mail
 - [ELW](elw.md) – Login-loser Upload-Link für den Einsatzleitwagen (pro Einsatz)
+- [Dienstbuch Planer](dienstbuch-planer.md) – wiederkehrende Dienstbuch-Termine per Jahresplanung
 - [Barcode](barcode.md) – Identifikation per Barcode oder Name+PIN
 
 ## Mitgliederseitige Module
