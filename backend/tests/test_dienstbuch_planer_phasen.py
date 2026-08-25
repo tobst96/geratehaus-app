@@ -162,7 +162,7 @@ async def test_divera_uebertragung_baut_korrektes_event(db, monkeypatch):
     monkeypatch.setattr(divera_client, "erstelle_termin", fake_erstelle_termin)
 
     ergebnisse = await divera_planer_service.uebertrage_termine(
-        db, [termin.id], ["Aktive", "Jugend"], 60, True, "Chefin"
+        db, [termin.id], [3, 7], 60, True, "Chefin"
     )
     assert len(ergebnisse) == 1 and ergebnisse[0].ok
 
@@ -171,8 +171,7 @@ async def test_divera_uebertragung_baut_korrektes_event(db, monkeypatch):
     event = aufruf["event"]
     assert event["title"] == "Ortskommandositzung"
     assert event["notification_type"] == 3
-    assert event["group"] == ["Aktive", "Jugend"]
-    assert event["instructions"] == {"group": {"mapping": "title"}}
+    assert event["group"] == [3, 7]
     assert event["fullday"] is False
     assert event["ts_end"] - event["ts_start"] == 90 * 60
     assert aufruf["reminder"]["ts"] == event["ts_start"] - 3600
@@ -201,3 +200,82 @@ async def test_divera_uebertragung_platzhalter_abgelehnt(db, monkeypatch):
     )
     assert ergebnisse[0].ok is False
     assert "Platzhalter" in ergebnisse[0].fehler
+
+
+async def test_geseedete_feiertage_sind_loeschbar_und_kommen_nicht_wieder(client, db):
+    """Nutzerwunsch 25.08.2026: auch gesetzliche Feiertage müssen löschbar
+    sein - Seed passiert einmalig, gelöschte Tage tauchen bei erneutem Abruf
+    NICHT wieder auf (Seed-Marker in der Config, keine Existenz-Heuristik)."""
+    await config_service.set(db, "dienstbuch_planer_bundesland", "BY")
+    h = await _token(client, db)
+
+    liste = (await client.get("/api/v1/dienstbuch-planer/feiertage?jahr=2028", headers=h)).json()
+    neujahr = next(e for e in liste if e["name"] == "Neujahr")
+    assert neujahr["quelle"] == "regel"
+    assert neujahr["id"] is not None  # geseedet -> DB-Zeile -> löschbar
+
+    geloescht = await client.delete(
+        f"/api/v1/dienstbuch-planer/feiertage/{neujahr['id']}", headers=h
+    )
+    assert geloescht.status_code == 204
+
+    erneut = (await client.get("/api/v1/dienstbuch-planer/feiertage?jahr=2028", headers=h)).json()
+    assert not any(e["name"] == "Neujahr" for e in erneut)
+
+
+async def test_divera_info_nur_mit_modul_und_key(client, db, monkeypatch):
+    h = await _token(client, db)
+
+    async def fake_hole_gruppen(api_key):
+        return [{"id": 4, "name": "Aktive"}, {"id": 9, "name": "Jugend"}]
+
+    from app.services import divera_client
+
+    monkeypatch.setattr(divera_client, "hole_gruppen", fake_hole_gruppen)
+
+    # Modul aus -> inaktiv, keine Gruppen.
+    await config_service.set(db, "modul_divera_aktiv", False)
+    await config_service.set(db, "divera_api_key", "test-key")
+    info = (await client.get("/api/v1/dienstbuch-planer/divera-info", headers=h)).json()
+    assert info["aktiv"] is False and info["gruppen"] == []
+
+    # Modul an, aber kein Key -> inaktiv.
+    await config_service.set(db, "modul_divera_aktiv", True)
+    await config_service.set(db, "divera_api_key", "")
+    info = (await client.get("/api/v1/dienstbuch-planer/divera-info", headers=h)).json()
+    assert info["aktiv"] is False
+
+    # Modul an + Key -> aktiv mit Gruppen aus der API.
+    await config_service.set(db, "divera_api_key", "test-key")
+    info = (await client.get("/api/v1/dienstbuch-planer/divera-info", headers=h)).json()
+    assert info["aktiv"] is True
+    assert info["gruppen"] == [{"id": 4, "name": "Aktive"}, {"id": 9, "name": "Jugend"}]
+
+
+async def test_vorlage_loeschen_endgueltig_termine_bleiben(client, db):
+    h = await _token(client, db)
+    vorlage = await client.post(
+        "/api/v1/dienstbuch-planer/vorlagen",
+        json={
+            "titel": "Löschtest",
+            "wiederholungstyp": "jaehrlich",
+            "wochentag": 2,
+            "kalenderwoche": 10,
+            "startdatum": "2020-01-01",
+        },
+        headers=h,
+    )
+    vorlage_id = vorlage.json()["id"]
+    await client.post("/api/v1/dienstbuch-planer/termine/jahr/2026/sicherstellen", headers=h)
+
+    geloescht = await client.delete(f"/api/v1/dienstbuch-planer/vorlagen/{vorlage_id}", headers=h)
+    assert geloescht.status_code == 204
+
+    vorlagen = (await client.get("/api/v1/dienstbuch-planer/vorlagen", headers=h)).json()
+    assert not any(v["id"] == vorlage_id for v in vorlagen)
+
+    # Erzeugte Termine bleiben als Einzeltermine erhalten (FK SET NULL).
+    termine = (await client.get("/api/v1/dienstbuch-planer/termine?jahr=2026", headers=h)).json()
+    uebrig = [t for t in termine if t["titel"] == "Löschtest"]
+    assert len(uebrig) == 1
+    assert uebrig[0]["vorlage_id"] is None

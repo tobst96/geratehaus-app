@@ -15,8 +15,10 @@ import {
   ladeJahresExport,
   legePlatzhalterAn,
   legeTerminAn,
+  holeDiveraInfo,
   stelleJahrSicher,
   uebertrageAnDivera,
+  type DiveraInfo,
   type ImportErgebnis,
 } from "../../api/dienstbuchPlaner";
 import type {
@@ -59,7 +61,8 @@ export function DienstbuchPlaner() {
   const [importErgebnis, setImportErgebnis] = useState<ImportErgebnis | null>(null);
   // Divera-Übertragung: Auswahl per Checkbox in der Terminliste.
   const [diveraAuswahl, setDiveraAuswahl] = useState<number[]>([]);
-  const [diveraGruppen, setDiveraGruppen] = useState("");
+  const [diveraInfo, setDiveraInfo] = useState<DiveraInfo>({ aktiv: false, gruppen: [] });
+  const [diveraGruppenIds, setDiveraGruppenIds] = useState<number[]>([]);
   const [diveraErinnerung, setDiveraErinnerung] = useState("");
   const [diveraErgebnisse, setDiveraErgebnisse] = useState<DiveraUebertragungErgebnis[] | null>(null);
   const [diveraLaeuft, setDiveraLaeuft] = useState(false);
@@ -96,6 +99,12 @@ export function DienstbuchPlaner() {
     laden();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jahr]);
+
+  useEffect(() => {
+    holeDiveraInfo()
+      .then(setDiveraInfo)
+      .catch(() => setDiveraInfo({ aktiv: false, gruppen: [] }));
+  }, []);
 
   function jahrWechseln(richtung: number) {
     // In den Januar des Zieljahres springen, damit die (Entwurfs-)Termine des
@@ -201,13 +210,9 @@ export function DienstbuchPlaner() {
     setDiveraLaeuft(true);
     setDiveraErgebnisse(null);
     try {
-      const gruppen = diveraGruppen
-        .split(",")
-        .map((g) => g.trim())
-        .filter(Boolean);
       const ergebnisse = await uebertrageAnDivera({
         termin_ids: diveraAuswahl,
-        gruppen,
+        gruppen_ids: diveraGruppenIds,
         erinnerung_minuten: diveraErinnerung ? Number(diveraErinnerung) : null,
       });
       setDiveraErgebnisse(ergebnisse);
@@ -389,12 +394,12 @@ export function DienstbuchPlaner() {
         )}
       </div>
 
+      {diveraInfo.aktiv && (
       <div className="karte" style={{ marginTop: 16 }}>
         <h2>An Divera übertragen</h2>
         <p className="hinweistext">
           Ausgewählte Termine als Divera-Termine anlegen (mit Rückmelde-Funktion in der Divera-App).
-          Ohne Gruppenangabe geht der Termin an alle des Standorts. Voraussetzung: Divera-Modul mit
-          API-Key konfiguriert.
+          Ohne Gruppen-Auswahl geht der Termin an alle des Standorts.
         </p>
         {geplant.filter((t) => t.zieldatum).length === 0 ? (
           <p className="text-mute">Keine Termine mit Datum in {jahr}.</p>
@@ -418,13 +423,28 @@ export function DienstbuchPlaner() {
                   </li>
                 ))}
             </ul>
+            {diveraInfo.gruppen.length > 0 && (
+              <div style={{ marginBottom: 8 }}>
+                <p style={{ margin: "4px 0" }}>Empfänger-Gruppen (keine Auswahl = alle):</p>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  {diveraInfo.gruppen.map((g) => (
+                    <label key={g.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <input
+                        type="checkbox"
+                        checked={diveraGruppenIds.includes(g.id)}
+                        onChange={() =>
+                          setDiveraGruppenIds((vorher) =>
+                            vorher.includes(g.id) ? vorher.filter((x) => x !== g.id) : [...vorher, g.id]
+                          )
+                        }
+                      />
+                      {g.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-              <input
-                placeholder="Gruppen (Komma-getrennt, leer = alle)"
-                value={diveraGruppen}
-                onChange={(e) => setDiveraGruppen(e.target.value)}
-                style={{ flex: 1, minWidth: 220 }}
-              />
               <input
                 type="number"
                 min={1}
@@ -450,6 +470,7 @@ export function DienstbuchPlaner() {
           </>
         )}
       </div>
+      )}
 
       {ueberfaellig.length > 0 && (
         <div className="karte" style={{ marginTop: 16, borderColor: "#b00020" }}>

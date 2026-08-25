@@ -110,6 +110,15 @@ async def lifespan(app: FastAPI):
         # (person-<id>.<ext>) auf Zufallstoken, damit Profilbilder nicht per ID
         # öffentlich abgezählt werden können.
         await stammdaten_service.personenbilder_backfill(db)
+        # Gesetzliche Feiertage einmalig für aktuelles + nächstes Jahr in die DB
+        # seeden (danach ist die DB die Wahrheit und jede Zeile löschbar).
+        from datetime import datetime as _dt
+
+        from app.services import feiertag_service
+
+        aktuelles_jahr = _dt.now().year
+        await feiertag_service.seede_jahr(db, aktuelles_jahr)
+        await feiertag_service.seede_jahr(db, aktuelles_jahr + 1)
         init_sentry_wenn_aktiviert(await config_service.get(db, "fehlerberichte_aktiv", False))
     scheduler.start()
     yield

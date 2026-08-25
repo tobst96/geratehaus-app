@@ -173,11 +173,22 @@ class FeiertagAnlegen(BaseModel):
     name: str = Field(min_length=1, max_length=255)
 
 
+class DiveraGruppeOut(BaseModel):
+    id: int
+    name: str
+
+
+class DiveraInfoOut(BaseModel):
+    # True nur wenn Divera-Feature-Modul aktiv UND ein API-Key hinterlegt ist -
+    # sonst blendet das Frontend den Übertragungs-Block komplett aus.
+    aktiv: bool
+    gruppen: list[DiveraGruppeOut] = []
+
+
 class DiveraUebertragung(BaseModel):
     termin_ids: list[int] = Field(min_length=1)
-    # Gruppen-NAMEN (Divera akzeptiert Namen via instructions.group.mapping);
-    # leer = an alle des Standorts.
-    gruppen: list[str] = []
+    # Divera-Gruppen-IDs (aus GET /divera-info); leer = an alle des Standorts.
+    gruppen_ids: list[int] = []
     erinnerung_minuten: int | None = Field(default=None, ge=1)
     send_push: bool = True
 

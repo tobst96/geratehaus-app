@@ -118,8 +118,12 @@ export function PlanerKalender({
   );
 
   return (
-    <div style={{ height: 600 }}>
-      <DnDCalendar
+    // Feste Höhe nur für den Kalender selbst - die Legende steht AUSSERHALB
+    // des Höhen-Containers, sonst ragt sie heraus und die nächste Karte
+    // überblendet sie.
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ height: 600 }}>
+        <DnDCalendar
         localizer={localizer}
         events={events}
         date={datum}
@@ -221,6 +225,7 @@ export function PlanerKalender({
             : undefined
         }
       />
+      </div>
       <p style={{ fontSize: "0.85rem", marginTop: 8 }}>
         Blass/gestrichelt = Entwurf · Kräftig = Bestätigt · Farbe = Kategorie · Rötlicher Tag =
         Feiertag · Klick auf einen freien Tag legt einen Termin an · Verschieben per Ziehen (Maus; am

@@ -29,10 +29,22 @@ class UebertragungsErgebnis:
     fehler: str = ""
 
 
+async def divera_info(db: AsyncSession) -> tuple[bool, list[dict]]:
+    """(aktiv, gruppen) für den Übertragungs-Block: aktiv nur wenn das
+    Divera-Feature-Modul an ist UND ein API-Key hinterlegt ist; die Gruppen
+    kommen live aus der Divera-API (data.cluster.group), damit die Auswahl
+    ohne ID-Raten funktioniert."""
+    modul_aktiv = bool(await config_service.get(db, "modul_divera_aktiv", False))
+    api_key = str(await config_service.get(db, "divera_api_key", "") or "")
+    if not modul_aktiv or not api_key:
+        return False, []
+    return True, await divera_client.hole_gruppen(api_key)
+
+
 async def uebertrage_termine(
     db: AsyncSession,
     termin_ids: list[int],
-    gruppen: list[str],
+    gruppen_ids: list[int],
     erinnerung_minuten: int | None,
     send_push: bool,
     akteur_name: str | None,
@@ -81,10 +93,9 @@ async def uebertrage_termine(
         }
         if termin.beschreibung:
             event["text"] = termin.beschreibung
-        if gruppen:
+        if gruppen_ids:
             event["notification_type"] = 3
-            event["group"] = gruppen
-            event["instructions"] = {"group": {"mapping": "title"}}
+            event["group"] = gruppen_ids
         else:
             event["notification_type"] = 2
 
@@ -102,7 +113,11 @@ async def uebertrage_termine(
                 termin.id,
                 "divera_uebertragen",
                 "An Divera übertragen"
-                + (f" (Gruppen: {', '.join(gruppen)})" if gruppen else " (alle)")
+                + (
+                    f" (Gruppen-IDs: {', '.join(str(g) for g in gruppen_ids)})"
+                    if gruppen_ids
+                    else " (alle)"
+                )
                 + (f", Erinnerung {erinnerung_minuten} min vorher" if erinnerung_minuten else "")
                 + ".",
                 akteur_name,

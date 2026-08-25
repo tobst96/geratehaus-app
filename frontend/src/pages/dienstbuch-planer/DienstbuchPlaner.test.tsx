@@ -11,6 +11,7 @@ vi.mock("../../api/dienstbuchPlaner", () => ({
   holeKategorien: (...a: unknown[]) => holeKategorien(...a),
   holeUeberfaelligeVorlagen: (...a: unknown[]) => holeUeberfaelligeVorlagen(...a),
   holeFeiertage: (...a: unknown[]) => holeFeiertage(...a),
+  holeDiveraInfo: vi.fn().mockResolvedValue({ aktiv: false, gruppen: [] }),
   legePlatzhalterAn: vi.fn(),
   legeTerminAn: vi.fn(),
   stelleJahrSicher: vi.fn(),

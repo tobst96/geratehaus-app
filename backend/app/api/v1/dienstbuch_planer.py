@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFil
 
 from app.api.deps import CurrentGruppenfuehrer, DbSession, require_modul_aktiv
 from app.schemas.dienstbuch_planer import (
+    DiveraGruppeOut,
+    DiveraInfoOut,
     DiveraUebertragung,
     DiveraUebertragungErgebnis,
     FeiertagAnlegen,
@@ -134,14 +136,13 @@ async def vorlage_aktualisieren(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
 
-@router.delete("/vorlagen/{vorlage_id}", response_model=PlanVorlageOut)
-async def vorlage_deaktivieren(
-    db: DbSession, _person: PlanerZugriff, vorlage_id: int
-) -> PlanVorlageOut:
-    """Kein Hard-Delete - bestehende Instanzen bleiben erhalten, es werden nur
-    keine neuen mehr generiert."""
+@router.delete("/vorlagen/{vorlage_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def vorlage_loeschen(db: DbSession, _person: PlanerZugriff, vorlage_id: int) -> None:
+    """Löscht die Vorlage endgültig; bereits erzeugte Termine bleiben als
+    Einzeltermine erhalten (FK SET NULL). Deaktivieren (weiter möglich) läuft
+    über PATCH mit aktiv=false."""
     vorlage = await _vorlage_oder_404(db, vorlage_id)
-    return await service.vorlage_deaktivieren(db, vorlage)
+    await service.vorlage_loeschen(db, vorlage)
 
 
 # --- Termine ----------------------------------------------------------------
@@ -240,6 +241,15 @@ async def feiertage_bundeslaender(_person: PlanerZugriff) -> dict[str, str]:
     return feiertag_service.bundeslaender()
 
 
+@router.post("/feiertage/seed")
+async def feiertage_seed(db: DbSession, _person: PlanerZugriff, jahr: int) -> dict:
+    """Baut die gesetzlichen (regel-)Feiertage eines Jahres neu auf - für den
+    bewussten Bundesland-Wechsel in den Einstellungen. Manuelle Einträge
+    bleiben unberührt; einzeln gelöschte gesetzliche kommen dabei zurück."""
+    eingefuegt = await feiertag_service.seede_jahr(db, jahr, ersetzen=True)
+    return {"eingefuegt": eingefuegt}
+
+
 @router.post("/feiertage", response_model=FeiertagOut, status_code=status.HTTP_201_CREATED)
 async def feiertag_anlegen(db: DbSession, _person: PlanerZugriff, daten: FeiertagAnlegen) -> FeiertagOut:
     feiertag = await feiertag_service.feiertag_anlegen(db, daten.datum, daten.name)
@@ -268,6 +278,14 @@ async def jahres_export(db: DbSession, _person: PlanerZugriff, jahr: int) -> Res
 # --- Divera-Übertragung (Phase 4) -----------------------------------------------
 
 
+@router.get("/divera-info", response_model=DiveraInfoOut)
+async def divera_info(db: DbSession, _person: PlanerZugriff) -> DiveraInfoOut:
+    """Ob die Divera-Übertragung verfügbar ist (Modul aktiv + API-Key) und die
+    Gruppen des Standorts zur Empfänger-Auswahl (live aus der Divera-API)."""
+    aktiv, gruppen = await divera_planer_service.divera_info(db)
+    return DiveraInfoOut(aktiv=aktiv, gruppen=[DiveraGruppeOut(**g) for g in gruppen])
+
+
 @router.post("/divera-uebertragen", response_model=list[DiveraUebertragungErgebnis])
 async def divera_uebertragen(
     db: DbSession, person: PlanerZugriff, daten: DiveraUebertragung
@@ -279,7 +297,7 @@ async def divera_uebertragen(
         standard = int(await config_service.get(db, "dienstbuch_planer_divera_erinnerung_minuten", 0))
         erinnerung = standard if standard > 0 else None
     ergebnisse = await divera_planer_service.uebertrage_termine(
-        db, daten.termin_ids, daten.gruppen, erinnerung, daten.send_push, person.name
+        db, daten.termin_ids, daten.gruppen_ids, erinnerung, daten.send_push, person.name
     )
     return [
         DiveraUebertragungErgebnis(termin_id=e.termin_id, titel=e.titel, ok=e.ok, fehler=e.fehler)

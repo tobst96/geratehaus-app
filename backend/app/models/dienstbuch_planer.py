@@ -165,15 +165,18 @@ class DienstbuchPlanTermin(Base, TimestampMixin):
 
 
 class PlanerFeiertag(Base, TimestampMixin):
-    """Manuell in den Modul-Einstellungen ergänzter Feiertag/Blockiertag - wird
-    im Kalender zusätzlich zu den aus `backend/app/data/feiertage_regeln.json`
-    berechneten Feiertagen des konfigurierten Bundeslands eingeblendet."""
+    """Feiertag/Blockiertag im Planer-Kalender. Gesetzliche Feiertage werden
+    EINMALIG pro Jahr aus dem Regelwerk `backend/app/data/feiertage_regeln.json`
+    in diese Tabelle geseedet (quelle="regel", beim App-Start bzw. beim
+    Jahres-Job) - danach ist die DB die einzige Wahrheit und JEDE Zeile ist
+    löschbar (Nutzerwunsch). quelle="manuell" = von Hand ergänzt."""
 
     __tablename__ = "planer_feiertage"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     datum: Mapped[date] = mapped_column(Date, nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    quelle: Mapped[str] = mapped_column(String(16), default="manuell", nullable=False)
 
 
 # --- Audit-/Timeline-Protokoll ------------------------------------------------

@@ -150,6 +150,14 @@ async def vorlage_deaktivieren(db: AsyncSession, vorlage: DienstbuchPlanVorlage)
     return vorlage
 
 
+async def vorlage_loeschen(db: AsyncSession, vorlage: DienstbuchPlanVorlage) -> None:
+    """Löscht die Vorlage endgültig (Nutzerwunsch). Bereits erzeugte Termine
+    bleiben erhalten - ihr vorlage_id-FK steht auf ondelete=SET NULL, sie
+    werden dadurch zu normalen Einzelterminen."""
+    await db.delete(vorlage)
+    await db.commit()
+
+
 def regel_pruefen(vorlage: DienstbuchPlanVorlage) -> None:
     """Wirft `VorlageValidierungsFehler`, wenn die Wiederholungsregel in sich
     widersprüchlich ist (siehe `dienstbuch_plan_engine.validiere_regel`)."""
@@ -308,7 +316,7 @@ async def instanzen_fuer_jahr_sicherstellen(
 
     await db.commit()
     for termin in neue:
-        await db.refresh(termin, attribute_names=["kategorien"])
+        await db.refresh(termin, attribute_names=["kategorien", "vorlage"])
     return neue
 
 
@@ -329,7 +337,7 @@ async def platzhalter_anlegen(
     await db.flush()
     await _ereignis_protokollieren(db, termin.id, "angelegt", "Platzhalter angelegt.", akteur_name)
     await db.commit()
-    await db.refresh(termin, attribute_names=["kategorien"])
+    await db.refresh(termin, attribute_names=["kategorien", "vorlage"])
     return termin
 
 
@@ -354,7 +362,7 @@ async def termin_anlegen(
     await db.flush()
     await _ereignis_protokollieren(db, termin.id, "angelegt", "Termin manuell angelegt.", akteur_name)
     await db.commit()
-    await db.refresh(termin, attribute_names=["kategorien"])
+    await db.refresh(termin, attribute_names=["kategorien", "vorlage"])
     return termin
 
 
@@ -397,7 +405,7 @@ async def termin_aktualisieren(
             db, termin.id, "geaendert", "Geändert: " + "; ".join(diff_teile), akteur_name
         )
         await db.commit()
-        await db.refresh(termin, attribute_names=["kategorien"])
+        await db.refresh(termin, attribute_names=["kategorien", "vorlage"])
     return termin
 
 
@@ -407,7 +415,7 @@ async def termin_bestaetigen(
     termin.status = "bestaetigt"
     await _ereignis_protokollieren(db, termin.id, "bestaetigt", "Termin bestätigt.", akteur_name)
     await db.commit()
-    await db.refresh(termin, attribute_names=["kategorien"])
+    await db.refresh(termin, attribute_names=["kategorien", "vorlage"])
     return termin
 
 
@@ -421,7 +429,7 @@ async def termin_zu_entwurf_zuruecksetzen(
         db, termin.id, "entwurf_zurueckgesetzt", "Bestätigung zurückgenommen.", akteur_name
     )
     await db.commit()
-    await db.refresh(termin, attribute_names=["kategorien"])
+    await db.refresh(termin, attribute_names=["kategorien", "vorlage"])
     return termin
 
 

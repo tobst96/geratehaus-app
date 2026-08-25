@@ -310,6 +310,9 @@ async def _dienstbuch_plan_jahresvorbereitung_job() -> None:
     async with AsyncSessionLocal() as db:
         try:
             heute = (await zeit.jetzt_lokal(db)).date()
+            from app.services import feiertag_service
+
+            await feiertag_service.seede_jahr(db, heute.year + 1)
             neue = await dienstbuch_planer_service.instanzen_fuer_jahr_sicherstellen(db, heute.year + 1)
             if neue:
                 logger.info("dienstbuch_plan_jahresvorbereitung_erledigt", anzahl=len(neue))

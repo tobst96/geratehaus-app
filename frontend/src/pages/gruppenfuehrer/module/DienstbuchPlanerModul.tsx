@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import {
   aktualisiereKategorie,
   aktualisiereVorlage,
-  deaktiviereVorlage,
+  loescheVorlage,
   holeBundeslaender,
   holeFeiertage,
   holeKategorien,
@@ -15,6 +15,7 @@ import {
   legeKategorieAn,
   legeVorlageAn,
   loescheFeiertag,
+  seedeFeiertage,
 } from "../../../api/dienstbuchPlaner";
 import { holeEinstellungen, schreibeEinstellungen } from "../../../api/gruppenfuehrer";
 import { ApiError } from "../../../api/client";
@@ -169,6 +170,10 @@ export function DienstbuchPlanerModul() {
       dienstbuch_planer_bundesland: bundesland,
       dienstbuch_planer_divera_erinnerung_minuten: diveraErinnerung,
     });
+    // Bundesland-Wechsel: gesetzliche Feiertage für dieses + nächstes Jahr neu
+    // aufbauen (manuelle bleiben unberührt).
+    await seedeFeiertage(feiertagsJahr);
+    await seedeFeiertage(feiertagsJahr + 1);
     setEinstellungenGespeichert(true);
     setFeiertage(await holeFeiertage(feiertagsJahr));
   }
@@ -246,8 +251,9 @@ export function DienstbuchPlanerModul() {
     await laden();
   }
 
-  async function vorlageDeaktivieren(v: PlanVorlageOut) {
-    await deaktiviereVorlage(v.id);
+  async function vorlageLoeschen(v: PlanVorlageOut) {
+    if (!window.confirm(`Vorlage „${v.titel}“ endgültig löschen? Bereits erzeugte Termine bleiben erhalten.`)) return;
+    await loescheVorlage(v.id);
     await laden();
   }
 
@@ -298,8 +304,9 @@ export function DienstbuchPlanerModul() {
 
         <h3 style={{ marginTop: 16 }}>Eigene Feiertage/Blockiertage</h3>
         <p className="hinweistext">
-          Zusätzlich zu den gesetzlichen Feiertagen (aus dem Regelwerk, im Git editierbar) - z. B.
-          örtliche Feste. Gesetzliche Feiertage {feiertagsJahr}: siehe Liste unten (nicht löschbar).
+          Die gesetzlichen Feiertage werden einmalig beim Start aus dem Regelwerk übernommen und sind
+          danach wie eigene Einträge frei löschbar. Beim Speichern eines anderen Bundeslands werden
+          sie neu aufgebaut (eigene Einträge bleiben erhalten).
         </p>
         <form onSubmit={feiertagAnlegen} style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
           <input
@@ -320,13 +327,16 @@ export function DienstbuchPlanerModul() {
           {feiertage.map((f) => (
             <li key={`${f.datum}-${f.name}`} style={{ display: "flex", gap: 8, alignItems: "center", padding: "2px 0" }}>
               <span style={{ minWidth: 90 }}>{f.datum}</span>
-              <span style={{ flex: 1 }}>{f.name}</span>
-              {f.quelle === "manuell" && f.id != null ? (
+              <span style={{ flex: 1 }}>
+                {f.name}
+                {f.quelle === "regel" && (
+                  <span className="text-mute" style={{ fontSize: "0.8rem" }}> (gesetzlich)</span>
+                )}
+              </span>
+              {f.id != null && (
                 <button className="sekundaer" onClick={() => feiertagEntfernen(f.id as number)}>
                   {t.loeschen}
                 </button>
-              ) : (
-                <span className="text-mute" style={{ fontSize: "0.8rem" }}>gesetzlich</span>
               )}
             </li>
           ))}
@@ -572,11 +582,9 @@ export function DienstbuchPlanerModul() {
                     />
                   </td>
                   <td>
-                    {v.aktiv && (
-                      <button className="sekundaer" onClick={() => vorlageDeaktivieren(v)}>
-                        {t.deaktivieren}
-                      </button>
-                    )}
+                    <button className="sekundaer" onClick={() => vorlageLoeschen(v)}>
+                      {t.loeschen}
+                    </button>
                   </td>
                 </tr>
               ))}

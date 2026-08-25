@@ -55,8 +55,8 @@ export const legeVorlageAn = (daten: PlanVorlageAnlegen) =>
 export const aktualisiereVorlage = (id: number, daten: Partial<PlanVorlageAnlegen>) =>
   apiPatch<PlanVorlageOut>(`/dienstbuch-planer/vorlagen/${id}`, daten);
 
-export const deaktiviereVorlage = (id: number) =>
-  apiDelete<PlanVorlageOut>(`/dienstbuch-planer/vorlagen/${id}`);
+export const loescheVorlage = (id: number) =>
+  apiDelete<void>(`/dienstbuch-planer/vorlagen/${id}`);
 
 // --- Termine ----------------------------------------------------------------
 
@@ -126,6 +126,10 @@ export const legeFeiertagAn = (datum: string, name: string) =>
 export const loescheFeiertag = (id: number) =>
   apiDelete<void>(`/dienstbuch-planer/feiertage/${id}`);
 
+/** Baut die gesetzlichen Feiertage eines Jahres neu auf (nach Bundesland-Wechsel). */
+export const seedeFeiertage = (jahr: number) =>
+  apiPost<{ eingefuegt: number }>(`/dienstbuch-planer/feiertage/seed?jahr=${jahr}`);
+
 // --- Excel (Phase 3) -------------------------------------------------------
 
 export async function ladeJahresExport(jahr: number): Promise<void> {
@@ -151,9 +155,21 @@ export const importiereJahr = (jahr: number, datei: File) =>
 
 // --- Divera (Phase 4) ------------------------------------------------------
 
+export interface DiveraGruppe {
+  id: number;
+  name: string;
+}
+
+export interface DiveraInfo {
+  aktiv: boolean;
+  gruppen: DiveraGruppe[];
+}
+
+export const holeDiveraInfo = () => apiGet<DiveraInfo>("/dienstbuch-planer/divera-info");
+
 export interface DiveraUebertragung {
   termin_ids: number[];
-  gruppen?: string[];
+  gruppen_ids?: number[];
   erinnerung_minuten?: number | null;
   send_push?: boolean;
 }

@@ -90,20 +90,58 @@ def berechne_feiertage(jahr: int, bundesland: str) -> list[Feiertag]:
     return sorted(ergebnis, key=lambda f: f.datum)
 
 
-async def feiertage_fuer_jahr(db: AsyncSession, jahr: int) -> list[Feiertag]:
-    """Berechnete Feiertage (konfiguriertes Bundesland) + manuelle Einträge."""
-    bundesland = str(await config_service.get(db, "dienstbuch_planer_bundesland", "") or "")
-    ergebnis = berechne_feiertage(jahr, bundesland)
+async def seede_jahr(db: AsyncSession, jahr: int, ersetzen: bool = False) -> int:
+    """Seedet die gesetzlichen Feiertage eines Jahres EINMALIG in die DB
+    (quelle="regel") - danach ist die DB die Wahrheit und jede Zeile löschbar.
 
-    manuelle = (
+    Der „schon geseedet"-Zustand liegt als Jahresliste im Config-Key
+    `dienstbuch_planer_feiertage_geseedet` - bewusst NICHT über die Existenz
+    von regel-Zeilen ermittelt, sonst kämen vom Nutzer gelöschte Feiertage
+    beim nächsten Abruf wieder. Mit `ersetzen=True` (bewusster
+    Bundesland-Wechsel) werden die regel-Einträge des Jahres neu aufgebaut;
+    manuelle bleiben unberührt. Gibt die Anzahl eingefügter Zeilen zurück."""
+    geseedet = await config_service.get(db, "dienstbuch_planer_feiertage_geseedet", [])
+    geseedet = list(geseedet) if isinstance(geseedet, list) else []
+    if jahr in geseedet and not ersetzen:
+        return 0
+
+    von, bis = date(jahr, 1, 1), date(jahr, 12, 31)
+    bestehende_regel = (
         await db.execute(
             select(PlanerFeiertag).where(
-                PlanerFeiertag.datum >= date(jahr, 1, 1), PlanerFeiertag.datum <= date(jahr, 12, 31)
+                PlanerFeiertag.quelle == "regel",
+                PlanerFeiertag.datum >= von,
+                PlanerFeiertag.datum <= bis,
             )
         )
     ).scalars().all()
-    ergebnis.extend(Feiertag(datum=f.datum, name=f.name, quelle="manuell", id=f.id) for f in manuelle)
-    return sorted(ergebnis, key=lambda f: f.datum)
+    for alt in bestehende_regel:
+        await db.delete(alt)
+
+    bundesland = str(await config_service.get(db, "dienstbuch_planer_bundesland", "") or "")
+    neue = berechne_feiertage(jahr, bundesland)
+    for feiertag in neue:
+        db.add(PlanerFeiertag(datum=feiertag.datum, name=feiertag.name, quelle="regel"))
+    if jahr not in geseedet:
+        await config_service.set(db, "dienstbuch_planer_feiertage_geseedet", geseedet + [jahr])
+    await db.commit()
+    return len(neue)
+
+
+async def feiertage_fuer_jahr(db: AsyncSession, jahr: int) -> list[Feiertag]:
+    """Alle Feiertage eines Jahres aus der DB (geseedete gesetzliche +
+    manuelle) - jede Zeile hat eine id und ist löschbar. Ist das Jahr noch
+    nie geseedet worden (z. B. weit in der Zukunft), wird es on-demand
+    geseedet."""
+    await seede_jahr(db, jahr)
+    zeilen = (
+        await db.execute(
+            select(PlanerFeiertag)
+            .where(PlanerFeiertag.datum >= date(jahr, 1, 1), PlanerFeiertag.datum <= date(jahr, 12, 31))
+            .order_by(PlanerFeiertag.datum)
+        )
+    ).scalars().all()
+    return [Feiertag(datum=z.datum, name=z.name, quelle=z.quelle, id=z.id) for z in zeilen]
 
 
 async def feiertag_anlegen(db: AsyncSession, datum: date, name: str) -> PlanerFeiertag:

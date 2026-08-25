@@ -136,6 +136,37 @@ async def hole_personal(api_key: str) -> list[dict]:
     return personal
 
 
+async def hole_gruppen(api_key: str) -> list[dict]:
+    """Holt die Gruppen des Standorts aus /pull/all (data.cluster.group =
+    Dict id -> Gruppenobjekt, Reihenfolge in data.cluster.groupsorting) - für
+    die Empfänger-Auswahl beim Termin-Übertragen. Gibt [{id, name}, ...]
+    zurück; bei Fehlern eine leere Liste (Aufrufer zeigt dann den
+    Alle-Empfänger-Fallback)."""
+    url = f"{BASIS_URL}/pull/all"
+    async with httpx.AsyncClient(timeout=15) as client:
+        try:
+            response = await client.get(url, params={"accesskey": api_key})
+            response.raise_for_status()
+        except httpx.HTTPError:
+            logger.warning("divera_gruppen_abruf_fehlgeschlagen", exc_info=True)
+            return []
+
+    cluster = response.json().get("data", {}).get("cluster", {})
+    gruppen_roh = cluster.get("group", {}) if isinstance(cluster, dict) else {}
+    if not isinstance(gruppen_roh, dict):
+        return []
+
+    sortierung = cluster.get("groupsorting") or list(gruppen_roh.keys())
+    ergebnis: list[dict] = []
+    for gruppen_id in sortierung:
+        eintrag = gruppen_roh.get(str(gruppen_id)) or gruppen_roh.get(gruppen_id)
+        if not isinstance(eintrag, dict):
+            continue
+        name = eintrag.get("name") or eintrag.get("title") or f"Gruppe {gruppen_id}"
+        ergebnis.append({"id": int(gruppen_id), "name": str(name)})
+    return ergebnis
+
+
 async def erstelle_termin(api_key: str, event: dict, reminder: dict | None = None) -> tuple[bool, str]:
     """Erstellt einen Termin in Divera (POST /api/v2/events).
 

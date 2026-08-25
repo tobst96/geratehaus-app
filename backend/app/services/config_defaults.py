@@ -71,6 +71,12 @@ DEFAULTS: list[ConfigDefault] = [
         ConfigTyp.INT,
         "Standard-Erinnerung (Minuten vorher) beim Übertragen von Planer-Terminen nach Divera (0 = keine)",
     ),
+    ConfigDefault(
+        "dienstbuch_planer_feiertage_geseedet",
+        "[]",
+        ConfigTyp.JSON,
+        "Jahre, für die die gesetzlichen Feiertage bereits in die DB geseedet wurden (intern)",
+    ),
     ConfigDefault("modul_dienststunden_aktiv", "true", ConfigTyp.BOOL, "Dienststunden aktiv"),
     ConfigDefault("modul_fahrzeugbuchung_aktiv", "true", ConfigTyp.BOOL, "Fahrzeugbuchung aktiv"),
     ConfigDefault("modul_formular_aktiv", "false", ConfigTyp.BOOL, "Formular-Modul aktiv"),
