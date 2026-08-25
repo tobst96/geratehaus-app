@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ToastProvider, useToast } from "./ToastContext";
+import { useToast } from "./ToastContext";
+import { ToastProvider } from "./ToastProvider";
 
 function TestKnopf() {
   const toast = useToast();
