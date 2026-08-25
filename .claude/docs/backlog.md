@@ -12,6 +12,56 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AK – Neues Modul „Dienstbuch Planer" (Jahresplanung wiederkehrender Termine)
+
+### Wiederkehrende Dienstbuch-Termine automatisch statt jährlichem manuellem Kopieren
+
+- Status: Review (PR #75 gegen `beta`, Feature-Branch `feature/dienstbuch-planer`,
+  Phase 1 – nicht gemergt)
+- Priorität: Mittel
+- Kategorie: Neues Modul / Backend / Frontend
+- Skills: planner, geraetehaus-patterns, tests, review
+- Plan: Ja (Plan-Mode-Session, mit Nutzer abgestimmt)
+- Beschreibung: Nutzerwunsch (25.08.2026) für ein Modul, das den bisher jedes Jahr
+  manuell vom Vorjahr kopierten Dienstplan automatisiert: wiederkehrende
+  Termin-**Vorlagen** (z. B. „Unterweisung UVV, immer KW 5, Mittwoch, ungerade
+  Woche") mit Wiederholungstyp (jährlich/monatlich/alle X Tage/Wochen/Monate/Jahre)
+  + harter Kalenderwoche/gerade-ungerade/Wochentag-Zusatzbedingung; Feiertage pro
+  Bundesland im Kalenderhintergrund; Excel-Export/Import mit App-Branding + QR-Code
+  aufs passende Monat; Divera-Termine-Übertragung; Platzhalter-Termine ohne festes
+  Datum; Mindest-Intervall mit Überfällig-Markierung; mehrfarbige Kategorien
+  (Mehrfachauswahl); Viewer-Rolle; Entwurf/Bestätigt-Status; vollständiges
+  Änderungsprotokoll mit Akteur.
+- Umsetzung (25.08.2026, **Phase 1** – phasenweise mit Nutzer abgestimmt): eigene,
+  ORM-freie Wiederholungs-Engine (`dienstbuch_plan_engine.py`, kein RRULE-Downgrade,
+  da `icalendar`/`recurring_ical_events` die KW/Paritäts-Zusatzbedingung nicht
+  abdeckt) inkl. automatischer Korrektur bei seltenen Zielkonflikten (z. B. nach
+  einem 53-Wochen-Jahr); Kategorien mit Farbe + Mehrfachauswahl (neues
+  `PlanerKategorie`-Model, M:N – erstes M:N im Projekt); Entwurf→Bestätigt-Status,
+  bestätigter Termin wird per täglichem, idempotentem Scheduler-Job automatisch mit
+  einem echten Dienstbuch-Eintrag verknüpft; Platzhalter-Termine ohne Zieldatum;
+  Mindest-Intervall + Überfällig-Berechnung; `DienstbuchPlanTerminEreignis` mit
+  `akteur_name` **von Anfang an** (anders als `PersonEreignis`, das dafür in Etappe T
+  nachgerüstet werden musste); zwei granulare Berechtigungs-Keys
+  „dienstbuch-planer-ansehen"/„-bearbeiten" (binäres Berechtigungssystem, kein
+  Stufen-Umbau); Kalenderansicht auf `react-big-calendar`-Basis (wie
+  Buchungskalender). 26 neue Backend-Tests + 4 neue Frontend-Test-Dateien, volle
+  Suiten grün (Backend 571/571, Frontend 94/94), Build sauber. Doku
+  `docs/dienstbuch-planer.md`.
+- Akzeptanzkriterien: siehe Phase-1-Umsetzung oben; Phasen 2–4 (unten) sind
+  ausdrücklich **nicht** Teil dieses PRs.
+- Notizen: **Phase 2** (Feiertage pro Bundesland, JSON-Seed im Git + DB-Editor im
+  Modul, Kalender-Overlay), **Phase 3** (Excel-Export/Import fürs ganze Jahr,
+  Branding + QR-Code aufs Monat, neue Dependency `openpyxl`), **Phase 4** (Divera-
+  Termine schreibend übertragen – bewusste, vom Nutzer gewünschte Ausnahme vom
+  Grundsatz „nur lesen, kein Rückkanal" im Abschnitt „Divera 24/7" unten; **zwingend
+  zuerst** die echte Divera-API-Doku auf einen Termine-Schreib-Endpunkt prüfen, im
+  Repo nirgends dokumentiert) folgen als eigene Feature-Branches, jeweils vor
+  Umsetzung neu zu planen. Modul ist bewusst nicht mitgliederseitig (reine
+  Gruppenführer-Funktion, kein Kiosk-/Außenzugriff in Phase 1).
+
+---
+
 ## Etappe AJ – Sitzplan-Editor: Raster-Snap beim Positionieren
 
 ### Sitzplätze am Raster ausrichten statt freihändig auf Pixel genau
@@ -3478,6 +3528,11 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
 ### Divera 24/7
 
 > Grundsatz: **nur lesen, kein Rückkanal**; Personal-Abgleich bleibt bei Vorschlägen.
+> **Bewusste Ausnahme in Planung (25.08.2026):** Für Etappe AK Phase 4 (Dienstbuch-
+> Planer-Termine nach Divera übertragen) hat der Nutzer nach Rückfrage ausdrücklich
+> eine schreibende Divera-API-Anbindung gewünscht statt des empfohlenen iCal-Wegs.
+> Divera hat aber keinen im Repo dokumentierten Termine-Schreib-Endpunkt – vor
+> Umsetzung von Phase 4 zwingend die echte Divera-API-Doku prüfen.
 
 - **Sync-Status & Verbindungstest** `⭐⭐ · S` · Prio Mittel · Plan Nein · *gewählt
   05.07.2026*: „Verbindung testen"-Button, letzter erfolgreicher Sync + letzte Fehler

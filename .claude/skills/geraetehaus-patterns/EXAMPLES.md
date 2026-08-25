@@ -192,3 +192,40 @@ zwanghaft zu befüllen, auch wo es keinen echten Akteur gibt (irreführend).
 
 Bei jeder neuen `PersonEreignis`-Aufrufstelle, die durch eine handelnde
 Gruppenführer-/Admin-Aktion ausgelöst wird.
+
+## M:N-Beziehung über eine reine Association-Table
+
+### Beschreibung
+
+Für „ein Datensatz hat mehrere Kategorien, eine Kategorie gehört zu mehreren
+Datensätzen" (z. B. `DienstbuchPlanVorlage`/`DienstbuchPlanTermin` ↔
+`PlanerKategorie`, Backlog Etappe AK) – das erste M:N im Projekt, bisherige
+Beziehungen waren immer 1:n mit FK auf der „vielen" Seite.
+
+### Backend
+
+- Reine `sqlalchemy.Table(...)` (kein eigenes Model) mit zwei FK-Spalten als
+  zusammengesetztem Primärschlüssel, `ondelete="CASCADE"` auf beiden Seiten:
+  ```python
+  x_y = Table(
+      "x_y", Base.metadata,
+      Column("x_id", ForeignKey("x.id", ondelete="CASCADE"), primary_key=True),
+      Column("y_id", ForeignKey("y.id", ondelete="CASCADE"), primary_key=True),
+  )
+  ```
+- Auf beiden Models je eine `relationship(secondary=x_y, ...)`.
+- Braucht eine eigene Instanz die Zuordnung „eingefroren" (spätere Änderung an
+  der Quelle soll nicht rückwirkend wirken – z. B. Vorlagen-Kategorien vs.
+  bereits erzeugte Termin-Kategorien), zwei **getrennte** Association-Tables
+  verwenden (eine je Beziehung), nicht dieselbe wiederverwenden.
+
+### Warum dieses Pattern?
+
+Standard-SQLAlchemy-2.0-Weg für M:N ohne zusätzliche Nutzlast auf der
+Verknüpfung selbst; vermeidet ein unnötiges drittes Model nur für die
+Zuordnung.
+
+### Wann wiederverwenden?
+
+Bei jeder neuen „mehrere-zu-mehreren"-Beziehung (z. B. weitere
+Kategorie-/Tag-Systeme).
