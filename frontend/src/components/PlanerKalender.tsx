@@ -34,6 +34,8 @@ function terminStart(t: PlanTerminOut): Date {
 interface PlanerKalenderProps {
   termine: PlanTerminOut[];
   onEventKlick: (termin: PlanTerminOut) => void;
+  /** Klick auf einen freien Tag/Zeitslot - zum direkten Anlegen eines Termins. */
+  onSlotKlick?: (datum: Date) => void;
   /** Verschieben eines Termins per Drag&Drop auf ein anderes Datum. */
   onTerminVerschoben: (termin: PlanTerminOut, neuesDatum: Date) => void;
   /** Ein von außen (Platzhalter-Liste) gezogenes Element wurde auf dem Kalender
@@ -46,6 +48,7 @@ interface PlanerKalenderProps {
 export function PlanerKalender({
   termine,
   onEventKlick,
+  onSlotKlick,
   onTerminVerschoben,
   onVonAussenAbgelegt,
   externerDragTitel,
@@ -100,6 +103,12 @@ export function PlanerKalender({
           };
         }}
         onSelectEvent={(event) => onEventKlick((event as PlanerEvent).termin)}
+        selectable={!!onSlotKlick}
+        onSelectSlot={
+          onSlotKlick
+            ? (slot) => onSlotKlick(slot.start instanceof Date ? slot.start : new Date(slot.start))
+            : undefined
+        }
         onEventDrop={(args: EventInteractionArgs<PlanerEvent>) => {
           const start = args.start instanceof Date ? args.start : new Date(args.start);
           onTerminVerschoben(args.event.termin, start);
@@ -115,8 +124,9 @@ export function PlanerKalender({
         }
       />
       <p style={{ fontSize: "0.85rem", marginTop: 8 }}>
-        Blass/gestrichelt = Entwurf · Kräftig = Bestätigt · Farbe = Kategorie · Termine lassen sich per
-        Ziehen verschieben, Platzhalter aus der Liste unten auf den Kalender ziehen
+        Blass/gestrichelt = Entwurf · Kräftig = Bestätigt · Farbe = Kategorie · Klick auf einen freien
+        Tag legt einen Termin an · Termine lassen sich per Ziehen verschieben, Platzhalter aus der
+        Liste unten auf den Kalender ziehen
       </p>
     </div>
   );

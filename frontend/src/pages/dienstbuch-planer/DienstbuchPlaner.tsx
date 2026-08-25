@@ -36,6 +36,11 @@ export function DienstbuchPlaner() {
   const [neuerTerminDatum, setNeuerTerminDatum] = useState("");
   const [neuerTerminUhrzeit, setNeuerTerminUhrzeit] = useState("");
   const [gezogenerPlatzhalter, setGezogenerPlatzhalter] = useState<PlanTerminOut | null>(null);
+  // Klick auf einen freien Kalendertag: Mini-Dialog zum direkten Anlegen dort.
+  const [slotDatum, setSlotDatum] = useState<Date | null>(null);
+  const [slotTitel, setSlotTitel] = useState("");
+  const [slotUhrzeit, setSlotUhrzeit] = useState("");
+  const [slotSpeichert, setSlotSpeichert] = useState(false);
 
   async function laden() {
     try {
@@ -85,6 +90,39 @@ export function DienstbuchPlaner() {
       await laden();
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Termin konnte nicht angelegt werden.");
+    }
+  }
+
+  function slotAngeklickt(datum: Date) {
+    setSlotDatum(datum);
+    setSlotTitel("");
+    // Klick in der Wochen-/Tagesansicht bringt eine konkrete Uhrzeit mit;
+    // in der Monatsansicht (Mitternacht) bleibt das Uhrzeit-Feld leer.
+    const stunden = datum.getHours();
+    const minuten = datum.getMinutes();
+    setSlotUhrzeit(
+      stunden === 0 && minuten === 0
+        ? ""
+        : `${String(stunden).padStart(2, "0")}:${String(minuten).padStart(2, "0")}`
+    );
+  }
+
+  async function slotTerminAnlegen(e: FormEvent) {
+    e.preventDefault();
+    if (!slotDatum || !slotTitel.trim()) return;
+    setSlotSpeichert(true);
+    try {
+      await legeTerminAn({
+        titel: slotTitel.trim(),
+        zieldatum: datumZuIso(slotDatum),
+        uhrzeit: slotUhrzeit ? `${slotUhrzeit}:00` : null,
+      });
+      setSlotDatum(null);
+      await laden();
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Termin konnte nicht angelegt werden.");
+    } finally {
+      setSlotSpeichert(false);
     }
   }
 
@@ -145,10 +183,63 @@ export function DienstbuchPlaner() {
       <PlanerKalender
         termine={geplant}
         onEventKlick={setAusgewaehlterTermin}
+        onSlotKlick={slotAngeklickt}
         onTerminVerschoben={terminVerschoben}
         onVonAussenAbgelegt={platzhalterAbgelegt}
         externerDragTitel={gezogenerPlatzhalter?.titel ?? null}
       />
+
+      {slotDatum && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "1rem",
+          }}
+          onClick={() => setSlotDatum(null)}
+        >
+          <form
+            className="karte"
+            style={{ maxWidth: 420, width: "100%" }}
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={slotTerminAnlegen}
+          >
+            <h2>Termin am {slotDatum.toLocaleDateString("de-DE")}</h2>
+            <div className="formular-feld">
+              <label htmlFor="slot-titel">Titel</label>
+              <input
+                id="slot-titel"
+                autoFocus
+                value={slotTitel}
+                onChange={(e) => setSlotTitel(e.target.value)}
+                placeholder="z. B. Übungsdienst"
+              />
+            </div>
+            <div className="formular-feld">
+              <label htmlFor="slot-uhrzeit">Uhrzeit (optional)</label>
+              <input
+                id="slot-uhrzeit"
+                type="time"
+                value={slotUhrzeit}
+                onChange={(e) => setSlotUhrzeit(e.target.value)}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button type="submit" disabled={slotSpeichert || !slotTitel.trim()}>
+                Anlegen
+              </button>
+              <button type="button" className="sekundaer" onClick={() => setSlotDatum(null)}>
+                Abbrechen
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <div className="karte" style={{ marginTop: 16 }}>
         <h2>Neuer Termin</h2>
