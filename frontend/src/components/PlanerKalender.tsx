@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Calendar, dateFnsLocalizer, type Event } from "react-big-calendar";
-import withDragAndDrop, {
+import withDragAndDropRaw, {
   type EventInteractionArgs,
 } from "react-big-calendar/lib/addons/dragAndDrop";
 import { format, parse, startOfWeek, getDay } from "date-fns";
@@ -9,6 +9,15 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "./BuchungsKalender.css"; // Gemeinsame Theme-/Dark-Mode-Overrides für react-big-calendar
 import type { PlanTerminOut } from "../api/types";
+
+// CJS/ESM-Interop-Falle: Im Vite-PRODUKTIONS-Build landet der Default-Export
+// des CJS-Addons als { default: fn } im Import-Binding, im Dev-/Vitest-Modus
+// direkt als fn. Ohne diese Normalisierung wirft das Modul beim Laden
+// "(0, x.default) is not a function" -> weiße Seite nur im deployten Build.
+const withDragAndDrop = (
+  (withDragAndDropRaw as unknown as { default?: typeof withDragAndDropRaw }).default ??
+  withDragAndDropRaw
+) as typeof withDragAndDropRaw;
 
 const localizer = dateFnsLocalizer({
   format,
