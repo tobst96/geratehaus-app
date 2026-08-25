@@ -114,3 +114,18 @@ async def test_fehler_ohne_ziel_meldet_und_mailt(db, tmp_path, monkeypatch):
     letzter = (await db.execute(select(Backup).order_by(Backup.id.desc()))).scalars().first()
     assert letzter is not None and letzter.status == "fehler"
     assert gesendet == ["admin@x.de"]
+
+
+def test_jede_sicherbare_tabelle_hat_eine_import_kategorie():
+    """Regression (25.08.2026): Die Planer-Tabellen wurden zwar exportiert
+    (generisch über Base.metadata), aber beim selektiven Import stillschweigend
+    ignoriert, weil sie keiner KATEGORIE zugeordnet waren. Dieser Test erzwingt
+    die im Docstring dokumentierte Invariante "jede Tabelle (außer backups)
+    gehört genau zu einer Kategorie" - neue Module fallen damit sofort auf."""
+    from app.services.backup_service import _TABELLE_ZU_KATEGORIE, _sicherbare_tabellen
+
+    ohne_kategorie = [t.name for t in _sicherbare_tabellen() if t.name not in _TABELLE_ZU_KATEGORIE]
+    assert ohne_kategorie == [], (
+        f"Tabellen ohne Backup-Import-Kategorie: {ohne_kategorie} - in "
+        "backup_service.KATEGORIEN ergänzen, sonst gehen sie beim Restore verloren."
+    )

@@ -53,7 +53,14 @@ KATEGORIEN: list[tuple[str, str, list[str]]] = [
          "person_bild_reservierungen"],
     ),
     ("fahrzeuge", "Fahrzeuge & Sitzplätze", ["fahrzeuge"]),
-    ("zugaenge", "Zugänge & Berechtigungen", ["berechtigungen", "module"]),
+    (
+        "zugaenge",
+        "Zugänge & Berechtigungen",
+        ["berechtigungen", "module", "gruppenfuehrer_recovery_codes",
+         "gruppenfuehrer_trusted_devices"],
+    ),
+    ("audit", "Audit-Log", ["audit_logs"]),
+    ("formulare", "Formulare", ["formulare", "formular_felder", "formular_einreichungen"]),
     (
         "einsaetze",
         "Einsätze",
@@ -62,7 +69,21 @@ KATEGORIEN: list[tuple[str, str, list[str]]] = [
     (
         "dienstbuecher",
         "Dienstbücher",
-        ["dienstbuecher", "dienstbuch_personen", "dienstbuch_reservierungen"],
+        ["dienstbuecher", "dienstbuch_personen", "dienstbuch_reservierungen",
+         "dienstbuch_feld_definitionen"],
+    ),
+    (
+        "dienstbuch_planer",
+        "Dienstbuch Planer",
+        [
+            "planer_kategorien",
+            "dienstbuch_plan_vorlagen",
+            "dienstbuch_plan_termine",
+            "dienstbuch_plan_termin_ereignisse",
+            "dienstbuch_plan_vorlage_kategorien",
+            "dienstbuch_plan_termin_kategorien",
+            "planer_feiertage",
+        ],
     ),
     (
         "dienststunden",
@@ -84,7 +105,7 @@ KATEGORIEN: list[tuple[str, str, list[str]]] = [
         "Tokens & Kurzlebiges",
         ["barcode_tokens", "fahrzeug_tokens", "kiosk_tokens", "pin_setzen_tokens",
          "person_freigabe_tokens", "sitzplatz_reservierungen",
-         "divera_vorschlaege"],
+         "divera_vorschlaege", "passwort_setzen_tokens"],
     ),
 ]
 
