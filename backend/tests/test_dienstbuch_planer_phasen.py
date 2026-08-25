@@ -97,7 +97,8 @@ async def test_excel_export_und_reimport_roundtrip(db):
 
     inhalt = await jahres_export_xlsx(db, 2026)
     wb = load_workbook(io.BytesIO(inhalt))
-    assert len(wb.sheetnames) == 12
+    assert len(wb.sheetnames) == 13  # 12 Monats-Kalenderblätter + "Terminliste"
+    assert wb.sheetnames[-1] == "Terminliste"
     ws = wb["Januar"]
     zeilen = [[c.value for c in row] for row in ws.iter_rows()]
     flach = [str(z) for zeile in zeilen for z in zeile if z]

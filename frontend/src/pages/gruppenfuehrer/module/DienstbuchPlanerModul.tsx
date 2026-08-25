@@ -323,24 +323,40 @@ export function DienstbuchPlanerModul() {
           />
           <button type="submit">Anlegen</button>
         </form>
-        <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: 220, overflowY: "auto" }}>
-          {feiertage.map((f) => (
-            <li key={`${f.datum}-${f.name}`} style={{ display: "flex", gap: 8, alignItems: "center", padding: "2px 0" }}>
-              <span style={{ minWidth: 90 }}>{f.datum}</span>
-              <span style={{ flex: 1 }}>
-                {f.name}
-                {f.quelle === "regel" && (
-                  <span className="text-mute" style={{ fontSize: "0.8rem" }}> (gesetzlich)</span>
-                )}
-              </span>
-              {f.id != null && (
-                <button className="sekundaer" onClick={() => feiertagEntfernen(f.id as number)}>
-                  {t.loeschen}
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
+        <div className="tabelle-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Bezeichnung</th>
+                <th>Art</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {feiertage.map((f) => (
+                <tr key={`${f.datum}-${f.name}`}>
+                  <td>{f.datum}</td>
+                  <td>{f.name}</td>
+                  <td>
+                    {f.quelle === "regel" ? (
+                      <span className="text-mute">gesetzlich</span>
+                    ) : (
+                      "eigener Eintrag"
+                    )}
+                  </td>
+                  <td>
+                    {f.id != null && (
+                      <button className="sekundaer" onClick={() => feiertagEntfernen(f.id as number)}>
+                        {t.loeschen}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="karte">

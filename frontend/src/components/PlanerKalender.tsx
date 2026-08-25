@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { Calendar, dateFnsLocalizer, type Event } from "react-big-calendar";
 import withDragAndDropRaw, {
   type EventInteractionArgs,
@@ -87,6 +87,23 @@ export function PlanerKalender({
     for (const f of feiertage) map.set(f.datum, f.name);
     return map;
   }, [feiertage]);
+
+  // Die dragFromOutsideItem-Prop muss über den gesamten Lebenszyklus stabil
+  // DEFINIERT bleiben. Wechselte sie (wie früher) mitten im Drop zwischen
+  // Funktion und undefined, blieb die Drag-Overlay-Schicht der Bibliothek in
+  // einem halbfertigen Zustand - der abgelegte Termin wurde erst nach einem
+  // Ansichtswechsel sauber sichtbar. Ohne aktiven Außen-Drag liefert die
+  // Funktion null (wird von der Bibliothek nur während eines Drags abgefragt).
+  const externesVorschauEvent = useCallback(() => {
+    if (!externerDragTitel) return null as unknown as PlanerEvent;
+    const jetzt = new Date();
+    return {
+      title: `📌 ${externerDragTitel}`,
+      start: jetzt,
+      end: jetzt,
+      allDay: true,
+    } as PlanerEvent;
+  }, [externerDragTitel]);
 
   const events: PlanerEvent[] = useMemo(
     () =>
@@ -201,21 +218,7 @@ export function PlanerKalender({
           }
         }}
         draggableAccessor={(event) => !(event as PlanerEvent).termin?.dienstbuch_id}
-        dragFromOutsideItem={
-          externerDragTitel
-            ? () => {
-                // Vollständiges Vorschau-Event - RBC ruft darauf Accessors und
-                // eventPropGetter auf; ein Objekt nur mit title crasht dort.
-                const jetzt = new Date();
-                return {
-                  title: `📌 ${externerDragTitel}`,
-                  start: jetzt,
-                  end: jetzt,
-                  allDay: true,
-                } as PlanerEvent;
-              }
-            : undefined
-        }
+        dragFromOutsideItem={onVonAussenAbgelegt ? externesVorschauEvent : undefined}
         onDropFromOutside={
           onVonAussenAbgelegt
             ? ({ start }) => {
