@@ -15,7 +15,7 @@ export function BarcodeEingabe({ value, onChange, ...rest }: BarcodeEingabeProps
   return (
     <>
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        <input value={value} onChange={(e) => onChange(e.target.value)} {...rest} style={{ flex: 1 }} />
+        <input value={value} onChange={(e) => onChange(e.target.value)} {...rest} className="flex-1" />
         <button
           type="button"
           className="sekundaer"

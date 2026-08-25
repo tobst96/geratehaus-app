@@ -129,7 +129,7 @@ export function PersonBildHochladen() {
           ref={dateiEingabeRef}
           type="file"
           accept="image/png,image/jpeg"
-          style={{ display: "none" }}
+          className="versteckt"
           onChange={(e) => dateiGewaehlt(e.target.files?.[0])}
         />
         <button

@@ -159,7 +159,7 @@ export function KioskGeraete() {
           return (
             <div key={g.id} className="karte" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                <strong style={{ flex: 1 }}>{g.bezeichnung}</strong>
+                <strong className="flex-1">{g.bezeichnung}</strong>
                 <input readOnly value={linkFuer(g.token)} style={{ width: 360, fontSize: "0.8rem" }} />
                 <button type="button" className="sekundaer" onClick={() => kopieren(linkFuer(g.token))}>
                   {t.kopieren}

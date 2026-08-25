@@ -212,7 +212,7 @@ export function MinioModul() {
               <input
                 ref={uploadInput}
                 type="file"
-                style={{ display: "none" }}
+                className="versteckt"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) hochladen(f);

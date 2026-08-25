@@ -1038,7 +1038,7 @@ export function Personal() {
                 <span style={{ color: "#e0a500" }}>▉</span> {txt.legend_inaktiv}
               </span>
               <span>
-                <span style={{ color: "#d64545" }}>▉</span> {txt.legend_ueberfaellig}
+                <span className="text-fehler">▉</span> {txt.legend_ueberfaellig}
               </span>
             </div>
           )}
@@ -1204,7 +1204,7 @@ export function Personal() {
                             ref={bildInputRef}
                             type="file"
                             accept="image/png,image/jpeg"
-                            style={{ display: "none" }}
+                            className="versteckt"
                             onChange={(e) => {
                               const datei = e.target.files?.[0];
                               if (datei) bildHochladen(person, datei);
@@ -1221,8 +1221,7 @@ export function Personal() {
 
                         <div style={{ marginTop: 24, textAlign: "right" }}>
                           <button
-                            className="sekundaer"
-                            style={{ color: "#d64545" }}
+                            className="sekundaer text-fehler"
                             onClick={() => loeschen(person.id)}
                           >
                             {txt.person_loeschen}
@@ -1373,8 +1372,7 @@ export function Personal() {
                                       )}
                                       <button
                                         type="button"
-                                        className="sekundaer"
-                                        style={{ color: "#d64545" }}
+                                        className="sekundaer text-fehler"
                                         onClick={() => zugangEntziehen(person)}
                                       >
                                         {txt.zugang_entziehen}
@@ -1447,7 +1445,7 @@ export function Personal() {
                             {gefiltert.length === 0 ? (
                               <p className="text-mute">{txt.keine_ereignisse_filter}</p>
                             ) : (
-                              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                              <ul className="liste-reset">
                                 {gefiltert
                                   .slice()
                                   .reverse()
