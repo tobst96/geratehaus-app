@@ -123,8 +123,12 @@ Zeitpunkt); mit **„Jetzt prüfen"** lässt sich die Prüfung sofort anstoßen.
 2. **Analysieren**: die Datei wird entschlüsselt und der Inhalt gelesen (noch **kein**
    Schreiben). Es erscheinen die **Kategorien** mit Anzahl:
    - Konfiguration & Branding, Dateien (Logo/Bilder), **MinIO‑Dokumente**,
-     Personal & Stammdaten, Fahrzeuge, Zugänge & Berechtigungen, Einsätze,
-     Dienstbücher, Dienststunden, Fahrzeugbuchungen, Benachrichtigungen, Tokens.
+     Personal & Stammdaten, Fahrzeuge, Zugänge & Berechtigungen, Audit‑Log,
+     Formulare, Einsätze, Dienstbücher, Dienstbuch Planer, Dienststunden,
+     Fahrzeugbuchungen, Benachrichtigungen & Timeline, Tokens & Kurzlebiges.
+   - Diese Liste wächst mit jedem neuen Modul automatisch mit (jede
+     Datenbanktabelle gehört zu genau einer Kategorie – ein Regressionstest
+     erzwingt das).
 3. **Auswahl treffen**: nur bestimmte Bereiche **oder alles** importieren.
 4. **Modus wählen**:
    - **Ersetzen** – die gewählten Bereiche werden **komplett überschrieben**
@@ -153,6 +157,22 @@ Zeitpunkt); mit **„Jetzt prüfen"** lässt sich die Prüfung sofort anstoßen.
   **nicht** gemeldet.
 
 ---
+
+## Was NICHT im Backup steckt
+
+Das Backup sichert die **Anwendungsdaten** (Datenbank, Uploads, MinIO‑Dokumente)
+vollständig – nicht die **Infrastruktur** der Instanz:
+
+- **`.env`** (Datenbank‑Zugangsdaten, `JWT_SECRET_KEY`, `COOKIE_SECRET_KEY`, Port
+  …) wird **nicht** mitgesichert – das sind technische Werte des jeweiligen
+  Hosts, kein fachlicher Inhalt. Auf einer **neuen** Instanz muss `.env` manuell
+  neu angelegt werden, bevor importiert wird; die konkreten Werte müssen dabei
+  **nicht** mit dem Original übereinstimmen (keine im Backup enthaltenen Daten
+  hängen von ihnen ab – Passwort‑/PIN‑Hashes sind unabhängig vom Secret,
+  bestehende Sessions/JWTs der alten Instanz werden dadurch lediglich ungültig).
+- `docker-compose.yml` und ein etwaiger Host‑Bind‑Mount für Backups/Uploads
+  gehören ebenfalls zur Infrastruktur und müssen separat vorgehalten werden
+  (z. B. im eigenen Git‑Repo der Instanz).
 
 ## Sicherheit
 

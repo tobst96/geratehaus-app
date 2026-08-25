@@ -147,6 +147,9 @@ Nach der Umsetzung prüfen:
 - Bei Feature-Modulen: Modul-Unterseite angelegt und in `feature_modul_service` + `ModulUnterseite.tsx` eingehängt.
 - Config ist registriert.
 - Berechtigungen sind geklärt.
+- Neue Tabellen sind in `backup_service.KATEGORIEN` einer Kategorie zugeordnet
+  (sonst schlägt `test_jede_sicherbare_tabelle_hat_eine_import_kategorie` fehl
+  und die Daten wären beim selektiven Restore verloren – siehe Etappe AK/AL).
 - Tests sind vorhanden.
 - Dokumentation wurde geprüft.
 - Keine unnötige neue Architektur wurde eingeführt.

@@ -16,10 +16,31 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Sicherstellen, dass wirklich alles wiederherstellbar ist, nicht nur die DB-Tabellen
 
-- Status: Backlog
+- Status: Erledigt (25.08.2026, direkt auf beta)
 - Priorität: Hoch
 - Kategorie: Backend / Wartung
 - Skills: bugfix, tests, review
+- Ergebnis der Prüfung (25.08.2026): **Datei-Uploads** waren bereits vollständig
+  (`upload.rglob("*")` erfasst rekursiv jeden Unterordner, kein Modul-Allowlist
+  zum Vergessen – anders als bei DB-Tabellen) – zur Absicherung trotzdem einen
+  Regressionstest mit verschachtelten Unterordnern ergänzt
+  (`test_backup_sichert_verschachtelte_upload_unterordner`, Formulare +
+  Personenbilder liegen in Unterordnern). **MinIO** war ebenfalls vollständig:
+  Formular-Uploads/Personenbilder liegen tatsächlich gar nicht in MinIO,
+  sondern (wie alle Uploads) lokal im `upload_dir` – die im Ideen-Backlog
+  genannte MinIO-Lücke ist eine Feature-Idee (dorthin zusätzlich archivieren),
+  kein Backup-Bug. **`app_config`** ist als komplette Tabelle exportiert/
+  importiert (generisch, kein Key-Allowlist) – automatisch vollständig auch
+  bei neuen Modul-Configs. **Was zum Restore zusätzlich nötig ist**: `.env`
+  (DB-Zugang, `JWT_SECRET_KEY`, `COOKIE_SECRET_KEY`) ist bewusst NICHT im
+  Backup (technischer Host-Wert, siehe CLAUDE.md), keine im Backup enthaltenen
+  Daten hängen davon ab (Passwort-/PIN-Hashes sind Secret-unabhängig) – neu in
+  `docs/backup.md` als eigener Abschnitt „Was NICHT im Backup steckt"
+  dokumentiert, dazu die dort veraltete Kategorienliste aktualisiert
+  (fehlten: Audit-Log, Formulare, Dienstbuch Planer). **Automatischer Check bei
+  neuen Modulen**: `new-module`-Checkliste um den Hinweis auf
+  `backup_service.KATEGORIEN` + den bestehenden Regressionstest ergänzt.
+  Suite 587/587 grün.
 - Beschreibung: Nutzerfrage (25.08.2026) „wird der Dienstbuch Planer auch im Backup
   mitgesichert?" deckte auf, dass Planer-Tabellen zwar vom generischen DB-Export
   erfasst wurden, beim **selektiven Import** aber mangels Zuordnung in

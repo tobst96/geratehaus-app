@@ -62,6 +62,36 @@ async def test_backup_roundtrip_ersetzen(db, tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_backup_sichert_verschachtelte_upload_unterordner(db, tmp_path, monkeypatch):
+    """Formular-Uploads und Personenbilder liegen in Unterordnern
+    (uploads/formulare/…, uploads/personen/…), nicht flach im upload_dir wie im
+    obigen Logo-Test. Regression zur Nutzerfrage "wird wirklich ALLES per
+    Backup gesichert?" (25.08.2026): rglob() im Export/das rekonstruierte
+    Verzeichnis im Import müssen auch beliebig tiefe Unterordner erfassen."""
+    ziel = await _setup_ziel(db, tmp_path)
+    uploads = tmp_path / "uploads"
+    (uploads / "formulare").mkdir(parents=True)
+    (uploads / "formulare" / "einreichung-1.pdf").write_bytes(b"PDFDATA")
+    (uploads / "personen").mkdir(parents=True)
+    (uploads / "personen" / "42.jpg").write_bytes(b"JPGDATA")
+    monkeypatch.setattr(backup_service.settings, "upload_dir", str(uploads))
+
+    backup = await backup_service.erstelle_backup(db, ausloeser="manuell")
+    blob = (ziel / backup.dateiname).read_bytes()
+    token, _manifest, kategorien = backup_service.analysiere(blob, "geheim123")
+    dateien = next(k for k in kategorien if k["key"] == "dateien")
+    assert dateien["anzahl"] == 2
+
+    (uploads / "formulare" / "einreichung-1.pdf").unlink()
+    (uploads / "personen" / "42.jpg").unlink()
+
+    ergebnis = await backup_service.importiere(db, token, ["dateien"], "ersetzen")
+    assert ergebnis["importierte_dateien"] == 2
+    assert (uploads / "formulare" / "einreichung-1.pdf").read_bytes() == b"PDFDATA"
+    assert (uploads / "personen" / "42.jpg").read_bytes() == b"JPGDATA"
+
+
+@pytest.mark.asyncio
 async def test_falsche_passphrase(db, tmp_path, monkeypatch):
     ziel = await _setup_ziel(db, tmp_path)
     monkeypatch.setattr(backup_service.settings, "upload_dir", str(tmp_path / "u"))
