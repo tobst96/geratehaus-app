@@ -19,7 +19,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import gruppenfuehrer_2fa_session
-from app.core.security import create_access_token, hash_secret, verify_secret
+from app.core.security import create_access_token, hash_secret, sicherheit_stand_claim, verify_secret
 from app.models.person import Person
 from app.schemas.auth import GruppenfuehrerLoginErgebnis
 from app.services import zwei_faktor_service
@@ -169,13 +169,20 @@ async def person_elevieren(
     person.gruppenfuehrer_rolle = rolle
     if passwort:
         person.passwort_hash = hash_secret(passwort)
+        person.sicherheit_geaendert_am = datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(person)
     return person
 
 
 async def person_passwort_setzen(db: AsyncSession, person: Person, passwort: str) -> Person:
+    """Setzt/ändert das Passwort einer Person – egal ob durch die Person selbst
+    (`/auth/mein-passwort`, Self-Service-Link) oder durch einen Admin (Personal).
+    Aktualisiert bewusst `sicherheit_geaendert_am` (nicht `updated_at`, das läuft bei
+    JEDER Personen-Änderung mit) - dieser Zeitpunkt entwertet über den JWT-Claim
+    (siehe `gruppenfuehrer_token`) alle zuvor ausgestellten Gruppenführer-Tokens."""
     person.passwort_hash = hash_secret(passwort)
+    person.sicherheit_geaendert_am = datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(person)
     return person
@@ -198,8 +205,19 @@ def gruppenfuehrer_token(person: Person) -> str:
     """`sub` ist die stabile `Person.id`, nicht der Name - der Name kann sich jederzeit
     ändern (Stammdaten-Bearbeitung setzt ihn aus Vorname/Zwischenname/Nachname neu
     zusammen), was ein bereits ausgestelltes Token sonst sofort ungültig machen würde
-    (Admin bearbeitet den eigenen Namen -> wird ausgeloggt)."""
-    return create_access_token(subject=str(person.id), extra_claims={"rolle": person.gruppenfuehrer_rolle})
+    (Admin bearbeitet den eigenen Namen -> wird ausgeloggt).
+
+    Zusätzlich trägt das Token den `sicherheit_stand`-Claim (Snapshot von
+    `Person.sicherheit_geaendert_am` im Ausstellungszeitpunkt). `get_current_gruppenfuehrer`
+    vergleicht ihn bei jedem Request gegen den aktuellen DB-Wert - ändert sich der
+    (Passwort/2FA-Reset), wird dieses Token beim nächsten Request abgelehnt."""
+    return create_access_token(
+        subject=str(person.id),
+        extra_claims={
+            "rolle": person.gruppenfuehrer_rolle,
+            "sicherheit_stand": sicherheit_stand_claim(person.sicherheit_geaendert_am),
+        },
+    )
 
 
 async def zugang_entscheiden(

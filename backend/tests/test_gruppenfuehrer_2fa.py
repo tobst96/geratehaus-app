@@ -158,3 +158,36 @@ async def test_admin_reset_2fa(client, db):
     assert r.status_code == 204
     await db.refresh(ziel)
     assert ziel.zwei_faktor_aktiv is False
+
+
+@pytest.mark.asyncio
+async def test_token_wird_nach_2fa_reset_ungueltig(client, db):
+    """Regressionstest: ein VOR dem 2FA-Reset ausgestelltes JWT der betroffenen
+    (Ziel-)Person muss danach abgelehnt werden - der Reset ist als Reaktion auf ein
+    kompromittiertes Konto gedacht und darf laufende Sessions nicht überleben lassen.
+    Das Token der ausführenden Admin-Person bleibt unberührt (nur ihr eigenes
+    Token wäre relevant, falls sie sich selbst zurücksetzt - hier isoliert geprüft)."""
+    from app.services.gruppenfuehrer_service import gruppenfuehrer_token
+
+    admin = await _gruppenfuehrer(db, username="admin", email="a@example.org")
+    ziel = await _gruppenfuehrer(db, username="kollege", email="k@example.org")
+    await zwei_faktor_service.aktivieren(db, ziel)
+    admin_headers = await _login_headers(client, "a@example.org")
+    # Ziel hat aktives 2FA - Token direkt erzeugen (wie nach abgeschlossenem
+    # 2FA-Login), statt über den reinen Passwort-Login (der bei aktivem 2FA nur
+    # eine Challenge zurückgibt, siehe test_login_mit_2fa_verlangt_code).
+    ziel_headers = {"Authorization": f"Bearer {gruppenfuehrer_token(ziel)}"}
+
+    # Vorher: Ziel-Token funktioniert.
+    r = await client.get("/api/v1/gruppenfuehrer/konto/2fa", headers=ziel_headers)
+    assert r.status_code == 200
+
+    reset = await client.post(
+        f"/api/v1/gruppenfuehrer/stammdaten/personen/{ziel.id}/2fa-zuruecksetzen",
+        headers=admin_headers,
+    )
+    assert reset.status_code == 204
+
+    # Danach: dasselbe, alte Token der Ziel-Person wird abgelehnt.
+    r = await client.get("/api/v1/gruppenfuehrer/konto/2fa", headers=ziel_headers)
+    assert r.status_code == 401
