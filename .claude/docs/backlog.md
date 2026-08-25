@@ -12,6 +12,51 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ---
 
+## Etappe AL – Backup-Vollständigkeit über die DB-Tabellen hinaus prüfen
+
+### Sicherstellen, dass wirklich alles wiederherstellbar ist, nicht nur die DB-Tabellen
+
+- Status: Backlog
+- Priorität: Hoch
+- Kategorie: Backend / Wartung
+- Skills: bugfix, tests, review
+- Beschreibung: Nutzerfrage (25.08.2026) „wird der Dienstbuch Planer auch im Backup
+  mitgesichert?" deckte auf, dass Planer-Tabellen zwar vom generischen DB-Export
+  erfasst wurden, beim **selektiven Import** aber mangels Zuordnung in
+  `backup_service.KATEGORIEN` stillschweigend verloren gegangen wären. Direkt
+  gefixt (siehe [[Etappe AK]]-Nachtrag): neue Kategorie „Dienstbuch Planer" (7
+  Tabellen) + 8 weitere zuvor unkategorisierte Tabellen zugeordnet (Formulare,
+  `dienstbuch_feld_definitionen`, `audit_logs`, 2FA-Recovery-Codes/
+  Trusted-Devices, `passwort_setzen_tokens`); neuer Regressionstest
+  `test_jede_sicherbare_tabelle_hat_eine_import_kategorie` erzwingt das jetzt
+  automatisch für **DB-Tabellen**. Diese Aufgabe ist der umfassendere
+  Nachfolge-Check für alles **außerhalb** der DB-Tabellen, wo dieselbe Art Lücke
+  unbemerkt entstehen kann:
+  - **Datei-Uploads** (`upload_dir`): wird beim Export wirklich der komplette
+    Baum erfasst (auch Unterordner neuerer Module) und beim Import vollständig
+    zurückgeschrieben?
+  - **MinIO-Objekte**: sind alle Buckets/Pfade abgedeckt, auch die erst später
+    angebundener Module (aktuell laut Ideen-Backlog nur Einsätze/Dienstbücher –
+    Formular-Uploads/Personenbilder fehlen dort laut „MinIO/Objektspeicher"-
+    Abschnitt noch)?
+  - **Konfiguration** (`app_config`): landen wirklich alle Keys im Backup, auch
+    neue Modul-Config-Defaults, oder gibt es dort eine ähnliche
+    Kategorie-Zuordnung, die vergessen werden kann?
+  - **Was zum Wiederherstellen zusätzlich nötig ist** (z. B. Secrets/
+    Zugangsdaten, die NICHT im Backup liegen dürfen, aber dokumentiert sein
+    müssen, damit ein Restore auf einer neuen Instanz überhaupt funktioniert).
+  - Ob/wie dieser Vollständigkeits-Check künftig **automatisch bei jedem neuen
+    Modul/Feature** wiederholt wird (z. B. Ergänzung der `new-module`-Checkliste
+    um „Backup-Kategorie ergänzt?").
+- Akzeptanzkriterien: Für jeden der obigen Punkte geprüft und – falls eine Lücke
+  gefunden wird – **direkt gefixt**, nicht nur dokumentiert (Nutzervorgabe:
+  „Wenn nicht dann definitiv anpassen"). Wo sinnvoll ein Regressionstest analog
+  zum bestehenden Tabellen-Test. `docs/backup.md`/Modul-Doku bei Bedarf
+  nachgezogen.
+- Notizen: Related [[Etappe AK]] (Planer-Modul, Auslöser des Funds).
+
+---
+
 ## Etappe AK – Neues Modul „Dienstbuch Planer" (Jahresplanung wiederkehrender Termine)
 
 ### Wiederkehrende Dienstbuch-Termine automatisch statt jährlichem manuellem Kopieren
