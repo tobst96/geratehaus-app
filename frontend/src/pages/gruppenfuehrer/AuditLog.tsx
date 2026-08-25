@@ -1,5 +1,5 @@
 import { Fehlertext } from "../../components/Fehlertext";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import { exportiereAuditLog, holeAuditLog, type AuditEintrag } from "../../api/audit";
 import { ApiError } from "../../api/client";
@@ -16,18 +16,21 @@ export function AuditLog() {
   const [fehler, setFehler] = useState<string | null>(null);
   const [filterAktion, setFilterAktion] = useState("");
 
-  async function laden() {
+  // useCallback stabilisiert laden, sonst würde die Aufnahme in die
+  // useEffect-Deps unten bei jedem Render einen neuen Effektlauf auslösen
+  // (Endlosschleife über setEintraege -> Re-Render -> neue laden-Referenz).
+  const laden = useCallback(async () => {
     try {
       setFehler(null);
       setEintraege(await holeAuditLog(undefined, 500));
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : t.ladefehler);
     }
-  }
+  }, [t.ladefehler]);
 
   useEffect(() => {
     laden();
-  }, []);
+  }, [laden]);
 
   const aktionen = useMemo(
     () => Array.from(new Set((eintraege ?? []).map((e) => e.aktion))).sort(),
