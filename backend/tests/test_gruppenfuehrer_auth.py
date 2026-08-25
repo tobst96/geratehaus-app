@@ -83,3 +83,36 @@ async def test_token_bleibt_gueltig_nach_namensaenderung(client, db):
     # dasselbe, alte Token muss weiterhin funktionieren
     response = await client.get("/api/v1/gruppenfuehrer/einstellungen", headers=headers)
     assert response.status_code == 200
+
+
+async def test_token_wird_nach_passwortaenderung_ungueltig(client, db):
+    """Regressionstest für die Token-Invalidierung: ein VOR der Passwortänderung
+    ausgestelltes JWT muss danach abgelehnt werden (statt bis zum regulären Ablauf
+    - bis zu `jwt_expire_minutes` - gültig zu bleiben). Sonst überlebt ein
+    gestohlenes Token genau die Reaktion, die es entwerten sollte."""
+    admin = await _moderator_anlegen(db, "admin", "geheim123")
+    login = await client.post(
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "geheim123"}
+    )
+    altes_token = login.json()["access_token"]
+    headers = {"Authorization": f"Bearer {altes_token}"}
+
+    # Vorher: Token funktioniert.
+    response = await client.get("/api/v1/gruppenfuehrer/einstellungen", headers=headers)
+    assert response.status_code == 200
+
+    from app.services import gruppenfuehrer_service
+
+    await gruppenfuehrer_service.person_passwort_setzen(db, admin, "neuesPasswort1")
+
+    # Danach: dasselbe, alte Token wird abgelehnt.
+    response = await client.get("/api/v1/gruppenfuehrer/einstellungen", headers=headers)
+    assert response.status_code == 401
+
+    # Ein frisch ausgestelltes Token funktioniert wieder.
+    neuer_login = await client.post(
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "admin", "password": "neuesPasswort1"}
+    )
+    neue_headers = {"Authorization": f"Bearer {neuer_login.json()['access_token']}"}
+    response = await client.get("/api/v1/gruppenfuehrer/einstellungen", headers=neue_headers)
+    assert response.status_code == 200

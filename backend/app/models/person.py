@@ -78,6 +78,16 @@ class Person(Base, TimestampMixin):
     # Brute-Force-Schutz für den Passwort-Login (getrennt vom PIN-Login oben).
     login_fehlversuche: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     login_gesperrt_bis: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Zeitpunkt der letzten sicherheitsrelevanten Änderung (Passwort gesetzt/geändert
+    # oder 2FA zurückgesetzt/deaktiviert) - NICHT `updated_at` (TimestampMixin), da das
+    # bei JEDER Personen-Änderung mitläuft (z. B. Namenskorrektur) und sonst harmlose
+    # Änderungen alle laufenden Gruppenführer-Sessions killen würden. Als JWT-Claim
+    # gegen den aktuellen Wert geprüft (siehe `security.sicherheit_stand_claim` +
+    # `api.deps.get_current_gruppenfuehrer`), damit ein gestohlenes Token eine
+    # Passwortänderung/einen 2FA-Reset nicht überlebt. NULL = noch nie geändert.
+    sicherheit_geaendert_am: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # passive_deletes: überlässt das Entfernen abhängiger Zeilen der
     # DB-FK-CASCADE (siehe Migration 0023), statt dass SQLAlchemy versucht,

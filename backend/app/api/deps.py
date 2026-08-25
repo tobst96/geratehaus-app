@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import mitglied_session
-from app.core.security import decode_access_token
+from app.core.security import decode_access_token, sicherheit_stand_claim
 from app.db.session import get_db
 from app.models.person import Person
 from app.services.config_service import config_service
@@ -24,7 +24,11 @@ async def get_current_gruppenfuehrer(
     Stammdaten-Bearbeitung und würde ein gültiges Token sonst sofort entwerten);
     zusätzlich muss die Person „elevated" sein (`gruppenfuehrer_rolle` gesetzt), sonst
     401 – eine normale Person ohne erhöhte Rechte kommt so nicht in den
-    Gruppenführerbereich."""
+    Gruppenführerbereich. Außerdem muss der `sicherheit_stand`-Claim (Snapshot von
+    `sicherheit_geaendert_am` beim Ausstellen) exakt zum aktuellen DB-Wert passen -
+    Passwortänderung/2FA-Reset setzen den DB-Wert neu und entwerten damit sofort alle
+    zuvor ausgestellten Tokens (sonst blieb ein gestohlenes Token bis zum regulären
+    Ablauf, `jwt_expire_minutes`, gültig)."""
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Nicht angemeldet.",
@@ -42,6 +46,8 @@ async def get_current_gruppenfuehrer(
     result = await db.execute(select(Person).where(Person.id == person_id))
     person = result.scalar_one_or_none()
     if person is None or person.gruppenfuehrer_rolle is None:
+        raise credentials_error
+    if payload.get("sicherheit_stand") != sicherheit_stand_claim(person.sicherheit_geaendert_am):
         raise credentials_error
     return person
 

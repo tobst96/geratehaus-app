@@ -179,11 +179,15 @@ async def aktivieren(db: AsyncSession, person: Person) -> list[str]:
 
 async def deaktivieren(db: AsyncSession, person: Person) -> None:
     """Schaltet 2FA aus und räumt OTP, Recovery-Codes und Trusted-Devices ab.
-    Dient auch als Admin-Reset (Aussperren aufheben)."""
+    Dient auch als Admin-Reset (Aussperren aufheben) - deshalb wird auch
+    `sicherheit_geaendert_am` aktualisiert: ein 2FA-Reset ist eine sicherheitsrelevante
+    Änderung und muss laufende Gruppenführer-Tokens entwerten (siehe JWT-Claim
+    `sicherheit_stand` in `gruppenfuehrer_service.gruppenfuehrer_token`)."""
     person.zwei_faktor_aktiv = False
     person.otp_code_hash = None
     person.otp_ablauf_am = None
     person.otp_versuche = 0
+    person.sicherheit_geaendert_am = _jetzt()
     await db.execute(
         delete(GruppenfuehrerRecoveryCode).where(GruppenfuehrerRecoveryCode.person_id == person.id)
     )

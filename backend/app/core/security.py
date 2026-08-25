@@ -7,6 +7,17 @@ import jwt
 from app.core.config import settings
 
 
+def sicherheit_stand_claim(zeitpunkt: datetime | None) -> str | None:
+    """Wandelt `Person.sicherheit_geaendert_am` in den JWT-Claim-Wert um (ISO-String,
+    da JWT-Claims JSON-serialisierbar sein müssen). Wird sowohl beim Ausstellen eines
+    Tokens (`gruppenfuehrer_service.gruppenfuehrer_token`) als auch bei jeder
+    Token-Prüfung (`app.api.deps.get_current_gruppenfuehrer`) verwendet, damit beide
+    Seiten exakt denselben Vergleichswert bilden – ein Token bleibt nur gültig, wenn
+    der Claim exakt dem aktuellen DB-Wert entspricht (Passwortänderung/2FA-Reset
+    setzen den DB-Wert neu und entwerten damit alle zuvor ausgestellten Tokens)."""
+    return zeitpunkt.isoformat() if zeitpunkt is not None else None
+
+
 def hash_secret(value: str) -> str:
     """Für Passwörter und PINs gleichermaßen verwendet."""
     return bcrypt.hashpw(value.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
