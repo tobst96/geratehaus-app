@@ -145,9 +145,12 @@ export function PlanerKalender({
           return { style: { backgroundColor: "rgba(239, 68, 68, 0.12)" } };
         }}
         eventPropGetter={(event) => {
-          const termin = (event as PlanerEvent).termin;
-          const farbe = termin.kategorien[0]?.farbe ?? STANDARD_FARBE;
-          const istEntwurf = termin.status === "entwurf";
+          // Defensiv: das Drag-Vorschau-Event eines von außen gezogenen
+          // Platzhalters hat keinen echten termin - ohne Guard crasht der
+          // Kalender beim Ziehen (weiße Seite).
+          const termin = (event as PlanerEvent).termin as PlanTerminOut | undefined;
+          const farbe = termin?.kategorien?.[0]?.farbe ?? STANDARD_FARBE;
+          const istEntwurf = !termin || termin.status === "entwurf";
           return {
             style: {
               backgroundColor: farbe,
@@ -158,7 +161,8 @@ export function PlanerKalender({
         }}
         onSelectEvent={(event) => {
           if (Date.now() - zuletztGezogen.current < 300) return;
-          onEventKlick((event as PlanerEvent).termin);
+          const termin = (event as PlanerEvent).termin as PlanTerminOut | undefined;
+          if (termin) onEventKlick(termin);
         }}
         selectable={!!onSlotKlick}
         onSelectSlot={
@@ -168,7 +172,8 @@ export function PlanerKalender({
         }
         onEventDrop={(args: EventInteractionArgs<PlanerEvent>) => {
           zuletztGezogen.current = Date.now();
-          const termin = args.event.termin;
+          const termin = args.event.termin as PlanTerminOut | undefined;
+          if (!termin) return;
           const start = args.start instanceof Date ? args.start : new Date(args.start);
           const ende = args.end instanceof Date ? args.end : new Date(args.end);
 
@@ -191,9 +196,21 @@ export function PlanerKalender({
             });
           }
         }}
-        draggableAccessor={(event) => !(event as PlanerEvent).termin.dienstbuch_id}
+        draggableAccessor={(event) => !(event as PlanerEvent).termin?.dienstbuch_id}
         dragFromOutsideItem={
-          externerDragTitel ? () => ({ title: `📌 ${externerDragTitel}` }) as PlanerEvent : undefined
+          externerDragTitel
+            ? () => {
+                // Vollständiges Vorschau-Event - RBC ruft darauf Accessors und
+                // eventPropGetter auf; ein Objekt nur mit title crasht dort.
+                const jetzt = new Date();
+                return {
+                  title: `📌 ${externerDragTitel}`,
+                  start: jetzt,
+                  end: jetzt,
+                  allDay: true,
+                } as PlanerEvent;
+              }
+            : undefined
         }
         onDropFromOutside={
           onVonAussenAbgelegt

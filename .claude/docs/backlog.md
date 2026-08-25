@@ -184,7 +184,9 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### `npm audit` meldet react-router (moderate) – Fix erfordert Major-Upgrade
 
-- Status: Erledigt (PR nach beta offen)
+- Status: Erledigt (PR #73 in `beta` gemergt + deployt 25.08.2026; volle
+  Frontend-Suite 95/95 auf dem gemergten Stand grün, keine Code-Anpassungen
+  nötig, `npm audit` 0 Advisories)
 - Priorität: Niedrig
 - Kategorie: Frontend / Sicherheit / Wartung
 - Skills: planner, geraetehaus-patterns, tests, review
