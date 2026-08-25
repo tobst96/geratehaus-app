@@ -115,16 +115,7 @@ export function PlanTerminDialog({
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.45)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-        padding: "1rem",
-      }}
+      className="modal-overlay modal-overlay--dialog"
       onClick={onClose}
     >
       <div
@@ -252,7 +243,7 @@ export function PlanTerminDialog({
         {ereignisse && ereignisse.length > 0 && (
           <div style={{ marginTop: 16 }}>
             <p style={{ margin: "4px 0" }}>Verlauf</p>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            <ul className="liste-reset">
               {ereignisse
                 .slice()
                 .reverse()
