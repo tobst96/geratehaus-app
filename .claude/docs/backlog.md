@@ -3615,8 +3615,15 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   Moderator).
 - **Wiederkehrende Buchungen** `⭐⭐ · S` · Prio Mittel · Plan Nein: Serientermine +
   Ganztags-Option.
-- **Kollisionsanzeige schon bei der Anfrage** `⭐ · S` · Prio Niedrig · Plan Nein: am
-  Kiosk „belegt von…" anzeigen, bevor abgeschickt wird.
+- **Kollisionsanzeige schon bei der Anfrage** → **Erledigt (26.08.2026, direkt auf
+  beta):** Live-Hinweis „Achtung, bereits belegt: …" im Anfrage-Formular
+  (`Fahrzeugbuchung.tsx`), sobald Fahrzeug/Zeitraum eine bestehende aktive Buchung
+  desselben Fahrzeugs oder einen externen (iCal-)Termin überschneiden – rein
+  clientseitig aus den ohnehin schon geladenen Daten berechnet (`utils/
+  buchungKonflikt.ts`, kein zusätzlicher Request), dieselbe Überlappungsregel wie
+  `buchung_service.hat_konflikt`. Ersetzt nicht die serverseitige Prüfung nach dem
+  Absenden (deckt Buchungen ab, die erst nach dem Laden entstanden sind). 6 neue
+  Unit-Tests. Frontend-Suite 33/33 Dateien, 101/101 Tests grün, `tsc --noEmit` sauber.
 - **Externe/iCal-Kalender überlagern** `⭐⭐⭐ · M` → **siehe Etappe I**.
 
 ### Formular

@@ -1,5 +1,5 @@
 import { Fehlertext } from "../../components/Fehlertext";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import { useAuth } from "../../context/AuthContext";
 import { useConfig } from "../../context/ConfigContext";
@@ -24,6 +24,7 @@ import { useMitgliedModus } from "../../hooks/useMitgliedModus";
 import { Ladeanzeige } from "../../components/Ladeanzeige";
 import { SeitenFehler } from "../../components/SeitenFehler";
 import { formatiereDatumZeit, formatiereZeit } from "../../utils/datum";
+import { berechneKollisionsVorschau } from "../../utils/buchungKonflikt";
 import type { BuchungOut, ExternerTermin, Fahrzeug } from "../../api/types";
 import "../dienststunden/Dienststunden.css";
 
@@ -221,6 +222,18 @@ export function Fahrzeugbuchung() {
     (b) => b.status === "ausstehend" && b.verantwortliche_person_name === angezeigterName
   );
 
+  // Live-Kollisionsanzeige VOR dem Absenden (Nutzerwunsch, Ideen-Backlog
+  // „Kollisionsanzeige schon bei der Anfrage") – rein clientseitig aus den
+  // ohnehin schon geladenen `buchungen`/`externeTermine` berechnet, kein
+  // zusätzlicher Request. Der serverseitige Konflikt-Hinweis nach dem
+  // Absenden bleibt die endgültige Prüfung (deckt z. B. Buchungen ab, die
+  // erst nach dem Laden entstanden sind).
+  const kollisionsVorschau = useMemo(
+    () =>
+      fahrzeugId ? berechneKollisionsVorschau(Number(fahrzeugId), von, bis, buchungen, externeTermine) : null,
+    [fahrzeugId, von, bis, buchungen, externeTermine]
+  );
+
   return (
     <div>
       <h1>Fahrzeugbuchung</h1>
@@ -305,6 +318,23 @@ export function Fahrzeugbuchung() {
                 onVorschau={(p) => (p ? identVorschau.start() : identVorschau.zuruecksetzen())}
               />
             </div>
+          )}
+          {kollisionsVorschau && (
+            <p className="hinweis-klein" role="status">
+              Achtung, bereits belegt:{" "}
+              {kollisionsVorschau.buchungenKonflikt
+                .map(
+                  (b) =>
+                    `${b.verantwortliche_person_name} (${formatiereDatumZeit(b.von)}–${formatiereZeit(b.bis)})`
+                )
+                .concat(
+                  kollisionsVorschau.externKonflikt.map(
+                    (t) => `${t.titel} (${formatiereDatumZeit(t.von)}–${formatiereZeit(t.bis)})`
+                  )
+                )
+                .join(", ")}
+              . Die Anfrage kann trotzdem gestellt werden, der Gruppenführer entscheidet.
+            </p>
           )}
           {qrFehler && <Fehlertext>{qrFehler}</Fehlertext>}
           <button type="submit" disabled={laeuft}>
