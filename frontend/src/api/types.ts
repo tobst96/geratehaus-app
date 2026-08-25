@@ -254,3 +254,70 @@ export interface BuchungOut {
   hat_konflikt: boolean;
   ohne_pin: boolean;
 }
+
+// --- Dienstbuch Planer -------------------------------------------------
+
+export type PlanWiederholungstyp =
+  | "jaehrlich"
+  | "monatlich"
+  | "alle_x_tage"
+  | "alle_x_wochen"
+  | "alle_x_monate"
+  | "alle_x_jahre";
+
+export type PlanTerminStatus = "entwurf" | "bestaetigt";
+
+export interface PlanerKategorieOut {
+  id: number;
+  name: string;
+  farbe: string;
+  reihenfolge: number;
+  aktiv: boolean;
+}
+
+export interface PlanVorlageOut {
+  id: number;
+  titel: string;
+  beschreibung: string | null;
+  wiederholungstyp: PlanWiederholungstyp;
+  intervall: number | null;
+  wochentag: number | null;
+  kalenderwoche: number | null;
+  kw_paritaet: "gerade" | "ungerade" | null;
+  mindest_intervall_aktiv: boolean;
+  mindest_intervall_tage: number | null;
+  startdatum: string;
+  enddatum: string | null;
+  aktiv: boolean;
+  kategorien: PlanerKategorieOut[];
+}
+
+export interface PlanTerminOut {
+  id: number;
+  vorlage_id: number | null;
+  vorlage_titel: string | null;
+  jahr: number;
+  titel: string;
+  beschreibung: string | null;
+  zieldatum: string | null;
+  ist_platzhalter: boolean;
+  status: PlanTerminStatus;
+  dienstbuch_id: number | null;
+  dienstbuch_erzeugt_am: string | null;
+  kategorien: PlanerKategorieOut[];
+}
+
+export interface PlanTerminEreignisOut {
+  id: number;
+  zeitpunkt: string;
+  typ: string;
+  beschreibung: string;
+  akteur_name: string | null;
+}
+
+export interface VorlageUeberfaelligOut {
+  vorlage_id: number;
+  titel: string;
+  letztes_zieldatum: string | null;
+  tage_ueberfaellig: number;
+}

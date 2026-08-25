@@ -3,7 +3,7 @@
 
 import functools
 import random
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 
 import sentry_sdk
 import structlog
@@ -15,12 +15,15 @@ from sqlalchemy import func, select
 from app.core import zeit
 from app.db.session import AsyncSessionLocal
 from app.models.backup import Backup
+from app.models.dienstbuch_planer import DienstbuchPlanTermin, DienstbuchPlanTerminEreignis
+from app.schemas.dienstbuch import DienstbuchAnlegen
 from app.services import (
     ampel_service,
     archive_service,
     audit_service,
     backup_service,
     barcode_service,
+    dienstbuch_planer_service,
     dienstbuch_service,
     divera_personal_service,
     divera_service,
@@ -257,6 +260,63 @@ async def _dienstbuch_autoschluss_job() -> None:
             logger.warning("dienstbuch_autoschluss_fehlgeschlagen", exc_info=True)
 
 
+@_ueberwacht("dienstbuch-plan-verknuepfung", {"type": "crontab", "value": "15 0 * * *"})
+async def _dienstbuch_plan_verknuepfung_job() -> None:
+    """Läuft täglich um 0:15 Uhr; erzeugt für jeden bestätigten Planer-Termin,
+    dessen Zieldatum erreicht ist, automatisch einen echten Dienstbuch-Eintrag
+    und verknüpft ihn (Backlog: Modul Dienstbuch Planer). Idempotent über den
+    `dienstbuch_id IS NULL`-Filter - ein erneuter Lauf am selben Tag (z. B.
+    nach einem Neustart) erzeugt keinen zweiten Eintrag."""
+    async with AsyncSessionLocal() as db:
+        try:
+            heute = (await zeit.jetzt_lokal(db)).date()
+            tz = await zeit.zeitzone(db)
+            stmt = select(DienstbuchPlanTermin).where(
+                DienstbuchPlanTermin.status == "bestaetigt",
+                DienstbuchPlanTermin.ist_platzhalter.is_(False),
+                DienstbuchPlanTermin.dienstbuch_id.is_(None),
+                DienstbuchPlanTermin.zieldatum.isnot(None),
+                DienstbuchPlanTermin.zieldatum <= heute,
+            )
+            faellige = list((await db.execute(stmt)).scalars().all())
+            for termin in faellige:
+                eroeffnet_am = datetime.combine(termin.zieldatum, time(0, 0), tzinfo=tz)
+                dienstbuch = await dienstbuch_service.dienstbuch_anlegen(
+                    db, DienstbuchAnlegen(titel=termin.titel, eroeffnet_am=eroeffnet_am)
+                )
+                termin.dienstbuch_id = dienstbuch.id
+                termin.dienstbuch_erzeugt_am = datetime.now(timezone.utc)
+                db.add(
+                    DienstbuchPlanTerminEreignis(
+                        termin_id=termin.id,
+                        typ="dienstbuch_verknuepft",
+                        beschreibung="Dienstbuch automatisch erzeugt und verknüpft.",
+                        akteur_name=None,
+                    )
+                )
+            if faellige:
+                await db.commit()
+                logger.info("dienstbuch_plan_verknuepfung_erledigt", anzahl=len(faellige))
+        except Exception:
+            logger.warning("dienstbuch_plan_verknuepfung_fehlgeschlagen", exc_info=True)
+
+
+@_ueberwacht("dienstbuch-plan-jahresvorbereitung", {"type": "crontab", "value": "0 2 1 12 *"})
+async def _dienstbuch_plan_jahresvorbereitung_job() -> None:
+    """Läuft einmal jährlich am 1. Dezember; bereitet die Termin-Instanzen
+    für das Folgejahr vor (Komfort-Automatismus - ein Admin kann ein Jahr
+    jederzeit auch manuell über den Endpunkt vorziehen). Idempotent (siehe
+    `dienstbuch_planer_service.instanzen_fuer_jahr_sicherstellen`)."""
+    async with AsyncSessionLocal() as db:
+        try:
+            heute = (await zeit.jetzt_lokal(db)).date()
+            neue = await dienstbuch_planer_service.instanzen_fuer_jahr_sicherstellen(db, heute.year + 1)
+            if neue:
+                logger.info("dienstbuch_plan_jahresvorbereitung_erledigt", anzahl=len(neue))
+        except Exception:
+            logger.warning("dienstbuch_plan_jahresvorbereitung_fehlgeschlagen", exc_info=True)
+
+
 @_ueberwacht("pin-erinnerung", {"type": "crontab", "value": "0 8 * * *"})
 async def _pin_erinnerung_job() -> None:
     """Läuft täglich um 8:00 Uhr; erinnert Personen ohne gesetzten PIN (mit
@@ -420,6 +480,28 @@ def registriere_jobs() -> None:
         replace_existing=True,
     )
     logger.info("dienstbuch_autoschluss_job_registriert")
+
+    scheduler.add_job(
+        _dienstbuch_plan_verknuepfung_job,
+        "cron",
+        hour=0,
+        minute=15,
+        id="dienstbuch_plan_verknuepfung",
+        replace_existing=True,
+    )
+    logger.info("dienstbuch_plan_verknuepfung_job_registriert", uhrzeit="00:15")
+
+    scheduler.add_job(
+        _dienstbuch_plan_jahresvorbereitung_job,
+        "cron",
+        month=12,
+        day=1,
+        hour=2,
+        minute=0,
+        id="dienstbuch_plan_jahresvorbereitung",
+        replace_existing=True,
+    )
+    logger.info("dienstbuch_plan_jahresvorbereitung_job_registriert", uhrzeit="01.12. 02:00")
 
     scheduler.add_job(
         _personen_inaktivitaet_job,

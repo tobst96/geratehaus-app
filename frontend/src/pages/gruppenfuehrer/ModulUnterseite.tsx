@@ -5,6 +5,7 @@ import { permFuerModulUnterseite } from "./modulRechte";
 import { DiveraModul } from "./module/DiveraModul";
 import { EinsatztagebuchModul } from "./module/EinsatztagebuchModul";
 import { DienstbuchModul } from "./module/DienstbuchModul";
+import { DienstbuchPlanerModul } from "./module/DienstbuchPlanerModul";
 import { DienststundenModul } from "./module/DienststundenModul";
 import { FahrzeugbuchungModul } from "./module/FahrzeugbuchungModul";
 import { FahrzeugeModul } from "./module/FahrzeugeModul";
@@ -40,6 +41,8 @@ export function ModulUnterseite() {
       return <EinsatztagebuchModul />;
     case "dienstbuch":
       return <DienstbuchModul />;
+    case "dienstbuch_planer":
+      return <DienstbuchPlanerModul />;
     case "dienststunden":
       return <DienststundenModul />;
     case "fahrzeugbuchung":

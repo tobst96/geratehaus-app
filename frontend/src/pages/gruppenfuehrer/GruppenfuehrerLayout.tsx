@@ -43,6 +43,22 @@ const NAV_GRUPPEN: NavGruppe[] = [
     admin: false,
     items: [{ pfad: "/gruppenfuehrer/buchungen", titel: texte.gruppenfuehrer_nav.buchungen, icon: "fahrzeug", modulKey: "modul_fahrzeugbuchung_aktiv", berechtigungKey: "fahrzeugbuchung" }],
   },
+  {
+    id: "dienstbuch-planer",
+    titel: null,
+    admin: false,
+    items: [
+      {
+        // Internes Modul (nicht mitgliederseitig) - kein Eintrag in der
+        // öffentlichen Konfiguration, daher kein modulKey (analog Backup/MinIO);
+        // Sichtbarkeit steuert allein das granulare Berechtigungsrecht.
+        pfad: "/gruppenfuehrer/dienstbuch-planer",
+        titel: texte.dienstbuch_planer.titel,
+        icon: "dienstbuch",
+        berechtigungKey: "dienstbuch-planer-ansehen",
+      },
+    ],
+  },
   { id: "listen", titel: texte.gruppenfuehrer_nav.gruppe_listen, admin: false, listen: true, items: [] },
   {
     id: "module",

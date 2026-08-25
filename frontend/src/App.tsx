@@ -32,6 +32,9 @@ const Listen = lazy(() => import("./pages/gruppenfuehrer/Listen").then((m) => ({
 const Buchungsmanagement = lazy(() =>
   import("./pages/gruppenfuehrer/Buchungsmanagement").then((m) => ({ default: m.Buchungsmanagement }))
 );
+const DienstbuchPlaner = lazy(() =>
+  import("./pages/dienstbuch-planer/DienstbuchPlaner").then((m) => ({ default: m.DienstbuchPlaner }))
+);
 const KioskGeraete = lazy(() =>
   import("./pages/gruppenfuehrer/KioskGeraete").then((m) => ({ default: m.KioskGeraete }))
 );
@@ -151,6 +154,9 @@ export function App() {
                 </Route>
                 <Route element={<BerechtigungRoute modulKeys={["fahrzeugbuchung"]} />}>
                   <Route path="buchungen" element={<Buchungsmanagement />} />
+                </Route>
+                <Route element={<BerechtigungRoute modulKeys={["dienstbuch-planer-ansehen"]} />}>
+                  <Route path="dienstbuch-planer" element={<DienstbuchPlaner />} />
                 </Route>
                 {/* Noch admin-only (Backend nutzt CurrentAdmin): Barcodes,
                     Kiosk-Geräte, Benachrichtigungen. */}

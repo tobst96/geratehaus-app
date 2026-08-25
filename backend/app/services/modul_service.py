@@ -29,6 +29,12 @@ class ModulDef:
 MODUL_REGISTRY: list[ModulDef] = [
     ModulDef("einsatztagebuch", "Einsatztagebuch", "Einsätze erfassen und verwalten"),
     ModulDef("dienstbuch", "Dienstbuch", "Dienste erfassen und verwalten"),
+    ModulDef("dienstbuch-planer-ansehen", "Dienstbuch Planer (ansehen)", "Planer-Kalender einsehen"),
+    ModulDef(
+        "dienstbuch-planer-bearbeiten",
+        "Dienstbuch Planer (bearbeiten)",
+        "Planer-Termine/Vorlagen anlegen und bestätigen",
+    ),
     ModulDef("dienststunden", "Dienststunden", "Dienststunden erfassen und auswerten"),
     ModulDef("fahrzeugbuchung", "Fahrzeugbuchung", "Fahrzeuge buchen und freigeben"),
     ModulDef("personal", "Personal", "Personen-Stammdaten verwalten"),
