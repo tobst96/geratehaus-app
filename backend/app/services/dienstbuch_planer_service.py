@@ -186,17 +186,33 @@ async def get_termin(db: AsyncSession, termin_id: int) -> DienstbuchPlanTermin |
     return (await db.execute(stmt)).scalar_one_or_none()
 
 
+def _gleiche_kw_im_jahr(quelle: date, jahr: int) -> date:
+    """Datum im Zieljahr mit gleicher ISO-Kalenderwoche und gleichem Wochentag.
+    Hat das Zieljahr keine KW 53, wird auf KW 52 ausgewichen."""
+    _, kw, wochentag_iso = quelle.isocalendar()
+    try:
+        return date.fromisocalendar(jahr, kw, wochentag_iso)
+    except ValueError:
+        return date.fromisocalendar(jahr, 52, wochentag_iso)
+
+
 async def instanzen_fuer_jahr_sicherstellen(
     db: AsyncSession, jahr: int, akteur_name: str | None = None
 ) -> list[DienstbuchPlanTermin]:
-    """Erzeugt für alle aktiven Vorlagen die fehlenden Termin-Instanzen eines
-    Jahres. Idempotent: bereits vorhandene (vorlage_id, jahr, zieldatum)
-    -Kombinationen werden übersprungen, ein erneuter Aufruf erzeugt keine
-    Duplikate."""
-    vorlagen = await liste_vorlagen(db, nur_aktive=True)
-    if not vorlagen:
-        return []
+    """Erzeugt die fehlenden Entwurfs-Termine eines Jahres aus zwei Quellen:
 
+    1. Alle aktiven Vorlagen (Wiederholungsregeln, inkl. Zeiten-Übernahme).
+    2. Alle Einzeltermine des VORJAHRES ohne Vorlage (Nutzerwunsch 25.08.2026:
+       „es sollen immer alle Termine als Entwurf ins neue Jahr") - Standard:
+       gleiche Kalenderwoche + gleicher Wochentag im Zieljahr.
+
+    Idempotent: pro Vorlage werden (vorlage_id, zieldatum)-Duplikate, bei der
+    Vorjahres-Übernahme (titel, zieldatum)-Duplikate im Zieljahr übersprungen.
+    """
+    neue: list[DienstbuchPlanTermin] = []
+
+    # --- Quelle 1: Vorlagen -----------------------------------------------
+    vorlagen = await liste_vorlagen(db, nur_aktive=True)
     bestehende = await db.execute(
         select(DienstbuchPlanTermin.vorlage_id, DienstbuchPlanTermin.zieldatum).where(
             DienstbuchPlanTermin.jahr == jahr, DienstbuchPlanTermin.vorlage_id.isnot(None)
@@ -204,7 +220,6 @@ async def instanzen_fuer_jahr_sicherstellen(
     )
     vorhandene_daten: set[tuple[int, date]] = {(v, d) for v, d in bestehende.all() if d is not None}
 
-    neue: list[DienstbuchPlanTermin] = []
     for vorlage in vorlagen:
         kandidaten = berechne_kandidaten(_zu_regel(vorlage), jahr)
         for datum, verschoben in kandidaten:
@@ -216,6 +231,8 @@ async def instanzen_fuer_jahr_sicherstellen(
                 titel=vorlage.titel,
                 beschreibung=vorlage.beschreibung,
                 zieldatum=datum,
+                uhrzeit=vorlage.uhrzeit,
+                endzeit=vorlage.endzeit,
                 status="entwurf",
                 kategorien=list(vorlage.kategorien),
             )
@@ -235,6 +252,59 @@ async def instanzen_fuer_jahr_sicherstellen(
                 )
             neue.append(termin)
             vorhandene_daten.add((vorlage.id, datum))
+
+    # --- Quelle 2: Einzeltermine des Vorjahres ------------------------------
+    vorjahres_termine = (
+        await db.execute(
+            select(DienstbuchPlanTermin)
+            .options(selectinload(DienstbuchPlanTermin.kategorien))
+            .where(
+                DienstbuchPlanTermin.jahr == jahr - 1,
+                DienstbuchPlanTermin.vorlage_id.is_(None),
+                DienstbuchPlanTermin.ist_platzhalter.is_(False),
+                DienstbuchPlanTermin.zieldatum.isnot(None),
+            )
+        )
+    ).scalars().all()
+    belegte_titel = {
+        (t, d)
+        for t, d in (
+            await db.execute(
+                select(DienstbuchPlanTermin.titel, DienstbuchPlanTermin.zieldatum).where(
+                    DienstbuchPlanTermin.jahr == jahr
+                )
+            )
+        ).all()
+        if d is not None
+    }
+    for quelle in vorjahres_termine:
+        assert quelle.zieldatum is not None
+        ziel = _gleiche_kw_im_jahr(quelle.zieldatum, jahr)
+        if (quelle.titel, ziel) in belegte_titel:
+            continue
+        termin = DienstbuchPlanTermin(
+            vorlage_id=None,
+            jahr=jahr,
+            titel=quelle.titel,
+            beschreibung=quelle.beschreibung,
+            zieldatum=ziel,
+            uhrzeit=quelle.uhrzeit,
+            endzeit=quelle.endzeit,
+            status="entwurf",
+            kategorien=list(quelle.kategorien),
+        )
+        db.add(termin)
+        await db.flush()
+        await _ereignis_protokollieren(
+            db,
+            termin.id,
+            "angelegt",
+            f"Aus Vorjahrestermin ({quelle.zieldatum.strftime('%d.%m.%Y')}) übernommen - "
+            "gleiche Kalenderwoche und Wochentag.",
+            akteur_name,
+        )
+        neue.append(termin)
+        belegte_titel.add((quelle.titel, ziel))
 
     await db.commit()
     for termin in neue:

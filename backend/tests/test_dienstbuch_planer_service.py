@@ -166,6 +166,48 @@ async def test_ueberfaellige_vorlagen(db):
     assert not any(v.id == vorlage.id for v, _letztes, _tage in treffer)
 
 
+async def test_vorjahres_einzeltermine_wandern_als_entwurf_ins_folgejahr(db):
+    """Nutzerwunsch 25.08.2026: ALLE Termine (nicht nur Vorlagen-Instanzen)
+    kommen als Entwurf ins neue Jahr - gleiche KW + gleicher Wochentag.
+    Konkretes Nutzer-Beispiel: 26.08.2026 (Mittwoch, KW 35)."""
+    from datetime import time as time_
+    from app.schemas.dienstbuch_planer import PlanTerminAnlegen
+
+    quelle = await service.termin_anlegen(
+        db,
+        PlanTerminAnlegen(
+            titel="Sommerübung",
+            zieldatum=date(2026, 8, 26),
+            uhrzeit=time_(19, 0),
+            endzeit=time_(21, 0),
+        ),
+        "Tester",
+    )
+    assert quelle.zieldatum.isocalendar()[1] == 35 and quelle.zieldatum.weekday() == 2
+
+    neue = await service.instanzen_fuer_jahr_sicherstellen(db, 2027)
+    uebernommen = next(t for t in neue if t.titel == "Sommerübung")
+    assert uebernommen.status == "entwurf"
+    assert uebernommen.zieldatum.isocalendar()[1] == 35
+    assert uebernommen.zieldatum.weekday() == 2  # Mittwoch
+    assert uebernommen.zieldatum == date(2027, 9, 1)
+    assert uebernommen.uhrzeit == time_(19, 0)
+    assert uebernommen.endzeit == time_(21, 0)
+
+    # Idempotent: zweiter Lauf erzeugt keine Dublette.
+    nochmal = await service.instanzen_fuer_jahr_sicherstellen(db, 2027)
+    assert not any(t.titel == "Sommerübung" for t in nochmal)
+
+
+async def test_vorlagen_instanzen_erben_uhrzeit(db):
+    from datetime import time as time_
+
+    await _uvv_vorlage(db, uhrzeit=time_(19, 30), endzeit=time_(21, 0))
+    termine = await service.instanzen_fuer_jahr_sicherstellen(db, 2026)
+    assert termine[0].uhrzeit == time_(19, 30)
+    assert termine[0].endzeit == time_(21, 0)
+
+
 async def test_vorlage_deaktivieren_erzeugt_keine_neuen_instanzen(db):
     vorlage = await _uvv_vorlage(db)
     await service.vorlage_deaktivieren(db, vorlage)

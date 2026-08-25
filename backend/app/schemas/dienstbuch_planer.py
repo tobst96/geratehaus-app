@@ -50,6 +50,8 @@ class PlanVorlageAnlegen(BaseModel):
     mindest_intervall_tage: int | None = Field(default=None, ge=1)
     startdatum: date
     enddatum: date | None = None
+    uhrzeit: time | None = None
+    endzeit: time | None = None
     aktiv: bool = True
     kategorie_ids: list[int] = []
 
@@ -66,6 +68,8 @@ class PlanVorlageAktualisieren(BaseModel):
     mindest_intervall_tage: int | None = Field(default=None, ge=1)
     startdatum: date | None = None
     enddatum: date | None = None
+    uhrzeit: time | None = None
+    endzeit: time | None = None
     aktiv: bool | None = None
     kategorie_ids: list[int] | None = None
 
@@ -85,6 +89,8 @@ class PlanVorlageOut(BaseModel):
     mindest_intervall_tage: int | None
     startdatum: date
     enddatum: date | None
+    uhrzeit: time | None
+    endzeit: time | None
     aktiv: bool
     kategorien: list[PlanerKategorieOut]
 
@@ -130,6 +136,7 @@ class PlanTerminOut(BaseModel):
     beschreibung: str | None
     zieldatum: date | None
     uhrzeit: time | None
+    endzeit: time | None
     ist_platzhalter: bool
     status: str
     dienstbuch_id: int | None

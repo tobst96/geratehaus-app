@@ -41,6 +41,8 @@ export interface PlanVorlageAnlegen {
   mindest_intervall_tage?: number | null;
   startdatum: string;
   enddatum?: string | null;
+  uhrzeit?: string | null;
+  endzeit?: string | null;
   aktiv?: boolean;
   kategorie_ids?: number[];
 }

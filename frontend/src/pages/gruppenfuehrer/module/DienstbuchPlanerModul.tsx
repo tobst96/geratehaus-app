@@ -130,6 +130,8 @@ export function DienstbuchPlanerModul() {
   const [neuParitaet, setNeuParitaet] = useState<"" | "gerade" | "ungerade">("");
   const [neuStart, setNeuStart] = useState(heuteIso());
   const [neuEnde, setNeuEnde] = useState("");
+  const [neuUhrzeit, setNeuUhrzeit] = useState("");
+  const [neuEndzeit, setNeuEndzeit] = useState("");
   const [neuMindestAktiv, setNeuMindestAktiv] = useState(false);
   const [neuMindestTage, setNeuMindestTage] = useState(180);
   const [neuKategorieIds, setNeuKategorieIds] = useState<number[]>([]);
@@ -222,6 +224,8 @@ export function DienstbuchPlanerModul() {
         mindest_intervall_tage: neuMindestAktiv ? neuMindestTage : null,
         startdatum: neuStart,
         enddatum: neuEnde || null,
+        uhrzeit: neuUhrzeit ? `${neuUhrzeit}:00` : null,
+        endzeit: neuUhrzeit && neuEndzeit ? `${neuEndzeit}:00` : null,
         kategorie_ids: neuKategorieIds,
       });
       setNeuTitel("");
@@ -474,6 +478,25 @@ export function DienstbuchPlanerModul() {
             <div className="formular-feld">
               <label htmlFor="plan-ende">{t.feld_enddatum}</label>
               <input id="plan-ende" type="date" value={neuEnde} onChange={(e) => setNeuEnde(e.target.value)} />
+            </div>
+            <div className="formular-feld">
+              <label htmlFor="plan-uhrzeit">Beginn (optional)</label>
+              <input
+                id="plan-uhrzeit"
+                type="time"
+                value={neuUhrzeit}
+                onChange={(e) => setNeuUhrzeit(e.target.value)}
+              />
+            </div>
+            <div className="formular-feld">
+              <label htmlFor="plan-endzeit">Ende (optional)</label>
+              <input
+                id="plan-endzeit"
+                type="time"
+                value={neuEndzeit}
+                onChange={(e) => setNeuEndzeit(e.target.value)}
+                disabled={!neuUhrzeit}
+              />
             </div>
           </div>
 

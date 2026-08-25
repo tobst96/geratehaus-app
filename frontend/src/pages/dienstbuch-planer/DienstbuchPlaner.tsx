@@ -244,7 +244,7 @@ export function DienstbuchPlaner() {
             <button className="sekundaer" type="button">Vorlagen &amp; Kategorien</button>
           </Link>
           <button className="sekundaer" onClick={jahrSicherstellen}>
-            Termine für {jahr} aus Vorlagen aktualisieren
+            Termine für {jahr} aus Vorjahr + Vorlagen erzeugen
           </button>
           <button className="sekundaer" onClick={() => ladeJahresExport(jahr)}>
             Excel-Export

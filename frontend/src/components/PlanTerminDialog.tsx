@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { getISOWeek } from "date-fns";
 import {
   aktualisiereTermin,
   bestaetigeTermin,
   holeTerminEreignisse,
+  legeVorlageAn,
   setzeTerminAufEntwurf,
 } from "../api/dienstbuchPlaner";
 import { ApiError } from "../api/client";
@@ -34,6 +36,7 @@ export function PlanTerminDialog({
   const [speichert, setSpeichert] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [ereignisse, setEreignisse] = useState<PlanTerminEreignisOut[] | null>(null);
+  const [vorlageAngelegt, setVorlageAngelegt] = useState(false);
 
   useEffect(() => {
     holeTerminEreignisse(termin.id)
@@ -62,6 +65,32 @@ export function PlanTerminDialog({
       onGeaendert();
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : "Speichern fehlgeschlagen.");
+    } finally {
+      setSpeichert(false);
+    }
+  }
+
+  async function alsVorlageSpeichern() {
+    if (!zieldatum) return;
+    setSpeichert(true);
+    setFehler(null);
+    try {
+      const datum = new Date(`${zieldatum}T00:00:00`);
+      await legeVorlageAn({
+        titel,
+        beschreibung: beschreibung || null,
+        wiederholungstyp: "jaehrlich",
+        // Backend-Konvention 0=Montag..6=Sonntag (JS: 0=Sonntag).
+        wochentag: (datum.getDay() + 6) % 7,
+        kalenderwoche: getISOWeek(datum),
+        uhrzeit: uhrzeit ? `${uhrzeit}:00` : null,
+        endzeit: uhrzeit && endzeit ? `${endzeit}:00` : null,
+        startdatum: zieldatum,
+        kategorie_ids: kategorieIds,
+      });
+      setVorlageAngelegt(true);
+    } catch (err) {
+      setFehler(err instanceof ApiError ? String(err.detail) : "Vorlage konnte nicht angelegt werden.");
     } finally {
       setSpeichert(false);
     }
@@ -196,6 +225,16 @@ export function PlanTerminDialog({
               <button type="button" className="sekundaer" onClick={statusUmschalten} disabled={speichert}>
                 {termin.status === "entwurf" ? "Bestätigen" : "Auf Entwurf zurücksetzen"}
               </button>
+            )}
+            {!termin.vorlage_id && !!zieldatum && !vorlageAngelegt && (
+              <button type="button" className="sekundaer" onClick={alsVorlageSpeichern} disabled={speichert}>
+                Als jährliche Vorlage speichern
+              </button>
+            )}
+            {vorlageAngelegt && (
+              <span>
+                ✓ Vorlage angelegt – Feineinstellungen unter „Vorlagen &amp; Kategorien"
+              </span>
             )}
             <button type="button" className="sekundaer" onClick={onClose}>
               Schließen

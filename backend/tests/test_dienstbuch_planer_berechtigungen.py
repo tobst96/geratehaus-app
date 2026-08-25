@@ -59,13 +59,20 @@ async def test_termin_manuell_anlegen_mit_uhrzeit(client, db):
     h = await _token(client, db)
     resp = await client.post(
         "/api/v1/dienstbuch-planer/termine",
-        json={"titel": "Sondersitzung", "zieldatum": "2026-09-10", "uhrzeit": "19:30:00"},
+        json={
+            "titel": "Sondersitzung",
+            "zieldatum": "2026-09-10",
+            "uhrzeit": "19:30:00",
+            "endzeit": "21:00:00",
+        },
         headers=h,
     )
     assert resp.status_code == 201
     daten = resp.json()
     assert daten["zieldatum"] == "2026-09-10"
     assert daten["uhrzeit"] == "19:30:00"
+    # Regression: endzeit fehlte anfangs im Response-Schema (wurde still verschluckt).
+    assert daten["endzeit"] == "21:00:00"
     assert daten["ist_platzhalter"] is False
     assert daten["status"] == "entwurf"
 

@@ -90,6 +90,9 @@ class DienstbuchPlanVorlage(Base, TimestampMixin):
 
     startdatum: Mapped[date] = mapped_column(Date, nullable=False)
     enddatum: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # Optionale Beginn-/Endzeit - generierte Jahres-Termine erben sie.
+    uhrzeit: Mapped[time | None] = mapped_column(Time, nullable=True)
+    endzeit: Mapped[time | None] = mapped_column(Time, nullable=True)
     aktiv: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     kategorien: Mapped[list["PlanerKategorie"]] = relationship(
