@@ -1,5 +1,5 @@
 import { Fehlertext } from "../../components/Fehlertext";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   holeBerechtigungen,
   setzeBerechtigung,
@@ -16,17 +16,20 @@ export function Berechtigungen() {
   const [fehler, setFehler] = useState<string | null>(null);
   const [filterModul, setFilterModul] = useState("");
 
-  async function laden() {
+  // useCallback stabilisiert laden, sonst würde die Aufnahme in die
+  // useEffect-Deps unten bei jedem Render einen neuen Effektlauf auslösen
+  // (Endlosschleife über setMatrix -> Re-Render -> neue laden-Referenz).
+  const laden = useCallback(async () => {
     try {
       setMatrix(await holeBerechtigungen());
     } catch (err) {
       setFehler(err instanceof ApiError ? String(err.detail) : t.ladefehler);
     }
-  }
+  }, [t.ladefehler]);
 
   useEffect(() => {
     laden();
-  }, []);
+  }, [laden]);
 
   async function umschalten(mod: GruppenfuehrerBerechtigung, modulKey: string, erlaubt: boolean) {
     try {
