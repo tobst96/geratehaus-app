@@ -610,7 +610,19 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### `useEffect`-Abhängigkeiten: 16 ESLint-Warnungen (react-hooks/exhaustive-deps)
 
-- Status: Backlog
+- Status: Erledigt (25.08.2026, parallel in isoliertem Worktree erarbeitet,
+  direkt auf beta gemergt)
+- Umsetzung: 6 triviale Fälle (stabile `texte.xxx`-Modulreferenz direkt in die
+  Deps) + 7 echte Stale-Closure-Fälle (`laden` per `useCallback` stabilisiert;
+  bei `Fahrzeugbuchung.tsx` dafür die Default-Fahrzeug-Auswahl auf die
+  funktionale `setFahrzeugId(prev => ...)`-Form umgestellt, damit `laden` ganz
+  ohne Abhängigkeiten auskommt). Die 3 `react-refresh/only-export-components`-
+  Hinweise durch Aufspalten der Context-Dateien behoben: `AuthContext.tsx`/
+  `ConfigContext.tsx`/`ToastContext.tsx` enthalten jetzt nur noch
+  Context+Hook, die Provider-Komponenten liegen in neuen
+  `AuthProvider.tsx`/`ConfigProvider.tsx`/`ToastProvider.tsx` (einzige
+  Importstelle war jeweils `main.tsx`, Hook-Aufrufstellen unverändert).
+  `npm run lint` 0 Findings, Vitest 95/95, `tsc --noEmit` grün.
 - Priorität: Niedrig
 - Kategorie: Frontend / Bugfix
 - Skills: geraetehaus-patterns, tests, review
@@ -735,7 +747,27 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### Keine Token-Invalidierung bei Passwortänderung/2FA-Reset (Gruppenführer/Admin)
 
-- Status: Backlog
+- Status: Erledigt (25.08.2026, parallel in isoliertem Worktree erarbeitet,
+  direkt auf beta gemergt)
+- Umsetzung: Neuer JWT-Claim `sicherheit_stand` (Helper
+  `security.sicherheit_stand_claim`) gegen eine neue Spalte
+  `Person.sicherheit_geaendert_am` geprüft, bei **jedem** Request in
+  `get_current_gruppenfuehrer` (Migration 0078). Bewusst **nicht** an
+  `updated_at` gekoppelt – das läuft bei jeder Personenänderung mit (z. B.
+  Namenskorrektur) und hätte sonst harmlose Änderungen zum ungewollten
+  Massen-Logout gemacht. Aktualisiert in `person_passwort_setzen` (deckt
+  Self-Service-Passwort, Reset-Link und Admin-Neusetzen ab, da alle drei
+  dort durchlaufen), `person_elevieren` (falls dabei ein Passwort gesetzt
+  wird) und `zwei_faktor_service.deaktivieren` (deckt Admin-2FA-Reset,
+  Selbst-Deaktivierung und De-Elevierung ab). NULL-Default, kein Backfill –
+  bestehende Tokens ohne Claim bleiben gültig bis zum ersten
+  Passwort-/2FA-Ereignis nach dem Deploy, kein erzwungenes Massen-Logout.
+  2 neue Regressionstests (altes Token nach Passwortänderung/2FA-Reset wird
+  mit 401 abgelehnt). Das schwächere `require_zugriff`-Gate (nur „ist
+  irgendein Token vorhanden", ohne Personenbezug) bewusst unangetastet
+  gelassen – siehe eigene Backlog-Position „Keine Token-Invalidierung" oben
+  im Sicherheitsaudit-Abschnitt, falls das auch verschärft werden soll.
+  Suite 589/589 grün.
 - Priorität: Mittel
 - Kategorie: Backend / Sicherheit
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -3048,6 +3080,20 @@ Features mehr einbringen – nur diese Fixes/Aufräumarbeiten (Feature-Freeze).
   bewusst inline belassen. Die klar wiederkehrenden, sauber extrahierbaren Muster
   (Modal-Overlay, Hinweistexte, Textfarbe, „✓ gespeichert", Space-between-Zeile,
   Text-zentriert, nowrap) sind damit **erschöpft**.
+- Fortschritt (25.08.2026, parallel in isoliertem Worktree erarbeitet, direkt auf
+  beta gemergt): Erneute ehrliche Prüfung statt blindem Weitermachen – die
+  „erschöpft"-Einschätzung stimmte für den damaligen Stand noch, aber neue Module
+  seit dem letzten Durchgang (Dienstbuch-Planer, die vier
+  `*ManuelleEintragung`-Geschwisterseiten) hatten neue, sauber 1:1-optikgleiche
+  Kopiermuster mit ≥3 Vorkommen angesammelt: **`.text-fehler`** (6), **`.liste-reset`**
+  + **`.liste-reset-eng`** (5+4), **`.avatar-initialen`** (4), **`.volle-breite-links`**
+  (4), **`.versteckt`** für verstecktes `<input type="file">` (4), **`.flex-1`** (4),
+  **`.cursor-pointer`** (3), **`.modal-overlay--dialog`** als Modifier zum
+  bestehenden `.modal-overlay` (3). 37 Stellen in 18 Dateien ersetzt, keine
+  Optikänderung (bewusst nicht vermischt: `#b00020` im Planer bleibt eigene
+  Rot-Nuance, `PersonenAvatar` als parametrisierte Komponente unangetastet). Der
+  weiterhin verbleibende Rest (gap-variantenreiche Flex-Zeilen, beliebig verteilte
+  margin-Werte) bleibt bewusst inline. `npm run build` + Vitest grün.
 
 ### Begriff „Moderator" → „Gruppenführer" (durchgängig umbenennen)
 
