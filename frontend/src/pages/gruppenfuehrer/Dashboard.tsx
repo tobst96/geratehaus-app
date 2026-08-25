@@ -24,7 +24,9 @@ export function Dashboard() {
         .catch(() => {});
     }, 60_000);
     return () => clearInterval(timer);
-  }, []);
+    // t.ladefehler kommt aus dem statischen texte-Import und ändert sich nie zur
+    // Laufzeit - Aufnahme in die Deps ist sicher (kein Endlosschleifen-Risiko).
+  }, [t.ladefehler]);
 
   if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!daten) return <Ladeanzeige />;
