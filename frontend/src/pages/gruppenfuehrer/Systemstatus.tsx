@@ -1,5 +1,5 @@
 import { Fehlertext } from "../../components/Fehlertext";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { formatiereDatumZeit } from "../../utils/datum";
 import { holeSystemStatus, type SystemStatus } from "../../api/meta";
 import { ApiError } from "../../api/client";
@@ -39,7 +39,10 @@ export function Systemstatus() {
   const [fehler, setFehler] = useState<string | null>(null);
   const [laedt, setLaedt] = useState(false);
 
-  async function laden() {
+  // useCallback stabilisiert laden, sonst würde die Aufnahme in die
+  // useEffect-Deps unten bei jedem Render einen neuen Effektlauf auslösen
+  // (Endlosschleife über setStatus -> Re-Render -> neue laden-Referenz).
+  const laden = useCallback(async () => {
     setLaedt(true);
     try {
       setStatus(await holeSystemStatus());
@@ -49,11 +52,11 @@ export function Systemstatus() {
     } finally {
       setLaedt(false);
     }
-  }
+  }, [t.ladefehler]);
 
   useEffect(() => {
     laden();
-  }, []);
+  }, [laden]);
 
   if (fehler) return <Fehlertext>{fehler}</Fehlertext>;
   if (!status) return <Ladeanzeige />;
