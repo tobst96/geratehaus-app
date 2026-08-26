@@ -13,7 +13,7 @@ import io
 import json
 import secrets
 import zipfile
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timezone
 from decimal import Decimal
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -23,7 +23,7 @@ import httpx
 import structlog
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-from sqlalchemy import Date, DateTime, LargeBinary, delete, select, text
+from sqlalchemy import Date, DateTime, LargeBinary, Time, delete, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -132,7 +132,12 @@ def _app_version() -> str:
 
 
 def _json_default(o):
-    if isinstance(o, (datetime, date)):
+    # Reihenfolge wichtig: datetime ist eine Unterklasse von date, time ist
+    # eigenständig und muss vor dem generischen isoformat()-Zweig abgefangen
+    # werden (sonst TypeError, siehe Sentry-Fund 26.08.2026 - Dienstbuch
+    # Planer führte time-Spalten uhrzeit/endzeit ein, jeder geplante Backup-
+    # Job schlug seitdem fehl).
+    if isinstance(o, (datetime, date, time)):
         return o.isoformat()
     if isinstance(o, (bytes, bytearray)):
         return base64.b64encode(bytes(o)).decode()
@@ -154,6 +159,8 @@ def _wert_fuer_db(table, spalte: str, wert):
         return datetime.fromisoformat(wert)
     if isinstance(t, Date) and isinstance(wert, str):
         return date.fromisoformat(wert)
+    if isinstance(t, Time) and isinstance(wert, str):
+        return time.fromisoformat(wert)
     if isinstance(t, LargeBinary) and isinstance(wert, str):
         return base64.b64decode(wert)
     return wert

@@ -1,13 +1,19 @@
 """Tests fürs Backup-Modul: Export/Verschlüsselung, Analyse, Roundtrip-Import,
 Retention und Fehlerpfad."""
 
+import io
+import json
+import zipfile
+from datetime import date, time
 from pathlib import Path
 
 import pytest
 from sqlalchemy import select
 
+from app.models.dienstbuch_planer import DienstbuchPlanTermin
 from app.models.person import Person
-from app.services import backup_service
+from app.schemas.dienstbuch_planer import PlanTerminAnlegen
+from app.services import backup_service, dienstbuch_planer_service
 from app.services.config_service import config_service
 
 
@@ -89,6 +95,49 @@ async def test_backup_sichert_verschachtelte_upload_unterordner(db, tmp_path, mo
     assert ergebnis["importierte_dateien"] == 2
     assert (uploads / "formulare" / "einreichung-1.pdf").read_bytes() == b"PDFDATA"
     assert (uploads / "personen" / "42.jpg").read_bytes() == b"JPGDATA"
+
+
+@pytest.mark.asyncio
+async def test_backup_sichert_time_spalten_korrekt(db, tmp_path, monkeypatch):
+    """Regression: ein per Sentry gemeldeter Produktionsfehler (26.08.2026) –
+    jeder geplante Backup-Job schlug fehl (`nicht serialisierbar:
+    <class 'datetime.time'>`), seit der Dienstbuch Planer `uhrzeit`/`endzeit`
+    als reine `time`-Spalten eingeführt hat. `_json_default` kannte bisher nur
+    `datetime`/`date`, nicht das eigenständige `time`. Testet den echten
+    Export+Import-Roundtrip mit einer Zeile, die eine `time`-Spalte gesetzt hat."""
+    await _setup_ziel(db, tmp_path)
+    await dienstbuch_planer_service.termin_anlegen(
+        db,
+        PlanTerminAnlegen(
+            titel="Unterweisung UVV",
+            zieldatum=date(2026, 9, 1),
+            uhrzeit=time(19, 30),
+            endzeit=time(21, 0),
+        ),
+        "Tester",
+    )
+
+    # Export darf nicht mit TypeError crashen (das war der Sentry-Fund).
+    zip_bytes, _zusammenfassung = await backup_service._baue_zip(db)
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+    assert manifest["tabellen"]  # Manifest wurde geschrieben, Export lief durch
+
+    await db.execute(DienstbuchPlanTermin.__table__.delete())
+    await db.commit()
+
+    token = "test-token-time-spalten"
+    backup_service._import_cache[token] = zip_bytes
+    try:
+        await backup_service.importiere(db, token, ["dienstbuch_planer"], "ersetzen")
+    finally:
+        backup_service._import_cache.pop(token, None)
+
+    wiederhergestellt = (
+        await db.execute(select(DienstbuchPlanTermin).where(DienstbuchPlanTermin.titel == "Unterweisung UVV"))
+    ).scalar_one()
+    assert wiederhergestellt.uhrzeit == time(19, 30)
+    assert wiederhergestellt.endzeit == time(21, 0)
 
 
 @pytest.mark.asyncio
