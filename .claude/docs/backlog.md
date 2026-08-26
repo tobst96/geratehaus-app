@@ -84,6 +84,17 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 - Status: Erledigt (alle 4 Phasen; Phase 1 via PR #75 gemergt 25.08.2026, Phasen
   2–4 + Nutzerfeedback direkt auf `beta`, 25.08.2026)
+- **Produktions-Regression (26.08.2026, per Sentry-Alarm gemeldet, direkt auf
+  beta gefixt):** Jeder geplante Backup-Job schlug seit den `uhrzeit`/`endzeit`-
+  Spalten fehl (`BackupFehler: nicht serialisierbar: <class 'datetime.time'>`)
+  – die generische JSON-Serialisierung im Backup-Export
+  (`backup_service._json_default`) kannte `datetime`/`date`, aber nicht das
+  eigenständige `time`. Export **und** Import ergänzt (`Time`-Spalte →
+  `time.fromisoformat`), Regressionstest mit echtem Roundtrip. Suite 590/590
+  grün. Zeigt: der Backup-Vollständigkeits-Regressionstest aus [[Etappe AL]]
+  prüft nur die Tabellen-Kategorisierung, nicht die tatsächliche JSON-
+  Serialisierbarkeit aller Spaltentypen – Lücke, falls künftig weitere
+  exotische SQLAlchemy-Typen dazukommen.
 - Nachträge (25.08.2026, Nutzerfeedback + Phasen 2–4): Planer für ALLE
   Gruppenführer offen (granulare Rechte-Keys wieder entfernt,
   `CurrentGruppenfuehrer`); Termine mit optionaler Beginn-/**Endzeit**
