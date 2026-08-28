@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const gruppenfuehrerAbmelden = vi.fn();
+const mitgliedAbmelden = vi.fn().mockResolvedValue(undefined);
 const navigate = vi.fn();
 const useAuthMock = vi.fn();
 
@@ -38,12 +39,14 @@ function rendern() {
 describe("GruppenfuehrerLayout – Rückwechsel zur Mitgliederseite", () => {
   beforeEach(() => {
     gruppenfuehrerAbmelden.mockReset();
+    mitgliedAbmelden.mockClear();
     navigate.mockReset();
   });
 
   it("zeigt den Link 'Zurück zur Mitgliederseite', wenn eine Mitglied-Identität besteht, und navigiert ohne Abmelden", async () => {
     useAuthMock.mockReturnValue({
       gruppenfuehrerAbmelden,
+      mitgliedAbmelden,
       gruppenfuehrerRolle: "gruppenfuehrer",
       hatModulZugriff: () => false,
       angezeigterName: "Max Muster",
@@ -61,6 +64,7 @@ describe("GruppenfuehrerLayout – Rückwechsel zur Mitgliederseite", () => {
   it("zeigt den Link NICHT ohne Mitglied-Identität", () => {
     useAuthMock.mockReturnValue({
       gruppenfuehrerAbmelden,
+      mitgliedAbmelden,
       gruppenfuehrerRolle: "admin",
       hatModulZugriff: () => true,
       angezeigterName: null,
@@ -68,5 +72,23 @@ describe("GruppenfuehrerLayout – Rückwechsel zur Mitgliederseite", () => {
     rendern();
 
     expect(screen.queryByRole("button", { name: "Zurück zur Mitgliederseite" })).not.toBeInTheDocument();
+  });
+
+  it("Abmelden beendet BEIDE Ebenen (Regression: Namens-Cookie blieb aktiv, Step-up meldete sofort wieder an)", async () => {
+    useAuthMock.mockReturnValue({
+      gruppenfuehrerAbmelden,
+      mitgliedAbmelden,
+      gruppenfuehrerRolle: "gruppenfuehrer",
+      hatModulZugriff: () => false,
+      angezeigterName: "Max Muster",
+    });
+    const user = userEvent.setup();
+    rendern();
+
+    await user.click(screen.getByRole("button", { name: "Abmelden" }));
+
+    expect(gruppenfuehrerAbmelden).toHaveBeenCalled();
+    expect(mitgliedAbmelden).toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith("/");
   });
 });

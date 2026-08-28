@@ -113,7 +113,8 @@ const MODUL_ICON: Record<string, string> = {
 
 export function GruppenfuehrerLayout() {
   const t = texte.gruppenfuehrer_nav;
-  const { gruppenfuehrerAbmelden, gruppenfuehrerRolle, hatModulZugriff, angezeigterName } = useAuth();
+  const { gruppenfuehrerAbmelden, mitgliedAbmelden, gruppenfuehrerRolle, hatModulZugriff, angezeigterName } =
+    useAuth();
   const { config, neuLaden } = useConfig();
   const navigate = useNavigate();
   const location = useLocation();
@@ -158,8 +159,16 @@ export function GruppenfuehrerLayout() {
     setDrawerOffen(false);
   }, [location.pathname, location.search]);
 
-  function abmelden() {
+  async function abmelden() {
+    // Beide Ebenen beenden: das Gruppenführer-/Admin-JWT UND die darunterliegende
+    // Mitglied-Identität (Namens-Cookie). Sonst meldet "Abmelden" nur das JWT ab,
+    // während der Namens-Cookie weiterläuft - der nächste Aufruf von /gruppenfuehrer
+    // (Button "Zum Gruppenführer-Bereich" im Mitglied-Hub, oder direkt die URL)
+    // meldet die Person über den Step-up-Mechanismus sofort wieder ohne Passwort an,
+    // was sich wie ein nicht funktionierendes Abmelden anfühlt - insbesondere auf
+    // einem gemeinsam genutzten Kiosk-Tablet ein echtes Sicherheitsproblem.
     gruppenfuehrerAbmelden();
+    await mitgliedAbmelden();
     navigate("/");
   }
 
