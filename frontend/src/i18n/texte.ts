@@ -972,6 +972,17 @@ export const texte = {
     verlauf_filter_label: "Nach Ereignistyp filtern",
     alle_ereignisse: "Alle Ereignisse",
     keine_ereignisse_filter: "Keine Ereignisse für diesen Filter.",
+    tab_mitglied_login: "Mitglieder-Login (App)",
+    mitglied_login_hinweis:
+      "Persönlicher Login per E-Mail + Passwort fürs eigene Handy/App - unabhängig vom " +
+      "erhöhten Gruppenführer-/Admin-Zugang unten. Ohne Mail-Server ist das der einzige " +
+      "Weg, einer Person ohne Kiosk-Zugriff ein Passwort zu geben.",
+    mitglied_passwort_setzen: "Login-Passwort setzen",
+    mitglied_passwort_aendern: "Login-Passwort ändern",
+    mitglied_passwort_gesetzt: "Passwort gesetzt",
+    mitglied_kein_passwort: "Kein Passwort gesetzt",
+    mitglied_passwort_prompt_prefix: "Neues Login-Passwort für ",
+    mitglied_passwort_prompt_suffix: " (mind. 8 Zeichen):",
     tab_erhoehter_zugang: "Erhöhter Zugang",
     erhoehter_zugang_hinweis:
       "Erhöhter Zugang zum Gruppenführer-/Admin-Bereich (Anmeldung mit Name + Passwort). Der " +

@@ -16,6 +16,10 @@ class PersonOut(BaseModel):
     gruppe_id: int | None
     funktion_id: int | None
     pin_gesetzt: bool
+    # Für den persönlichen Mitglieder-Login (E-Mail+Passwort, unabhängig vom
+    # erhöhten Gruppenführer-/Admin-Zugang) - steuert in der Personal-Verwaltung,
+    # ob "Passwort setzen" oder "Passwort ändern" angezeigt wird.
+    passwort_gesetzt: bool = False
     benachrichtigungen_aktiv: bool
     inaktiv: bool = False
     # Zeitpunkt, bis zu dem der PIN-Login wegen zu vieler Fehlversuche gesperrt ist

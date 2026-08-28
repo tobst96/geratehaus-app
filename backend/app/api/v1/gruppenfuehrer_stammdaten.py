@@ -611,10 +611,26 @@ async def person_de_elevieren(db: DbSession, admin: CurrentAdmin, person_id: int
 async def person_passwort_setzen(
     db: DbSession, admin: CurrentAdmin, person_id: int, daten: PersonPasswortSetzen
 ) -> None:
-    """Setzt das Login-Passwort einer (elevated) Person neu."""
+    """Setzt das Login-Passwort einer Person neu - für den erhöhten Gruppenführer-/
+    Admin-Zugang GENAUSO wie für den persönlichen Mitglieder-Login (beide nutzen
+    denselben `passwort_hash`, nur die Berechtigungsprüfung beim Zugriff unterscheidet
+    sich). Ohne Mail-Server ist das der einzige Weg, einer Person ohne physischen
+    Kiosk-Zugriff (Barcode/PIN) überhaupt ein Passwort zu geben."""
     person = await stammdaten_service.get_person(db, person_id)
-    if person is None or person.gruppenfuehrer_rolle is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kein erhöhter Zugang.")
+    if person is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person nicht gefunden.")
+    if not person.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Für ein Login-Passwort muss zuerst eine E-Mail hinterlegt sein (Login läuft über E-Mail).",
+        )
+    if await gruppenfuehrer_service.email_bereits_fuer_login_vergeben(
+        db, person.email, ausser_person_id=person.id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Diese E-Mail wird bereits für einen anderen Login-Zugang verwendet.",
+        )
     await gruppenfuehrer_service.person_passwort_setzen(db, person, daten.passwort)
     await audit_service.protokolliere(db, admin.name, "person_passwort_gesetzt", "person", person_id)
 

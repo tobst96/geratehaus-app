@@ -341,6 +341,26 @@ export function Personal() {
     }
   }
 
+  // Login-Passwort für den persönlichen Mitglieder-Login (App/Handy) - unabhängig
+  // vom erhöhten Gruppenführer-/Admin-Zugang. Ohne Mail-Server (kein Self-Service-
+  // Link) und ohne Kiosk-Zugriff der Person selbst (Barcode/PIN + "Mein Profil")
+  // ist das der einzige Weg, einer Person überhaupt ein App-Passwort zu geben.
+  async function mitgliedPasswortSetzen(p: Person) {
+    const neu = prompt(`${txt.mitglied_passwort_prompt_prefix}${p.name}${txt.mitglied_passwort_prompt_suffix}`);
+    if (neu === null) return;
+    if (neu.length < 8) {
+      setZugangFehler(txt.fehler_pw_min);
+      return;
+    }
+    setZugangFehler(null);
+    try {
+      await personPasswortSetzen(p.id, neu);
+      await laden();
+    } catch (err) {
+      setZugangFehler(err instanceof ApiError ? String(err.detail) : txt.fehler_pw_setzen);
+    }
+  }
+
   async function zugang2faReset(p: Person) {
     if (!confirm(`${txt.zwei_fa_reset_frage_prefix}${p.name}${txt.zwei_fa_reset_frage_suffix}`)) return;
     setZugangFehler(null);
@@ -1312,6 +1332,26 @@ export function Personal() {
                           <p className="hinweistext">
                             {txt.barcode_deaktiviert}
                           </p>
+                        )}
+
+                        {istAdmin && (
+                          <>
+                            <h3 style={{ marginTop: 24 }}>{txt.tab_mitglied_login}</h3>
+                            <p className="text-mute">{txt.mitglied_login_hinweis}</p>
+                            <div className="person-aktionen">
+                              <button
+                                className="sekundaer"
+                                disabled={!person.email}
+                                title={!person.email ? txt.email_noetig_titel : undefined}
+                                onClick={() => mitgliedPasswortSetzen(person)}
+                              >
+                                {person.passwort_gesetzt ? txt.mitglied_passwort_aendern : txt.mitglied_passwort_setzen}
+                              </button>
+                              <span className="hinweistext">
+                                {person.passwort_gesetzt ? txt.mitglied_passwort_gesetzt : txt.mitglied_kein_passwort}
+                              </span>
+                            </div>
+                          </>
                         )}
 
                         {istAdmin &&

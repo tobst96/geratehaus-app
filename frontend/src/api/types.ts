@@ -73,6 +73,9 @@ export interface Person {
   gruppe_id: number | null;
   funktion_id: number | null;
   pin_gesetzt: boolean;
+  /** Für den persönlichen Mitglieder-Login (E-Mail+Passwort), unabhängig vom
+   * erhöhten Gruppenführer-/Admin-Zugang. */
+  passwort_gesetzt: boolean;
   benachrichtigungen_aktiv: boolean;
   inaktiv: boolean;
   /** Zeitpunkt, bis zu dem der PIN-Login gesperrt ist (ISO), sonst null. */

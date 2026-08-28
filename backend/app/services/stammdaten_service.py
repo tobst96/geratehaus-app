@@ -619,6 +619,7 @@ async def personen_zu_out(db: AsyncSession, personen: list[Person]) -> list[Pers
             gruppe_id=p.gruppe_id,
             funktion_id=p.funktion_id,
             pin_gesetzt=p.pin_gesetzt,
+            passwort_gesetzt=bool(p.passwort_hash),
             benachrichtigungen_aktiv=p.benachrichtigungen_aktiv,
             inaktiv=p.inaktiv,
             pin_gesperrt_bis=p.pin_gesperrt_bis,
