@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block inhalt %}
+<style>
+    .otp-seite {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .otp-seite h1 {
+        font-size: 16pt;
+        margin-bottom: 4px;
+    }
+    .otp-seite .empfaenger {
+        font-size: 11pt;
+        color: #555;
+        margin-bottom: 28px;
+    }
+    .otp-code {
+        display: inline-block;
+        font-size: 40pt;
+        font-weight: bold;
+        letter-spacing: 10px;
+        padding: 18px 32px;
+        border: 2px solid {{ farbe_primaer }};
+        border-radius: 10px;
+        margin-bottom: 18px;
+    }
+    .otp-gueltigkeit {
+        font-size: 10.5pt;
+        color: #555;
+        margin-bottom: 28px;
+    }
+    .otp-vertraulich {
+        display: inline-block;
+        max-width: 13cm;
+        border: 1px solid #b00020;
+        border-radius: 8px;
+        padding: 12px 18px;
+        color: #b00020;
+        font-weight: 600;
+        font-size: 10.5pt;
+        text-align: left;
+    }
+</style>
+<div class="otp-seite">
+    <h1>Anmelde-Code für den Gruppenführer-/Admin-Bereich</h1>
+    <div class="empfaenger">{{ person_name }}</div>
+
+    <div class="otp-code">{{ code }}</div>
+
+    <div class="otp-gueltigkeit">Dieser Code ist {{ gueltigkeit_minuten }} Minuten gültig.</div>
+
+    <div class="otp-vertraulich">
+        Vertraulich – nach Gebrauch vernichten. Dieser Ausdruck enthält keine
+        weiteren Zugangsdaten (kein Passwort). Wer sich nicht anmelden wollte,
+        kann diesen Ausdruck ignorieren und entsorgen.
+    </div>
+</div>
+{% endblock %}

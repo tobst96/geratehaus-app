@@ -206,6 +206,17 @@ async def dienststunden_stempel_pdf(db: AsyncSession, funktion: Any) -> bytes:
     )
 
 
+async def otp_pdf(db: AsyncSession, person_name: str, code: str, gueltigkeit_minuten: int) -> bytes:
+    """Ausdruckbarer 2FA-Anmelde-Code (Etappe AA): Fallback für `zwei_faktor_service`,
+    wenn der Mailversand des Codes scheitert oder SMTP nicht konfiguriert ist. Bewusst
+    ohne weitere Zugangsdaten (kein Passwort) und mit deutlichem Vertraulichkeits-
+    Hinweis, da der Ausdruck am gemeinsam genutzten Gerätehaus-Drucker für alle
+    physisch Anwesenden sichtbar ist – siehe Abwägung im Backlog (Etappe AA)."""
+    return await _rendern(
+        db, "otp.html", person_name=person_name, code=code, gueltigkeit_minuten=gueltigkeit_minuten
+    )
+
+
 async def liste_pdf(
     db: AsyncSession, titel: str, spalten: list[dict[str, str]], zeilen: list[dict[str, Any]]
 ) -> bytes:

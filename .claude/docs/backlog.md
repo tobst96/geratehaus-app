@@ -971,7 +971,7 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
 
 ### 2FA-Pflicht reaktivieren; bei SMTP-Ausfall Code über Netzwerkdrucker statt E-Mail
 
-- Status: Backlog
+- Status: Erledigt (24.08.2026, Feature-Branch `feature/2fa-pflicht-druck-fallback` → PR nach beta)
 - Priorität: Mittel
 - Kategorie: Backend / Sicherheit / Feature
 - Skills: planner, geraetehaus-patterns, tests, review
@@ -999,6 +999,38 @@ Status-Werte: Backlog · Planung · In Bearbeitung · Review · Erledigt · Arch
   physisch Anwesenden sichtbar – prüfen, ob das für den Anwendungsfall
   akzeptabel ist oder der Ausdruck z. B. automatisch eingezogen/kurzlebig sein
   muss. Größerer, sicherheitsrelevanter Umbau → eigener Feature-Branch + PR.
+- Umsetzung: `zwei_faktor_service.otp_erzeugen_und_senden` versucht jetzt erst
+  E-Mail, fängt den tatsächlichen Versandfehler ab (neue `EmailNotifier.
+  otp_versenden()`, die – anders als das best-effort `send_an()` – den Fehler
+  weiterwirft) und weicht bei Fehlschlag auf `druck_service.
+  drucke_pdf_falls_konfiguriert()` mit einem neu gerenderten `pdf_service.
+  otp_pdf()` (Template `otp.html`) aus; liefert beides nichts, bleibt der
+  bestehende Recovery-Code-Weg (schon vorher in `/gruppenfuehrer/2fa` als
+  Alternative zum OTP geprüft) der Ausweg – kein Login-Ausschluss in keinem
+  Fall. `gruppenfuehrer_service.zugang_entscheiden` erzwingt die Pflicht-
+  Einrichtung jetzt, wenn **mindestens ein** Versandweg (SMTP-Host ODER
+  `druck_service.ist_konfiguriert()`, neu) vorhanden ist – vorher war das an
+  SMTP allein gekoppelt. `druck_service.ist_konfiguriert()` ist neu und
+  ersetzt die bisher an drei Stellen inline wiederholte `drucker_aktiv`-Abfrage
+  (Wiederverwendung statt zweiter Drucklogik, wie gefordert).
+  Entscheidungen zu den drei offenen Fragen: (1) Fehlererkennung direkt über
+  die abgefangene Exception beim Mailversand (kein separater Verifizierungs-
+  Config-Key – der Ansatz aus Etappe V bleibt verworfen). (2) Der Drucker ist
+  selbst optional; Priorität ist fest Mail → Druck (falls `drucker_aktiv`) →
+  Recovery-Code, kein Login-Ausschluss in irgendeinem Zweig. (3) Sicherheits-
+  Trade-off bewusst akzeptiert: ein am Gerätehaus-Drucker ausgeworfener Code
+  ist für alle physisch Anwesenden sichtbar, das ist im Kontext dieser
+  internen Feuerwehr-Verwaltungssoftware (Drucker steht ohnehin im nicht-
+  öffentlichen Gerätehaus, vergleichbare Vertrauensgrenze wie bereits
+  sichtbare PINs) vertretbar – der Ausdruck trägt daher einen deutlichen
+  „Vertraulich – nach Gebrauch vernichten"-Hinweis und enthält bewusst keine
+  weiteren Zugangsdaten (kein Passwort). Diese Abwägung ist revidierbar, falls
+  gewünscht. Datenschutz-Seite und README angepasst (Druck-Fallback als
+  Datenverarbeitung erwähnt). Tests: `test_zwei_faktor_druck_fallback.py`
+  (Mail-Erfolg druckt nicht, SMTP-Fehler druckt, SMTP nicht konfiguriert
+  druckt, weder-noch → Recovery-Code bleibt möglich, Druckfehler wirft nicht),
+  plus Ergänzung in `test_gruppenfuehrer_2fa_pflicht.py` für den neuen
+  Drucker-only-Einrichtungs-Zwang. Volle Backend-Suite + Frontend-Build grün.
 
 ---
 

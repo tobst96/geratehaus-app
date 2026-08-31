@@ -68,13 +68,18 @@ export function Datenschutz() {
           statt per Name und PIN.
         </p>
         <p>
-          Für Gruppenführer- und Admin-Zugänge steht optional eine
-          <strong> Zwei-Faktor-Authentisierung</strong> zur Verfügung (in Einstellungen aktivierbar,
-          standardmäßig aus): Beim Login wird zusätzlich zum Passwort ein einmaliger Anmelde-Code an
-          die hinterlegte E-Mail-Adresse geschickt. Bei der Einrichtung werden zudem einmalig
-          <strong> Recovery-Codes</strong> angezeigt (als Hash gespeichert), die bei fehlendem
-          E-Mail-Zugriff als Ersatzcode dienen. Auf Wunsch kann ein Gerät für 30 Tage als
-          vertrauenswürdig markiert werden, sodass dort kein erneuter Code nötig ist (technische
+          Für Gruppenführer- und Admin-Zugänge ist eine
+          <strong> Zwei-Faktor-Authentisierung</strong> standardmäßig verpflichtend (in Einstellungen
+          abschaltbar): Beim Login wird zusätzlich zum Passwort ein einmaliger Anmelde-Code an die
+          hinterlegte E-Mail-Adresse geschickt. Kann diese Mail nicht zugestellt werden (z.&nbsp;B.
+          weil kein Mailserver eingerichtet ist), wird der Code stattdessen – sofern die Organisation
+          einen Netzwerkdrucker im Gerätehaus dafür eingerichtet hat – dort ausgedruckt; dieser
+          Ausdruck ist deutlich als vertraulich gekennzeichnet und sollte nach Gebrauch vernichtet
+          werden, ist aber für alle im Gerätehaus physisch Anwesenden lesbar (vergleichbare
+          Vertrauensstufe wie bereits sichtbare PINs). Bei der Einrichtung werden zudem einmalig
+          <strong> Recovery-Codes</strong> angezeigt (als Hash gespeichert), die als Ersatzcode dienen,
+          falls weder E-Mail noch Drucker zur Verfügung stehen. Auf Wunsch kann ein Gerät für 30 Tage
+          als vertrauenswürdig markiert werden, sodass dort kein erneuter Code nötig ist (technische
           Kennung in einem Cookie). Von einem bereits per E-Mail+Passwort angemeldeten Mitglied mit
           Gruppenführer-/Admin-Rechten aus ist der Wechsel in den entsprechenden Bereich ohne erneute
           Passworteingabe möglich – eine aktivierte Zwei-Faktor-Prüfung bleibt dabei unverändert

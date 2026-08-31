@@ -7,9 +7,13 @@ wird als `drucker_ipp_url` in `app_config` gepflegt (z. B.
 ``ipp://drucker.local:631/ipp/print``).
 
 Eingesetzt als Fallback, wenn der PDF-Mailversand scheitert, sowie optional als
-„immer ausdrucken" beim Einsatz-/Dienstbuch-Abschluss. Druckfehler werden nur
-protokolliert (Best-Effort) – außer beim gezielten Testdruck, der den Fehler
-bewusst nach außen gibt (analog Testmail).
+„immer ausdrucken" beim Einsatz-/Dienstbuch-Abschluss (Etappe K). Seit Etappe AA
+auch als Fallback für den 2FA-Anmelde-Code (`zwei_faktor_service`), wenn dessen
+Mailversand scheitert – der Drucker kennt dabei nur „ein PDF drucken", die
+inhaltliche Aufbereitung (Einsatzbericht vs. Anmelde-Code) übernimmt jeweils der
+aufrufende Service über `pdf_service`. Druckfehler werden nur protokolliert
+(Best-Effort) – außer beim gezielten Testdruck, der den Fehler bewusst nach
+außen gibt (analog Testmail).
 """
 
 from urllib.parse import urlsplit, urlunsplit
@@ -122,11 +126,18 @@ async def drucke_pdf(ipp_url: str, pdf_inhalt: bytes) -> None:
         raise DruckFehler(f"Drucker lehnte den Auftrag ab (IPP-Status 0x{ipp_status:04x}).")
 
 
+async def ist_konfiguriert(db: AsyncSession) -> bool:
+    """Ist ein Netzwerkdrucker-Fallback aktiviert? Reine Config-Abfrage (prüft
+    nicht die Erreichbarkeit) – z. B. genutzt, um zu entscheiden, ob neben
+    E-Mail ein zweiter Versandweg für den 2FA-Anmelde-Code existiert."""
+    return bool(await config_service.get(db, "drucker_aktiv", False))
+
+
 async def drucke_pdf_falls_konfiguriert(db: AsyncSession, pdf_inhalt: bytes) -> bool:
     """Best-Effort-Druck über die konfigurierte `drucker_ipp_url`. Voraussetzung:
     `drucker_aktiv`. Fehler werden nur protokolliert (kein Weiterwurf) und mit
     `False` signalisiert; Erfolg mit `True`."""
-    if not await config_service.get(db, "drucker_aktiv", False):
+    if not await ist_konfiguriert(db):
         return False
     ipp_url = str(await config_service.get(db, "drucker_ipp_url", "") or "")
     try:
@@ -140,7 +151,7 @@ async def drucke_pdf_falls_konfiguriert(db: AsyncSession, pdf_inhalt: bytes) -> 
 async def test_drucken(db: AsyncSession) -> None:
     """Sendet eine kleine Test-PDF an den konfigurierten Drucker. Wirft
     `DruckFehler` weiter (für den Testdruck-Endpunkt, analog Testmail)."""
-    if not await config_service.get(db, "drucker_aktiv", False):
+    if not await ist_konfiguriert(db):
         raise DruckFehler("Der Netzwerkdrucker ist nicht aktiviert.")
     ipp_url = str(await config_service.get(db, "drucker_ipp_url", "") or "")
     await drucke_pdf(ipp_url, _TEST_PDF)

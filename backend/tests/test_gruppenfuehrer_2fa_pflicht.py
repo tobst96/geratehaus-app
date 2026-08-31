@@ -27,6 +27,11 @@ async def _smtp_konfigurieren(db) -> None:
     await config_service.set(db, "notifier_email_smtp_host", "smtp.example.org")
 
 
+async def _drucker_konfigurieren(db) -> None:
+    await config_service.set(db, "drucker_aktiv", True)
+    await config_service.set(db, "drucker_ipp_url", "ipp://p.local/ipp/print")
+
+
 @pytest.mark.asyncio
 async def test_login_pflicht_ohne_2fa_verlangt_einrichtung(client, db):
     await _pflicht(db, True)
@@ -58,6 +63,23 @@ async def test_login_pflicht_ohne_smtp_liefert_token_direkt(client, db):
     body = r.json()
     assert body["access_token"]
     assert body["einrichtung_erforderlich"] is False
+
+
+@pytest.mark.asyncio
+async def test_login_pflicht_ohne_smtp_aber_mit_drucker_verlangt_einrichtung(client, db):
+    """Etappe AA: ein konfigurierter Netzwerkdrucker-Fallback reicht als
+    Versandweg – die Pflicht-Einrichtung muss dann greifen, auch ohne SMTP."""
+    await _pflicht(db, True)
+    await _drucker_konfigurieren(db)
+    await _gf(db)  # SMTP bewusst NICHT konfiguriert
+    r = await client.post(
+        "/api/v1/auth/gruppenfuehrer/login", data={"username": "mod@example.org", "password": "geheim123"}
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["access_token"] is None
+    assert body["einrichtung_erforderlich"] is True
+    assert body["challenge"]
 
 
 @pytest.mark.asyncio

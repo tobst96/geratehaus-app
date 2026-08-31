@@ -22,7 +22,7 @@ from app.core import gruppenfuehrer_2fa_session
 from app.core.security import create_access_token, hash_secret, sicherheit_stand_claim, verify_secret
 from app.models.person import Person
 from app.schemas.auth import GruppenfuehrerLoginErgebnis
-from app.services import zwei_faktor_service
+from app.services import druck_service, zwei_faktor_service
 from app.services.config_service import config_service
 
 
@@ -228,14 +228,17 @@ async def zugang_entscheiden(
     2FA-Einrichtung oder OTP-Challenge. Wiederverwendet von `/gruppenfuehrer/login`
     (Passwort) und `/gruppenfuehrer/step-up` (bereits per Namens-Cookie
     identifizierte Person, kein erneutes Passwort nötig)."""
-    # Zugang ohne aktives 2FA: Pflicht-Einrichtung nur erzwingen, wenn auch SMTP
-    # konfiguriert ist – sonst käme der Anmelde-Code nie an und niemand könnte
-    # (z. B. auf einer frisch eingerichteten Instanz) je in den Gruppenführer-/
-    # Admin-Bereich, um SMTP überhaupt erst einzurichten.
+    # Zugang ohne aktives 2FA: Pflicht-Einrichtung nur erzwingen, wenn der
+    # Anmelde-Code auch zugestellt werden kann – per Mail ODER per Netzwerk-
+    # drucker-Fallback (Etappe AA). Ist keines von beiden konfiguriert, käme
+    # der Code nie an und niemand könnte (z. B. auf einer frisch eingerichteten
+    # Instanz) je in den Gruppenführer-/Admin-Bereich, um SMTP oder den Drucker
+    # überhaupt erst einzurichten.
     if not person.zwei_faktor_aktiv:
         pflicht = bool(await config_service.get(db, "zwei_faktor_pflicht", False))
         mail_konfiguriert = bool(await config_service.get(db, "notifier_email_smtp_host", ""))
-        if pflicht and mail_konfiguriert:
+        drucker_konfiguriert = await druck_service.ist_konfiguriert(db)
+        if pflicht and (mail_konfiguriert or drucker_konfiguriert):
             return GruppenfuehrerLoginErgebnis(
                 einrichtung_erforderlich=True,
                 email_gesetzt=bool(person.email),
@@ -247,8 +250,8 @@ async def zugang_entscheiden(
     if await zwei_faktor_service.trusted_device_gueltig(db, person, trusted_device_roh):
         return GruppenfuehrerLoginErgebnis(access_token=gruppenfuehrer_token(person))
 
-    # 2FA: OTP per E-Mail senden (Best-Effort – ohne E-Mail bleibt der
-    # Recovery-Code-Weg) und Challenge für den zweiten Schritt zurückgeben.
+    # 2FA: OTP zustellen (Mail → Druck-Fallback → Recovery-Code-Weg, siehe
+    # `otp_erzeugen_und_senden`) und Challenge für den zweiten Schritt zurückgeben.
     try:
         await zwei_faktor_service.otp_erzeugen_und_senden(db, person)
     except ValueError:

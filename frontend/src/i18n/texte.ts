@@ -668,7 +668,10 @@ export const texte = {
     zwei_faktor_pflicht_label: "2FA für alle erhöhten Konten (Admin/Gruppenführer) verpflichtend",
     zwei_faktor_pflicht_hinweis:
       "Ist die Pflicht aktiv, müssen Admins und Gruppenführer ohne aktives 2FA es beim nächsten " +
-      "Login einmalig einrichten (E-Mail hinterlegen + Recovery-Codes sichern), bevor sie hineinkommen.",
+      "Login einmalig einrichten (E-Mail hinterlegen + Recovery-Codes sichern), bevor sie hineinkommen. " +
+      "Schlägt der Mailversand des Anmelde-Codes fehl, weicht die App automatisch auf den unten " +
+      "konfigurierten Netzwerkdrucker aus; ist auch keiner eingerichtet, bleiben die Recovery-Codes " +
+      "der Ausweg – ein Login-Ausschluss ist damit ausgeschlossen.",
     fehlerberichte: "Fehlerberichte",
     fehlerberichte_label: "Technische Fehlerberichte an den Entwickler senden",
     fehlerberichte_hinweis:
